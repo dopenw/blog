@@ -1,20 +1,20 @@
 # 前言
 因公司开发的软件是在linux服务器上运作的，
 而常用的操作系统是windows，为了解决调试问题，
-就有了用这个方式来调试linux下的Cpp和lua相关代码
-## 工具
-VisualStudio 2010，zerobrane，visual gdb
+就有了通过visualstudio和zerobrane来调试linux下的Cpp和lua相关代码的方法
+## software
+VisualStudio，Zerobrane，Visual GDB
 
-### VisualStudio
-1. VisualStudio create linux project
+### VisualStudioGDB
+1. VisualStudio create linux project(Need visual gdb)
 2. Create new ssh connection
 3. Make local_source_code -- remote_source_code
 3. Change visual GDB setting (project setting,
 build setting,debug setting,custom build steps)
 
-### zerobrane
+### Zerobrane
 
-#### tools:luasocket
+#### Dependent package:luasocket
 
 1. Install luasocket library(By yum,source code,luarocks)
 2. Cp (zerobrane)lualibs/mobdebug/mobdebug.lua to
