@@ -1,5 +1,5 @@
 # blog
 step by steop
 
-## enjoy work and study
+## Enjoy work and study
 
