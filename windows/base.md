@@ -1,2 +1,2 @@
 # Categories windows
-* ## [home](README.md)
+* ## [home](../README.md)

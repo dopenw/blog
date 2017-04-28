@@ -1,2 +1,2 @@
 # Categories mysql
-* ## [home](README.md)
+* ## [home](../README.md)

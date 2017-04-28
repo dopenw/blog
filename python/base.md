@@ -1,2 +1,2 @@
 # Categories python
-* ## [home](README.md)
+* ## [home](../README.md)

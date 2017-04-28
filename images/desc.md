@@ -1,2 +1,2 @@
 # images path
-* ## [home](README.md)
+* ## [home](../README.md)
