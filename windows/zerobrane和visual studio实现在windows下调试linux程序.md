@@ -16,9 +16,9 @@ build setting,debug setting,custom build steps)
 
 #### tools:luasocket
 
-1. install luasocket library(By yum,source code,luarocks)
+1. Install luasocket library(By yum,source code,luarocks)
 2. Cp (zerobrane)lualibs/mobdebug/mobdebug.lua to
 /usr/share/lua/5.x/ (64 bits)
-3. open zerobrane application and click "set project file
+3. Open zerobrane application and click "set project file
  from current file" and set Project->Start Debugger server
-4. In debug file add require("mobdebug").start("192.168.XXX.1")
+4. Add require("mobdebug").start("192.168.XXX.1") in debug file
