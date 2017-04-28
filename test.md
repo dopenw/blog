@@ -1,6 +1,6 @@
 # this is test markdown
 
-[home] (README.md)
+[home](README.md)
 
 ```cpp
 #include <stdio.h>
