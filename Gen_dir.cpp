@@ -1,0 +1,68 @@
+#include <iostream>
+#include <algorithm>
+#include <string>
+#include <fstream>
+#include <vector>
+#include <unistd.h>
+
+using namespace std;
+void read_config(const string config_file,std::vector<string> &vec)
+{
+        ifstream file(config_file);
+        string tmp_string;
+        if(file.is_open())
+        {
+                while (!file.eof())
+                {
+                        file >>tmp_string;
+                        vec.push_back(tmp_string);
+                }
+                if(!vec.empty())
+                {
+                        vec.pop_back();
+                }
+        }
+        for(auto i:vec)
+        {
+                std::cout << i << '\n';
+        }
+}
+
+
+void write_base_markdown(const string config_file,std::vector<string> &vec)
+{
+        ofstream outfile(config_file);
+        outfile<<"# Categories"<<" "<<config_file<<endl;
+        outfile<<"* ## [home](../README.md)"<<endl;
+        for(unsigned int i=0; i<(vec.size()/2); i++)
+        {
+                outfile<<"* ### "<<'['<< vec[i*2]<<']'<<'('<< vec[i*2+1]<<')'<<endl;
+        }
+        outfile<<"                           step by steop";
+        vec.clear();
+}
+
+int main(int argc, char const *argv[]) {
+std::vector<string> global;
+        std::vector<string> vec;
+        read_config("global",global);
+        for (unsigned int path_count=0;path_count<global.size();path_count++)
+        {
+          const char *tmp=("./"+global[path_count]).c_str();
+        if(chdir(tmp)<0)
+        std::cout << "chdir error" << '\n';
+        read_config(global[path_count],vec);
+        write_base_markdown("base.md",vec);
+        tmp="../";
+        if(chdir(tmp)<0)
+        std::cout << "chdir error" << '\n';
+       }
+        for(auto i:vec)
+        {
+                std::cout << i << '\n';
+        }
+
+
+
+        return 0;
+}
