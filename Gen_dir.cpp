@@ -6,6 +6,26 @@
 #include <unistd.h>
 
 using namespace std;
+
+bool exists_file_y_n (const std::string& name) {
+        ifstream f(name.c_str());
+        return f.good();
+}
+
+int getPosFromVector(const string config_file,std::vector<string> vec)
+{
+        auto it = std::find(vec.begin(), vec.end(), config_file);
+        if (it == vec.end())
+        {
+                return -1;
+        } else
+        {
+                auto index = std::distance(vec.begin(), it);
+                return index;
+        }
+
+}
+
 void read_config(const string config_file,std::vector<string> &vec)
 {
         ifstream file(config_file);
@@ -39,24 +59,64 @@ void write_base_markdown(const string config_file,std::vector<string> &vec)
                 outfile<<"* ### "<<'['<< vec[i*2]<<']'<<'('<< vec[i*2+1]<<')'<<endl;
         }
         outfile<<"                           step by steop";
-        vec.clear();
+        // vec.clear();
+}
+
+int blog_add_pre_next_links(const string config_file,std::vector<string> &vec)
+{
+        if (exists_file_y_n(config_file))
+        {
+                ofstream outfile(config_file,std::ios::app);
+                outfile<<"[上一级](base.md)"<<endl;
+                auto pos=getPosFromVector(config_file,vec);
+                if(pos==-1)
+                {
+                        cout<<"error ,get pos from vector is wrong";
+                        return -1;
+                }
+                if(pos==1)
+                {
+                        if(pos<vec.size()-1)
+                                outfile<<"[下一篇]"<<"("<< vec[pos+2] <<")"<<endl;
+                }
+                else
+                {
+                        if(pos<vec.size()-1)
+                        {
+                                outfile<<"[上一篇]"<<"("<< vec[pos-2] <<")"<<endl;
+                                outfile<<"[下一篇]"<<"("<< vec[pos+2] <<")"<<endl;
+                        }
+                }
+
+
+        }
+        return 0;
 }
 
 int main(int argc, char const *argv[]) {
-std::vector<string> global;
+        std::vector<string> global;
         std::vector<string> vec;
         read_config("global",global);
-        for (unsigned int path_count=0;path_count<global.size();path_count++)
+        const char *tmp=nullptr;
+        for (unsigned int path_count=0; path_count<global.size(); path_count++)
         {
-          const char *tmp=("./"+global[path_count]).c_str();
-        if(chdir(tmp)<0)
-        std::cout << "chdir error" << '\n';
-        read_config(global[path_count],vec);
-        write_base_markdown("base.md",vec);
-        tmp="../";
-        if(chdir(tmp)<0)
-        std::cout << "chdir error" << '\n';
-       }
+                tmp=("./"+global[path_count]).c_str();
+                if(chdir(tmp)<0)
+                        std::cout << "chdir error" << '\n';
+                read_config(global[path_count],vec);
+                write_base_markdown("base.md",vec);
+                for(unsigned int write_config_link_count=0; write_config_link_count<vec.size()/2; write_config_link_count++)
+                {
+                        if(blog_add_pre_next_links(vec[write_config_link_count*2+1],vec)==-1)
+                        {
+                                std::cout << "error ,blog_add_pre_next_links is wrong" << '\n';
+                        }
+                }
+                vec.clear();
+                tmp="../";
+                if(chdir(tmp)<0)
+                        std::cout << "chdir error" << '\n';
+        }
         for(auto i:vec)
         {
                 std::cout << i << '\n';
