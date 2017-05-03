@@ -16,5 +16,4 @@ char *pc=&v[0];
 
 ```
 [上一级](base.md)
-[上一级](base.md)
-[上一级](base.md)
+[下一篇](kill_nohup_proc.md)

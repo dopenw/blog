@@ -61,14 +61,28 @@ void write_base_markdown(const string config_file,std::vector<string> &vec)
         outfile<<"                           step by steop";
         // vec.clear();
 }
-
-int blog_add_pre_next_links(const string config_file,std::vector<string> &vec)
+void clear_blog_tail_links(const string blog_file)
 {
-        if (exists_file_y_n(config_file))
+        ifstream infile(blog_file.c_str());
+        ofstream outfile("tmp.md");
+        string tmp_line;
+        while (getline(infile,tmp_line)) {
+                if (tmp_line=="[上一级](base.md)")
+                        break;
+                outfile<<tmp_line<<std::endl;
+        }
+        remove(blog_file.c_str());
+        rename("tmp.md",blog_file.c_str());
+}
+
+int blog_add_pre_next_links(const string blog_file,std::vector<string> &vec)
+{
+        if (exists_file_y_n(blog_file))
         {
-                ofstream outfile(config_file,std::ios::app);
+                clear_blog_tail_links(blog_file);
+                ofstream outfile(blog_file,std::ios::app);
                 outfile<<"[上一级](base.md)"<<endl;
-                auto pos=getPosFromVector(config_file,vec);
+                auto pos=getPosFromVector(blog_file,vec);
                 if(pos==-1)
                 {
                         cout<<"error ,get pos from vector is wrong";
@@ -81,6 +95,10 @@ int blog_add_pre_next_links(const string config_file,std::vector<string> &vec)
                 }
                 else
                 {
+                        if(pos==vec.size()-1)
+                        {
+                                outfile<<"[上一篇]"<<"("<< vec[pos-2] <<")"<<endl;
+                        }
                         if(pos<vec.size()-1)
                         {
                                 outfile<<"[上一篇]"<<"("<< vec[pos-2] <<")"<<endl;
