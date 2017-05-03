@@ -49,10 +49,10 @@ void read_config(const string config_file,std::vector<string> &vec)
 }
 
 
-void write_base_markdown(const string config_file,std::vector<string> &vec)
+void write_base_markdown(const string config_file,std::vector<string> &vec,const string Categories)
 {
         ofstream outfile(config_file);
-        outfile<<"# Categories"<<" "<<config_file<<endl;
+        outfile<<"# Categories"<<" "<<Categories<<endl;
         outfile<<"* ## [home](../README.md)"<<endl;
         for(unsigned int i=0; i<(vec.size()/2); i++)
         {
@@ -122,7 +122,7 @@ int main(int argc, char const *argv[]) {
                 if(chdir(tmp)<0)
                         std::cout << "chdir error" << '\n';
                 read_config(global[path_count],vec);
-                write_base_markdown("base.md",vec);
+                write_base_markdown("base.md",vec,global[path_count]);
                 for(unsigned int write_config_link_count=0; write_config_link_count<vec.size()/2; write_config_link_count++)
                 {
                         if(blog_add_pre_next_links(vec[write_config_link_count*2+1],vec)==-1)
