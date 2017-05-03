@@ -4,5 +4,5 @@
 3. 可使用killall -9 `proc_name`来终止守护进程
 
 
+
 [上一级](base.md)
-[上一篇](conv_string_to_char_pointer.md)
