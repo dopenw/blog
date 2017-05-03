@@ -15,5 +15,6 @@ std:strcpy(&v[0],mystring.c_str());
 char *pc=&v[0];
 
 ```
+
 [上一级](base.md)
 [下一篇](kill_nohup_proc.md)

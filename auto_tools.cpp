@@ -81,7 +81,7 @@ int blog_add_pre_next_links(const string blog_file,std::vector<string> &vec)
         {
                 clear_blog_tail_links(blog_file);
                 ofstream outfile(blog_file,std::ios::app);
-                outfile<<"[上一级](base.md)"<<endl;
+                outfile<<std::endl<<"[上一级](base.md)"<<endl;
                 auto pos=getPosFromVector(blog_file,vec);
                 if(pos==-1)
                 {
