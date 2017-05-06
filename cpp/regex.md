@@ -9,7 +9,7 @@ Aborted (core dumped)
 原以为是语法错误，结果通过
 [我是一只C++小小鸟](http://www.cnblogs.com/ittinybird/p/4853532.html)的博客找到了问题：
 
-**GCC 4.8.3编译器有regex头文件，语法完全支持，但是库还没跟上。编译时没有问题，但是一运行就会直接抛出异常**
+**GCC4.8.3编译器有regex头文件，语法完全支持，但是库还没跟上。编译时没有问题，但是一运行就会直接抛出异常**
 
 3. regex 函数
     1. bool regex_match(str,regex) 检验regex之完全匹配
