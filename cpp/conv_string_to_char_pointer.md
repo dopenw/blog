@@ -1,3 +1,4 @@
+# 将string转换为char指针
 * ## If you need const char*
 
 ```cpp
@@ -20,5 +21,17 @@ char *pc=&v[0];
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 [上一级](base.md)
-[下一篇](regex.md)
+[下一篇]([下一篇](

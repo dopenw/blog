@@ -1,4 +1,4 @@
-###   C++使用正则表达式
+# c++正则表达式
 1. 正则表达式Regex(regular expression)是一种强大的描述字符序列的工具。在许多语言中都存在着正则表达式，C++11中也将正则表达式纳入了新标准的一部分，不仅如此，它还支持了6种不同的正则表达式的语法，分别是：ECMASCRIPT、basic、extended、awk、grep和egrep。
 2. 使用regex后编译器提示
 ```cpp
@@ -18,5 +18,16 @@ Aborted (core dumped)
     4. bool regex_search(str,matchRet,regex) 查找并返回regex的匹配
     5. strRes regex_replace(str.regex,repl) 根据regex替换所有匹配
 
+
+
+
+
+
+
+
+
+
+
+
+
 [上一级](base.md)
-[上一篇](conv_string_to_char_pointer.md)
