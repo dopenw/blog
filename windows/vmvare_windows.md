@@ -25,3 +25,24 @@
           If those two conditions are true, the virtual machine can safely remove the stale lock. If either of those conditions is not true, a dialog box appears, warning you that the virtual machine cannot be powered on. If you are sure it is safe to do so, you may delete the lock files manually. On Windows hosts, the filenames of the lock files end in .lck. On Linux hosts, the filenames of the lock files end in .WRITELOCK.
 
           Physical disk partitions are also protected by locks. However, the host operating system is not aware of this locking convention and thus does not respect it. For this reason, VMware strongly recommends that the physical disk for a virtual machine not be installed on the same physical disk as the host operating system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[上一级](base.md)
+[下一篇](windows_linux.md)

@@ -22,3 +22,22 @@
        PS:    Paragraph Separator, U+2029
 2. windows和linux的纯文本都是不一样的，windows的会在纯文本中写入一些东西
 3. window<=>linux需注意转换（unix2dos、dos2unix）
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[上一级](base.md)
+[上一篇](vmvare_windows.md)
+[下一篇](zerobrane_VisualStudio_debug_linux.md)
