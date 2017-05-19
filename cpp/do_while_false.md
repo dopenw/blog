@@ -30,3 +30,7 @@ do
     //code
 }while(false);
 ```
+
+[上一级](base.md)
+[上一篇](conv_string_to_char_pointer.md)
+[下一篇](regex.md)
