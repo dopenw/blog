@@ -1,4 +1,4 @@
-# mysql 提示“Lock wait timeout exceeded; try restarting transaction”的解决办法
+# mysql提示“Lock wait timeout exceeded; try restarting transaction”的解决办法
 
 ## Force unlock for locked tables
 
