@@ -8,6 +8,7 @@
 解决办法：
 后发现是nux源和rpmfusion-free-release源有冲突，卸载rpmfusion-free-release
 
+
 [上一级](base.md)
 [上一篇](command.md)
 [下一篇](process.md)

@@ -1,22 +1,23 @@
 # 求笛卡尔积
 
 ```lua
-function solvenultinick(lst)
+function CartesianProduct(lst)
 
 
   ans={}
 
-function nicknamedfs(str,curIndex,alist)
+
+function dfs(str,curIndex,alist)
   length=#alist;
   if curIndex >length then
     table.insert(ans,str);
     return
   end
   for _,item in pairs(alist[curIndex]) do
-    nicknamedfs(str..tostring(item),curIndex+1,alist)
+    dfs(str..tostring(item),curIndex+1,alist)
     end
   end
-  nicknamedfs('',1,lst)
+  dfs('',1,lst)
   print(ans)
   for _,v in pairs(ans) do
     print(v)
@@ -25,9 +26,8 @@ function nicknamedfs(str,curIndex,alist)
 end
 
 
-solvenultinick({{1,2},{3,4},{5,6}})
+CartesianProduct({{1,2},{3,4},{5,6}})
 ```
 
-
 [上一级](base.md)
-[上一篇](lua_develop.md)
+[下一篇](lua_develop.md)

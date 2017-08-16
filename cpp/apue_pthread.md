@@ -250,5 +250,6 @@ int pthread_barrier_wait(pthread_barrier_t * barrier);
 //对于一个任意线程，pthread_barrier_wait函数返回了PTHREAD_BARRIER_SERIAL_THREAD。剩下的线程看到的返回值是0；
 ```         
 
+
 [上一级](base.md)
 [下一篇](conv_string_to_char_pointer.md)
