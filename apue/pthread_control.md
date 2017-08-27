@@ -348,7 +348,7 @@ int pthread_barrierattr_destroy(pthread_barrierattr_t *attr);
 目前定义的屏障属性只有
 #### 进程共享属性：
 ```c
-int pthrad_barrierattr_getpshared(const pthread_barrierattr_t * restrict attr,int *restrict pshared);
+int pthread_barrierattr_getpshared(const pthread_barrierattr_t * restrict attr,int *restrict pshared);
 int pthread_barrierattr_setpshared(pthread_barrierattr_t *attr,int pshared);
 ```
 
