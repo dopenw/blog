@@ -298,5 +298,60 @@ arg=1;
 ```
 如果我们不能够创建线程，或者安排函数运行的时间以过，这是问题就出现了。在这些情况下，我们只需在当前上下文中调用之前请求运行的函数。因为函数要获取的锁和我们现在占有的锁是同一个，所以除非该锁是递归的，否则就会出现死锁。
 
+### 读写锁属性
+```c
+int pthread_rwlockattr_init(pthread_rwlockattr_t *attr);
+int pthread_rwlocakattr_destory(pthread_rwlockattr_t *attr);
+```
+读写锁支持的唯一属性是进程共享属性。它与互斥量的进程共享属性是相同的。就像互斥量的进程共享属性一样，有一对函数用于读取和设置读写锁的进程共享属性。
+```c
+int pthread_rwlockattr_getpshared(const pthread_rwlockattr_t *restrict attr,int *restrict pshared);
+int pthread_rwlockattr_setpshared(pthread_rwlockattr_t *attr,int pshared);
+```
+虽然POSIX只定义了一个读写锁属性，但不同平台的实现可以自由地定义额外的、非标准的属性。
+
+
+### 条件变量属性
+```c
+int pthread_condattr_init(pthread_condattr_t *attr);
+int pthread_condattr_destroy(pthread_condattr_t * attr);
+```
+进程共享属性和时钟属性。
+
+#### 进程共享属性:
+```c
+int pthread_condattr_getshared(const pthread_condattr_t *restrict attr,int *restrict pshared);
+int pthread_condattr_setshared(pthread_condattr_t *attr,int pshared);
+```
+
+#### 时钟属性：
+时钟属性控制计算pthread_cond_timedwait函数的超时参数时采用的哪个时钟。合法值取自下图列出的时钟ID。
+
+
+|标示符 | 选项    | 说明|
+| :- | :- |:-|
+|  CLOCK_REALTIME |       | 实时系统时间 |
+| CLOCK_MONOTONIC |_POSIX_MONOTONIC_CLOCK|不带负跳数的实时系统时间
+|CLOCK_PROCESS_CPUTIME_ID|_POSIX_CPUTIME|调用进程的CPU时间
+|CLOCK_THREAD_CPUTIME_ID|_POSIX_THREAD_CPUTIME|调用线程的CPU时间
+
+```c
+int pthread_condattr_getclock(const pthread_condattr_t *restrict attr,clockid_t *restrict clock_id);
+int pthread_condattr_setclock(pthread_condattr_t * attr,clockid_t clock_id);
+```
+
+### 屏障属性
+```c
+int pthread_barrierattr_init(pthread_barrierattr_t * att);
+int pthread_barrierattr_destroy(pthread_barrierattr_t *attr);
+```
+目前定义的屏障属性只有
+#### 进程共享属性：
+```c
+int pthrad_barrierattr_getpshared(const pthread_barrierattr_t * restrict attr,int *restrict pshared);
+int pthread_barrierattr_setpshared(pthread_barrierattr_t *attr,int pshared);
+```
+
+
 [上一级](base.md)
 [上一篇](pthread.md)
