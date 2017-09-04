@@ -346,12 +346,95 @@ int pthread_barrierattr_init(pthread_barrierattr_t * att);
 int pthread_barrierattr_destroy(pthread_barrierattr_t *attr);
 ```
 目前定义的屏障属性只有
-#### 进程共享属性：
+#### 进程共享属性
 ```c
-int pthread_barrierattr_getpshared(const pthread_barrierattr_t * restrict attr,int *restrict pshared);
+int pthread_barrierattr_getpshared(const pthread_barrierattr_t * restrict attr,int *restrict pshared);     
 int pthread_barrierattr_setpshared(pthread_barrierattr_t *attr,int pshared);
 ```
 
+
+## 重入
+如果一个函数在相同的时间点可以被多个线程安全的调用，就称该函数是线程安全的。很多函数并不是线程安全的，因为他们返回的数据存放在静态的内存缓冲区中。通过修改接口，要求调用者自己提供缓冲区可以使函数变为线程安全。如果一个函数对多个线程来说是可重入的，就说这个函数就是线程安全的。但这并不说明对信号处理程序来说该函数也是可重入的。如果函数对异步信号处理程序的重入是安全的，那么就可以说函数是异步信号安全的。
+getenv非可重入的一个可能实现版本
+```c
+#include <limits.h>
+#include <string.h>
+
+#define MAXSTRINGSZ 4096
+
+static char envbuf[MAXSTRINGSZ]
+extern char **environ;
+
+char * getenv(const char *name)
+{
+  int i,len;
+  len=strlen(name);
+  for (i=0;environ[i]!=NULL;i++)
+  {
+    if ((strncmp(name,environ[i],len)==0) &&
+  (environ[i][len]=='=') )
+  {
+    strncpy(envbuf,&environ[i][len+1],MAXSTRINGSZ-1);
+    return (envbuf);
+  }
+  }
+  return (NULL);
+}
+```
+getenv的可重入（线程安全）版本
+```c
+#include <string.h>
+#include <errno.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+extern char **environ;
+
+pthread_mutex_t env_mutex;
+
+static pthread_once_t init_done=PTHREAD_ONCE_INIT;
+
+staic void thread_init(void)
+{
+  pthread_mutexattr_t attr;
+
+  pthread_mutexatr_init(&attr);
+  //使用互斥量递归锁，避免死锁
+  pthread_mutexattr_settype(&attr,PTHREAD_MUTEX_RECURSIVE);
+  pthread_mutex_init(&env_mutex,&attr);
+  pthread_mutexattr_destroy(&attr);
+}
+
+int getenv_r(const char *name,char *buf,int buflen)
+{
+  int i,len,olen;
+
+  pthread_once(&init_done,thread_init);
+  len=strlen(name);
+  pthread_mutex_lock(&env_mutex);
+
+  for (i=0;environ[i]!=NULL;i++)
+  {
+    if ((strncmp(name,environ[i],len)==0) &&
+  (environ[i][len]=='=') )
+  {
+    olen=strlen(&environ[i][len+1]);
+    if(olen>=buflen)
+    {
+      pthread_mutex_unlock(&env_mutex);
+      return (ENOSPC);
+    }
+    strcpy(envbuf,&environ[i][len+1]);
+    pthread_mutex_unlock(&env_mutex);
+    return (0);
+  }
+  }
+  pthread_mutex_unlock(&env_mutex);
+  return (ENOENT);
+}
+```
+
+要使getenv_r可重入，需要改变接口，调用者必须提供他自己的缓冲区，这样每个线程可以使用各自不同的缓冲区避免其他线程的干扰。但是，注意，要想使getenv_r成为线程安全的，这样做还不够，需要在搜索请求的字符时保护环境不被修改。
 
 [上一级](base.md)
 [上一篇](pthread.md)
