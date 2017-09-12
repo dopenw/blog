@@ -436,5 +436,140 @@ int getenv_r(const char *name,char *buf,int buflen)
 
 要使getenv_r可重入，需要改变接口，调用者必须提供他自己的缓冲区，这样每个线程可以使用各自不同的缓冲区避免其他线程的干扰。但是，注意，要想使getenv_r成为线程安全的，这样做还不够，需要在搜索请求的字符时保护环境不被修改。
 
+
+## 线程特定数据
+线程特定数据，也称为线程私有数据，是存储和查看某个特定线程相关数据的一种机制。（我们希望没个线程可以访问它自己单独的数据副本，而不需要担心与其他线程的同步访问问题）
+
+为什么有人想在这样的模型中促进阻止共享的接口呢?
+1，有时候需要维护基于每个线程的数据。
+2，它提供了让基于进程的接口适应多线程环境的机制。
+
+一个进程中的所有线程都可以访问这个进程的整个地址空间。除了使用寄存器以外，一个线程没有办法阻止另一个线程访问它的数据。线程特定数据也不例外。虽然底层的实现部分并不能阻止这种访问能力，但管理特定数据的函数可以提高线程间的数据独立性，使得线程不太容易访问到其他线程的线程特定数据。
+
+在分配线程特定数据之前，需要创建与该数据关联的键。这个键将用于u获取对线程特定数据的访问。
+```c
+int pthread_key_create(pthread_key_t *keyp,void  (*destructor)(void *));
+//prhtead_key_create可以为该键关联一个可选择的析构函数destructor。
+```
+
+创建的键存储在keyp指向的内存单元中，这个键可以被进程中的所用线程使用，但每个线程把这个建与不同的线程特定数据地址进行关联。
+
+对所用的线程，我们都可以调用pthread_key_delete来取消键与线程特定数据值之间的关联关系。
+```c
+int pthread_key_delete(pthread_key_t key);
+```
+注意，调用pthread_key_delete并不会激活与键关联的析构函数。要释放任何关联的线程特定数据值的内存，需要在应用程序中采取额外的操作。
+
+保证初始化例程只调用一次。
+```c
+pthread_once_t initflag=PTHREAD_ONCE_INIT;
+//initflag必须是一个非本地变量（如全局变量或静态变量），必须初始化为PTHREAD_ONCE_INIT
+pthread_once(pthread_once_t *initflag,void (*initfn)(void));
+```
+
+
+eg:
+```c
+void destructor(void *);
+pthread_key_t key;
+pthread_once_t init_done=PTHREAD_ONCE_INIT;
+void thread_init(void) {
+  err =pthread_key_create(&key,destructor);
+}
+
+int threadfunc(void * arg)
+{
+  pthread_once(&init_done,thread_init);
+}
+```
+
+键一旦创建后，就可以通过调用pthread_setspecific函数把键和线程特定的数据关联起来。可以通过pthread_getspecific函数获取线程特定数据的地址。
+```c
+void *pthread_getspecific(pthread_key_t key);
+//若没有线程特定的数据与键关联，pthread_getspecific将返回NULL pointer
+int pthread_setspecific(ptherad_key_t key,const void *value);
+```
+
+下面给出了用线程特定数据的getenv的假设实现。
+
+```c
+#include <limits.h>
+#include <string.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+#define MAXSTRINGSZ 4096
+static pthread_key_t key;
+static pthread_once_t init_done=PTHREAD_ONCE_INIT;
+pthread_mutex_t env_mutex=PTHREAD_MUTEX_INITALIZER;
+
+ extern char ** environ;
+
+ static void thread_init(void) {
+   pthread_key_create(&key,free);
+ }
+
+ char * getenv(const char *name)
+ {
+   int i,len;
+   char *envbuf;
+
+   pthread_once(&init_done,thread_init);
+   pthread_mutex_lock(&env_mutex);
+   envbuf=(char *)pthread_getspecific(key);
+   if(envbuf==NULL)
+   {
+     envbuf=malloc(MAXSTRINGSZ);
+     if (envbuf==NULL)
+     {
+       pthread_mutex_unlock(&env_mutex);
+       return (NULL);
+     }
+     pthread_setspecific(key,envbuf);
+   }
+   len=strlen(name);
+   for(int i=0;environ[i]!=NULL;i++)
+   {
+     if ((strncmp(name,environ[i],len)==0) &&
+   (environ[i][len] == '='))
+   {
+     strncpy(envbuf,&environ[i][len+1],MAXSTRINGSZ-1);
+     pthread_mutex_unlock(&env_mutex);
+     return (envbuf);
+   }
+   }
+   pthread_mutex_unlock(&env_mutex);
+   return (NULL);
+ }
+```
+注意，这个版本的getenv是线程安全的，但他并不是异步信号安全的。因为它调用了malloc，这个函数本身并不是异步信号安全的。
+
+## 取消选项
+有两个线程属性并没有包含在pthread_attr_t结构中，他们是可取消状态和可取消类型。这两个属性影响着线程在响应pthread_cancel函数调用时所呈现出的行为。
+
+可取消状态属性可以是：
+1，PTHREAD_CANCEL_ENABLE
+2，PTHREAD_CANCEL_DISABLE
+可通过调用pthread_setcancelstate来修改可取消状态。
+```c
+int pthread_setcancelstate(int state,int *oldstate);
+```
+ptheread_cancel调用并不等待线程终止。在默认的情况下，线程在取消请求发出以后还是继续运行，直到到达某个取消点。取消点是线程检查它是否被取消的一个位置，如果取消了，则按照请求行事。
+
+可以调用pthread_testcancel函数添加自己的取消点。
+```c
+void pthread_testcancel(void);
+```
+
+我们所描述的默认的取消类型为推迟取消。调用pthread_cancel后，在线程到达取消点之前，并不会出现真正的取消。可以通过pthread_setcanceltype来修改取消类型。
+```c
+int pthread_setcanceltype(int type,int *oldtype);
+```
+
+取消类型：
+1，PTHREAD_CANCEL_DEFERRED ,推迟取消。
+2,PTHREAD_CANCEL_ASYNCHRONOUS，异步取消。
+使用异步取消时，线程可以在任意时间撤销，不是非得遇到取消点才能被取消。
+
 [上一级](base.md)
 [上一篇](pthread.md)
