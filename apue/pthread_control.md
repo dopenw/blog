@@ -571,5 +571,7 @@ int pthread_setcanceltype(int type,int *oldtype);
 2,PTHREAD_CANCEL_ASYNCHRONOUS，异步取消。
 使用异步取消时，线程可以在任意时间撤销，不是非得遇到取消点才能被取消。
 
+
+
 [上一级](base.md)
 [上一篇](pthread.md)
