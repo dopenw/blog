@@ -1,6 +1,6 @@
 # tet
 
-![../images](test.md1.png)
+![../images](test1.png)
 
 
 
