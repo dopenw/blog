@@ -142,5 +142,9 @@ ListNode* swapPairs(ListNode* head) {
 
 [algorithm_link](https://leetcode.com/problems/swap-nodes-in-pairs/discuss/)
 
+
+
+
+
 [上一级](base.md)
 [下一篇](ZigZag_Conversion.md)
