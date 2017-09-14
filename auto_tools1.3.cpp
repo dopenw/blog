@@ -6,6 +6,7 @@
 #include <map>
 #include <regex>
 #include <string>
+#include <time.h>
 #include <unistd.h>
 #include <vector>
 using namespace std;
@@ -55,9 +56,19 @@ bool list_dir(std::vector<string> &blog_file) {
   return true;
 }
 
+const std::string currentDateTime() {
+  time_t now = time(0);
+  struct tm *tstruct;
+  char buf[80];
+  tstruct = localtime(&now);
+  strftime(buf, sizeof(buf), "%Y%m%d%H%M", tstruct);
+  return buf;
+}
+
 bool regex_match_replace_img(std::string number, std::string blog_file_name) {
   std::string blog_name = blog_file_name.substr(0, blog_file_name.size() - 3);
-  std::string blog_file_img_name = blog_name + number + ".png";
+  std::string blog_file_img_name =
+      blog_name + "_" + currentDateTime() + "_" + number + ".png";
   std::string src_img_path = "/home/ghi/Pictures/" + number + ".png";
   std::string des_img_path = "../images/" + blog_file_img_name;
   int result = 0;
@@ -87,6 +98,7 @@ void write_base_markdown(const string config_file,
   outfile << "                           step by steop";
   // vec.clear();
 }
+
 void open_blog_clear_tail_links(const string blog_file,
                                 std::map<string, string> &map_blog) {
   std::regex reg1("(.*#.*)");
@@ -115,8 +127,10 @@ void open_blog_clear_tail_links(const string blog_file,
       regex_search(tmp_line.c_str(), cm, reg4);
       regex_match_replace_img(cm[0], blog_file);
       string number = cm[0];
-      outfile << "![../images]"
-              << "(" << blog_file + number + ".png"
+      outfile << "![]"
+              << "("
+              << "../images/" + blog_file.substr(0, blog_file.size() - 3) +
+                     "_" + currentDateTime() + "_" + number + ".png"
               << ")" << endl;
       continue;
       rm_other_digtal_image = true;
