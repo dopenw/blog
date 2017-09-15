@@ -65,10 +65,11 @@ const std::string currentDateTime() {
   return buf;
 }
 
-bool regex_match_replace_img(std::string number, std::string blog_file_name) {
+bool regex_match_replace_img(std::string number, std::string currentTime,
+                             std::string blog_file_name) {
   std::string blog_name = blog_file_name.substr(0, blog_file_name.size() - 3);
   std::string blog_file_img_name =
-      blog_name + "_" + currentDateTime() + "_" + number + ".png";
+      blog_name + "_" + currentTime + "_" + number + ".png";
   std::string src_img_path = "/home/ghi/Pictures/" + number + ".png";
   std::string des_img_path = "../images/" + blog_file_img_name;
   int result = 0;
@@ -124,13 +125,14 @@ void open_blog_clear_tail_links(const string blog_file,
     }
     found = regex_match(tmp_line.c_str(), reg3);
     if (found) {
+      std::string currentTime = currentDateTime();
       regex_search(tmp_line.c_str(), cm, reg4);
-      regex_match_replace_img(cm[0], blog_file);
+      regex_match_replace_img(cm[0], currentTime, blog_file);
       string number = cm[0];
       outfile << "![]"
               << "("
               << "../images/" + blog_file.substr(0, blog_file.size() - 3) +
-                     "_" + currentDateTime() + "_" + number + ".png"
+                     "_" + currentTime + "_" + number + ".png"
               << ")" << endl;
       continue;
       rm_other_digtal_image = true;
