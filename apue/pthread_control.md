@@ -572,17 +572,214 @@ int pthread_setcanceltype(int type,int *oldtype);
 使用异步取消时，线程可以在任意时间撤销，不是非得遇到取消点才能被取消。
 
 
+## 线程和信号
+
+每个线程都有自己的信号屏蔽字，但是信号的处理是进程中所有线程共享的，这意味着单个线程可以阻止某些信号，但当某个线程修改了与某个信号相关的处理行为后，所有的线程必须共享这个处理行为的改变。
+
+阻止信号发送：
+```c
+int pthread_sigmask(int how,const sigset_t *restrict set,sigset_t *restrict oset);
+```
+how 参数：
+1. SIG_BLOCK,把信号集添加到线程屏蔽字中
+2. SIG_SETMASK，用信号集替换线程的信号屏蔽字
+3. SIG_UMBLOCK，从线程信号屏蔽字中移除信号集
+
+线程可以通过sigwait来等待一个或多个信号出现
+
+```c
+int sigwait(const sigset_t *restrict set,int *restrict signop);
+```
+set参数指定了线程等待的信号集，返回时，signop指向的整数将包含发送信号的编号。
+如果多个线程在sigwait的调用中因等待同一个信号而阻塞，那么在信号递送的时候，就只有一个线程可以从sigwait中返回。
+
+把信号发送给线程
+
+```c
+int pthread_kill (pthread_t thread,int signo);
+```
+注意，闹钟定时器是共享资源，并且所有的线程共享相同的闹钟。所以，进程中的多个线程不可能互不干扰（或互不合作）地使用闹钟定时器。
+
+sample：
+```c
+#include "apue.h"
+#include <pthread.h>
+
+int quitflag;
+sigset_t mask;
+
+pthread_mutex_t lock=PTHREAD_MUTEX_INITALIZER;
+pthread_cond_t waitloc=PTHREAD_COND_INITALIZER;
+
+void * thr_fn(void *arg)
+{
+  int err,signo;
+
+  while(1)
+  {
+    err=sigwait(&mask,&signo);
+    if (err!=0)
+    err_exit(err,"sigwait failed");
+
+    switch (signo)
+    {
+      case SIGINT:
+      printf("\ninterrupt\n");
+      break;
+      case SIGQUIT:
+      pthread_mutex_lock(&lock);
+      quitflag=1;
+      pthread_mutex_unlock(&lock);
+      ptheread_cond_signal(&waitloc);
+      return (0);
+      default:
+      printf("unexpected signal &d\n",signo );
+      exit(1);
+    }
+  }
+}
+
+int main(int argc, char const *argv[]) {
+  int err;
+  sigset_t  oldmask;
+  pthread_t tid;
+
+sigemptyset(&mask);
+sigaddset(&mask,SIGQUIT);
+sigaddset(&mask,SIGINT);
+
+if ((err=pthread_sigmask(SIG_BLOCK,&mask,&oldmask))!=0)
+err_exit(err,"SIG_BLOCK error");
+err=pthread_create(&tid,NULL,thr_fn,0);
+if (err!=0)
+err_exit(err,"can not create thread";
+
+pthread_mutex_lock(&lock));
+while(quitflag==0)
+{
+  pthread_cond_wait(&waitloc,&lock);
+}
+pthread_mutex_unlock(&lock);
+
+quitflag=0;
+
+if (sigprocmask(SIG_SETMASK,&oldmask,NULL)<0)
+err_sys("SIG_SETMASK ERROR");
+  return 0;
+}
+```
+注意，在主线程开始阻塞SIGINT和SIGQUIT 。当创建线程进行信号处理时，新建线程继承了现有的信号屏蔽字。因为sigwait会解除信号的阻塞状态，所以只有一个线程可以用于信号的接收。这可以使我们对主线程进行编码时不必担心来自这些信号的中断。
+
+运行这个程序得到的结果：
+```
+./a.out
+^?   输入中断字符
+interrupt
+^?   输入中断字符
+interrupt
+^?   输入中断字符
+interrupt
+^\$  现在用退出符终止
+```
+
+## 线程和fork
+
+当线程调用fork时，就为子进程创建了整个进程地址空间的副本。
+
+子进程通过继承整个地址空间的副本，还从父进程那儿继承了每个互斥量、读写锁和条件变量的状态。如果父进程包含一个以上的线程，子进程在fork返回以后，如果不是马上调用exec的化，就需要清理锁的状态了。
+在子进程内部，只存在一个线程，它是由父进程中调用fork的线程的副本构成的。如果父进程中的线程占有锁，子进程将同样占有这些锁。问题是子进程并不包含占有锁的线程的副本，所以子进程没有办法知道他占有了那些锁、需要释放哪些锁。
+要清除锁的状态，可以通过调用pthread_atfork函数建立fork处理程序。
+```c
+int pthread_atfork（void (*prepare)(void),void (*parent) (void) ,void (*child) (void)）;
+```
+用pthread_atfork函数最多可以安装3个帮助清理锁的函数。
+prepare fork处理程序由父进程在fork创建子进程之前调用。这个fork处理程序的任务是获取父进程定义的所有锁。
+parent fork处理程序是在fork创建子进程以后、返回之前在父进程上下文中调用的。这个fork处理程序的任务是对prepare fork处理程序获取的所有锁进行解锁。
+child fork处理序是在返回之前在子进程上下文中调用的。与parent fork处理程序一样，child fork处理程序也必须释放prepare fork 处理程序的所有锁。
+
+注意，并不会出现加锁一次解锁两次的情况。父进程和子进程对不同的内存单元的重复的锁都进行了解锁操作。
+
+可以通过多次调用pthread_atfork函数从而设置多套fork处理程序。如果不需要使用其中某个处理程序，可以给特定的处理程序参数传入空指针。使用多个fork处理程序时，处理程序的调用顺序并不相同。parent和child fork处理程序时以他们注册时的顺序进行调用的，而prepare fork理程序时与他们注册时的顺序相反。
+
+取决于操作系统的实现，条件变量可能并不需要做任何清理。但有些操作系统实现把锁作为条件变量实现的一部分，这种就需要清理。问题是目前不存在允许清理锁状态的接口。如果锁是嵌入到条件变量的数据结构中的，那么在调用fork之后就不能使用条件变量，因为没有可移植的方法对锁进行状态清理。
+
+```c
+#include "apue.h"
+#include <pthread.h>
+
+pthread_mutex_t lock1=PTHREAD_MUTEX_INITALIZER;
+pthread_mutex_t lock2=PTHREAD_MUTEX_INITALIZER;
+
+void prepare(void)
+{
+  int err;
+  printf("preparing locks ...\n" );
+  if((err=pthread_mutex_lock(&lock1))!=0)
+  err_cont(err,"can not lock lock1 in prepare handler");
+  if((err=pthread_mutex_lock(&lock2))!=0)
+  err_cont(err,"can not lock lock2 in prepare handler");
+}
 
 
+void parent(void )
+{
+  int err;
+  printf("parent unlocking locks ...\n" );
+  if ((err=pthread_mutex_unlock(&lock1))!=0)
+  err_cont(err,"can not unlock lock1 in parent handler");
+  if ((err=pthread_mutex_unlock(&lock2))!=0)
+  err_cont(err,"can not unlock lock2 in parent handler");
+}
+
+void child(void )
+{
+  int err;
+  printf("child unlocking locks ...\n" );
+  if ((err=pthread_mutex_unlock(&lock1))!=0)
+  err_cont(err,"can not unlock lock1 in child handler");
+  if ((err=pthread_mutex_unlock(&lock2))!=0)
+  err_cont(err,"can not unlock lock2 in child handler");
+}
 
 
+void * thr_fn(void *arg)
+{
+  printf("thread started ...\n");
+  pause();
+  return (0);
+}
+
+int main(int argc, char const *argv[]) {
+  int err;
+  pid_t pid;
+  pthread_t tid;
+
+  if((err=pthread_atfork(prepare,parent,child))!=0)
+  err_exit(err,"can not install fork handler");
+  if((err=pthread_create(&tid,NULL,thr_fn,0))!=0)
+  err_exit(err,"can not create thread");
+  sleep(2);
+  printf("parent about to fork...\n" );
+
+  if((pid=fork())<0)
+  err_quit("fork failed");
+  else if (pid==0) {
+    printf("child returned from fork\n" );  
+  }
+  else
+  printf("parent returned from fork\n" );
+  return 0;
+}
+```
 
 
+虽然pthread_atfork机制的意图是使fork之后的锁状态保持一致，但它还是存在一些不足之处，只能在有限的情况下可用。
+. 没有很好的办法对较复杂的同步对象。
+. 某些错误检查的互斥量不能实现在child fork处理程序试图对被父程序加锁的互斥量进行解锁时会产生错误。
+. 递归互斥量不能在child frok中清理，因为无法确定该互斥量被加锁的次数。
+. 如果子进程只允许调用异步安全的函数，child fork就不可能清理同步对象，因为用于操作清理的所有函数都不是异步信号安全的。
+. 如果应用程序在信号处理程序中调用了fork，pthread_atfork注册的fork处理程序就只能够调用异步信号安全的函数，否则结果将是未定义的。
 
+## 线程和I/O
 
-
-
-
-
-[上一级](base.md)
-[上一篇](pthread.md)
+可以使用pread和pwrite来解决并发线程对同一文件进行读、写操作的问题。
