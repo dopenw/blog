@@ -19,4 +19,5 @@
 
 * ### [leetcode_algorithm](leetcode_algorithm/base.md)
 
+* ### [other](other/base.md)
                                         step by steop
