@@ -1,4 +1,4 @@
-#将给定非负整数的vector<int> digits加一，返回加一后的最高位。
+#将给定非负整数的vector<int> digits加一，返回加一后的最高位
 
 Given a non-negative integer represented as a non-empty array of digits, plus one to the integer.
 
