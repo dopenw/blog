@@ -8,6 +8,9 @@ egrep $partern $filename
 # => some filename's context
 ```
 
+2. 对无符号数要注意减法溢出
+
+
 
 
 
