@@ -70,7 +70,9 @@ bool regex_match_replace_img(std::string number, std::string currentTime,
   std::string blog_name = blog_file_name.substr(0, blog_file_name.size() - 3);
   std::string blog_file_img_name =
       blog_name + "_" + currentTime + "_" + number + ".png";
-  std::string src_img_path = "/home/ghi/Pictures/" + number + ".png";
+  std::string shutter_default_name = "Selection_00";
+  std::string src_img_path =
+      "/home/ghi/Pictures/" + shutter_default_name + number + ".png";
   std::string des_img_path = "../images/" + blog_file_img_name;
   int result = 0;
   result = rename(src_img_path.c_str(), des_img_path.c_str());
