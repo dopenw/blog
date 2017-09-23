@@ -91,6 +91,9 @@ string countAndSay(int n) {
 }
 ```
 
+[source link](https://leetcode.com/problems/count-and-say/discuss/)
+
+
 
 
 [上一级](base.md)

@@ -47,7 +47,9 @@ public:
 
 
 
-[source link](https://leetcode.com/problems/merge-sorted-array/description/)
+[source link](https://leetcode.com/problems/merge-sorted-array/discuss/)
+
+
 
 
 

@@ -140,7 +140,9 @@ ListNode* swapPairs(ListNode* head) {
 ```
 
 
-[algorithm_link](https://leetcode.com/problems/swap-nodes-in-pairs/discuss/)
+[source link](https://leetcode.com/problems/swap-nodes-in-pairs/discuss/)
+
+
 
 
 

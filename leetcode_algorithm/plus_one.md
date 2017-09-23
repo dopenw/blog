@@ -29,6 +29,8 @@ public:
 };
 ```
 
+[source link](https://leetcode.com/problems/plus-one/discuss/)
+
 
 
 

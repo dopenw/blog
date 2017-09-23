@@ -58,7 +58,9 @@ public:
 };
 ```
 
-[source link](https://leetcode.com/problems/maximum-subarray/description/)
+[source link](https://leetcode.com/problems/maximum-subarray/discuss/)
+
+
 
 
 

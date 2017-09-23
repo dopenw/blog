@@ -122,7 +122,9 @@ public:
 };
 ```
 
-[source link](https://leetcode.com/problems/add-binary/description/)
+[source link](https://leetcode.com/problems/add-binary/discuss/)
+
+
 
 
 

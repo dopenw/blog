@@ -81,6 +81,8 @@ string convert(string s, int nRows) {
 
 
 
+[source link](https://leetcode.com/problems/zigzag-conversion/discuss/)
+
 
 
 
