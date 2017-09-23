@@ -31,7 +31,6 @@ Therefore, <ABCD, 2> can be arranged as:
 A....C
 ...B....D
 ```
-[algorithm link](https://leetcode.com/problems/zigzag-conversion/discuss/)
 
 ```c++
 string convert(string s, int nRows) {
