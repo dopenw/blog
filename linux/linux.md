@@ -9,6 +9,10 @@
 后发现是nux源和rpmfusion-free-release源有冲突，卸载rpmfusion-free-release
 
 
+tghuisjfklds
+
+
+
 
 
 

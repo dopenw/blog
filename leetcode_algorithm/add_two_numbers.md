@@ -18,7 +18,7 @@ Output: 7 -> 0 -> 8
  */
 ```
 
-algorithm_0:
+algorithm_0(38ms):
 ```c++
 class Solution {
 public:
@@ -34,7 +34,7 @@ public:
             if (l1==NULL && l2==NULL)
             {
               if(!flag)
-    front->next=NULL;
+              front->next=NULL;
                  break;
             }
                flag=false;
@@ -94,6 +94,72 @@ public:
 };
 ```
 
+algorithm_0_1(55ms):
+```
+class Solution {
+public:
+
+    ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+        ListNode *result=new ListNode(0);
+        ListNode *head=result;
+        int add_tmp=0;
+        int sum_num=0;
+        while(add_tmp || l1 || l2)
+        {
+            int l1_num=(l1) ? l1->val:0;
+            int l2_num=(l2) ? l2->val:0;
+            sum_num=add_tmp+l1_num+l2_num;
+            if (sum_num>9)
+            {
+                sum_num=sum_num%10;
+                add_tmp=1;
+            }
+            else
+                add_tmp=0;
+            result->next=new ListNode(sum_num);
+            l1=l1 ? l1->next:l1;
+            l2=l2 ? l2->next:l2;
+            result=result->next;
+        }
+        return head->next;
+    }
+};
+```
+
+algorithm_0_2(40ms):
+```c++
+class Solution {
+public:
+
+    ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+        ListNode *result=new ListNode(0);
+        ListNode *head=result;
+        int add_tmp=0;
+        int sum_num=0;
+        while(add_tmp || l1 || l2)
+        {
+            int l1_num=(l1) ? l1->val:0;
+            int l2_num=(l2) ? l2->val:0;
+            sum_num=add_tmp+l1_num+l2_num;
+            if (sum_num>9)
+            {
+                sum_num=sum_num%10;
+                add_tmp=1;
+            }
+            else
+                add_tmp=0;
+            result->next=new ListNode(sum_num);
+            if (l1)
+                l1=l1->next;
+            if (l2)
+                l2=l2->next;
+            result=result->next;
+        }
+        return head->next;
+    }
+};
+```
+[Solution link](https://leetcode.com/problems/add-two-numbers/solution/)
 
 
 [上一级](base.md)
