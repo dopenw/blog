@@ -1,5 +1,6 @@
 # Categories leetcode_algorithm
 * ## [home](../README.md)
+* ### [3Sum](3sum.md)
 * ### [交换一对链表节点](Swap_Nodes_in_Pairs.md)
 * ### [折线转换(zigzag)](ZigZag_Conversion.md)
 * ### [相加2进制字符串](add_binary.md)
@@ -13,6 +14,7 @@
 * ### [从排序的listnode列表中删除重复node](removeDuplicatesFromSortedList.md)
 * ### [罗马数字转换为int](romanToInt.md)
 * ### [判断两个二叉树是不是相同的(same_tree)](same_tree.md)
+* ### [给定一个排序的数组，和一个目标值，查找该值在数组的范围](search_for_a_range.md)
 * ### [求平方根](sqrt.md)
 * ### [Two Sum](two_sum.md)
                            step by steop
