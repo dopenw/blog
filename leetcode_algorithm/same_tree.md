@@ -1,4 +1,4 @@
-#判断两个二叉树是不是相同的(same_tree)
+# 判断两个二叉树是不是相同的(same_tree)
 
 Given two binary trees, write a function to check if they are equal or not.
 
@@ -30,6 +30,7 @@ public:
 ```
 
 [source link](https://leetcode.com/problems/same-tree/discuss/)
+
 
 
 
