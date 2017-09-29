@@ -65,6 +65,7 @@ public:
 
 
 
+
 [上一级](base.md)
 [上一篇](maximum_subarray.md)
-[下一篇](plus_one.md)
+[下一篇](next_permutation.md)

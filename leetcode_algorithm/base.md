@@ -14,6 +14,7 @@
 * ### [int转换为罗马数字](intToRoman.md)
 * ### [Maximum Subarray(最大子串和)](maximum_subarray.md)
 * ### [合并已排序的数组（vector）](merge_sorted_array.md)
+* ### [下一个排列](next_permutation.md)
 * ### [将给定非负整数的vector<int> digits加一，返回加一后的最高位](plus_one.md)
 * ### [从排序的listnode列表中删除重复node](removeDuplicatesFromSortedList.md)
 * ### [罗马数字转换为int](romanToInt.md)
