@@ -9,6 +9,8 @@
 * ### [Add Two (ListNode) Numbers](add_two_numbers.md)
 * ### [总共有n步楼梯，每次只能爬1步/2步，总共有多少方案爬上楼梯](climbing_stairs.md)
 * ### [统计字符串的相同字符个数，并输出（count-char）](count_and_say.md)
+* ### [两个整数相除](divide_two_integers.md)
+* ### [生成括号](generate_parentheses.md)
 * ### [int转换为罗马数字](intToRoman.md)
 * ### [Maximum Subarray(最大子串和)](maximum_subarray.md)
 * ### [合并已排序的数组（vector）](merge_sorted_array.md)
