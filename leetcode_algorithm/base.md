@@ -5,6 +5,7 @@
 * ### [4 sum](4sum.md)
 * ### [搜索旋转排序数组](Search_in_Rotated_Sorted_Array.md)
 * ### [交换一对链表节点](Swap_Nodes_in_Pairs.md)
+* ### [有效数独](Valid_Sudoku.md)
 * ### [折线转换(zigzag)](ZigZag_Conversion.md)
 * ### [相加2进制字符串](add_binary.md)
 * ### [Add Two (ListNode) Numbers](add_two_numbers.md)
