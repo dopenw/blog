@@ -1,4 +1,4 @@
-# 10招教你用google搜出别别人更多的资讯
+# google Tips
 
 1. or
 2. ~ 范围
