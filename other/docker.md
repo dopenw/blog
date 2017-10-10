@@ -1,5 +1,77 @@
 # docker 使用记录（读docker实践记）
-[toc]
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+<!-- code_chunk_output -->
+
+* [docker 使用记录（读docker实践记）](#docker-使用记录读docker实践记)
+	* [基本概念](#基本概念)
+		* [Docker 镜像](#docker-镜像)
+			* [分层存储](#分层存储)
+		* [Docker 容器](#docker-容器)
+		* [Docker Registry](#docker-registry)
+			* [Docker Registry 公开服务](#docker-registry-公开服务)
+			* [私有 Docker Registry](#私有-docker-registry)
+	* [Manage Docker as a non-root user](#manage-docker-as-a-non-root-user)
+	* [docker commit](#docker-commit)
+		* [慎用 docker commit](#慎用-docker-commit)
+		* [docker commit 用途](#docker-commit-用途)
+	* [dockerfile](#dockerfile)
+		* [镜像构建上下文](#镜像构建上下文)
+		* [dockerfile指令](#dockerfile指令)
+			* [copy 复制文件](#copy-复制文件)
+			* [ADD 更高级的复制文件(尽可能使用copy，不推荐使用)](#add-更高级的复制文件尽可能使用copy不推荐使用)
+			* [CMD 容器启动命令](#cmd-容器启动命令)
+			* [ENTRYPOINT 入口点](#entrypoint-入口点)
+			* [ENV 设置环境变量](#env-设置环境变量)
+			* [ARG 构建参数](#arg-构建参数)
+			* [VOLUME 定义匿名卷](#volume-定义匿名卷)
+			* [EXPOSE 声明端口](#expose-声明端口)
+			* [WORKDIR 指定工作目录](#workdir-指定工作目录)
+			* [USER 指定当前用户](#user-指定当前用户)
+			* [HEALTHCHECK 健康检查](#healthcheck-健康检查)
+			* [ONBUILD 为他人做嫁衣裳](#onbuild-为他人做嫁衣裳)
+		* [其它生成镜像的方法](#其它生成镜像的方法)
+			* [从 rootfs 压缩包导入](#从-rootfs-压缩包导入)
+			* [保存镜像](#保存镜像)
+			* [加载镜像](#加载镜像)
+	* [CentOS/RHEL 的用户需要注意的事项](#centosrhel-的用户需要注意的事项)
+	* [镜像的实现原理](#镜像的实现原理)
+	* [容器操作](#容器操作)
+		* [启动容器](#启动容器)
+			* [新建并启动](#新建并启动)
+			* [启动已终止容器](#启动已终止容器)
+		* [后台(background)运行](#后台background运行)
+		* [终止容器](#终止容器)
+		* [进入容器](#进入容器)
+		* [attach 命令](#attach-命令)
+		* [导出和导入容器](#导出和导入容器)
+			* [导出容器](#导出容器)
+			* [导入容器快照](#导入容器快照)
+		* [清理所有处于终止状态的容器](#清理所有处于终止状态的容器)
+	* [访问仓库](#访问仓库)
+		* [自动创建](#自动创建)
+	* [Docker 数据管理](#docker-数据管理)
+		* [数据卷](#数据卷)
+			* [创建一个数据卷](#创建一个数据卷)
+			* [删除数据卷](#删除数据卷)
+			* [挂载一个主机目录作为数据卷](#挂载一个主机目录作为数据卷)
+			* [查看数据卷的具体信息](#查看数据卷的具体信息)
+			* [挂载一个本地主机文件作为数据卷](#挂载一个本地主机文件作为数据卷)
+		* [数据卷容器](#数据卷容器)
+			* [利用数据卷容器来备份、恢复、迁移数据卷](#利用数据卷容器来备份-恢复-迁移数据卷)
+				* [备份](#备份)
+				* [恢复](#恢复)
+	* [Docker 中的网络功能介绍](#docker-中的网络功能介绍)
+		* [外部访问容器](#外部访问容器)
+		* [映射所有接口地址](#映射所有接口地址)
+		* [映射到指定地址的指定端口](#映射到指定地址的指定端口)
+		* [映射到指定地址的任意端口](#映射到指定地址的任意端口)
+			* [还可以使用 udp 标记来指定 udp 端口](#还可以使用-udp-标记来指定-udp-端口)
+	* [容器互联](#容器互联)
+		* [自定义容器命名](#自定义容器命名)
+
+<!-- /code_chunk_output -->
+
 
 ## 基本概念
 * image(镜像)
@@ -613,5 +685,7 @@ Docker 在两个互联的容器之间创建了一个安全隧道，而且不用�
 
 
 
+
 [上一级](base.md)
+[上一篇](config_hadoop_httpfs.md)
 [下一篇](google_search_tips.md)

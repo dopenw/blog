@@ -1,5 +1,16 @@
 # 线程
-[toc]
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+<!-- code_chunk_output -->
+
+* [线程](#线程)
+	* [第11章 线程](#第11章-线程)
+		* [11.2 线程概念](#112-线程概念)
+		* [11.4 线程创建](#114-线程创建)
+		* [11.5 线程终止](#115-线程终止)
+
+<!-- /code_chunk_output -->
+
 ## 第11章 线程
 
 ### 11.2 线程概念
@@ -249,6 +260,7 @@ int pthread_barrier_wait(pthread_barrier_t * barrier);
 //调用pthread_barrier_wait的线程在屏障计数未满足条件是，会进入休眠状态。如果该线程是最后一个调用pthread_barrier_wait的线程，就满足了屏障计数，所有的线程都被唤醒。
 //对于一个任意线程，pthread_barrier_wait函数返回了PTHREAD_BARRIER_SERIAL_THREAD。剩下的线程看到的返回值是0；
 ```         
+
 
 
 

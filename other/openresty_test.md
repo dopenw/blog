@@ -1,5 +1,37 @@
 # openresty测试
-[TOC]
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+<!-- code_chunk_output -->
+
+* [openresty测试](#openresty测试)
+	* [1.ab压力测试](#1ab压力测试)
+		* [1.1压力测试的概念](#11压力测试的概念)
+			* [吞吐率（Requests per second）](#吞吐率requests-per-second)
+			* [并发连接数（The number of concurrent connections）](#并发连接数the-number-of-concurrent-connections)
+			* [并发用户数（The number of concurrent users，Concurrency Level）](#并发用户数the-number-of-concurrent-usersconcurrency-level)
+			* [用户平均请求等待时间（Time per request）](#用户平均请求等待时间time-per-request)
+			* [服务器平均请求等待时间（Time per request: across all concurrent requests）](#服务器平均请求等待时间time-per-request-across-all-concurrent-requests)
+		* [1.2 ab工具简介](#12-ab工具简介)
+		* [1.3 ab工具使用](#13-ab工具使用)
+		* [1.4 测试结果](#14-测试结果)
+			* [传递正常的json：](#传递正常的json)
+			* [传递异常的json:](#传递异常的json)
+		* [1.5 invalid 模块debu.log显示的内容](#15-invalid-模块debulog显示的内容)
+		* [1.5 结论](#15-结论)
+	* [wrk工具](#wrk工具)
+		* [install wrk](#install-wrk)
+		* [使用方法](#使用方法)
+		* [wrk 支持使用 lua 来写脚本](#wrk-支持使用-lua-来写脚本)
+		* [用 lua 脚本测试复杂场景](#用-lua-脚本测试复杂场景)
+			* [setup](#setup)
+			* [init](#init)
+			* [delay](#delay)
+			* [request](#request)
+			* [response](#response)
+		* [使用wrk测试](#使用wrk测试)
+			* [wrk命令说明](#wrk命令说明)
+
+<!-- /code_chunk_output -->
 
 ## 1.ab压力测试
 
@@ -554,6 +586,7 @@ Usage: wrk <options> <url>
     -v, --version          Print version details
     -T  timeout
 ```
+
 
 
 
