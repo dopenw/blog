@@ -32,6 +32,7 @@ public:
         return res;
     }
 
+//care tmp
     void computer_method(vector <vector<int>> &res,int location,int target,vector <int> candidates,vector <int> tmp)
     {
 
@@ -51,7 +52,41 @@ public:
 };
 ```
 
+algorithm_1_1:
+```c++
+class Solution {
+public:
+    vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
+        vector <vector<int>> res;
+        vector <int> tmp;
+        sort(candidates.begin(),candidates.end());
+
+        computer_method(res,0,target,candidates,tmp);
+        return res;
+    }
+
+//care &tmp
+    void computer_method(vector <vector<int>> &res,int location,int target,vector <int> candidates,vector <int> &tmp)
+    {
+
+        if (!target)
+        {
+            res.push_back(tmp);
+            return ;
+        }
+        for (int i=location;i != candidates.size() && target >= candidates[i] ;++i)
+        {
+            tmp.push_back(candidates[i]);
+            computer_method(res,i,target-candidates[i],candidates,tmp);
+            tmp.pop_back();
+        }
+
+    }
+};
+```
+
 [source link](https://leetcode.com/problems/combination-sum/discuss/)
+
 
 
 

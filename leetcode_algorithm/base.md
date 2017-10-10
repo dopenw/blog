@@ -7,6 +7,7 @@
 * ### [组合和 2](Combination_Sum_II.md)
 * ### [字符串乘字符串](Multiply_Strings.md)
 * ### [排列](Permutations.md)
+* ### [排列 2](Permutations_II.md)
 * ### [搜索旋转排序数组](Search_in_Rotated_Sorted_Array.md)
 * ### [交换一对链表节点](Swap_Nodes_in_Pairs.md)
 * ### [有效数独](Valid_Sudoku.md)

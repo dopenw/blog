@@ -48,9 +48,38 @@ private:
 };
 ```
 
+algorithm_1_1:
+```c++
+class Solution {
+public:
+    vector<vector<int>> permute(vector<int>& nums) {
+        vector<vector<int>> res;
+        permute_auto(nums,0,res);
+        return res;
+    }
+
+
+private:
+    void permute_auto(vector<int> nums,int begin,vector<vector<int>> &res)
+    {
+        if (begin==nums.size()-1)
+        {
+            res.push_back(nums);
+            return;
+        }
+        for (int i=begin;i<nums.size();i++)
+        {
+            swap(nums[begin],nums[i]);
+            permute_auto(nums,begin+1,res);
+        }
+    }
+};
+```
+
 [source link](https://leetcode.com/problems/permutations/discuss/)
+
 
 
 [上一级](base.md)
 [上一篇](Multiply_Strings.md)
-[下一篇](Search_in_Rotated_Sorted_Array.md)
+[下一篇](Permutations_II.md)

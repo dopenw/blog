@@ -90,7 +90,44 @@ public:
 };
 ```
 
+algorithm_1_2:
+```c++
+class Solution {
+public:
+    vector<vector<int>> combinationSum2(vector<int>& candidates, int target) {
+        vector<vector<int>> result;
+        if (candidates.empty())
+            return result;
+
+        vector<int> tmp;
+        sort(candidates.begin(),candidates.end());
+
+        combination_recursive(result,tmp,candidates,target,0);
+        return result;
+    }
+
+
+//care &tmp
+    void combination_recursive(vector<vector<int>> &result,vector<int> &tmp,vector<int> &candidates,int target,int begin)
+    {
+        if (target==0)
+        {
+            result.push_back(tmp);
+            return;
+        }
+        for (int i=begin;i<candidates.size() && target-candidates[i]>=0 ;i++)
+        {
+            if ( i> begin && candidates[i]==candidates[i-1]  ) continue;
+            tmp.push_back(candidates[i]);
+            combination_recursive(result,tmp,candidates,target-candidates[i],i+1);
+            tmp.pop_back();
+        }
+    }
+};
+```
+
 [source link](https://leetcode.com/problems/combination-sum-ii/discuss/)
+
 
 
 
