@@ -20,44 +20,7 @@ public:
 ```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 [source link](https://leetcode.com/problems/integer-to-roman/discuss/)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 [上一级](base.md)

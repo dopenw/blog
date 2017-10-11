@@ -155,7 +155,8 @@ int blog_add_pre_next_links(const string blog_file,
                             const std::map<string, string> map_blog) {
   if (exists_file_y_n(blog_file)) {
     ofstream outfile(blog_file, std::ios::app);
-    outfile << std::endl << "[上一级](base.md)" << endl;
+    //outfile << std::endl << "[上一级](base.md)" << endl;
+    outfile<< "[上一级](base.md)" << endl;
     std::cout << "begin" << '\n';
     for (auto i : map_blog) {
 

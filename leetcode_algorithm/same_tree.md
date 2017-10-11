@@ -32,25 +32,6 @@ public:
 [source link](https://leetcode.com/problems/same-tree/discuss/)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 [上一级](base.md)
 [上一篇](rotate_image.md)
 [下一篇](search_for_a_range.md)

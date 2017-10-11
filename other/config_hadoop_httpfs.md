@@ -61,6 +61,5 @@ curl -sS 'http://<HTTPFSHOSTNAME>:14000/webhdfs/v1?op=gethomedirectory&user.name
 ```
 
 
-
 [上一级](base.md)
 [下一篇](docker.md)

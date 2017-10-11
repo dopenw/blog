@@ -683,11 +683,6 @@ hours ago Up 2 minutes 0.0.0.0:49154->5000/tcp web
 Docker 在两个互联的容器之间创建了一个安全隧道，而且不用映射它们的端口到宿主主机上。在启动 db 容器的时候并没有使用 -p 和 -P 标记，从而避免了暴露数据库端口到外部网络上。
 
 
-
-
-
-
-
 [上一级](base.md)
 [上一篇](config_hadoop_httpfs.md)
 [下一篇](google_search_tips.md)

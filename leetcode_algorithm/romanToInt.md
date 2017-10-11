@@ -34,44 +34,7 @@ public:
 ```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 [source link](https://leetcode.com/problems/roman-to-integer/discuss/)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 [上一级](base.md)

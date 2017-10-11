@@ -63,9 +63,5 @@ userdel $old_user
 [source link](https://ask.fedoraproject.org/en/question/55339/change-of-user-name-at-terminal/)
 
 
-
-
-
-
 [上一级](base.md)
 [上一篇](process.md)
