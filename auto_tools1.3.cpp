@@ -29,15 +29,15 @@ void read_config(const string config_file, std::vector<string> &vec) {
       vec.pop_back();
     }
   }
-  for (auto i : vec) {
-    std::cout << i << '\n';
-  }
+  // for (auto i : vec) {
+  //   std::cout << i << '\n';
+  // }
 }
 
-bool list_dir(std::vector<string> &blog_file) {
+bool list_dir(std::vector<string> &blog_file, std::string list_path) {
   DIR *dp;
   struct dirent *dirp;
-  if ((dp = opendir(".")) == NULL) {
+  if ((dp = opendir(list_path.c_str())) == NULL) {
     std::cout << "opendir error" << '\n';
     return false;
   }
@@ -47,7 +47,7 @@ bool list_dir(std::vector<string> &blog_file) {
     if (strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 ||
         strcmp(dirp->d_name, "base.md") == 0)
       continue;
-    std::cout << dirp->d_name << '\n';
+    // std::cout << dirp->d_name << '\n';
     blog_file.push_back(dirp->d_name);
   }
 
@@ -155,14 +155,14 @@ int blog_add_pre_next_links(const string blog_file,
                             const std::map<string, string> map_blog) {
   if (exists_file_y_n(blog_file)) {
     ofstream outfile(blog_file, std::ios::app);
-    //outfile << std::endl << "[上一级](base.md)" << endl;
-    outfile<< "[上一级](base.md)" << endl;
-    std::cout << "begin" << '\n';
-    for (auto i : map_blog) {
-
-      std::cout << i.first << ":" << i.second << '\n';
-    }
-    std::cout << "end" << '\n';
+    // outfile << std::endl << "[上一级](base.md)" << endl;
+    outfile << "[上一级](base.md)" << endl;
+    // std::cout << "begin" << '\n';
+    // for (auto i : map_blog) {
+    //
+    //   std::cout << i.first << ":" << i.second << '\n';
+    // }
+    // std::cout << "end" << '\n';
     auto pos = map_blog.find(blog_file);
     if (pos == map_blog.end()) {
       cout << "error ,not found blog_file";
@@ -216,7 +216,7 @@ int main(int argc, char const *argv[]) {
         perror("chdir error:");
         return -1;
       }
-      list_dir(vec);
+      list_dir(vec, ".");
 
       for (unsigned int write_config_link_count = 0;
            write_config_link_count < vec.size(); write_config_link_count++) {
@@ -238,6 +238,22 @@ int main(int argc, char const *argv[]) {
       if (chdir(blog_root_path.c_str()) < 0)
         std::cout << "chdir error" << '\n';
     }
+  }
+
+  std::vector<string> v_tmp;
+  std::string pictures_home = "/home/breap/Pictures/";
+  list_dir(v_tmp, pictures_home);
+  std::regex reg_del_image("Selection_.*");
+
+  for (auto image_file : v_tmp) {
+    if (regex_match(image_file.c_str(), reg_del_image)) {
+      int status = unlink((pictures_home + image_file).c_str());
+      if (status == 0) {
+        std::cout << "del_image:  " << image_file << '\n';
+      } else
+        std::cout << "delete image file is failed" << '\n';
+    }
+    // std::cout << "image_file"<<image_file << '\n';
   }
   return 0;
 }

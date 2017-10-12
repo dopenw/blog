@@ -24,6 +24,7 @@
 * ### [合并已排序的数组（vector）](merge_sorted_array.md)
 * ### [下一个排列](next_permutation.md)
 * ### [将给定非负整数的vector<int> digits加一，返回加一后的最高位](plus_one.md)
+* ### [求x的n次方](pow(x,n).md)
 * ### [从排序的listnode列表中删除重复node](removeDuplicatesFromSortedList.md)
 * ### [罗马数字转换为int](romanToInt.md)
 * ### [旋转图像](rotate_image.md)
