@@ -58,5 +58,5 @@ When pos is specified, the search only includes characters at or after position 
 
 
 [上一级](base.md)
-[上一篇](Group_Anagrams.md)
+[上一篇](Jump_Game.md)
 [下一篇](Permutations.md)

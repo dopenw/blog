@@ -4,4 +4,5 @@
 * ### [开发注意事项](develop_care_detail.md)
 * ### [do_while_false的功用](do_while_false.md)
 * ### [c++正则表达式](regex.md)
+* ### [以stream完成I/O](stream_IO.md)
                            step by steop

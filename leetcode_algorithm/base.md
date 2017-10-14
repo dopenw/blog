@@ -6,6 +6,7 @@
 * ### [组合和](Combination_Sum.md)
 * ### [组合和 2](Combination_Sum_II.md)
 * ### [组卦](Group_Anagrams.md)
+* ### [跳 游戏](Jump_Game.md)
 * ### [字符串乘字符串](Multiply_Strings.md)
 * ### [排列](Permutations.md)
 * ### [排列 2](Permutations_II.md)
