@@ -1,3 +1,4 @@
+# 安装配置hadoop httpfs
 
 * [安装配置hadoop httpfs](#安装配置hadoop-httpfs)
 	* [1. Configure HttpFS](#1-configure-httpfs)
@@ -7,8 +8,6 @@
 	* [5. start dfs](#5-start-dfs)
 	* [6. test httpfs is working](#6-test-httpfs-is-working)
 
-
-# 安装配置hadoop httpfs
 
 * 基于2.8.1版本
 
