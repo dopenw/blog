@@ -53,7 +53,7 @@ std::cout.rdbuf (file.rdbuf());
 函数copyfmt()用来将某个stream的所有格式信息赋值给另外一个stream对象：
 ```c++
 std::ofstream file("cout.txt");
-file::copyfmt (std::cout);
+file.copyfmt (std::cout);
 std::cout.rdbuf (file.rdbuf());
 ```
 
