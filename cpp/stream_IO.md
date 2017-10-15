@@ -147,5 +147,7 @@ one row for the stream
 redirect()中写至cout的输出信息被送到文件去了。mian()执行redirect()后，接下来的输出再次被送到（已恢复了的）输出通道。
 
 
+参考资料：<C++ 标准库_第二版>
+
 [上一级](base.md)
 [上一篇](regex.md)
