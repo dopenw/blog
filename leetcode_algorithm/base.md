@@ -9,6 +9,7 @@
 * ### [跳 游戏](Jump_Game.md)
 * ### [合并间隔](Merge_Intervals.md)
 * ### [字符串乘字符串](Multiply_Strings.md)
+* ### [置换序列](Permutation_Sequence.md)
 * ### [排列](Permutations.md)
 * ### [排列 2](Permutations_II.md)
 * ### [搜索旋转排序数组](Search_in_Rotated_Sorted_Array.md)

@@ -59,4 +59,4 @@ When pos is specified, the search only includes characters at or after position 
 
 [上一级](base.md)
 [上一篇](Merge_Intervals.md)
-[下一篇](Permutations.md)
+[下一篇](Permutation_Sequence.md)
