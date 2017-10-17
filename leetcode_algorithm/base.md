@@ -12,6 +12,7 @@
 * ### [置换序列](Permutation_Sequence.md)
 * ### [排列](Permutations.md)
 * ### [排列 2](Permutations_II.md)
+* ### [旋转列表](Rotate_List.md)
 * ### [搜索旋转排序数组](Search_in_Rotated_Sorted_Array.md)
 * ### [螺旋矩阵](Spiral_Matrix.md)
 * ### [螺旋矩阵II](Spiral_Matrix_II.md)

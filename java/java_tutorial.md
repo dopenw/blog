@@ -44,6 +44,15 @@
 		* [创建自己的异常子类](#创建自己的异常子类)
 		* [断言](#断言)
 			* [运行时(使用|屏蔽)断言](#运行时使用屏蔽断言)
+	* [常用类库、向量与哈希](#常用类库-向量与哈希)
+		* [语言包(java.lang)简介](#语言包javalang简介)
+			* [Math类](#math类)
+			* [字符串类](#字符串类)
+		* [日期和时间类简介](#日期和时间类简介)
+			* [Date 类](#date-类)
+			* [Calendar 类](#calendar-类)
+			* [GregorianCalendar 类](#gregoriancalendar-类)
+			* [哈希表的使用](#哈希表的使用)
 
 <!-- /code_chunk_output -->
 
@@ -1247,6 +1256,210 @@ java –disableassertions 或 java –da 类名
 java –enableassertions 或 java –ea类名
 
 [assert link](http://www.cnblogs.com/tianxue/p/3925315.html)
+
+## 常用类库、向量与哈希
+
+Java 的类库是 Java 语言提供的已经实现的标准类的集合，是 Java 编程的 API（Application Program Interface），它可以帮助开发者方便、快捷地开发 Java 程序。这些类根据实现的功能不同，可以划分为不同的集合，每个集合组成一个包，称为类库。
+
+* Java 类库中大部分都是由Sun 公司提供的，这些类库称为基础类库。
+
+
+* java.lang 包：主要含有与语言相关的类。java.lang 包由解释程序自动加载，不需要显示说明。
+* java.io包：主要含有与输入/输出相关的类，这些类提供了对不同的输入和输出设备读写数据的支持，这些输入和输出设备包括键盘、显示器、打印机、磁盘文件等。
+* java.util 包：包括许多具有特定功能的类，有日期、向量、哈希表、堆栈等，其中 Date类支持与时间有关的操作。
+* java.swing 包和 java.awt 包：提供了创建图形用户界面元素的类。通过这些元素，编程者可以控制所写的 Applet 或 Application 的外观界面。包中包含了窗口、对话框、菜单等类。
+* java.net包：含有与网络操作相关的类，如 TCP Scokets、URL 等工具。
+* java.applet 包：含有控制 HTML 文档格式、应用程序中的声音等资源的类，其中 Applet类是用来创建包含于 HTML 的 Applet 必不可少的类。
+* java.beans 包：定义了应用程序编程接口（API），Java Beans 是 Java 应用程序环境的中性平台组件结构。
+
+### 语言包(java.lang)简介
+
+* Java语言包（java.lang）定义了Java中的大多数基本类，由Java语言自动调用，不需要显示声明。
+
+该包中包含了Object类，Object类是整个类层次结构的根结点，同时还定义了基本数据类型的类，如：String、Boolean、Byter、Short等。这些类支持数字类型的转换和字符串的操作等，下面将进行简单介绍。
+
+#### Math类
+
+Math类提供了常用的数学运算方法以及Math.PI和Math.E两个数学常量。该类是final的，不能被继承，类中的方法和属性全部是静态，不允许在类的外部创建Math类的对象。因此，只能使用Math类的方法而不能对其作任何更改。表8-1列出了Math类的主要方法。
+
+![](../images/java_tutorial_201710172305_1.png)
+
+eg:
+```java
+class ep8_2{
+    public static void main(String args[]){
+        int a;
+        System.out.print("随机数为：");
+        for(int i=1;i<=10;i++){
+            a=(int)((100-10+1)*Math.random()+10);
+            System.out.print(" "+a);
+        }
+        System.out.println();
+    }
+}
+```
+运行结果： 随机数为：12 26 21 68 56 98 22 69 68 31
+
+#### 字符串类
+
+字符串是字符的序列。在 Java 中，字符串无论是常量还是变量都是用类的对象来实现的。java.lang 提供了两种字符串类：String 类和 StringBuffer 类。
+
+1. String 类
+按照 Java 语言的规定，String 类是 immutable 的 Unicode 字符序列，其作用是实现一种不能改变的静态字符串。例如，把两个字符串连接起来的结果是生成一个新的字符串，而不会使原来的字符串改变。实际上，所有改变字符串的结果都是生成新的字符串，而不是改变原来字符串。
+
+| 方法	     | 功能   |
+| :------------- | :------------- |
+| String s=”Hello!”	| 用字符串常量自动创建 String 实例|
+|String s=new String(String s)|	通过 String 对象或字符串常量传递给构造方法。|
+|public String(char value[])	|将整个字符数组赋给 String 构造方法。|
+| public String(char value[], int offset, int count)	| 将字符数组的一部分赋给 String 构造方法，offset 为起始下标，count为子数组长度。|
+
+
+2. StringBuffer 类
+String 类不能改变字符串对象中的内容，只能通过建立一个新串来实现字符串的变化。如果字符串需要动态改变，就需要用 StringBuffer 类。StringBuffer 类主要用来实现字符串内容的添加、修改、删除，也就是说该类对象实体的内存空间可以自动改变大小，以便于存放一个可变的字符序列。
+
+* 几种 StringBuffer 类常用的方法
+
+| 方法     | 说明     |
+| :------------- | :------------- |
+| append()	|使用 append() 方法可以将其他 Java 类型数据转化为字符串后再追加到 StringBuffer 的对象中。|
+|insert(int index, String str)	|insert() 方法将一个字符串插入对象的字符序列中的某个位置。|
+|setCharAt(int n, char ch)	|将当前 StringBuffer 对象中的字符序列 n 处的字符用参数 ch 指定的字符替换，n 的值必须是非负的，并且小于当前对象中字符串序列的长度。
+|reverse()	|使用 reverse()方法可以将对象中的字符序列翻转。
+|delete(int n, int m)	|从当前 StringBuffer 对象中的字符序列删除一个子字符序列。这里的 n 指定了需要删除的第一个字符的下标，m 指定了需要删除的最后一个字符的下一个字符的下标，因此删除的子字符串从 n~m-1。
+|replace(int n, int m, String str)	|用 str 替换对象中的字符序列，被替换的子字符序列由下标 n 和 m 指定。
+
+### 日期和时间类简介
+
+Java 的日期和时间类位于 java.util 包中。利用日期时间类提供的方法，可以获取当前的日期和时间，创建日期和时间参数，计算和比较时间。
+
+#### Date 类
+
+Date 类是 Java 中的日期时间类，其构造方法比较多，下面是常用的两个：
+Date()：使用当前的日期和时间初始化一个对象。
+Date(long millisec)：从1970年01月01日00时（格林威治时间）开始以毫秒计算时间，计算 millisec 毫秒。如果运行 Java 程序的本地时区是北京时区（与格林威治时间相差 8 小时），Date dt1=new Date(1000);，那么对象 dt1 就是1970年01月01日08时00分01秒。
+
+eg:
+```java
+import java.util.Date;
+public class Demo{
+    public static void main(String args[]){
+        Date da=new Date();  //创建时间对象
+        System.out.println(da); //显示时间和日期
+        long msec=da.getTime();
+        System.out.println("从1970年1月1日0时到现在共有：" + msec + "毫秒");
+    }
+}
+```
+
+运行结果：
+Mon Feb 05 22:50:05 CST 2007
+从1970年1月1日0时到现在共有：1170687005390 毫秒
+
+
+一些比较常用的 Date 类方法：
+
+|  方法   |  功能  |
+| :------------- | :------------- |
+|boolean after(Date date)	| 若调用 Date 对象所包含的日期比 date 指定的对象所包含的日期晚，返回 true，否则返回 false。|
+|boolean before(Date date)	|若调用 Date 对象所包含的日期比 date 指定的对象所包含的日期早，返回 true，否则返回 false。
+|Object clone()	|复制调用 Date 对象。
+|int compareTo(Date date)	|比较调用对象所包含的日期和指定的对象包含的日期，若相等返回 0；若前者比后者早，返回负值；否则返回正值。
+|long getTime()	|以毫秒数返回从 1970 年 01 月 01 日 00 时到目前的时间。
+|int hashCode()	|返回调用对象的散列值。
+|void setTime(long time)	|根据 time 的值，设置时间和日期。time 值从 1970 年 01 月 01 日 00 时开始计算。
+|String toString()	|把调用的 Date 对象转换成字符串并返回结果。
+|public Static String valueOf(type variable)	|把 variable 转换为字符串。
+
+* Date 对象表示时间的默认顺序是星期、月、日、小时、分、秒、年。若需要修改时间显示的格式可以使用“SimpleDateFormat(String pattern)”方法。
+
+```java
+import java.util.Date;
+public class Demo{
+    public static void main(String args[]){
+        Date da=new Date();  //创建时间对象
+        System.out.println(da); //显示时间和日期
+        long msec=da.getTime();
+        System.out.println("从1970年1月1日0时到现在共有：" + msec + "毫秒");
+    }
+}
+```
+
+运行结果：
+Sun Jan 04 17:31:36 CST 2015
+2015 年 01 月 04 日 星期日 北京时间
+北京时间：1970 年 01 月 01 日 07 时 59 分 59 秒
+
+#### Calendar 类
+
+抽象类 Calendar 提供了一组方法，允许把以毫秒为单位的时间转换成一些有用的时间组成部分。Calendar 不能直接创建对象，但可以使用静态方法 getInstance() 获得代表当前日期的日历对象，如：
+
+```  
+	Calendar calendar=Calendar.getInstance();
+```
+该对象可以调用下面的方法将日历翻到指定的一个时间：
+```java
+void set(int year,int month,int date);
+void set(int year,int month,int date,int hour,int minute);
+void set(int year,int month,int date,int hour,int minute,int second);
+```
+由 Calendar 定义的一些常用方法如下表所示：
+
+| 方法    | 功能     |
+| :------------- | :------------- |
+| abstract void add(int which,int val)	|将 val 加到 which 所指定的时间或者日期中，如果需要实现减的功能，可以加一个负数。which 必须是 Calendar 类定义的字段之一，如 Calendar.HOUR
+| boolean after(Object calendarObj)	|如果调用 Calendar 对象所包含的日期比 calendarObj 指定的对象所包含的日期晚，返回 true，否则返回 false
+|boolean before(Object calendarObj)	|如果调用 Calendar 对象所包含的日期比 calendarObj 指定的对象所包含的日期早，返回 true，否则返回 false
+|final void clear()	|对调用对象包含的所有时间组成部分清零
+|final void clear(int which)	|对调用对象包含的 which 所指定的时间组成部分清零
+|boolean equals(Object calendarObj)	|如果调用 Calendar 对象所包含的日期和 calendarObj 指定的对象所包含的日期相等，返回 true，否则返回 false
+|int get(int calendarField)	|返回调用 Calendar 对象的一个时间组成部分的值，这个组成部分由 calendarField指定，可以被返回的组成部分如：Calendar.YEAR，Calendar.MONTH 等
+|static Calendar getInstance()	|返回使用默认地域和时区的一个 Calendar 对象
+|final Date getTime()	|返回一个和调用对象时间相等的 Date 对象
+|final boolean isSet(int which)	|如果调用对象所包含的 which 指定的时间部分被设置了，返回 true，否则返回 false
+|final void set(int year,int month)	|设置调用对象的各种日期和时间部分
+|final void setTime(Date d)	|从 Date 对象 d 中获得日期和时间部分
+|void setTimeZone(TimeZone t)	|设置调用对象的时区为 t 指定的那个时区
+
+#### GregorianCalendar 类
+
+GregorianCalendar 是一个具体实现 Calendar 类的类，该类实现了公历日历。Calendar 类的 getInstance() 方法返回一个 GregorianCalendar，它被初始化为默认的地域和时区下的当前日期和时间。
+
+GregorianCalendar 类定义了两个字段：AD 和 BC，分别代表公元前和公元后。其默认的构造方法 GregorianCalendar() 以默认的地域和时区的当前日期和时间初始化对象，另外也可以指定地域和时区来建立一个 GregorianCalendar 对象，例如：
+
+```
+GregorianCalendar(Locale locale);
+GregorianCalendar(TimeZone timeZone);
+GregorianCalendar(TimeZone timeZone,Locale locale);
+```
+GregorianCalendar 类提供了 Calendar 类中所有的抽象方法的实现，同时还提供了一些附加的方法，其中用来判断闰年的方法为：
+```
+Boolean isLeapYear(int year);
+```
+如果 year 是闰年，该方法返回 true，否则返回 false。
+
+#### 哈希表的使用
+
+哈希表类主要有三种形式的构造方法：
+* Hashtable(); //默认构造函数，初始容量为 101，最大填充因子 0.75
+* Hashtable(int capacity);
+* Hashtable(int capacity,float loadFactor)
+
+哈希表类的主要方法如下表所示。
+
+| 方法 | 功能   |
+| :------------- | :------------- |
+|void clear()	|重新设置并清空哈希表
+|boolean contains(Object value)	|确定哈希表内是否包含了给定的对象，若有返回 true，否则返回 false
+|boolean containsKey(Object key)	|确定哈希表内是否包含了给定的关键字，若有返回 true，否则返回 false
+|boolean isEmpty()	|确认哈希表是否为空，若是返回 true，否则返回 false
+|Object get(Object key)	|获取对应关键字的对象，若不存在返回 null
+|void rehash()	|再哈希，扩充哈希表使之可以保存更多的元素，当哈希表达到饱和时，系统自动调用此方法
+|Object put(Object key,Object value)	|用给定的关键字把对象保存到哈希表中，此处的关键字和元素均不可为空
+|Object remove(Object key)	|从哈希表中删除与给定关键字相对应的对象，若该对象不存在返回 null
+|int size()	|返回哈希表的大小
+|String toString()	|将哈希表内容转换为字符串
+
 
 [参考链接_微学苑](http://www.weixueyuan.net/java/)
 [上一级](base.md)
