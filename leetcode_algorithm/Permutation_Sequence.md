@@ -71,6 +71,50 @@ public:
 };
 ```
 
+## algorithm_1:
+eg:
+```
+input:
+n=3,k=2;
+
+process:
+f=6;
+step 1:
+f=2; j=0+1/2; k=1;
+step 2:
+f=1;j=1+1/1; k=0;
+step 3:
+f=1;j=2+0/1; k=0;
+
+result:
+1,3,2;
+
+```
+
+
+```c++
+string getPermutation(int n, int k) {
+    int i,j,f=1;
+    // left part of s is partially formed permutation, right part is the leftover chars.
+    string s(n,'0');
+    for(i=1;i<=n;i++){
+        f*=i;
+        s[i-1]+=i; // make s become 1234...n
+    }
+    for(i=0,k--;i<n;i++){
+        f/=n-i;
+        j=i+k/f; // calculate index of char to put at s[i]
+        char c=s[j];
+        // remove c by shifting to cover up (adjust the right part).
+        for(;j>i;j--)
+            s[j]=s[j-1];
+        k%=f;
+        s[i]=c;
+    }
+    return s;
+}
+```
+
 [souce link](https://leetcode.com/problems/permutation-sequence/discuss/)
 [上一级](base.md)
 [上一篇](Multiply_Strings.md)
