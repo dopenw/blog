@@ -20,9 +20,7 @@ public:
         void _show();
     };
 private:
-    innerA*  m_p_innerA=new innerA();
-    // or
-    // innerA * m_p_innerA;
+    innerA * m_p_innerA;
 };
 
 
