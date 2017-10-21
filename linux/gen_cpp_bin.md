@@ -1,0 +1,15 @@
+# 自动编译并运行cpp程序shell脚本
+
+```sh
+#/bin/bash
+file_name=$1
+out_name=$(echo $file_name | awk -F '.' '{print $1}')
+#echo $out_name
+information=$(g++ -Wall -O -g -std=c++11 $file_name -o $out_name)
+if [ $(echo $?) -eq 0 ];then
+	cd $(pwd);./$out_name
+fi
+```
+[上一级](base.md)
+[上一篇](ctrl_alt_f3_login_incorrect.md)
+[下一篇](linux.md)
