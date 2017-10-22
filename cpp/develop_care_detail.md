@@ -10,6 +10,9 @@ egrep $partern $filename
 
 2. 对无符号数要注意减法溢出
 
+3. 使用c++开发时调用函数库时要注意
+场景：使用#include "vector"，因为该路径下有之前测试生成的文件名为vector的可执行文件，编译时就报大量的错误。
+
 
 [上一级](base.md)
 [上一篇](conv_string_to_char_pointer.md)
