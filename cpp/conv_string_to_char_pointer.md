@@ -19,4 +19,5 @@ char *pc=&v[0];
 
 
 [上一级](base.md)
+[上一篇](constRef_constVal.md)
 [下一篇](develop_care_detail.md)

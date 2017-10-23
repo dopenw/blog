@@ -151,3 +151,4 @@ redirect()中写至cout的输出信息被送到文件去了。mian()执行redire
 
 [上一级](base.md)
 [上一篇](regex.md)
+[下一篇](vir_del.md)
