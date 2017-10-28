@@ -1,3 +1,4 @@
+# 进程间通信
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
@@ -9,7 +10,7 @@
 <!-- /code_chunk_output -->
 
 
-# 进程间通信
+
 
 经典的IPC：
 * 管道
