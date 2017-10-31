@@ -1,5 +1,17 @@
 # 1.简介
 
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+<!-- code_chunk_output -->
+
+* [1.简介](#1简介)
+	* [OSI七层网络协议](#osi七层网络协议)
+	* [一个简单的时间获取客户程序](#一个简单的时间获取客户程序)
+	* [错误处理：包裹函数](#错误处理包裹函数)
+	* [一个简单的时间获取服务器程序](#一个简单的时间获取服务器程序)
+
+<!-- /code_chunk_output -->
+
 ## OSI七层网络协议
 
 开放式系统互联通信参考模型（英语：Open System Interconnection Reference Model，缩写为 OSI），简称为OSI模型（OSI model），一种概念模型，由国际标准化组织（ISO）提出，一个试图使各种计算机在世界范围内互连为网络的标准框架。定义于ISO/IEC 7498-1。
@@ -64,15 +76,17 @@ int main(int argc, char **argv) {
   // host byte order to network byte order
   //     .
 
-  servaddr.sin_port = htons(1300); /* daytime server */
+  servaddr.sin_port = htons(1300); /* daytime server * /
 
-  // int inet_pton(int af, const char *src, void *dst);
+  // int inet_pton(int af, const char * src, void * dst);
   // inet_pton - convert IPv4 and IPv6 addresses from text to binary form
 
   if (inet_pton(AF_INET, argv[1], &servaddr.sin_addr) <= 0)
     err_quit("inet_pton error for %s", argv[1]);
+    //or
+    //servaddr.sin_addr.s_addr = inet_addr(argv[1]);
 
-  // int connect(int socket, const struct sockaddr *address,
+  // int connect(int socket, const struct sockaddr * address,
   //            socklen_t address_len);
 
   if (connect(sockfd, (SA *)&servaddr, sizeof(servaddr)) < 0)
