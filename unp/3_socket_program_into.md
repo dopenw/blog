@@ -1,10 +1,10 @@
-# 套接字编程简介
+# 3.套接字编程简介
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [套接字编程简介](#套接字编程简介)
+* [3.套接字编程简介](#3套接字编程简介)
 	* [套接字地址结构](#套接字地址结构)
 		* [IPv4套接字地址结构](#ipv4套接字地址结构)
 		* [通用套接字地址结构](#通用套接字地址结构)
@@ -144,5 +144,5 @@ ptr=inet_ntoa(foo.sin_addr);
 
 
 [上一级](base.md)
-[上一篇](intro.md)
-[下一篇](transport_layer.md)
+[上一篇](2_transport_layer.md)
+[下一篇](4_basic_tcp_socket.md)

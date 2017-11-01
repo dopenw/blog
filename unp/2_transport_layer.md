@@ -1,9 +1,9 @@
-# 2. 传输层：TCP、UDP、SCTP
+# 2.传输层：TCP、UDP、SCTP
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [2. 传输层：TCP、UDP、SCTP](#2-传输层tcp-udp-sctp)
+* [2.传输层：TCP、UDP、SCTP](#2传输层tcp-udp-sctp)
 	* [概述](#概述)
 	* [总图](#总图)
 	* [传输控制协议（TCP）](#传输控制协议tcp)
@@ -146,4 +146,5 @@ IANA（因特网已分配数值权威机构）维护着一个端口号分配状�
 
 * 最大分节大小（Maximum Segment Size），是 TCP 连接建立过程中由 SYN 分节的 MSS 选项指定的，用于向对端 TCP 通告对端在每个分节中能发送的最大 TCP 数据量（不包括分节的头部）。MSS 经常设置成 MTU 减去 IP 和 TCP 头部的固定长度，比如在以太网中使用 IPv4 的 MSS 值为1460（因为以太网的 MTU 一般为1500字节，而 TCP 和 IPv4 头部一般为20字节），这样最大的 IP 数据包也就是1500字节，这样的数据包进入以太网链路之前中就不需要重新分片，可见通过指定 MSS 能够避免分片。MSS 是应用层与传输层（TCP）之间的接口属性，TCP 协议在构造一个分节时一般从 TCP 缓冲区取不大于 MSS 的字节数作为分节的数据部分。                                                                       
 [上一级](base.md)
-[上一篇](socket_program_into.md)
+[上一篇](1_intro.md)
+[下一篇](3_socket_program_into.md)

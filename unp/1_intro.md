@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
     err_sys("connect error");
 
   while ((n = read(sockfd, recvline, MAXLINE)) > 0) {
-    recvline[n] = 0; /* null terminate */
+    recvline[n] = 0; /* null terminate * /
 
     // fputs将一个以null字节终止的字符串写到指定的流，尾端的终止符null不写出
     // puts将一个以null字节终止的字符串写到标准输出，尾端的终止符null不写出
@@ -130,7 +130,7 @@ int Socket(int family,int type,int protocol)
 #include "unp.h"
 #include <time.h>
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char const * argv[]) {
   int listenfd, connfd;
 
   struct sockaddr_in servaddr;
@@ -141,7 +141,8 @@ int main(int argc, char const *argv[]) {
 
   bzero(&servaddr, sizeof(servaddr));
   servaddr.sin_family = AF_INET;
-  servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+  servaddr.sin_addr.s_addr = htonl(INADDR_ANY);//INADDR_ANY 0
+	//内核选择IP地址和端口
   servaddr.sin_port = htons(1300);
 
   Bind(listenfd, (SA *)&servaddr, sizeof(servaddr));
@@ -160,4 +161,4 @@ int main(int argc, char const *argv[]) {
 }
 ```
 [上一级](base.md)
-[下一篇](socket_program_into.md)
+[下一篇](2_transport_layer.md)
