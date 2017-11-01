@@ -1,9 +1,9 @@
-# 基本TCP套接字编程
+# 4.基本TCP套接字编程
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [基本TCP套接字编程](#基本tcp套接字编程)
+* [4.基本TCP套接字编程](#4基本tcp套接字编程)
 	* [socket函数](#socket函数)
 		* [基本tcp客户/服务器程序的套接字示意图](#基本tcp客户服务器程序的套接字示意图)
 		* [socket函数的family常值](#socket函数的family常值)
@@ -81,6 +81,7 @@ int bind(int sockfd,const struct sockaddr *myaddr,socklen_t addrlen);
 * 进程可以把一个特定的IP地址捆绑到它的套接字上，不过这个IP地址必须属于其所在的网络接口之一。对于TCP客户，这就为在该套接字上发送的IP数据报指派了源IP地址。对于TCP服务器，这个限定了该套接字只接受那些目的地为这个IP地址的客户连接。TCP客户通常不把IP地址捆绑到它的套接字上。
 
 给bind函数指定要绑定的IP地址/端口号产生的结果
+
 | 地址| 端口 | 结果     |
 | :------------- | :------------- |:------------- |
 |通配地址| 0 | 内核选择ip地址和端口|
