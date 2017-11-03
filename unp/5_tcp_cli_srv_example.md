@@ -10,6 +10,11 @@
 		* [退出函数](#退出函数)
 	* [客户端程序](#客户端程序)
 	* [链接器如何解析多重定义的全局符号](#链接器如何解析多重定义的全局符号)
+	* [tcpdump](#tcpdump)
+		* [Wireshark](#wireshark)
+	* [netstat](#netstat)
+	* [posix信号处理](#posix信号处理)
+		* [POSIX 信号语义](#posix-信号语义)
 
 <!-- /code_chunk_output -->
 
@@ -234,6 +239,92 @@ show:
 ```
 x=0x0  y=0x0
 ```
+
+## tcpdump
+[tcpdump](https://zh.wikipedia.org/wiki/Tcpdump) 是一个运行在命令行下的嗅探工具。它允许用户拦截和显示发送或收到过网络连接到该计算机的TCP/IP和其他数据包。tcpdump 是一个在BSD许可证下发布的自由软件。
+
+tcpdump能够分析网络行为，性能和应用产生或接收网络流量。它支持针对网络层、协议、主机、网络或端口的过滤，并提供and、or、not等逻辑语句来帮助你去掉无用的信息，从而使用户能够进一步找出问题的根源。
+
+也可以使用 tcpdump 的实现特定目的，例如在路由器和网关之间拦截并显示其他用户或计算机通信。通过 tcpdump 分析非加密的流量，如Telnet或HTTP的数据包，查看登录的用户名、密码、网址、正在浏览的网站内容，或任何其他信息。因此系统中存在网络分析工具主要不是对本机安全的威胁，而是对网络上的其他计算机的安全存在威胁。
+
+简单使用:
+```sh
+tcpdump host $IPAddress -vv -X
+```
+
+[tcpdump Tutorial](https://danielmiessler.com/study/tcpdump/)
+
+### Wireshark
+Wireshark（前称Ethereal）是一个免费开源的网络数据包分析软件。网络数据包分析软件的功能是截取网络数据包，并尽可能显示出最为详细的网络数据包数据。
+
+[fedora install Wireshark](https://fedoramagazine.org/how-to-install-wireshark-fedora/)
+
+## netstat
+
+In computing, [netstat](https://en.wikipedia.org/wiki/Netstat) (network statistics) is a command-line network utility tool that displays network connections for the Transmission Control Protocol (both incoming and outgoing), routing tables, and a number of network interface (network interface controller or software-defined network interface) and network protocol statistics. It is available on Unix-like operating systems including macOS, Linux, Solaris, and BSD, and is available on Windows NT-based operating systems including Windows XP, Windows Vista, Windows 7, Windows 8 and Windows 10.
+
+
+## posix信号处理
+
+信号就是告知某个进程发生了某个事情的通知，有时也称为软件中断。信号通常是异步发生的，也就是说进程预先并不知道信号的准确发生时刻。
+
+信号可以：
+* 由进程发给另一个进程（或自身）
+* 由内核发给某个进程
+
+SIGHLD信号就是内核在任何一个进程终止时发给他的父进程的一个信号
+
+有两个信号不能被捕获，他们是SIGKILL和SIGSTOP：他们向内核和超级用户提供了使进程终止或停止的可靠方法。
+
+调用POSIX sigaction函数的signal函数
+
+```c
+#include "unp.h"
+
+Sigfunc * signal(int signo,Sigfunc *func)
+{
+	struct sigaction act,oact;
+
+	act.sa_handler=func;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags=0;
+
+	//省略平台可移植的处理
+
+	if (sigaction(signo,&act,&oact)<0)
+	return (SIG_ERR);
+	return (oact.sa_handler);
+
+}
+```
+
+用typedef简化函数原型
+
+signal函数原型
+```c
+void (* signal(int signo,void (* func)(int))) (int);
+```
+为了简化，在unp.h中定义了如下Sigfunc类型：
+```
+typedef void Sigfunc(int)
+```
+
+### POSIX 信号语义
+
+符合POSIX的系统上的信号处理：
+* 一旦安装了信号处理函数，他便一直安装着
+* 在一个信号处理函数运行期间，正在提交的信号是阻塞的。而且，安装处理函数时在传递给sigaction的函数的sa_mask信号集中指定的任何额外信号也被阻塞
+* 如果一个信号在被阻塞间产生了一次或多次，那么该信号被解阻塞之后通常只递交一次，也就是说unix信号默认是不排队的
+* 利用sigprocmask函数选择性地阻塞或解阻塞一组信号是可能的。这使得我们可以做到在一段临界区代码执行期间，防止捕获某些消息，以此保护这段代码
+
+
+
+
+
+
+
+
+
 
 [上一级](base.md)
 [上一篇](4_basic_tcp_socket.md)
