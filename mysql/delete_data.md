@@ -3,7 +3,7 @@
 1.使用小量多次delete的方法
 ```shell
 
-while [ 1 -eq 1 ]
+while true
 do
 mysql -uUser -pPassword -Ddatabase -hHost << EOF
 delete from Table where (codition==True) limit 1000(or other);
@@ -20,6 +20,7 @@ insert into tmp_table select * from Table where (codition=True);
 -- 遇到的问题：命令执行完后，select * from tmp_table结果无数据，查看物理空间发现有几个G的数据，可能是数据量太大造成insert失败，考虑select数据量分小一点。
 ```
 
+3. 将需要的数据导出为文件，删除表，然后在将文件load到数据库，效率较方法2更高效
 
 [上一级](base.md)
 [上一篇](Lock_wait_timeout_exceeded.md)

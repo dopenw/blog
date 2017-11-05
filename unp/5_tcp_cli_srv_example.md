@@ -15,6 +15,9 @@
 	* [netstat](#netstat)
 	* [posix信号处理](#posix信号处理)
 		* [POSIX 信号语义](#posix-信号语义)
+	* [处理SIGCHLD信号](#处理sigchld信号)
+	* [处理被中断的系统调用](#处理被中断的系统调用)
+	* [wait和waitpid函数](#wait和waitpid函数)
 
 <!-- /code_chunk_output -->
 
@@ -316,6 +319,196 @@ typedef void Sigfunc(int)
 * 在一个信号处理函数运行期间，正在提交的信号是阻塞的。而且，安装处理函数时在传递给sigaction的函数的sa_mask信号集中指定的任何额外信号也被阻塞
 * 如果一个信号在被阻塞间产生了一次或多次，那么该信号被解阻塞之后通常只递交一次，也就是说unix信号默认是不排队的
 * 利用sigprocmask函数选择性地阻塞或解阻塞一组信号是可能的。这使得我们可以做到在一段临界区代码执行期间，防止捕获某些消息，以此保护这段代码
+
+## 处理SIGCHLD信号
+
+* 孤儿进程
+一个其父进程已终止的进程称为孤儿进程，这种进程由init进程“收养”
+
+* 孤儿进程组
+该组中每个成员的父进程要么是该组的一个成员，要么不是该组所属会话的成员。对孤儿进程组的另一种描述可以是：一个进程组不是孤儿进程组的条件是-改组中有一个进程，其父进程在属于同一会话的另一组中
+
+* [僵死进程](https://zh.wikipedia.org/zh-cn/%E5%83%B5%E5%B0%B8%E8%BF%9B%E7%A8%8B)
+
+我们显然不愿意留存僵死进程。他们占用内核中的空间，最终可能导致我们耗尽进程资源。无论何时我们fork子进程都得wait他们，以防止他们变成僵死进程。为此，建立了一个处理SIGCHLD信号的信号处理函数：
+```c
+Signal(SIGCHLD，sig_chld);
+```
+```c
+#include "unp.h"
+
+void sig_chld(int signo)
+{
+	pid_t pid;
+	int stat;
+
+	pid=wait(&stat);
+	printf("child %d terminated\n",pid );
+	return ;
+}
+```
+
+## 处理被中断的系统调用
+
+我们用术语慢系统调用描述过accept函数，该术语也适用于那些可能永远阻塞的系统调用。
+
+适用于慢系统调用的基本规则是：当阻塞于某个慢系统调用的一个进程捕获某个信号且相应的信号处理函数返回试，该系统调用可能返回一个EINTR错误。
+
+为了处理被中断的accept，我们可以做如下更改：
+
+```c
+while (1) {
+	clilen=sizeof(cliaddr);
+	if ((connfd=accept(listenfd,(SA *)&cliaddr,&clilen))<0)
+	{
+		if (errno== EINTR)
+			continue;
+		else
+			err_sys（"accept error"）;
+	}
+}
+```
+
+对于accept以及诸如read,write,select,open之类的函数来说，这个是合适。不过有一个函数我们不能重启：connect。如果该函数返回EINTR，我们就不能再次调用它，否则将立即返回一个错误。当connect被一个捕获ide信号中断而且不能自动重启时，我们必须调用select来等待连接完成。
+
+为了帮助应用程序使其不必处理被中断的系统调用，4.3BSD后引进了某些被中断系统调用的自动重启动。自动重启动的系统包括：ioctl,read,readv,write,wirtev,wait和waitpid。但是这种自动重启动的处理方式也会带来问题，某些应用程序并不希望这些函数被中断后重启动为此4.3BSD允许进程基于每个信号禁用此功能。
+
+
+| function | system   | 被中断系统调用的自动重启动？
+| :- | :- |:-|
+| signal     | linux       | 默认|
+|sigaction |linux | 可选
+
+
+[How to know if a Linux system call is restartable or not?](https://stackoverflow.com/questions/13357019/how-to-know-if-a-linux-system-call-is-restartable-or-not)
+
+
+## wait和waitpid函数
+
+```c
+#include <sys/wait.h>
+
+pid_t wait(int *statloc);
+pid_t waitpid(pid_t pid,int *statloc,int options);
+```
+
+这两个函数的区别：
+* 在一个子进程终止前，wait使其调用者阻塞，而waitpid有一选项，可使调用者不阻塞。
+* waitpid并不等待在其调用之后的第一个终止子进程，它有若干个选项，可以控制它所等待的进程。
+
+这两个函数的参数statloc指向终止状态，若不关心终止状态，可将该参数指定为空指针。
+
+检查wait和waitpid所返回的终止状态的宏
+
+| define | info     |
+| :------------- | :------------- |
+| WIFEXITED(status)       | 若为正常终止的子进程返回的状态，则为真      |
+|WIFSIGNALED(status) | 若为异常终止子进程返回的状态，则为真 |
+|WIFSTOPPED(status) | 若为当前暂停子进程的返回状态，则为真
+|WIFCONTINUED（status）| 若在作业控制暂停后已经继续的子进程返回了状态，则为真 （仅用于waitpid）
+
+
+看下面的例子：
+
+与服务器建立了5个连接的TCP客户程序
+```c
+#include "unp.h"
+
+int main(int argc, char const *argv[]) {
+	int i,sockfd[5];
+
+	struct sockaddr_in servaddr;
+
+	if (argc!=2)
+		err_quit("usage:tcpcli<IPAddress>");
+
+	for (i=0;i<5;i++)
+	{
+		sockfd[i]=Socket(AF_INET,SOCK_STREAM,0);
+		bzero(&servaddr,sizeof(servaddr));
+		servaddr.sin_family=AF_INET;
+		servaddr.sin_port=htons(SERV_PORT);
+		Inet_pton(AF_INET,argv[1],&servaddr.sin_addr);
+
+		Connect(sockfd[i],(SA *)&servaddr,sizeof(servaddr));
+
+	}
+	str_cli(stdin,sockfd[0]);
+
+	exit(0);
+}
+```
+
+当客户终止时，且所有5个连接基本在同一时刻终止。这就引发5个FIN，他们反过来使服务器的5个连接基本在同一时刻终止。这又导致差不多在同一时刻有5个SIGCHLD信号递交给父进程。但unix信号一般是不排队的。使用之前的sigchld信号处理函数会产生4个僵死进程。
+
+最终正确的SIGCHLD处理函数：
+```c
+#include "unp.h"
+
+void sig_chld（int signo）
+{
+	pid_t pid;
+
+	int stat;
+
+	while((pid=waitpid(-1,&stat,WNOHANG))>0)
+		printf("child %d terminated\n",pid );
+		return;
+}
+```
+
+
+处理accept返回EINTR错误的TCP服务器最终正确版本：
+```c
+#include "unp.h"
+
+int main(int argc, char const *argv[]) {
+	int listenfd,connfd;
+
+	pid_t childpid;
+	socklen_t clilen;
+	struct sockaddr_in cliaddr,servaddr;
+	void sig_chld(int);
+
+	listenfd=Socket(AF_INET,SOCK_STREAM,0);
+
+	bzero(&servaddr,sizeof(servaddr));
+	servaddr.sin_family=AF_INET;
+	servaddr.sin_port=htons(SERV_PORT);
+	servaddr.sin_addr.s_addr=INADDR_ANY;
+
+	Bind(listenfd,(SA *)&servaddr,sizeof(servaddr));
+
+
+	Listen(listenfd,LISTENQ);
+
+	Signal(SIGCHLD,sig_chld);
+
+	while (1) {
+		clilen=sizeof(cliaddr);
+
+		if ((connfd=accept(listenfd,(SA *) &cliaddr),&clilen)<0)
+		{
+			if (errno==EINTR)
+				continue;
+			else
+				err_sys("accept error");
+
+		}
+
+		if ((childpid=Fork())==0)
+		{
+			Close(listenfd);
+			str_echo(connfd);
+			exit(0);
+		}
+		Close(connfd);
+	}
+	return 0;
+}
+```
+
+
 
 
 
