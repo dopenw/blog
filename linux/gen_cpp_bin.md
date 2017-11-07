@@ -11,5 +11,5 @@ if [ $(echo $?) -eq 0 ];then
 fi
 ```
 [上一级](base.md)
-[上一篇](ctrl_alt_f3_login_incorrect.md)
+[上一篇](custom_desktop_env.md)
 [下一篇](linux.md)

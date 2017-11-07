@@ -18,6 +18,11 @@
 	* [处理SIGCHLD信号](#处理sigchld信号)
 	* [处理被中断的系统调用](#处理被中断的系统调用)
 	* [wait和waitpid函数](#wait和waitpid函数)
+	* [服务器进程终止](#服务器进程终止)
+	* [SIGPIPE信号](#sigpipe信号)
+	* [服务器主机崩溃](#服务器主机崩溃)
+	* [服务器主机崩溃后重启](#服务器主机崩溃后重启)
+	* [服务器主机关机](#服务器主机关机)
 
 <!-- /code_chunk_output -->
 
@@ -508,14 +513,81 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
+## 服务器进程终止
+
+1. 我们在同一主机上启动服务器和客户端，并在客户上键入一行文本，以验证一切正常。
+2. 找到服务的子进程的进程ID，并执行kill命令杀死它。
+3. SIGCHLD信号被发送给服务器父进程，并得到正确处理
+4. 客户上没有发生任何特殊的事情。客户TCP接收来自服务器的FIN并响应一个ACK，然而问题是客户进程阻塞在fgets调用上，等待从终端接受一行文本
+5. 运行netstat命令，可以看到TCP连接终止序列的前半部分已经完成
+6. 我们从客户上在键入一行文本，这时，显示“server terminated prematurely”,并终止
+7. 当服务器TCP接收来自客户的数据时，既然先前打开的那个套接字的进程已经终止，于是响应一个RST。然而客户进程看不到这个RST，因为他在调用writen后立即调用readline，并且由于第二步中接收的FIN，所调用的readline立即返回0（表示EOF）。出错退出。
+8. 当客户终止时（通过调用err_quit），它所打开着的描述符都被关闭。
+
+本例子的问题在于：当FIN到达套接字时，客户正阻塞在fgets调用上。客户实际上在应对两个描述符-套接字和用户输入。
 
 
+## SIGPIPE信号
+
+如果在管道的读进程已终止的时候写管道，则产生此信号。
+
+产生该信号的修改就是调用wirten两次：第一次把文本行数据的，暂停一秒钟后，第二次把同一文本行中剩余字节写入套接字。目的是让第一次writen引发一个RST，在让第二个writen产生SIGPIPE。
+
+调用writen两次从的str_cli函数：
+```c
+#include	"unp.h"
+
+void
+str_cli(FILE *fp, int sockfd)
+{
+	char	sendline[MAXLINE], recvline[MAXLINE];
+
+	while (Fgets(sendline, MAXLINE, fp) != NULL) {
+
+		Writen(sockfd, sendline, 1);
+		sleep(1);
+		Writen(sockfd, sendline+1, strlen(sendline)-1);
+
+		if (Readline(sockfd, recvline, MAXLINE) == 0)
+			err_quit("str_cli: server terminated prematurely");
+
+		Fputs(recvline, stdout);
+	}
+}
+```
+
+结果:
+```
+./tcpcli11 127.0.0.1
+
+hi there 我们键入这行文本
+hi there 被服务器回射回来
+		 在这杀死服务器子进程
+bye 	然后键入这行文本
+		进程收到SIGPIPE终止了
+```
+
+[Why is port not immediately released after the socket closes?](https://stackoverflow.com/questions/22549044/why-is-port-not-immediately-released-after-the-socket-closes)
 
 
+## 服务器主机崩溃
+
+1. 当服务器主机崩溃时，已有的网络连接不发出任何东西。这里我们假设的是主机崩溃，而不是由操作员执行命令关机。
+2. 我们在客户上键入一行文本，它由writen写入内核，再由T客户TCP作为一个数据分节送出。客户随后阻塞于readline调用，等待回射的应答。
+3. 客户TCP会持续重传数据分节，试图从服务器上接收一个ACK。源自Berkley的实现重传该数据分节12次，共等待约9分钟才放弃重传。
 
 
+## 服务器主机崩溃后重启
 
+如果在服务器主机崩溃是客户不主动给服务器发送数据，那么客户将不会知道服务器主机已经崩溃。（这里我们假设没有使用SO—KEEPALIVE套接字选项）。所发生的步骤如下：
+1. 我们启动服务器和客户，并在客户键入一行文本以确认连接已经建立
+2. 服务器主机崩溃并重启
+3. 在客户上键入一行文本，他将作为一个TCP数据分节发送给服务器主机
+4. 当服务器主机崩溃后重启时，他的TCP丢失了崩溃前的连接信息，因此服务器TCP对于所收到的来自客户的数据分节响应一个RST
+5. 当客户TCP收到该RST时，客户正阻塞于readline调用，导致该调用返回ECONNRESET错误
 
+## 服务器主机关机
+和服务器进程终止讨论的一样
 
 
 
