@@ -1,5 +1,35 @@
 # I/O多路复用：select和poll函数
 
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+<!-- code_chunk_output -->
+
+* [I/O多路复用：select和poll函数](#io多路复用select和poll函数)
+	* [概述](#概述)
+	* [I/O模型](#io模型)
+		* [阻塞式I/O](#阻塞式io)
+		* [非阻塞式I/O](#非阻塞式io)
+		* [I/O复用](#io复用)
+		* [信号驱动I/O模型](#信号驱动io模型)
+		* [异步I/O模型](#异步io模型)
+		* [同步I/O和异步I/O对比](#同步io和异步io对比)
+	* [select 函数](#select-函数)
+		* [timeout参数：](#timeout参数)
+		* [readset、writeset、exceptset参数](#readset-writeset-exceptset参数)
+		* [maxfdp1参数](#maxfdp1参数)
+		* [描述符就绪条件](#描述符就绪条件)
+			* [套接字准备好读](#套接字准备好读)
+			* [一个套接字准备好写](#一个套接字准备好写)
+			* [错误就绪](#错误就绪)
+	* [str_cli函数（修订版）](#str_cli函数修订版)
+	* [批量输入](#批量输入)
+	* [shutdown函数](#shutdown函数)
+	* [str_cli函数（再修订版）](#str_cli函数再修订版)
+	* [TCP回射服务器程序](#tcp回射服务器程序)
+			* [拒绝服务型攻击](#拒绝服务型攻击)
+
+<!-- /code_chunk_output -->
+
 ## 概述
 
 在前一章的服务器进程终止一节中，当FIN到达套接字时，客户正阻塞在fgets调用上。客户实际上在应对两个描述符-套接字和用户输入。
@@ -70,7 +100,7 @@ POSIX把这两个术语定义如下：
 #include <sys/time.h>
 
 int select(int maxfdp1,fd_set *readset,fd_set *writeset,fd_set *exceptset,const struct timeval *timeout);
-
+//返回：若有就绪描述符则为其数目，若超时则为0，若出错则为-1
 ```
 
 
@@ -133,7 +163,7 @@ select函数修改由指针readset、writeset和exceptset指向的描述符集�
 
 4. 其上有一个套接字错误待处理。对这样的套接字的读操作将不阻塞，并返回-1，同时把errno设置为确切的条件。这些待处理错误也可以通过指定SO_ERROR套接字选项调用getsockopt获取并清除。
 
-### 一个套接字准备好写
+#### 一个套接字准备好写
 
 1. 该套接字发送缓冲区中的数据字节数大于等于套接字发送缓冲区低水位标记好的的当前大小。
 
@@ -141,7 +171,7 @@ select函数修改由指针readset、writeset和exceptset指向的描述符集�
 
 3. 其上有一个套接字错误待处理。详情同上
 
-### 错误就绪
+#### 错误就绪
 如果一个套接字存在带外数据或者仍处于带外标记，那么它有异常条件待处理
 
 注意：
@@ -158,6 +188,245 @@ select函数修改由指针readset、writeset和exceptset指向的描述符集�
 |关闭连接的写一半|N|Y|N
 |待处理错误|Y|Y|N
 |TCP带外数据|N|N|Y
+
+
+## str_cli函数（修订版）
+
+我们可以使用select来处理之前讨论的服务器终止问题。
+
+str_cli函数中select处理的各种条件：
+
+![](../images/6_select_poll_function_201711101451_1.png)
+
+客户套接字上的三个条件处理如下：
+1. 如果对端TCP发送数据，那么该套接字变为可读，并且read返回一个大于0的值（即读入数据的字节数）。
+2. 如果对端TCP发送一个FIN（对端进程终止），那么该套接字变为可读，并且read返回0（EOF）。
+3. 如果对端TCP发送一个RST（对端主机崩溃并重新启动），那么该套接字变为可读，并且返回-1，而errno中还有确切的错误代码。
+
+使用select的str_cli函数的实现：
+```c
+#include "unp.h"
+
+void str_cli(FILE *fp,int sockfd)
+{
+	int maxfdp1;
+	fd_set rset;
+	char sendline[MAXLINE],recvline[MAXLINE];
+
+	FD_ZERO(&rset);
+
+	while (1) {
+		FD_SET(fileno(fp),&rset);
+		//int fileno(FILE *stream);
+		//The function fileno() examines the  argument  stream  and  returns  
+		// its integer file descriptor.
+
+		FD_SET(sockfd,&rset);
+		maxfdp1=max(fileno(fp),sockfd)+1;
+		Select(maxfdp1,&rset,NULL,NULL,NULL);
+
+		if (FD_ISSET(sockfd,&rset))
+		{
+			if (Readline(sockfd,recvline,MAXLINE)==0)
+				err_quit("str_cli:server terminated prematurely");
+			Fputs(recvline,stdout);
+		}
+
+		if (FD_ISSET(fileno(fp),&rset))
+		{
+			if (Fgets(sendline,MAXLINE,fp)==NULL)
+				return;
+			Writen(sockfd,sendline,strlen(sendline));
+		}
+	}
+}
+```
+
+## 批量输入
+不幸的是，我们str_cli函数仍然是不正确的。
+
+一般来说，为提升性能而引入缓冲机制增加了网络应用程序的复杂性，上面章节的代码就遭受这种复杂性之害。究其原因在于select不知道stdio使用了缓冲区-它只是从read系统调用的角度指出是否有数据可读，而不是从fgets之类调用的角度考虑。基于上述原因，<span style="color:red">混合使用stdio和select被认为是非常容易犯错误的，在这样做时必须极其小心</span>              
+
+
+
+## shutdown函数
+终止网络连接的通常方法时调用close函数。不过close有两个限制，却可以使用shutdown来避免。
+1. close把描述符的引用计数减一，仅在该计数变为0时才关闭套接字。使用shutdown可以不管引用计数就激发TCP的正常连接终止序列。
+2. close终止读和写两个方向的数据传送。
+
+```c
+#include <sys/socket.h>
+
+int shutdown(int sockfd,int howto);
+```
+
+该函数的行为依赖于howto参数的值。
+
+* SHUT_RD 关闭连接的读这——半-套接字中不再有数据可接收，并且套接字接收缓冲区中的现有数据都被丢弃。进程不能在对这样的套接字调用任何读函数。对一个TCP套接字这样调用shutdown函数后，由该套接字接收的来自对端的任何数据都被确认，然后悄然丢弃。
+
+* SHUT_WR 关闭连接的写这一半——对于TCP套接字，这称为半关闭。当前留在套接字发送缓冲区中的数据将被发送掉，后跟TCP的正常连接终止序列
+
+* SHUT_RDWR 连接的读半部和写半部都关闭
+
+这三个SHUT_*名字是由POSIX规范定义，howto参数的典型值将会是0（关闭读半部）、1（关闭写半部）、2（读半部和写半部都关闭）
+
+## str_cli函数（再修订版）
+
+str_cli函数的改进（且正确）版本。这个版本还废弃了以文本为中心的代码，改而针对缓冲区操作，从而消除了前面提到的复杂性问题。
+```c
+#include "unp.h"
+
+void str_cli(FILE * fp,int sockfd)
+{
+	int maxfdp1,stdineof;
+	fd_set rset;
+	char buf[MAXLINE];
+	int n;
+
+	stdineof=0;
+	FD_ZERO(&rset);
+	while (1) {
+		if (stdineof==0)
+			FD_SET(fileno(fp),&rset);
+			FD_SET(sockfd,&rset);
+			maxfdp1=max(fileno(fp),sockfd)+1;
+			Select(maxfdp1,&rset,NULL,NULL,NULL);
+
+			if (FD_ISSET(sockfd,&rset))
+			{
+				if ((n=Read(sockfd,buf,MAXLINE))==0)
+				{
+					if (stdineof==1)
+						return ;
+					else
+						err_quit("str_cli:server terminated prematurely");
+				}
+				Writen(fileno(stdout),buf,n);
+			}
+
+			if (FD_ISSET(fileno(fp),&rset))
+			{
+					//if stdin input EOF
+					if ((n=Read(fileno(fp),buf,MAXLINE))==0)
+					{
+						stdineof=1;
+						Shutdown(sockfd,SHUT_WR);//send FIN
+						FD_CLR(fileno(fp),&rset);
+						continue;
+					}
+					Writen(sockfd,buf,n);
+			}
+	}
+}
+```
+
+## TCP回射服务器程序
+
+```c
+#include "unp.h"
+
+int main(int argc, char const *argv[]) {
+	int i,maxi,maxfd,listenfd,connfd,sockfd;
+
+	int nready,client[FD_SETSIZE];
+
+	ssize_t n;
+	fd_set rset,allset;
+	char buf[MAXLINE];
+	socklen_t clilen;
+	struct sockaddr_in cliaddr,servadd;
+	listenfd=Socket(AF_INET,SOCK_STREAM,0);
+
+	bzero(&serveraddr,sizeof(servadd));
+	servaddr.sin_family=AF_INET;
+	servadd.sin_port.s_addr=htonl(INADDR_ANY);
+	servadd.sin_port=htons(SERV_PORT);
+
+	Bind(listenfd,(SA *)&servadd,sizeof(servadd));
+
+	Listen(listenfd,LISTENQ);
+
+	maxfd=listenfd; //initialize
+	maxi=-1; //index into  client[] array
+
+	for (i=0;i<FD_SETSIZE;i++)
+		client[i]=-1; // -1 indicates available entry
+
+	FD_ZERO(&allset);
+	FD_SET(listenfd,&allset);
+
+	while (1) {
+		rset=allset; //structure assignment
+		nready=Select(maxfd+1,&rset,NULL,NULL,NULL);
+
+		if(FD_ISSET(listenfd,&rset)) //new client connection
+		{
+			clilen=sizeof(cliaddr);
+			connfd=Accept(listenfd,(SA *)&cliaddr,&clilen);
+
+			for (i=0;i<FD_SETSIZE;i++)
+			{
+				if (client[i]<0)
+				{
+					client[i]=connfd; //save descriptor
+					break;
+				}
+			}
+
+			if (i==FD_SETSIZE)
+				err_quit("too many clients");
+
+			FD_SET(connfd,&allset); //add new descriptor to set
+
+			if (connfd > maxfd)
+				maxfd=connfd; //for select
+
+			if (i>maxi)
+				maxi=i; //max index in client[] array
+
+			if (--nready<=0)
+			continue; //no more readable descriptor
+		}
+
+		for(i=0;i<=maxi;i++) //check all client for data
+		{
+			if ((sockfd=client[i])<0)
+				continue;
+			if (FD_ISSET(sockfd,&rset))
+			{
+				if ((n=Read(sockfd,buf,MAXLINE))==0)
+				{
+					Close(sockfd);
+					FD_CLR(sockfd,&allset);
+					client[i]=-1;
+				}
+				else
+					Writen(sockfd,buf,n);
+				if (--nready<=0)
+					break; //no more readable descriptor
+			}
+		}
+	}
+	return 0;
+}
+```
+
+### 拒绝服务型攻击
+
+[拒绝服务型攻击](https://en.wikipedia.org/wiki/Denial-of-service_attack)
+
+[僵尸网络](https://en.wikipedia.org/wiki/Botnet)
+
+不幸的是，我们刚刚给出的服务器程序存在一个问题。
+
+当一个服务器再处理多个客户时，它绝对不能阻塞于只与单个客户相关的某个函数调用。否则可能导致服务器被挂起，拒绝为所有的其他客户提供服务。这就是所谓的拒绝服务型攻击。它就是针对服务器做些动作，导致服务器不再能位其他合法客户提供服务。
+
+可能的解决办法包括：
+1. 使用非阻塞式I/O
+2. 让每个客户由单独的控制线程提供服务
+3. I/O操作设置一个超时
+
+
 
 
 [上一级](base.md)

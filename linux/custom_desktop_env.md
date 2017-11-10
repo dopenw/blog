@@ -33,6 +33,11 @@
 
 1. [Flat-Remix](https://github.com/daniruiz/Flat-Remix)
 
+## gnome cusor
+
+1. [Breeze Serie](https://www.gnome-look.org/content/show.php?content=164300)
+
+[youtube link](https://www.youtube.com/watch?v=XKc5DXa8JSs&t=70s)
 
 ## 显示效果
 
