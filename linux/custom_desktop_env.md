@@ -1,5 +1,20 @@
 # 自定义fedora桌面环境
 
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+<!-- code_chunk_output -->
+
+* [自定义fedora桌面环境](#自定义fedora桌面环境)
+	* [gnome shell extensions](#gnome-shell-extensions)
+	* [gnome theme](#gnome-theme)
+	* [gnome icons](#gnome-icons)
+	* [gnome cusor](#gnome-cusor)
+	* [显示效果](#显示效果)
+	* [截屏](#截屏)
+
+<!-- /code_chunk_output -->
+
+
 ## gnome shell extensions
 
 1. NetSpeed
@@ -41,7 +56,21 @@
 
 ## 显示效果
 
+采用：
+1. NetSpeed
+2. EasyScreenCast
+3. Dash to Dock
+4. paper-gtk-theme
+5. Flat-Remix
+6. Breeze Serie
+
 ![](../images/custom_desktop_env_201711071727_1.png)
+
+## 截屏
+
+实现快捷截取选择屏幕区域:
+"alter + a" -> "shutter -s -e"
+
 [上一级](base.md)
 [上一篇](ctrl_alt_f3_login_incorrect.md)
 [下一篇](gen_cpp_bin.md)
