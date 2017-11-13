@@ -78,7 +78,7 @@ int setsockopt(int sockfd,int level,int optname,const void *optval,socklen_t opt
 |IPPROTO_IP|IP_UNBLOCK_SOURCE |N|Y|开通多播组|N|ip_mreq_source{}
 |IPPROTO_IP|IP_ADD_SOURCE_MEMBERSHIP |N|Y|加入源特定多播组|N|ip_mreq_source{}
 |IPPROTO_IP|IP_DROP_SOURCE_MEMEBERSHIP |N|Y|离开源特定多播组|N|ip_mreq_source{}
-|IPPROTO_ICMPV6|ICMP6_FILTER|Y|Y|指定带传递的ICMPV6消息类型|N|icmp6_filter{}
+|IPPROTO_ICMPV6|ICMP6_FILTER|Y|Y|指定待传递的ICMPV6消息类型|N|icmp6_filter{}
 |IPPROTO_IPV6|IPV6_CHECKSUM|Y|Y|用于原始套接字的检验和字段偏移|N|int
 |IPPROTO_IPV6|IPV6_DONTFRAG|Y|Y|丢弃大的分组而非将其分片|Y|int
 |IPPROTO_IPV6|IPV6_NEXTHOP|Y|Y|指定下一跳地址|N|sock_addrin6{}
@@ -157,9 +157,12 @@ struct sock_opts {
     {"SO_REUSEPORT", 0, 0, NULL},
 #endif
     {"SO_TYPE", SOL_SOCKET, SO_TYPE, sock_str_int},
-    //{"SO_USELOOPBACK", SOL_SOCKET, SO_USELOOPBACK, sock_str_flag},
-	// error: ‘SO_USELOOPBACK’ undeclared here 
-	// (not in a function); did you mean ‘\__USE_XOPEN2K’?
+
+    //{"SO_USELOOPBACK", SOL_SOCKET, SO_USELOOPBACK,
+
+		//fedora 26，gcc 7.2.1,show error sock_str_flag},
+	  // error: ‘SO_USELOOPBACK’ undeclared here 
+	  // (not in a function); did you mean ‘\__USE_XOPEN2K’?
 
     {"IP_TOS", IPPROTO_IP, IP_TOS, sock_str_int},
     {"IP_TTL", IPPROTO_IP, IP_TTL, sock_str_int},

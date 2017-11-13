@@ -11,6 +11,7 @@
 	* [gnome cusor](#gnome-cusor)
 	* [显示效果](#显示效果)
 	* [截屏](#截屏)
+	* [系统清理工具](#系统清理工具)
 
 <!-- /code_chunk_output -->
 
@@ -70,6 +71,20 @@
 
 实现快捷截取选择屏幕区域:
 "alter + a" -> "shutter -s -e"
+
+## 系统清理工具
+
+1. [bleachbit](https://www.bleachbit.org/)
+
+![](../images/custom_desktop_env_201711132254_1.png)
+
+2. [stacer](https://github.com/oguzhaninan/Stacer)
+
+![](../images/custom_desktop_env_201711132254_2.png)
+
+3. [gcleaner](https://launchpad.net/gcleaner)
+
+[youtube link](https://www.youtube.com/watch?v=wdC1n18kv_E&t=283s)
 
 [上一级](base.md)
 [上一篇](ctrl_alt_f3_login_incorrect.md)
