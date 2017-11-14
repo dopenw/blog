@@ -12,6 +12,7 @@
 	* [显示效果](#显示效果)
 	* [截屏](#截屏)
 	* [系统清理工具](#系统清理工具)
+	* [utilties](#utilties)
 
 <!-- /code_chunk_output -->
 
@@ -85,6 +86,16 @@
 3. [gcleaner](https://launchpad.net/gcleaner)
 
 [youtube link](https://www.youtube.com/watch?v=wdC1n18kv_E&t=283s)
+
+## utilties
+
+1. [fedy](https://www.folkswithhats.org/)
+
+![](../images/custom_desktop_env_201711141142_1.png)
+
+2. [overgrive](https://www.thefanclub.co.za/overgrive)
+
+开启全局http，https代理后依旧一直处于offline
 
 [上一级](base.md)
 [上一篇](ctrl_alt_f3_login_incorrect.md)

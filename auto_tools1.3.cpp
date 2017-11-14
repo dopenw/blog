@@ -109,7 +109,6 @@ void open_blog_clear_tail_links(const string blog_file,
   std::regex reg3(".*addimage.*\\d+");
   std::regex reg4("\\d+");
   std::cmatch cm;
-  bool rm_other_digtal_image = false;
   ifstream infile(blog_file.c_str());
   ofstream outfile("tmp.md");
   string tmp_line;
@@ -117,8 +116,7 @@ void open_blog_clear_tail_links(const string blog_file,
   int only_get_one_blog_name = 0;
   while (getline(infile, tmp_line)) {
     found = regex_match(tmp_line.c_str(), reg1);
-    if (found && only_get_one_blog_name == 0) {
-      only_get_one_blog_name = 1;
+    if (found && (only_get_one_blog_name++) == 0) {
       regex_search(tmp_line.c_str(), cm, reg2);
       string tmp = cm[0];
       map_blog.insert(make_pair(blog_file, tmp));
@@ -129,15 +127,16 @@ void open_blog_clear_tail_links(const string blog_file,
     if (found) {
       std::string currentTime = currentDateTime();
       regex_search(tmp_line.c_str(), cm, reg4);
-      regex_match_replace_img(cm[0], currentTime, blog_file);
+      if (!regex_match_replace_img(cm[0], currentTime, blog_file)) {
+        outfile << tmp_line << std::endl;
+        continue;
+      }
       string number = cm[0];
       outfile << "![]"
               << "("
               << "../images/" + blog_file.substr(0, blog_file.size() - 3) +
                      "_" + currentTime + "_" + number + ".png"
               << ")" << endl;
-      continue;
-      rm_other_digtal_image = true;
     }
     if (tmp_line == "[上一级](base.md)")
       break;
@@ -146,9 +145,6 @@ void open_blog_clear_tail_links(const string blog_file,
   }
   remove(blog_file.c_str());
   rename("tmp.md", blog_file.c_str());
-  if (rm_other_digtal_image == true) {
-    cout << "delete other number.png" << endl;
-  }
 }
 
 int blog_add_pre_next_links(const string blog_file,
