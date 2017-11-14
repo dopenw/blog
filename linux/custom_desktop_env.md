@@ -94,8 +94,9 @@
 ![](../images/custom_desktop_env_201711141142_1.png)
 
 2. [overgrive](https://www.thefanclub.co.za/overgrive)
+开启全局http，https代理后依旧一直处于offline(暂不可用)
 
-开启全局http，https代理后依旧一直处于offline
+[youtube link](https://youtu.be/-rnnhcTqgys)
 
 [上一级](base.md)
 [上一篇](ctrl_alt_f3_login_incorrect.md)
