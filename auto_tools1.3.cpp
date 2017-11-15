@@ -127,16 +127,15 @@ void open_blog_clear_tail_links(const string blog_file,
     if (found) {
       std::string currentTime = currentDateTime();
       regex_search(tmp_line.c_str(), cm, reg4);
-      if (!regex_match_replace_img(cm[0], currentTime, blog_file)) {
-        outfile << tmp_line << std::endl;
+      if (regex_match_replace_img(cm[0], currentTime, blog_file)) {
+        string number = cm[0];
+        outfile << "![]"
+                << "("
+                << "../images/" + blog_file.substr(0, blog_file.size() - 3) +
+                       "_" + currentTime + "_" + number + ".png"
+                << ")" << endl;
         continue;
       }
-      string number = cm[0];
-      outfile << "![]"
-              << "("
-              << "../images/" + blog_file.substr(0, blog_file.size() - 3) +
-                     "_" + currentTime + "_" + number + ".png"
-              << ")" << endl;
     }
     if (tmp_line == "[上一级](base.md)")
       break;

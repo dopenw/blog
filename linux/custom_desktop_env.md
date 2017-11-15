@@ -13,6 +13,7 @@
 	* [截屏](#截屏)
 	* [系统清理工具](#系统清理工具)
 	* [utilties](#utilties)
+	* [upgrade fedora26 to fedora27](#upgrade-fedora26-to-fedora27)
 
 <!-- /code_chunk_output -->
 
@@ -97,6 +98,15 @@
 开启全局http，https代理后依旧一直处于offline(暂不可用)
 
 [youtube link](https://youtu.be/-rnnhcTqgys)
+
+## upgrade fedora26 to fedora27
+
+[link](https://fedoramagazine.org/upgrading-fedora-25-fedora-26/)
+```sh
+dnf --allowerasing system-upgrade download --releasever=27
+```
+![](../images/custom_desktop_env_201711151103_1.png)
+
 
 [上一级](base.md)
 [上一篇](ctrl_alt_f3_login_incorrect.md)
