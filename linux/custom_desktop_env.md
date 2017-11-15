@@ -14,6 +14,7 @@
 	* [系统清理工具](#系统清理工具)
 	* [utilties](#utilties)
 	* [upgrade fedora26 to fedora27](#upgrade-fedora26-to-fedora27)
+	* [fedora 27 install nvidia-driver](#fedora-27-install-nvidia-driver)
 
 <!-- /code_chunk_output -->
 
@@ -95,17 +96,37 @@
 ![](../images/custom_desktop_env_201711141142_1.png)
 
 2. [overgrive](https://www.thefanclub.co.za/overgrive)
-开启全局http，https代理后依旧一直处于offline(暂不可用)
 
 [youtube link](https://youtu.be/-rnnhcTqgys)
 
 ## upgrade fedora26 to fedora27
 
-[link](https://fedoramagazine.org/upgrading-fedora-25-fedora-26/)
 ```sh
+dnf install dnf-plugin-system-upgrade
+dnf --refresh upgrade
 dnf --allowerasing system-upgrade download --releasever=27
+dnf system-upgrade reboot
 ```
 ![](../images/custom_desktop_env_201711151103_1.png)
+历时大约1小时
+
+[link](https://fedoramagazine.org/upgrading-fedora-25-fedora-26/)
+
+## fedora 27 install nvidia-driver
+```sh
+dnf install xorg-x11-drv-nvidia akmod-nvidia "kernel-devel-uname-r == $(uname -r)"
+dnf install xorg-x11-drv-nvidia-cuda
+dnf install vulkan
+dnf install vdpauinfo libva-vdpau-driver libva-utils
+dnf install libvdpau-va-gl
+vdpauinfo
+reboot
+```
+
+![](../images/custom_desktop_env_201711151329_1.png)
+
+[source link](https://rpmfusion.org/Howto/NVIDIA)
+[youtube link](https://www.youtube.com/watch?v=oTUMO7gHmXg)
 
 
 [上一级](base.md)

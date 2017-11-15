@@ -92,7 +92,8 @@ int bind(int sockfd,const struct sockaddr *myaddr,socklen_t addrlen);
 INADDR_ANY 值为0
 
 ## listen函数
-listen函数仅由TCP服务器调用
+listen函数仅由TCP服务器调用，listen函数将一个主动套接字转化为监听套接字
+[监听套接字与已连接套接字](http://blog.csdn.net/lihao21/article/details/64951446)
 
 ```c
 #include <sys/socket.h>
@@ -122,7 +123,11 @@ int accept(int sockfd,struct sockaddr*cliaddr,socklen_t *addlen);
 //返回：若成功则为非负描述符，若出错则为-1
 ```
 
+调用前，我们将由*addrlen所引用的整数值置为由cliaddr所指的套接字地址结构的长度，返回时，该整数值极为由内核存放在该套接字结构地址内的确切字节数。
+
 参数cliaddr和addrlen用来返回已连接的对端进程的协议地址
+
+在讨论accept函数时，我们称他的第一个参数为监听套接字描述符，称它的返回值为已连接套接字描述符。一个服务器通常仅仅创建一个监听套接字，他在该服务器生命周期内一直存在。内核为每个由服务器进程接收的客户连接创建一个已连接套接字。当服务器完成对某个给定客户的服务时，相应的已连接套接字就被关闭。
 
 ### 显示客户IP地址和端口号的时间获取服务器程序
 ```c
