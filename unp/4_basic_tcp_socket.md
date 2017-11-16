@@ -231,6 +231,7 @@ int getsockname(int sockfd,struct sockaddr *localaddr,socklen_t *addrlen);
 int getpeername(int sockfd,struct sockaddr * peeraddr,socklen_t *addrlen);
 //success return 0,error -1
 ```
+注意，这两个函数最后一个参数都是值-结果参数。这就是说，这两个函数都得装填由localaddr和peeraddr指针所指的套接字地址结构。
 
 需要这两个函数的理由：
 * 在没有调用bind的TCP客户上，conect成功返回后，getsockname用于返回由内核赋予该连接的本地IP地址和本地端口号

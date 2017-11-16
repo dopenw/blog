@@ -29,6 +29,7 @@
 		* [TCP_MAXSEG套接字选项](#tcp_maxseg套接字选项)
 		* [TCP_NODELAY套接字选项](#tcp_nodelay套接字选项)
 	* [fcntl函数](#fcntl函数)
+	* [部分习题解答](#部分习题解答)
 
 <!-- /code_chunk_output -->
 
@@ -563,5 +564,25 @@ main(int argc, char **argv)
 }
 ```
 
+2. 编译sock出现问题
+```
+error: invalid storage class for function ‘sigio_func’
+```
+[参考](http://www.cnblogs.com/gamerh2o/archive/2012/11/25/2787693.html) 解决办法：
+```
+1. 把声明改到函数外面。
+2. 把要声明的函数放到要定义的函数的上面，这样就不用额外声明了，这样调整顺序后把声明语句删掉就行。
+```
+
+
+3. 假设客户和服务器都设置了SO_KEEPALIVE套接字选项。连接两端维护联通性，但是连接上没有应用数据在交换。当保持存活定时器每2小时到期时，在连接上有多少个TCP分集被交换？
+答：
+只交换2个而不是4个TCP分节。两个系统的定时器精确同步的可能性非常底；因此一端的保持存活定时器会比另一端略早一点超时。首先超时的那一段发送保持存活侦探分节，导致另一端确认这个分节。然而保持存活侦探分组的接收导致时钟略慢的主机把把持存活定时器重置为2小时
+
+4. 几乎所有实现都在头文件<sys/socket.h>中定义了SO_ACCEPTCON常值，不过我们并没有讲述这个选项。为什么该选项存在？
+答：
+最初的套接字API并没有listen函数。相反，socket函数的第四个参数含有套接字选项，而SO_ACCEPTCON常值就是用来指定监听套接字的。加了listen函数后，这个选项还是保留着，不过现在只是有内核来设置
+
 [上一级](base.md)
 [上一篇](6_select_poll_function.md)
+[下一篇](8_basic_udp_socket.md)
