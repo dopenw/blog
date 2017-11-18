@@ -14,6 +14,13 @@
 	* [数据报丢失](#数据报丢失)
 	* [验证接收到的响应](#验证接收到的响应)
 	* [服务器进程未运行](#服务器进程未运行)
+	* [UDP的connect函数](#udp的connect函数)
+		* [给一个UDP套接字多次调用connect](#给一个udp套接字多次调用connect)
+		* [性能](#性能)
+	* [dg_cli函数(修订版)](#dg_cli函数修订版)
+	* [UDP缺乏流量控制](#udp缺乏流量控制)
+	* [UDP中的外出接口的确定](#udp中的外出接口的确定)
+	* [使用select函数的TCP和UDP回射服务器程序](#使用select函数的tcp和udp回射服务器程序)
 
 <!-- /code_chunk_output -->
 
@@ -185,5 +192,274 @@ void dg_cli(FILE *fp,int sockfd,const SA *pserveraddr,socklen_t servlen)
 
 一个基本规则是：对于一个UDP套接字，由它引发的异步错误并不返回给它，除非它已连接。我们将在后面章节讨论如何给UDP套接字调用connect。
 
+## UDP的connect函数
+在上一章节中我们提到，除非套接字已连接，否则异步错误是不会返回到UDP套接字的。我们确实可以给UDP套接字调用connect，然而这样做的结果却与TCP连接大相径亭：没有三路握手过程。内核值是检查是否存在立即可知的错误（例如一个显然不可达的目的地），记录对端的IPO地址和端口号（取自传递给connect的套接字地址结构），然后立即返回到调用进程。
+
+* 未连接UDP套接字，新创建UDP套接字默认如此
+* 已连接UDP套接字，对UDP套接字调用connect的结果
+1. 我们再也不能给输出操作指定目的IP地址和端口号。也就是说，我们不是用sendto，而改用write或send
+附：其实我们可以给已连接UDP套接字调用sendto，但是不能指定目的地址
+
+2. 我们不必使用recvfrom以获取数据报的发送者，而改用read、recv或recvmsg。在一个已连接UDP套接字上，由内核为输入操作返回的数据报只有那些来自connect所指定协议地址的数据报。目的地为这个已连接UDP套接字的本地协议地址，发源地却不是该套接字早先connect到的协议地址的数据报，不会投递到该套接字。
+这样就限制一个已连接UDP套接字仅且仅能与一个对端交换数据报。
+
+3. 由已连接UDP套接字引发的异步错误回返回给他们所在的进程，而未连接UDP套接字不接收任何异步错误。
+
+| 套接字类型 | write或send     | 不指定目的地址的sendto | 指定目的地址的sendto
+| :------------- | :------------- | - |- |
+|TCP | 可以 | 可以| EISCONN |
+| udp，已连接| 可以 | 可以 | EISCONN |
+|UDP，未连接 | EDESTADDRREQ | EDESTADDRREQ | 可以 |
+
+作为小姐，我们可以说UDP客户进程或服务器进程值在使用自己的UDP套接字与确定的唯一对端进行通信是，才可以调用connect。调用connect的通常是UDP客户，不过有些网络应用中的UDP服务器会与单个客户长时间通信（如TFTP），这种情况下服务器都可能调用connect。
+
+### 给一个UDP套接字多次调用connect
+拥有一个已连接UDP套接字的进程可出于下列两个目的之一再次调用connect：
+* 指定新的IP地址和端口号
+* 断开套接字：再次调用connect是把套接字地址结构的地址族成员（例如sin_family）设置为AF_UNSPEC。这么做可能会返回一个EAFNOSUPPORT错误，不过没有关系。
+
+### 性能
+
+当应用进程在一个为连接的UDP套接字上调用sendto是，源自berkeley的内核暂时连接在该套接字，发送数据报，然后断开连接。在一个未连接的UDP套接字上给两个数据报调用sendto函数涉及到下列6个步骤：
+* 连接套接字
+* 输出第一个数据报
+* 断开套接字连接
+* 连接套接字
+* 输出第二个数据报
+* 断开套接字连接
+
+当应用进程知道自己要同以目的地址发送多个数据报时，显式的连接套接字效率更高。调用connect后调用两次write涉及内核执行下列步骤:
+* 连接套接字
+* 输出第一个套接字
+* 输出第二个套接字
+
+在这种情况下，内核只复制一次含有目的IP地址和端口号的套接字地址结构，相反当调用两次sendto时，需要复制两次。[Patridge 和 Pink 1993]指出，临时连接未连接的UDP套接字大约会耗费每个UDP传输三分之一的开销。
+
+## dg_cli函数(修订版)
+```c
+#include "unp.h"
+
+void dg_cli(FILE *fp,int sockfd,const SA * pservaddr,socklen_t servlen)
+{
+	int n;
+	char sendlien[MAXLINE],recvline[MAXLINE+1];
+
+	Connect(sockfd,(SA *)pservaddr,servlen);
+
+	while (Fgets(sendline,MAXLINE,fp)!=NULL) {
+		Write(sockfd,sendline,strlen(sendline));
+
+		n=Read(sockfd,recvline,MAXLINE);
+
+		recvline[n]=0; // null terminate
+		Fputs(recvlien,stdout);
+	}
+}
+```
+
+## UDP缺乏流量控制
+
+我们把dg_cli函数修改未发送固定数目的数据报，并不再从标准输入读。它写2000个1400字节大小的UDP数据报给服务器：
+```c
+#include "unp.h"
+
+#define NDG 2000
+#define DGLEN 1400
+
+void dg_cli(FILE * fp,int sockfd,const SA * pservaddr,socklen_t servlen) {
+	int i;
+	char sendlien[MAXLINE];
+
+	for (size_t i = 0; i < NDG; i++) {
+		Sendto(sockfd,sendline,DGLEN,0,pservaddr,servlen);
+	}
+}
+```
+
+对接收到数据报进行计数的dg_echo函数:
+```c
+#include "unp.h"
+
+static void recvfrom_int (int);
+static int count;
+
+void dg_echo(int sockfd,SA * pcliaddr,socklen_t clilen)
+{
+	socklen_t len;
+	char msag[MAXLINE];
+	Signal(SIGINT,recvfrom_int);
+
+	while (1) {
+		len=clilen;
+		Recvfrom(sockfd,mesg,MAXLINE,0,pcliaddr,&len);
+		count ++;
+	}
+}
+
+staic void recvfrom_int(int signo)
+{
+	printf("\n received %d datagrams\n",count );
+	exit(0);
+}
+```
+
+书中所述，客户发出2000个数据报，但是服务器只收到30个，丢失率为98%。
+
+UDP没有流量控制并且是不可靠的。该例表明较快的UDP发送端淹没其接收端时轻而易举的事情。
+
+增大UDP接收缓冲区，稍有改善上述例子，不过仍不能从根本上解决问题：
+```c
+#include "unp.h"
+static void recvfrom_int(int);
+static int count;
+
+void dg_echo(int sockfd,SA * pcliaddr,socklen_t clilen)
+{
+	int n;
+	socklen_t len;
+	char mesg[MAXLINE];
+
+	Signal(SIGINT,recvfrom_int);
+
+	n=220*1024;
+
+	Setsockopt(sokfd,SOL_SOCKET,SO_RCVBUF,&n,sizeof(n));
+
+	while (1) {
+		len=clilen;
+		Recvfrom(sockfd,mesg,MAXLINE,0,pcliaddr,&len);
+
+		count ++;
+	}
+}
+
+static void recvfrom_int(int signo)
+{
+	printf("\n received %d datagrams\n",count );
+	exit(0);
+}
+```
+
+## UDP中的外出接口的确定
+已连接UDP套接字还可以用来确定用于特定目的地的外出接口。这是由connect函数应用到UDP套接字时的一个副作用造成的：内核选择本地IP地址（假设其进程未曾调用bind显式指派它）。这个本地IP地址通过为目的IP地址搜索路由表得到外出接口，然后选用该连接的主IP地址而选定。
+
+下面给出了一个简单的UDP程序，它connect到一个指定的IP地址后调用getsockname得到本地IP地址和端口号并显示输出：
+```c
+#include "unp.h"
+
+int main(int argc, char const *argv[]) {
+	int sockfd;
+	socklen_t len;
+	struct sockaddr_in cliaddr,servaddr;
+
+	if (argc !=2)
+		err_quit("usage :udpcli <IPaddress>");
+
+	sockfd=Socket(AF_INET,SOCK_DGRAM,0);
+
+	bzero(&servaddr,sizeof(servaddr));
+	servaddr.sin_family=AF_INET;
+	servaddr.sin_port=htons(SERV_PORT);
+	Inet_pton(AF_INET,argv[1],&servaddr.sin_addr);
+
+	Connect(sockfd,(SA *)&servaddr,sizeof(servaddr));
+
+	len=sizeof(cliaddr);
+	Getsockname(sockfd,(SA *)&cliaddr,&len);
+	printf("local address %s\n",Sock_ntop((SA *)&cliaddr,len));
+	return 0;
+}
+```
+
+运行：
+```
+[breap@breap udpcliserv]$ ./udpcli09 127.0.0.1
+local address 127.0.0.1:56344
+[breap@breap udpcliserv]$ ./udpcli09 45.36.89.126
+local address 192.168.1.178:46698
+[breap@breap udpcliserv]$ ./udpcli09 192.168.1.5
+local address 192.168.1.178:49893
+```
+## 使用select函数的TCP和UDP回射服务器程序
+
+```c
+#include "unp.h"
+
+int main(int argc, char const *argv[]) {
+	int listenfd,connfd,udpfd,nready,maxfdp1;
+	char mesg[MAXLINE];
+	pid_t childpid;
+	fd_set rset;
+	ssize_t n;
+	socklen_t len;
+	const int on=1;
+	struct sockaddr_in cliaddr,servaddr;
+	void sig_chld(int);
+
+	listenfd=Socket(AF_INET,SOCK_STREAM,0);
+
+	bzero(&servaddr,sizeof(servaddr));
+	servaddr.sin_family=AF_INET;
+	servaddr.sin_port=htons(SERV_PORT);
+	servaddr.sin_addr.s_addr=htonl(INADDR_ANY);
+
+	Setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on));
+	Bind(listenfd,(SA *)&servaddr,sizeof(servaddr));
+
+	Listen(listenfd,LISTENQ);
+
+	udpfd=Socket(AF_INET,SOCK_DGRAM,0);
+
+	bzero(&servaddr,sizeof(servaddr));
+	servaddr.sin_family=AF_INET;
+	servaddr.sin_port=htons(SERV_PORT);
+	servaddr.sin_addr.s_addr=htonl(INADDR_ANY);
+
+	Bind(udpfd,(SA *)&servaddr,sizeof(servaddr));
+
+	Signal(SIGCHLD,sig_chld); //must call waitpid()
+
+	FD_ZRRO(&rset);
+	maxfdp1=max(listenfd,udpfd)+1;
+
+	while(1)
+	{
+		FD_SET(listenfd,&rset);
+		FD_SET(udpfd,&rset);
+
+		if ((nready=select(maxfdp1,&rset,NULL,NULL,NULL,NULL))<0)
+		{
+			if (errno==EINTR)
+				continue;
+			else
+				err_sys("select error");
+		}
+
+		if (FD_ISSET(listenfd,&rset))
+		{
+			len=sizeof(cliaddr);
+			connfd=Accept(listenfd,(SA *)&cliaddr,&len);
+
+			if ((childpid=Fork())==0)
+			{
+				Close(listenfd);
+				str_echo(connfd);
+				exit(0);
+			}
+			Close(connfd);
+		}
+
+		if (FD_ISSET(udpfd,&rset))
+		{
+			len=sizeof(cliaddr);
+			n=Recvfrom(udpfd,mesg,MAXLINE,0,(SA *)&cliaddr,&len);
+
+			Sendto(udpfd,mesg,0,(SA *)&cliaddr,len);
+		}
+	}
+
+	return 0;
+}
+```
 [上一级](base.md)
 [上一篇](7_socket_opt.md)
