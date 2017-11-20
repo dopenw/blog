@@ -150,6 +150,145 @@ int main(int argc, char *argv[])
 fedora 27显示效果：
 ![](../images/2_creat_dialog_201711192228_1.png)
 
+## 深入介绍信号和槽
+槽和普通的C++函数几乎是一样的。
+槽可以和信号连接在一起，在这种情况下，每当发射这个信号的时候，就会自动调用这个槽。
+
+```c++
+connect(QObject * sender,SIGNAL(signal),QObject * receiver,SLOT(slot));
+```
+* 一个信号可以连接多个槽
+```c++
+connect(slider,SIGNAL(valueChanged(int)),spinBox,SLOT(setValue(int)));
+connect(slider,SIGNAL(valueChanged(int)),spinBox,SLOT(updateStatusBarIndicator(int)));
+```
+在发射这个信号的时候，会以不确定的顺序一个接一个地调用这些槽。
+
+* 多个信号可以连接同一个槽
+* 一个信号可以与另一个信号相连接
+```c++
+connect(lineEdit,SIGNAL(textChanged(const QString &)),this,SIGNAL(updateRecord(const QString &)));
+```
+* 连接可以被移除
+```c++
+disconnect(lcd,SIGNAL(overflow()),this,SLOT(handleMathError()));
+```
+
+要把信号成功连接到槽（或者连接到另外一个信号），他们的参数必须具有相同的顺序和相同的类型：
+```c++
+connect(ftp,SIGNAL(rawCommandReply(int,const QString &)),this,SLOT(processReply(int,const Qstring &)));
+```
+
+这里有一个例外，如果信号的参数比它所连接的槽的参数多，那么多余的参数就会被简单地忽略掉：
+```c
+connect(ftp,SIGNAL(rawCommandReply(int,const QString &)),this,SLOT(checkErrorCode(int)));
+```
+
+## 快速设计对话框
+Qt designer为程序员提供了可供使用的新选择，它提供一种可视化的设计能力。
+
+在利用qt designer设计好相关的ui后
+1. 添加main.cpp:
+```c++
+#include <QApplication>
+#include <QDialog>
+
+#include "ui_gotocelldialog.h"
+
+int main(int argc,char **argv)
+{
+QApplication app(argc,argv);
+
+Ui::GoToCellDialog ui;
+
+QDialog * dialog=new QDialog;
+ui.setupUi(dialog);
+dialog->show();
+
+return app.exec();
+}
+```
+2. 运行
+```sh
+qmake-qt5 -project
+qmake-qt5 gotocell.pro
+```
+3. 编译提示错误：
+```
+main.cpp:1:10: fatal error: QApplication: No such file or directory
+ #include <QApplication>
+          ^~~~~~~~~~~~~~
+compilation terminated.
+```
+解决办法：
+```
+Adding QT += widgets in .pro file
+```
+4. 创建一个新类，让该类同时从QDialog和Ui::GoToCellDialog中继承出来，并且由它来实现那些缺失的功能
+gotocelldialog.h
+```c++
+#ifndef GOTOCELLDIALOG_H
+#define GOTOCELLDIALOG_H
+
+#include <QDialog>
+#include "ui_gotocelldialog.h"
+
+class GoToCellDialog:public QDialog,public Ui::GoToCellDialog
+{
+    Q_OBJECT
+public:
+    GoToCellDialog(QWidget * parent=0);
+private slots:
+    void on_lineEdit_textChanged();
+};
+
+
+
+#endif // GOTOCELLDIALOG_H
+
+```
+gotocelldialog.cpp:
+```c++
+#include <QtGui>
+
+#include "gotocelldialog.h"
+
+GoToCellDialog::GoToCellDialog(QWidget *parent):QDialog(parent)
+{
+    setupUi(this);
+
+    QRegExp regExp("[A-Za-z][1-9][0-9]{0,2}");
+    lineEdit->setValidator(new QRegExpValidator(regExp,this));
+    //QRegExpValidator检验器类
+    //this传递给QRegExpValidator的构造函数，使它成为GoToCellDialog对象的一个子对象。
+    //这样，以后就不用担心有关删除QRegExpValidator的事情了
+
+    connect(okButton,SIGNAL(clicked(bool)),this,SLOT(accept()));
+    connect(cancelButton,SIGNAL(clicked(bool)),this,SLOT(reject()));
+}
+
+void GoToCellDialog::on_lineEdit_textChanged()
+{
+    okButton->setEnabled(lineEdit->hasAcceptableInput());
+}
+```
+5. 更改main.h
+```c++
+#include <QApplication>
+#include <QDialog>
+#include "gotocelldialog.h"
+
+int main(int argc,char **argv)
+{
+QApplication app(argc,argv);
+GoToCellDialog * dialog=new GoToCellDialog;
+dialog->show();
+
+return app.exec();
+}
+```
+显示效果：
+![](../images/2_creat_dialog_201711201632_1.png)
 
 [上一级](base.md)
 [上一篇](1_hello_qt.md)
