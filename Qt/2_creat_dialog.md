@@ -1,4 +1,14 @@
-## 2.创建对话框
+# 2.创建对话框
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+<!-- code_chunk_output -->
+
+* [2.创建对话框](#2创建对话框)
+	* [子类化QDialog](#子类化qdialog)
+	* [深入介绍信号和槽](#深入介绍信号和槽)
+	* [快速设计对话框](#快速设计对话框)
+
+<!-- /code_chunk_output -->
 
 ## 子类化QDialog
 
