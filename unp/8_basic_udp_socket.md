@@ -212,7 +212,7 @@ void dg_cli(FILE *fp,int sockfd,const SA *pserveraddr,socklen_t servlen)
 | udp，已连接| 可以 | 可以 | EISCONN |
 |UDP，未连接 | EDESTADDRREQ | EDESTADDRREQ | 可以 |
 
-作为小姐，我们可以说UDP客户进程或服务器进程值在使用自己的UDP套接字与确定的唯一对端进行通信是，才可以调用connect。调用connect的通常是UDP客户，不过有些网络应用中的UDP服务器会与单个客户长时间通信（如TFTP），这种情况下服务器都可能调用connect。
+作为小结，我们可以说UDP客户进程或服务器进程值在使用自己的UDP套接字与确定的唯一对端进行通信是，才可以调用connect。调用connect的通常是UDP客户，不过有些网络应用中的UDP服务器会与单个客户长时间通信（如TFTP），这种情况下服务器都可能调用connect。
 
 ### 给一个UDP套接字多次调用connect
 拥有一个已连接UDP套接字的进程可出于下列两个目的之一再次调用connect：
