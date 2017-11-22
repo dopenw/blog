@@ -8,4 +8,5 @@
 * ### [linux 下遇到的一些问题、](linux.md)
 * ### [进程相关](process.md)
 * ### [更改linux用户名](rename_linux_user.md)
+* ### [su 和 su - 的区别](su_diff_su-.md)
                            step by steop
