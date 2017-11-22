@@ -1,3 +1,4 @@
+#define _DEFAULT_SOURCE
 #include <algorithm>
 #include <dirent.h>
 #include <fstream>
@@ -29,30 +30,31 @@ void read_config(const string config_file, std::vector<string> &vec) {
       vec.pop_back();
     }
   }
-  // for (auto i : vec) {
-  //   std::cout << i << '\n';
-  // }
 }
 
 bool list_dir(std::vector<string> &blog_file, std::string list_path) {
-  DIR *dp;
-  struct dirent *dirp;
-  if ((dp = opendir(list_path.c_str())) == NULL) {
-    std::cout << "opendir error" << '\n';
+
+  struct dirent **namelist;
+  int n;
+
+  n = scandir(list_path.c_str(), &namelist, NULL, versionsort);
+  if (n == -1) {
+    perror("scandir");
     return false;
   }
 
-  while ((dirp = readdir(dp)) != NULL) {
-
-    if (strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0 ||
-        strcmp(dirp->d_name, "base.md") == 0)
+  for (int i = 0; i < n; i++) {
+    if (strcmp(namelist[i]->d_name, ".") == 0 ||
+        strcmp(namelist[i]->d_name, "..") == 0 ||
+        strcmp(namelist[i]->d_name, "base.md") == 0) {
+      free(namelist[i]);
       continue;
-    // std::cout << dirp->d_name << '\n';
-    blog_file.push_back(dirp->d_name);
+    }
+    blog_file.push_back(namelist[i]->d_name);
+    free(namelist[i]);
   }
+  free(namelist);
 
-  if (closedir(dp) < 0)
-    std::cout << "close direcory failed" << '\n';
   return true;
 }
 
@@ -88,22 +90,21 @@ bool regex_match_replace_img(std::string number, std::string currentTime,
 }
 
 void write_base_markdown(const string config_file,
-                         std::map<string, string> map_blog,
+                         std::vector<pair<string, string>> vec_map_blog,
                          const string Categories) {
   ofstream outfile(config_file);
   outfile << "# Categories"
           << " " << Categories << endl;
   outfile << "* ## [home](../README.md)" << endl;
-  for (auto i = map_blog.begin(); i != map_blog.end(); ++i) {
+  for (auto i = vec_map_blog.begin(); i != vec_map_blog.end(); ++i) {
     outfile << "* ### " << '[' << i->second << ']' << '(' << i->first << ')'
             << endl;
   }
   outfile << "                           step by steop";
-  // vec.clear();
 }
 
-void open_blog_clear_tail_links(const string blog_file,
-                                std::map<string, string> &map_blog) {
+void open_blog_clear_tail_links(
+    const string blog_file, std::vector<pair<string, string>> &vec_map_blog) {
   std::regex reg1("(.*#.*)");
   std::regex reg2("[^# ].+");
   std::regex reg3(".*addimage.*\\d+");
@@ -119,7 +120,7 @@ void open_blog_clear_tail_links(const string blog_file,
     if (found && (only_get_one_blog_name++) == 0) {
       regex_search(tmp_line.c_str(), cm, reg2);
       string tmp = cm[0];
-      map_blog.insert(make_pair(blog_file, tmp));
+      vec_map_blog.push_back(make_pair(blog_file, tmp));
       outfile << tmp_line << std::endl;
       continue;
     }
@@ -146,48 +147,47 @@ void open_blog_clear_tail_links(const string blog_file,
   rename("tmp.md", blog_file.c_str());
 }
 
-int blog_add_pre_next_links(const string blog_file,
-                            const std::map<string, string> map_blog) {
+int blog_add_pre_next_links(
+    const string blog_file,
+    const std::vector<pair<string, string>> vec_map_blog) {
   if (exists_file_y_n(blog_file)) {
     ofstream outfile(blog_file, std::ios::app);
-    // outfile << std::endl << "[上一级](base.md)" << endl;
     outfile << "[上一级](base.md)" << endl;
-    // std::cout << "begin" << '\n';
-    // for (auto i : map_blog) {
-    //
-    //   std::cout << i.first << ":" << i.second << '\n';
-    // }
-    // std::cout << "end" << '\n';
-    auto pos = map_blog.find(blog_file);
-    if (pos == map_blog.end()) {
+
+    auto pos = find_if(vec_map_blog.begin(), vec_map_blog.end(),
+                       [=](pair<string, string> file_title) {
+                         if (file_title.first == blog_file)
+                           return true;
+                         else
+                           return false;
+                       });
+    if (pos == vec_map_blog.end()) {
       cout << "error ,not found blog_file";
       return -1;
     }
-    if (pos == map_blog.begin()) {
+
+    if (pos == vec_map_blog.begin()) {
       auto tmp = pos;
-      if ((++tmp) != map_blog.end()) {
+      if ((++tmp) != vec_map_blog.end()) {
         outfile << "[下一篇]"
                 << "(" << (tmp)->first << ")" << endl;
-        // std::cout <<"[下一篇]"<< (tmp)->first << '\n';
       }
     } else {
       auto tmp = pos;
-      auto tmp_end = map_blog.end();
+      auto tmp_end = vec_map_blog.end();
       if ((++tmp) == (tmp_end)) {
         tmp = pos;
         outfile << "[上一篇]"
                 << "(" << (--tmp)->first << ")" << endl;
-        // std::cout <<"[上一篇]"<< (tmp)->first << '\n';
       }
       tmp = pos;
-      if ((++tmp) != (map_blog.end())) {
+      if ((++tmp) != (vec_map_blog.end())) {
         tmp = pos;
         outfile << "[上一篇]"
                 << "(" << (--tmp)->first << ")" << endl;
         tmp = pos;
         outfile << "[下一篇]"
                 << "(" << (++tmp)->first << ")" << endl;
-        // std::cout <<"[12一篇]"<< (tmp)->first << '\n';
       }
     }
   }
@@ -198,14 +198,12 @@ int main(int argc, char const *argv[]) {
   std::vector<string> global;
   std::vector<string> vec;
   read_config("global", global);
-  std::map<string, string> map_blog;
+  std::vector<pair<string, string>> vec_map_blog;
   std::string blog_root_path;
   blog_root_path = get_current_dir_name();
   if (exists_file_y_n(blog_root_path + "/global")) {
     for (unsigned int path_count = 0; path_count < global.size();
          path_count++) {
-      // std::cout << blog_root_path << '\n';
-      // std::cout << global[path_count] << '\n';
       if (chdir((blog_root_path + "/" + global[path_count]).c_str()) < 0) {
         std::cout << "chdir error" << '\n';
         perror("chdir error:");
@@ -215,20 +213,20 @@ int main(int argc, char const *argv[]) {
 
       for (unsigned int write_config_link_count = 0;
            write_config_link_count < vec.size(); write_config_link_count++) {
-        open_blog_clear_tail_links(vec[write_config_link_count], map_blog);
+        open_blog_clear_tail_links(vec[write_config_link_count], vec_map_blog);
       }
 
       for (unsigned int write_config_link_count = 0;
            write_config_link_count < vec.size(); write_config_link_count++) {
-        if (blog_add_pre_next_links(vec[write_config_link_count], map_blog) ==
-            -1) {
+        if (blog_add_pre_next_links(vec[write_config_link_count],
+                                    vec_map_blog) == -1) {
           std::cout << "error ,blog_add_pre_next_links is wrong" << '\n';
         }
       }
 
       vec.clear();
-      write_base_markdown("base.md", map_blog, global[path_count]);
-      map_blog.clear();
+      write_base_markdown("base.md", vec_map_blog, global[path_count]);
+      vec_map_blog.clear();
 
       if (chdir(blog_root_path.c_str()) < 0)
         std::cout << "chdir error" << '\n';
