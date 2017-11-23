@@ -60,7 +60,7 @@ z = 300 at [FFF97868]
 [source link](http://www.cnblogs.com/xkfz007/archive/2012/03/27/2420158.html)
 
 
-2. c 中计算参数时是从右到左压栈的
+2. c 中printf计算参数时是从右到左压栈的
 ```c
 #include <stdio.h>
 
