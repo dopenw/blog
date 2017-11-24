@@ -1,10 +1,10 @@
-# 6.I/O多路复用：select和poll函数
+# 6.I/O多路复用：select(),poll(),epoll()函数
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [6.I/O多路复用：select和poll函数](#6io多路复用select和poll函数)
+* [6.I/O多路复用：select(),poll(),epoll()函数](#6io多路复用selectpollepoll函数)
 	* [概述](#概述)
 	* [I/O模型](#io模型)
 		* [阻塞式I/O](#阻塞式io)
@@ -35,6 +35,9 @@
 	* [TCP回射服务器程序（再修订版）](#tcp回射服务器程序再修订版)
 	* [部分习题](#部分习题)
 	* [补充：事件驱动和回调函数](#补充事件驱动和回调函数)
+	* [epoll函数](#epoll函数)
+		* [epoll接口](#epoll接口)
+	* [select、poll、epoll的区别](#select-poll-epoll的区别)
 
 <!-- /code_chunk_output -->
 
@@ -680,6 +683,394 @@ int main(int argc, char const *argv[]) {
 编程语言支持以不同的方式回调，往往与实现它们的子程序，lambda表达式，块或函数指针。
 
 [回调函数 wiki](https://en.wikipedia.org/wiki/Callback_(computer_programming))
+
+
+## epoll函数
+epoll是在linux 2.6内核中提出来的，是之前select和poll的增强版本。相对与select和poll来说，epoll更加灵活，没有描述符限制。epoll使用一个控制文件描述符管理多个描述符，将用户关系的文件描述符的事件存放到内核的一个事件表中，这样在用户空间和内核空间之间的数据拷贝只需一次。
+```
+unlike the select,poll system calls, which operate in O(n) time, epoll operates in O(1) time
+```
+[epoll wiki](https://en.wikipedia.org/wiki/Epoll)
+
+### epoll接口
+```c
+#include <sys/epoll.h>
+
+int epoll_create(int size);
+//size 用来告诉内核要监听的数目
+//epoll_create() creates a new epoll(7) instance.
+//return a file descriptor referring to the new epoll
+//When no longer required, the file descriptor returned by epoll_create()
+//should be closed by  using  close()
+
+
+int epoll_ctl(int epfd,int op,int fd,struct epoll_event *event);
+// epoll文件描述符的控制接口，成功返回0，错误返回-1
+//epfd --> 是epoll_create（）的返回值
+//op --> 表示动作
+// EPOLL_CTL_ADD 注册新的fd到epfd中
+// EPOLL_CTL_MOD 修改已经注册的fd的监听事件
+// EPOLL_CTL_DEL 从epfd中删除一个fd
+//fd --> 要监听的fd
+//event --> 告诉内核需要监听什么事
+
+int epoll_wait(int epfd,struct epool_event *events,int maxevents,int timeout);
+//等待事件的产生，该函数返回需要处理的事件数目
+//epfd --> 是epoll_create（）的返回值
+//events --> 用来从内核得到事件的集合
+//maxevents --> 用来告诉内核这个events
+// 有多大，且maxevents的值不能大于创建epoll_crete()时的size
+//timeout --> 超时时间（ms，0立即返回；-1将永久阻塞）
+```
+
+epoll_event结构：
+```c
+struct epool_event{
+	uint_32_t events;c //epoll events
+	epoll_data_t data; //user data variable
+};
+```
+
+events可以是以下几个宏的集合：结构
+| events选项 | 说明     |
+| :------------- | :------------- |
+|EPOLLIN|表示对应的文件描述符可读       
+|EPOOLOUT|表示对应的文件描述符可写
+|EPOOLPRI|表示对应的文件描述符有紧急的数据可读（这里应该表示有带外数据到来）
+|EPOOLRDHUP|流套接字关闭连接，或写半部关闭
+|EPOLLERR|表示对应的文件描述符发生错误
+|EPOLLHUP|表示对应的文件描述符被挂断
+|EPOLLET|将EPOLL设为边缘触发模式
+|EPOLLONESHOT|只监听一次事件，当监听这次事件之后,如果还需要继续监听这个socket的话，需要再次把这个socket加入EPOLL队列里
+|EPOLLWAKEUP| since linux 3.5(暂不描述)
+|EPOLLEXCLUSIVE| since linux 4.5 (暂不描述)
+
+
+epoll_server.cpp:
+```c++
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/epoll.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#define IPADDRESS "127.0.0.1"
+#define PORT 6666
+#define MAXSIZE 1024
+#define LISTENQ 5
+#define FDSIZE 1000
+#define EPOLLEVENTS 100
+
+int socket_bind(const char *ip, int port);
+
+void do_epoll(int listenfd);
+
+void handle_events(int epollfd, struct epoll_event *events, int num,
+                   int listenfd, char *buf);
+
+void handle_accept(int epollfd, int listenfd);
+
+void do_read(int epollfd, int fd, char *buf);
+
+void do_write(int epollfd, int fd, char *buf);
+
+void add_event(int epollfd, int fd, int state);
+
+void modify_event(int epollfd, int fd, int state);
+
+void delete_event(int epollfd, int fd, int state);
+
+int main(int argc, char const *argv[]) {
+  int listenfd;
+  listenfd = socket_bind(IPADDRESS, PORT);
+  listen(listenfd, LISTENQ);
+  do_epoll(listenfd);
+  return 0;
+}
+
+int socket_bind(const char *ip, int port) {
+  int listenfd;
+  struct sockaddr_in servaddr;
+  listenfd = socket(AF_INET, SOCK_STREAM, 0);
+  if (listenfd == -1) {
+    perror("socket error:");
+    exit(1);
+  }
+  bzero(&servaddr, sizeof(servaddr));
+  servaddr.sin_family = AF_INET;
+  inet_pton(AF_INET, ip, &servaddr.sin_addr);
+  servaddr.sin_port = htons(port);
+  if (bind(listenfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == -1) {
+    perror("bind error:");
+    exit(1);
+  }
+  return listenfd;
+}
+
+void do_epoll(int listenfd) {
+  int epollfd;
+  struct epoll_event events[EPOLLEVENTS];
+  int ret;
+  char buf[MAXSIZE];
+  memset(buf, 0, MAXSIZE);
+
+  epollfd = epoll_create(FDSIZE);
+
+  add_event(epollfd, listenfd, EPOLLIN);
+
+  while (1) {
+    ret = epoll_wait(epollfd, events, EPOLLEVENTS, -1);
+    handle_events(epollfd, events, ret, listenfd, buf);
+  }
+  close(epollfd);
+}
+
+void handle_events(int epollfd, struct epoll_event *events, int num,
+                   int listenfd, char *buf) {
+  int i;
+  int fd;
+  for (i = 0; i < num; i++) {
+    fd = events[i].data.fd;
+
+    if ((fd == listenfd) && (events[i].events & EPOLLIN))
+      handle_accept(epollfd, listenfd);
+    else if (events[i].events & EPOLLIN)
+      do_read(epollfd, fd, buf);
+    else if (events[i].events & EPOLLOUT)
+      do_write(epollfd, fd, buf);
+  }
+}
+
+void handle_accept(int epollfd, int listenfd) {
+  int clifd;
+  struct sockaddr_in cliaddr;
+  socklen_t cliaddrlen = sizeof(cliaddr);
+  clifd = accept(listenfd, (struct sockaddr *)&cliaddr, &cliaddrlen);
+  if (clifd == -1) {
+    perror("accept error:");
+  } else {
+    printf("accept a new client :%s:%d\n", inet_ntoa(cliaddr.sin_addr),
+           cliaddr.sin_port);
+    add_event(epollfd, clifd, EPOLLIN);
+  }
+}
+
+void do_read(int epollfd, int fd, char *buf) {
+  int nread;
+  nread = read(fd, buf, MAXSIZE);
+  if (nread == -1) {
+    perror("read error:");
+    close(fd);
+    delete_event(epollfd, fd, EPOLLIN);
+  } else if (nread == 0) {
+    fprintf(stderr, "client close\n");
+    close(fd);
+    delete_event(epollfd, fd, EPOLLIN);
+  } else {
+
+    printf("read message is :%s\n", buf);
+    modify_event(epollfd, fd, EPOLLOUT);
+  }
+}
+
+void do_write(int epollfd, int fd, char *buf) {
+  int nwrite;
+  nwrite = write(fd, buf, strlen(buf));
+  if (nwrite == -1) {
+    perror("write error:");
+    close(fd);
+    delete_event(epollfd, fd, EPOLLOUT);
+  } else
+    modify_event(epollfd, fd, EPOLLIN);
+  memset(buf, 0, MAXSIZE);
+}
+
+void add_event(int epollfd, int fd, int state) {
+  struct epoll_event ev;
+  ev.events = state;
+  ev.data.fd = fd;
+  epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &ev);
+}
+
+void delete_event(int epollfd, int fd, int state) {
+  struct epoll_event ev;
+  ev.events = state;
+  ev.data.fd = fd;
+  epoll_ctl(epollfd, EPOLL_CTL_DEL, fd, &ev);
+}
+
+void modify_event(int epollfd, int fd, int state) {
+  struct epoll_event ev;
+  ev.events = state;
+  ev.data.fd = fd;
+  epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, &ev);
+}
+
+```
+
+epoll_client.cpp:
+```c++
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/epoll.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#define IPADDRESS "127.0.0.1"
+#define SERV_PORT 6666
+#define MAXSIZE 1024
+#define LISTENQ 5
+#define FDSIZE 1024
+#define EPOLLEVENTS 20
+void handle_connection(int sockfd);
+void handle_events(int epollfd, struct epoll_event *event, int num, int sockfd,
+                   char *buf);
+void do_read(int epollfd, int fd, int sockfd, char *buf);
+void do_write(int epollfd, int fd, int sockfd, char *buf);
+void add_event(int epollfd, int fd, int state);
+void modify_event(int epollfd, int fd, int state);
+void delete_event(int epollfd, int fd, int state);
+
+int count = 0;
+
+int main(int argc, char const *argv[]) {
+  int sockfd;
+  struct sockaddr_in servaddr;
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  bzero(&servaddr, sizeof(servaddr));
+  servaddr.sin_family = AF_INET;
+  servaddr.sin_port = htons(SERV_PORT);
+  inet_pton(AF_INET, IPADDRESS, &servaddr.sin_addr);
+  connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+
+  handle_connection(sockfd);
+  close(sockfd);
+  return 0;
+}
+
+void handle_connection(int sockfd) {
+  int epollfd;
+  struct epoll_event events[EPOLLEVENTS];
+  char buf[MAXSIZE];
+  int ret;
+  epollfd = epoll_create(FDSIZE);
+  add_event(epollfd, STDIN_FILENO, EPOLLIN);
+
+  while (1) {
+    ret = epoll_wait(epollfd, events, EPOLLEVENTS, -1);
+    handle_events(epollfd, events, ret, sockfd, buf);
+  }
+  close(epollfd);
+}
+
+void handle_events(int epollfd, struct epoll_event *events, int num, int sockfd,
+                   char *buf) {
+  int fd;
+  int i;
+  for (i = 0; i < num; i++) {
+    fd = events[i].data.fd;
+    if (events[i].events & EPOLLIN)
+      do_read(epollfd, fd, sockfd, buf);
+    else if (events[i].events & EPOLLOUT)
+      do_write(epollfd, fd, sockfd, buf);
+  }
+}
+
+void do_read(int epollfd, int fd, int sockfd, char *buf) {
+  int nread;
+  nread = read(fd, buf, MAXSIZE);
+  if (nread == -1) {
+    perror("read error:");
+    close(fd);
+  } else if (nread == 0) {
+    fprintf(stderr, "server close\n");
+    close(fd);
+  } else {
+    if (fd == STDIN_FILENO)
+      add_event(epollfd, sockfd, EPOLLOUT);
+    else {
+      delete_event(epollfd, sockfd, EPOLLIN);
+      add_event(epollfd, STDOUT_FILENO, EPOLLOUT);
+    }
+  }
+}
+
+void do_write(int epollfd, int fd, int sockfd, char *buf) {
+  int nwrite;
+  char temp[100];
+  buf[strlen(buf) - 1] = '\0';
+
+  snprintf(temp, sizeof(temp), "%s_%02d\n", buf, count++);
+  nwrite = write(fd, temp, strlen(temp));
+  if (nwrite == -1) {
+    perror("write error:");
+    close(fd);
+  } else {
+    if (fd == STDOUT_FILENO)
+      delete_event(epollfd, fd, EPOLLOUT);
+    else
+      modify_event(epollfd, fd, EPOLLIN);
+  }
+  memset(buf, 0, MAXSIZE);
+}
+
+void add_event(int epollfd, int fd, int state) {
+  struct epoll_event ev;
+  ev.events = state;
+  ev.data.fd = fd;
+  epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &ev);
+}
+
+void delete_event(int epollfd, int fd, int state) {
+  struct epoll_event ev;
+  ev.events = state;
+  ev.data.fd = fd;
+  epoll_ctl(epollfd, EPOLL_CTL_DEL, fd, &ev);
+}
+
+void modify_event(int epollfd, int fd, int state) {
+  struct epoll_event ev;
+  ev.events = state;
+  ev.data.fd = fd;
+  epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, &ev);
+}
+
+```
+
+运行结果：
+![](../images/6_select_poll_function_201711241749_1.png)
+
+
+## select、poll、epoll的区别
+
+(1) 首先来看select()和poll():
+
+1) poll()不要求开发这在计算最大文件描述符是进行+1操作
+2) poll()在应付大数目的文件的文件描述符的时候速度更快
+3) select（）可以监控的文件描述符的数目是固定的，相对来说比较少（1024或2048），而对于poll（）函数来说，就可以创建特定大小的数组来保存监控的描述符，而不受文件描述符值大小的影响，且poll（）可以监控的文件数目远大于select（）
+4) select（），所监控的fd_set在select（）返回后会发生改变，所以下次进入select（）之前都需要重新初始化fd_set。
+5) select()函数的超时参数在返回时也是未定义的，考虑到可移植性，每次在超时之后在下一次进入到select（）之前都需要重新设置超时参数。
+
+(2) select()的优点
+1) select()的可移植性更好，在某些UNIX系统上不支持poll()
+2) select()对于超时提供了usec的时间精度，而poll()与epoll()提供ms的时间精度
+
+(3)epoll()优点
+1) 支持一个进程打开大数目的socket描述符
+2) IO效率不随FD数目增加而线性下降
+3) 使用[mmap](https://en.wikipedia.org/wiki/Mmap)加速内核与用户空间的消息传递
 
 
 [上一级](base.md)
