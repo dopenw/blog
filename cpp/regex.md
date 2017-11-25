@@ -20,5 +20,5 @@ Aborted (core dumped)
 
 
 [上一级](base.md)
-[上一篇](inner_class.md)
+[上一篇](mutable.md)
 [下一篇](stream_IO.md)
