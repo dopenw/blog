@@ -15,6 +15,8 @@
 	* [utilties](#utilties)
 	* [upgrade fedora26 to fedora27](#upgrade-fedora26-to-fedora27)
 	* [fedora 27 install nvidia-driver](#fedora-27-install-nvidia-driver)
+	* [youtube downloader](#youtube-downloader)
+		* [merge video and audio](#merge-video-and-audio)
 
 <!-- /code_chunk_output -->
 
@@ -128,6 +130,73 @@ reboot
 [source link](https://rpmfusion.org/Howto/NVIDIA)
 [youtube link](https://www.youtube.com/watch?v=oTUMO7gHmXg)
 
+
+## youtube downloader
+```sh
+dnf install youtube-dl
+```
+
+list-formats:
+```sh
+youtube-dl -F $httpVideoAdress
+```
+format:
+```sh
+format code  extension  resolution note
+139          m4a        audio only DASH audio   48k , m4a_dash container, mp4a.40.5@ 48k (22050Hz), 1.20MiB
+249          webm       audio only DASH audio   50k , opus @ 50k, 1.25MiB
+250          webm       audio only DASH audio   66k , opus @ 70k, 1.62MiB
+171          webm       audio only DASH audio  124k , vorbis@128k, 3.05MiB
+140          m4a        audio only DASH audio  128k , m4a_dash container, mp4a.40.2@128k (44100Hz), 3.20MiB
+251          webm       audio only DASH audio  130k , opus @160k, 3.22MiB
+278          webm       256x144    144p  109k , webm container, vp9, 30fps, video only, 2.49MiB
+160          mp4        256x144    DASH video  112k , avc1.4d400c, 30fps, video only, 2.24MiB
+133          mp4        426x240    DASH video  247k , avc1.4d4015, 30fps, video only, 4.35MiB
+242          webm       426x240    240p  261k , vp9, 30fps, video only, 5.84MiB
+243          webm       640x360    360p  497k , vp9, 30fps, video only, 10.81MiB
+134          mp4        640x360    DASH video  638k , avc1.4d401e, 30fps, video only, 11.08MiB
+244          webm       854x480    480p  933k , vp9, 30fps, video only, 19.78MiB
+135          mp4        854x480    DASH video 1173k , avc1.4d401f, 30fps, video only, 22.07MiB
+247          webm       1280x720   720p 1795k , vp9, 30fps, video only, 39.11MiB
+136          mp4        1280x720   720p 2381k , avc1.4d401f, 30fps, video only, 42.24MiB
+302          webm       1280x720   720p60 2887k , vp9, 60fps, video only, 66.86MiB
+248          webm       1920x1080  1080p 3135k , vp9, 30fps, video only, 69.00MiB
+298          mp4        1280x720   DASH video 3498k , avc1.4d4020, 60fps, video only, 73.15MiB
+137          mp4        1920x1080  1080p 4398k , avc1.640028, 30fps, video only, 77.22MiB
+303          webm       1920x1080  1080p60 4804k , vp9, 60fps, video only, 111.90MiB
+299          mp4        1920x1080  DASH video 6725k , avc1.64002a, 60fps, video only, 137.38MiB
+264          mp4        2560x1440  DASH video 9238k , avc1.640032, 30fps, video only, 163.66MiB
+271          webm       2560x1440  1440p 9910k , vp9, 30fps, video only, 219.95MiB
+308          webm       2560x1440  1440p60 13850k , vp9, 60fps, video only, 330.02MiB
+313          webm       3840x2160  2160p 20016k , vp9, 30fps, video only, 451.05MiB
+266          mp4        3840x2160  DASH video 22466k , avc1.640033, 30fps, video only, 387.77MiB
+315          webm       3840x2160  2160p60 27872k , vp9, 60fps, video only, 662.98MiB
+17           3gp        176x144    small , mp4v.20.3, mp4a.40.2@ 24k
+36           3gp        320x180    small , mp4v.20.3, mp4a.40.2
+18           mp4        640x360    medium , avc1.42001E, mp4a.40.2@ 96k
+43           webm       640x360    medium , vp8.0, vorbis@128k
+22           mp4        1280x720   hd720 , avc1.64001F, mp4a.40.2@192k (best)
+```
+
+Download video in the specified format
+
+```sh
+youtube-dl -f 266 $httpVideoAdress
+```
+
+### merge video and audio
+
+In case of MP4 format (all, except 1440p 60fps & 2160p 60fps):
+```sh
+ffmpeg -i videoplayback.mp4 -i videoplayback.m4a -c:v copy -c:a copy output.mp4
+```
+
+In case of WebM format (1440p 60fps and 2160p 60fps):
+```sh
+ffmpeg -i videoplayback.webm -i videoplayback.m4a -c:v copy -c:a copy output.mkv
+```
+
+[source link](https://kwizzu.com/construct.html)
 
 [上一级](base.md)
 [上一篇](ctrl_alt_f3_login_incorrect.md)
