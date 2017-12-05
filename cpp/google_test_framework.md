@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
 ## run test project
 编译：
 ```sh
-g++ -lpthread -lgtest test.cpp -o test
+g++ test.cpp -lpthread -lgtest  -o test
 ```
 运行结果：
 ```sh
