@@ -43,6 +43,7 @@ void swap(int& a, int& b)
 4. c++的设计模式?
 [简单总结](https://www.cnblogs.com/FG123/p/5046649.html)
 [pdf Preview](https://manyones.files.wordpress.com/2010/07/dp-2nd.pdf)
+[设计模式概览](../cpp/design_patterns.md)
 
 5. new 、 delete 、 malloc 、 free 关系，及 如果混用这些会怎么样？
 delete 会调用对象的析构函数 , 和 new 对应 free 只会释放内存， new 调用构造函数。 malloc 与 free 是 C++/C 语言的标准库函数， new/delete 是 C++ 的运算符。它们都可用于申请动态内存和释放内存。对于非内部数据类型的对象而言，光用 maloc/free 无法满足动态对象的要求。对象在创建的同时要自动执行构造函数，对象在消亡之前要自动执行析构函数。由于 malloc/free 是库函数而不是运算符，不在编译器控制权限之内，不能够把执行构造函数和析构函数的任务强加于 malloc/free 。因此 C++ 语言需要一个能完成动态内存分配和初始化工作的运算符 new ，以及一个能完成清理与释放内存工作的运算符 delete 。注意 new/delete 不是库函数。
