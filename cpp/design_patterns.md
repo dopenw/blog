@@ -9,12 +9,16 @@
 		* [Factory 模式](#factory-模式)
 		* [Abstract factory 模式](#abstract-factory-模式)
 		* [Singleton 模式](#singleton-模式)
+		* [Builder 模式](#builder-模式)
+		* [object pool 模式](#object-pool-模式)
+		* [Prototype 模式](#prototype-模式)
 
 <!-- /code_chunk_output -->
 
 参考链接：
 [设计模式精解－GoF 23种设计模式解析](https://manyones.files.wordpress.com/2010/07/dp-2nd.pdf)
 [设计模式 wiki](https://zh.wikipedia.org/zh-cn/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F)
+[design patterns](https://sourcemaking.com/design_patterns)
 
 ## 创建型模式
 
@@ -186,7 +190,7 @@ Larry: poke eyes
 Moe: slap head
 Curly: suffer abuse
 ```
-[示例代码参考链接](https://sourcemaking.com/design_patterns/factory_method/cpp/1)
+[示例代码链接](https://sourcemaking.com/design_patterns/factory_method/cpp/1)
 
 ### Abstract factory 模式
 抽象工厂模式提供了一种方式，可以将一组具有同一主题的单独的工厂封装起来。
@@ -256,6 +260,8 @@ Border* border = fac->CreateBorder();
 实现单例模式的思路是：一个类能返回对象一个引用(永远是同一个)和一个获得该实例的方法（必须是静态方法，通常使用getInstance这个名称）；当我们调用这个方法时，如果类持有的引用不为空就返回这个引用，如果类保持的引用为空就创建该类的实例并将实例的引用赋予该类保持的引用；同时我们还将该类的构造函数定义为私有方法，这样其他处的代码就无法通过调用该类的构造函数来实例化该类的对象，只有通过该类提供的静态方法来得到该类的唯一实例。
 
 单例模式在多线程的应用场合下必须小心使用。如果当唯一实例尚未创建时，有两个线程同时调用创建方法，那么它们同时没有检测到唯一实例的存在，从而同时各自创建了一个实例，这样就有两个实例被构造出来，从而违反了单例模式中实例唯一的原则。 解决这个问题的办法是为指示类是否已经实例化的变量提供一个互斥锁(虽然这样会降低效率)。
+
+[Singleton 模式 wiki](https://zh.wikipedia.org/wiki/%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F)
 
 after:
 ```c++
@@ -372,7 +378,297 @@ foo: global_ptr is 1
 bar: global_ptr is 2
 ```
 
-[示例代码参考链接](https://sourcemaking.com/design_patterns/singleton/cpp/1)
+[示例代码链接](https://sourcemaking.com/design_patterns/singleton/cpp/1)
+
+### Builder 模式
+生成器模式，他可以将复杂的建造过程抽象出来，使这个抽象过程的不同实现方法可以构造出不同表现（属性）的对象。
+
+适用性：
+* 当创建复杂对象的算法应独立于该对象的组成部分以及他们的装配方式时。
+* 当构造过程必须允许被构造的对象有不同的表示时。
+
+[生成器模式 wiki](https://zh.wikipedia.org/wiki/%E7%94%9F%E6%88%90%E5%99%A8%E6%A8%A1%E5%BC%8F)
+
+![](../images/design_patterns_201712081616_1.png)
+
+示例代码：
+```c++
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+
+using namespace std;
+
+enum PersistenceType { File, Queue, Pathway };
+
+struct PersistenceAttribute {
+  PersistenceType type;
+  char value[30];
+};
+
+class DistrWorkPackage {
+public:
+  DistrWorkPackage(char * type) {
+    sprintf(_desc, "Distributed work package for :%s", type);
+  }
+  void setFile(char * f, char * v) {
+    sprintf(_temp, "\n  File(%s): %s", f, v);
+    strcat(_desc, _temp);
+  }
+  void setQueue(char *q, char *v) {
+    sprintf(_temp, "\n  Queue(%s): %s", q, v);
+    strcat(_desc, _temp);
+  }
+  void setPathway(char *p, char *v) {
+    sprintf(_temp, "\n  Pathway(%s): %s", p, v);
+    strcat(_desc, _temp);
+  }
+  const char *getState() { return _desc; }
+
+private:
+  char _desc[200], _temp[80];
+};
+
+class Builder {
+protected:
+  DistrWorkPackage *_result;
+
+public:
+  virtual void configureFile(char *) = 0;
+  virtual void configureQueue(char *) = 0;
+  virtual void configurePathway(char *) = 0;
+  DistrWorkPackage *getResult() { return _result; }
+};
+
+class UnixBuilder : public Builder {
+public:
+  UnixBuilder() { _result = new DistrWorkPackage("Unix"); }
+  void configureFile(char *name) { _result->setFile("flatFile", name); }
+  void configureQueue(char *queue) { _result->setQueue("FIFO", queue); }
+  void configurePathway(char *type) { _result->setPathway("thread", type); }
+};
+
+class VmsBuilder : public Builder {
+public:
+  VmsBuilder() { _result = new DistrWorkPackage("Vms"); }
+  void configureFile(char *name) { _result->setFile("ISAM", name); }
+  void configureQueue(char *queue) { _result->setQueue("priority", queue); }
+  void configurePathway(char *type) { _result->setPathway("LWP", type); }
+};
+
+class Reader {
+public:
+  void setBuilder(Builder *b) { _builder = b; }
+  void construct(PersistenceAttribute[], int);
+
+private:
+  Builder *_builder;
+};
+
+void Reader::construct(PersistenceAttribute list[], int num) {
+  for (int i = 0; i < num; i++)
+    if (list[i].type == File)
+      _builder->configureFile(list[i].value);
+    else if (list[i].type == Queue)
+      _builder->configureQueue(list[i].value);
+    else if (list[i].type == Pathway)
+      _builder->configurePathway(list[i].value);
+}
+
+const int NUM_ENTRIES = 6;
+PersistenceAttribute input[NUM_ENTRIES] = {
+    {File, "state.dat"},         {File, "config.sys"},
+    {Queue, "compute"},          {Queue, "log"},
+    {Pathway, "authentication"}, {Pathway, "error processing"}};
+
+int main() {
+  UnixBuilder unixBuilder;
+  VmsBuilder vmsBuilder;
+  Reader reader;
+
+  reader.setBuilder(&unixBuilder);
+  reader.construct(input, NUM_ENTRIES);
+  cout << unixBuilder.getResult()->getState() << endl;
+
+  reader.setBuilder(&vmsBuilder);
+  reader.construct(input, NUM_ENTRIES);
+  cout << vmsBuilder.getResult()->getState() << endl;
+}
+```
+output:
+```sh
+Distributed work package for :Unix
+  File(flatFile): state.dat
+  File(flatFile): config.sys
+
+  Queue(FIFO): compute
+  Queue(FIFO): log
+  Pathway(thread): authentication
+  Pathway(thread): error processing
+Distributed work package for :Vms
+  File(ISAM): state.dat
+  File(ISAM): config.sys
+  Queue(priority): compute
+  Queue(priority): log
+  Pathway(LWP): authentication
+  Pathway(LWP): error processing
+```
+
+[示例代码链接](https://sourcemaking.com/design_patterns/builder/cpp/1)
+
+### object pool 模式
+
+对象池模式可以提供显着的性能提升;在初始化类实例的成本高，类的实例化率高，并且在任何时候使用的实例化数量低的情况下，这是最有效的。
+
+对象池（也称为资源池）用于管理对象缓存。有权访问对象池的客户端可以通过简单地向池中请求一个已经实例化的对象来避免创建新的对象。一般来说，池将是一个增长的池，即池本身将创建新的对象，如果池是空的，或者我们可以有一个池，限制了创建的对象的数量。 希望将当前不再使用的所有可重用对象保留在同一个对象池中，以便可以通过一个一致的策略来管理它们。为了达到这个目的，可重用池类被设计成一个单例类。
+
+
+对象池允许其他人从其池中“检出”对象，当这些对象不再被它们的进程需要时，它们被返回到池中以便被重用。 但是，我们不希望进程需要等待某个特定的对象被释放，所以对象池也会根据需要实例化新的对象，但是还必须实现一个方法来定期清理未使用的对象。
+
+[source link](https://sourcemaking.com/design_patterns/object_pool)
+![](../images/design_patterns_201712081616_2.png)
+
+python 代码示例：
+```python
+class ReusablePool:
+    """
+    Manage Reusable objects for use by Client objects.
+    """
+
+    def __init__(self, size):
+        self._reusables = [Reusable() for _ in range(size)]
+
+    def acquire(self):
+        return self._reusables.pop()
+
+    def release(self, reusable):
+        self._reusables.append(reusable)
+
+
+class Reusable:
+    """
+    Collaborate with other objects for a limited amount of time, then
+    they are no longer needed for that collaboration.
+    """
+
+    pass
+
+
+def main():
+    reusable_pool = ReusablePool(10)
+    reusable = reusable_pool.acquire()
+    reusable_pool.release(reusable)
+
+
+if __name__ == "__main__":
+    main()
+```
+[示例代码链接](https://sourcemaking.com/design_patterns/object_pool/python/1)
+
+### Prototype 模式
+原型模式是创建型模式的一种，其特点在于通过「复制」一个已经存在的实例来返回新的实例,而不是新建实例。被复制的实例就是我们所称的「原型」，这个原型是可定制的。
+
+原型模式多用于创建复杂的或者耗时的实例，因为这种情况下，复制一个已经存在的实例使程序运行更高效；或者创建值相等，只是命名不一样的同类数据。
+[原型模式 wiki](https://zh.wikipedia.org/wiki/%E5%8E%9F%E5%9E%8B%E6%A8%A1%E5%BC%8F)
+
+![](../images/design_patterns_201712081630_1.png)
+
+```c++
+#include <iostream>
+#include <string>
+
+using namespace std;
+class Prototype {
+protected:
+  string type;
+  int value;
+
+public:
+  virtual Prototype *clone() = 0;
+  string getType() { return type; }
+  int getValue() { return value; }
+};
+
+class ConcretePrototype1 : public Prototype {
+public:
+  ConcretePrototype1(int number) {
+    type = "Type1";
+    value = number;
+  }
+
+  Prototype *clone() { return new ConcretePrototype1(*this); }
+};
+
+class ConcretePrototype2 : public Prototype {
+public:
+  ConcretePrototype2(int number) {
+    type = "Type2";
+    value = number;
+  }
+
+  Prototype *clone() { return new ConcretePrototype2(*this); }
+};
+
+class ObjectFactory {
+  static Prototype *type1value1;
+  static Prototype *type1value2;
+  static Prototype *type2value1;
+  static Prototype *type2value2;
+
+public:
+  static void initialize() {
+    type1value1 = new ConcretePrototype1(1);
+    type1value2 = new ConcretePrototype1(2);
+    type2value1 = new ConcretePrototype2(1);
+    type2value2 = new ConcretePrototype2(2);
+  }
+
+  static Prototype *getType1Value1() { return type1value1->clone(); }
+
+  static Prototype *getType1Value2() { return type1value2->clone(); }
+
+  static Prototype *getType2Value1() { return type2value1->clone(); }
+
+  static Prototype *getType2Value2() { return type2value2->clone(); }
+};
+
+Prototype *ObjectFactory::type1value1 = 0;
+Prototype *ObjectFactory::type1value2 = 0;
+Prototype *ObjectFactory::type2value1 = 0;
+Prototype *ObjectFactory::type2value2 = 0;
+
+int main() {
+  ObjectFactory::initialize();
+  Prototype *object;
+
+  /* All the object were created by cloning the prototypes. */
+  object = ObjectFactory::getType1Value1();
+  std::cout << object->getType() << ": " << object->getValue() << std::endl;
+
+  object = ObjectFactory::getType1Value2();
+  std::cout << object->getType() << ": " << object->getValue() << std::endl;
+
+  object = ObjectFactory::getType2Value1();
+  std::cout << object->getType() << ": " << object->getValue() << std::endl;
+
+  object = ObjectFactory::getType2Value2();
+  std::cout << object->getType() << ": " << object->getValue() << std::endl;
+
+  return 0;
+}
+
+```
+
+output:
+```sh
+Type1: 1
+Type1: 2
+Type2: 1
+Type2: 2
+```
+
+[示例代码链接](https://gist.github.com/pazdera/1122349)
+
 [上一级](base.md)
 [上一篇](conv_string_to_char_pointer.md)
 [下一篇](develop_care_detail.md)
