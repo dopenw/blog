@@ -263,7 +263,7 @@ Border* border = fac->CreateBorder();
 
 [Singleton 模式 wiki](https://zh.wikipedia.org/wiki/%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F)
 
-after:
+Before:
 ```c++
 class GlobaClass{
 	int m_value;
@@ -379,6 +379,62 @@ bar: global_ptr is 2
 ```
 
 [示例代码链接](https://sourcemaking.com/design_patterns/singleton/cpp/1)
+
+上述代码在单线程中能够正常工作，不过在多线程下可采取加互斥锁的方法：
+```c++
+#include <future>
+#include <iostream>
+#include <mutex>
+#include <thread>
+
+using namespace std;
+std::mutex mutexLock;
+
+class singleton {
+  singleton(int n = 0) { m_value = n; };
+  static singleton *globalPtr;
+  int m_value = 0;
+
+public:
+  ~singleton(){};
+  int get_value() { return m_value; }
+  void set_value(int n) { m_value = n; }
+  static singleton *instance() {
+    if (globalPtr == NULL) {
+      mutexLock.lock();
+      if (globalPtr == NULL)
+        globalPtr = new singleton;
+      mutexLock.unlock();
+    }
+    return globalPtr;
+  }
+};
+singleton *singleton::globalPtr = NULL;
+int main(int argc, char const *argv[]) {
+
+  singleton * ptr;
+
+  auto f1 = async(launch::async, [] { return singleton::instance(); });
+  auto f2 = async(launch::async, [] { return singleton::instance(); });
+
+  ptr = f1.get();
+  std::cout << "p1:" << ptr->get_value() << '\n';
+  std::cout << "localtion:" << ptr << '\n';
+  ptr = f2.get();
+  ptr->set_value(3);
+  std::cout << "p1:" << ptr->get_value() << '\n';
+  std::cout << "localtion:" << ptr << '\n';
+  return 0;
+}
+```
+
+output:
+```sh
+p1:0
+localtion:0x7f9514000b10
+p1:3
+localtion:0x7f9514000b10
+```
 
 ### Builder 模式
 生成器模式，他可以将复杂的建造过程抽象出来，使这个抽象过程的不同实现方法可以构造出不同表现（属性）的对象。
