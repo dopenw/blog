@@ -9,6 +9,7 @@
 * ### [Google c++ test framework](google_test_framework.md)
 * ### [当类中含有const，reference成员变量,其构造函数都需要初始化列表](initalization_list.md)
 * ### [c++ 内部类](inner_class.md)
+* ### [c++并发](multiThread.md)
 * ### [mutable的使用](mutable.md)
 * ### [c++正则表达式](regex.md)
 * ### [以stream完成I/O](stream_IO.md)
