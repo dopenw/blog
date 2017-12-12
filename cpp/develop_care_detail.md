@@ -13,6 +13,11 @@ egrep $partern $filename
 3. 使用c++开发时调用函数库时要注意
 场景：使用#include "vector"，因为该路径下有之前测试生成的文件名为vector的可执行文件，编译时就报大量的错误。
 
+4. atom文本编辑器的for关键字快捷辅助输出为
+```c++
+for (size_t column = length -1; column >= 0; column--) {}
+```
+注意这样的代码可能会造成死循环
 
 [上一级](base.md)
 [上一篇](design_patterns.md)
