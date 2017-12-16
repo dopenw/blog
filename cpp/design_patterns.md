@@ -12,6 +12,8 @@
 		* [Builder 模式](#builder-模式)
 		* [object pool 模式](#object-pool-模式)
 		* [Prototype 模式](#prototype-模式)
+	* [结构型模式](#结构型模式)
+		* [Adapter模式](#adapter模式)
 
 <!-- /code_chunk_output -->
 
@@ -724,6 +726,86 @@ Type2: 2
 ```
 
 [示例代码链接](https://gist.github.com/pazdera/1122349)
+
+## 结构型模式
+
+### Adapter模式
+
+将某个类的接口转换成客户端期望的另一个接口表示。适配器模式可以消除由于接口不匹配所造成的类兼容性问题。
+
+有两种类型的适配器模式：
+1. 对象适配器模式：在这种适配器模式中，适配器容纳一个它包裹的类的实例。在这种情况下，适配器调用被包裹对象的物理实体
+2. 类适配器模式：在这种模式下，适配器继承自己实现的类（一般多重继承）
+
+[适配器模式 wikipedia](https://zh.wikipedia.org/wiki/%E9%80%82%E9%85%8D%E5%99%A8%E6%A8%A1%E5%BC%8F)
+
+类适配器模式示例：
+```c++
+#include <iostream>
+
+typedef int Coordinate;
+typedef int Dimension;
+using namespace std;
+
+class Rectangle {
+public:
+  virtual void draw() = 0;
+};
+
+class LegacyRectangle {
+public:
+  LegacyRectangle(Coordinate x1, Coordinate y1, Coordinate x2, Coordinate y2) {
+    x1_ = x1;
+    y1_ = y1;
+    x2_ = x2;
+    y2_ = y2;
+    cout << "LegacyRectangle:  create.  (" << x1_ << "," << y1_ << ") => ("
+         << x2_ << "," << y2_ << ")" << endl;
+  }
+
+  void oldDraw() {
+    cout << "LegacyRectangle:  oldDraw.  (" << x1_ << "," << y1_ << ") => ("
+         << x2_ << "," << y2_ << ")" << endl;
+  }
+
+private:
+  Coordinate x1_;
+  Coordinate y1_;
+  Coordinate x2_;
+  Coordinate y2_;
+};
+
+class RectangleAdapter : public Rectangle, private LegacyRectangle {
+public:
+  RectangleAdapter(Coordinate x, Coordinate y, Dimension w, Dimension h)
+      : LegacyRectangle(x, y, x + w, y + h) {
+    cout << "RectangleAdapter: create.  (" << x << "," << y
+         << "), width = " << w << ", height = " << h << endl;
+  }
+
+  virtual void draw() {
+    cout << "RectangleAdapter: draw." << endl;
+    oldDraw();
+  }
+};
+
+int main(int argc, char const *argv[]) {
+  Rectangle * r = new RectangleAdapter(120, 200, 60, 40);
+  r->draw();
+  return 0;
+}
+```
+
+run it:
+```terminal
+LegacyRectangle:  create.  (120,200) => (180,240)
+RectangleAdapter: create.  (120,200), width = 60, height =
+ 40
+RectangleAdapter: draw.
+LegacyRectangle:  oldDraw.  (120,200) => (180,240)
+```
+
+[示例代码链接](https://sourcemaking.com/design_patterns/adapter/cpp/1)
 
 [上一级](base.md)
 [上一篇](conv_string_to_char_pointer.md)
