@@ -11,6 +11,8 @@
 	* [String Comparison](#string-comparison)
 	* [create test project](#create-test-project)
 	* [run test project](#run-test-project)
+	* [run gtest sample unit test](#run-gtest-sample-unit-test)
+	* [Test Fixtures](#test-fixtures)
 
 <!-- /code_chunk_output -->
 
@@ -125,6 +127,104 @@ Expected: true
 
 [gtest doc](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
 [gtest quick introduction](https://www.ibm.com/developerworks/aix/library/au-googletestingframework.html#list1)
+
+
+## run gtest sample unit test
+
+[gtest sample](https://github.com/google/googletest/blob/master/googletest/docs/Samples.md)
+
+```sh
+git clone https://github.com/google/googletest.git
+cd googletest
+cmake CMakeLists.txt
+make
+cd ($googleTestDir)/googletest/make
+make
+```
+这样就会编译出可执行文件 sample1_unittest
+
+运行即可得到：
+```sh
+[==========] Running 6 tests from 2 test cases.
+[----------] Global test environment set-up.
+[----------] 3 tests from FactorialTest
+[ RUN      ] FactorialTest.Negative
+[       OK ] FactorialTest.Negative (0 ms)
+[ RUN      ] FactorialTest.Zero
+[       OK ] FactorialTest.Zero (0 ms)
+[ RUN      ] FactorialTest.Positive
+[       OK ] FactorialTest.Positive (0 ms)
+[----------] 3 tests from FactorialTest (0 ms total)
+
+[----------] 3 tests from IsPrimeTest
+[ RUN      ] IsPrimeTest.Negative
+[       OK ] IsPrimeTest.Negative (0 ms)
+[ RUN      ] IsPrimeTest.Trivial
+[       OK ] IsPrimeTest.Trivial (0 ms)
+[ RUN      ] IsPrimeTest.Positive
+[       OK ] IsPrimeTest.Positive (0 ms)
+[----------] 3 tests from IsPrimeTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 2 test cases ran. (0 ms total)
+[  PASSED  ] 6 tests.
+```
+
+也可直接在sample目录下面直接运行：
+
+```sh
+g++ sample3_unittest.cc ../src/gtest_main.cc -lpthread -lgtest -o sample3
+```
+
+run sample3:
+
+```terminal
+[==========] Running 3 tests from 1 test case.
+[----------] Global test environment set-up.
+[----------] 3 tests from QueueTestSmpl3
+[ RUN      ] QueueTestSmpl3.DefaultConstructor
+[       OK ] QueueTestSmpl3.DefaultConstructor (0 ms)
+[ RUN      ] QueueTestSmpl3.Dequeue
+[       OK ] QueueTestSmpl3.Dequeue (0 ms)
+[ RUN      ] QueueTestSmpl3.Map
+[       OK ] QueueTestSmpl3.Map (0 ms)
+[----------] 3 tests from QueueTestSmpl3 (0 ms total)
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test case ran. (0 ms total)
+[PASSED] 3 tests
+```
+
+## Test Fixtures
+
+[gtest test fixtures github md](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md#test-fixtures-using-the-same-data-configuration-for-multiple-tests)
+
+
+* SetUp() will be called before each test is run.  You should define it if you need to initialize the variables. Otherwise, this can be skipped.
+
+* If necessary, write a destructor or TearDown() function to release any resources you allocated in SetUp()
+
+When using a fixture, use TEST_F() instead of TEST() as it allows you to access objects and subroutines in the test fixture:
+
+```c++
+TEST_F(test_case_name, test_name) {
+ ... test body ...
+}
+```
+
+For each test defined with TEST_F(), Google Test will:
+
+1. Create a fresh test fixture at runtime
+2. Immediately initialize it via SetUp()
+3. Run the test
+4. Clean up by calling TearDown()
+5. Delete the test fixture. Note that different tests in the same test case have different test fixture objects, and Google Test always deletes a test fixture before it creates the next one. Google Test does not reuse the same test fixture for multiple tests. Any changes one test makes to the fixture do not affect other tests.
+
+
+[Google Test Fixtures Ask Question in stack overflow ](https://stackoverflow.com/questions/3549540/google-test-fixtures)
+
+[csdn link](http://blog.csdn.net/russell_tao/article/details/7333226)
+
+
 [上一级](base.md)
 [上一篇](function_arg_stack.md)
 [下一篇](initalization_list.md)
