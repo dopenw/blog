@@ -5,5 +5,6 @@
 * ### [c/c++面试](find_a_job.md)
 * ### [google Tips](google_search_tips.md)
 * ### [openresty测试](openresty_test.md)
+* ### [shadowsocks optimize](shadowsocksOptimize.md)
 * ### [ss+privoxy实现全局代理](ss_privoxy.md)
                            step by steop
