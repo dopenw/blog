@@ -19,6 +19,14 @@
 	* [线程同步化与并发问题](#线程同步化与并发问题)
 		* [当心并发](#当心并发)
 		* [什么情况下可能出错](#什么情况下可能出错)
+	* [Mutex 和 Lock](#mutex-和-lock)
+		* [使用Mutex和Lock](#使用mutex和lock)
+			* [lock_guard](#lock_guard)
+			* [递归的(Recursive) Lock](#递归的recursive-lock)
+			* [尝试性的Lock以及带时间性的Lock](#尝试性的lock以及带时间性的lock)
+			* [处理多个Lock](#处理多个lock)
+			* [class unique_lock](#class-unique_lock)
+			* [只调用一次](#只调用一次)
 
 <!-- /code_chunk_output -->
 
@@ -432,6 +440,339 @@ data=42;
 foo(data);
 while (!readyFlag) {
 	; //loop until data is ready
+}
+```
+
+## Mutex 和 Lock
+
+Mutex（互斥体）
+
+### 使用Mutex和Lock
+
+```c++
+int val;
+std::mutex valMutex;
+```
+
+one thread:
+```c++
+valMutex.lock();
+if(val>=0)
+	f(val);
+else
+	f(-val);
+valMutex.unlock();
+```
+
+other thread:
+```c++
+valMutex.lock();
+++val;
+valMutex.unlock();
+```
+
+#### lock_guard
+
+[class std::lock_guard](http://en.cppreference.com/w/cpp/thread/lock_guard) 是一个互斥包装器，它提供了一个方便的 [RAII](https://zh.wikipedia.org/wiki/RAII) 风格的机制来在一个作用域块持续时间内拥有一个互斥锁。 当一个lock_guard对象被创建时，它会尝试获取它给出的互斥量的所有权。当控制权离开创建lock_guard对象的范围时，lock_guard被销毁并释放互斥锁。 lock_guard类不可复制。
+
+代码示例：
+```c++
+#include <future>
+#include <iostream>
+#include <mutex>
+#include <string>
+
+using namespace std;
+mutex printMutex;
+
+void print(const string &s) {
+  lock_guard<mutex> l(printMutex);
+  for (char c : s) {
+    cout.put(c);
+  }
+  std::cout << '\n';
+}
+
+int main(int argc, char const *argv[]) {
+  auto f1 = async(std::launch::async, print, "hello from a first thread");
+  auto f2 = async(std::launch::async, print, "hello from a second thread");
+  print("hello from the main thread");
+  return 0;
+}
+```
+
+run it:
+```terminate
+hello from the main thread
+hello from a second thread
+hello from a first thread
+```
+
+如果没有mutex，输出可能是：
+```terminate
+hello from the main threadhello from a fir
+st thread
+hello from a second thread
+```
+
+#### 递归的(Recursive) Lock
+
+一个典型的例子：
+```c++
+class DatabaseAccess
+{
+private:
+	std::mutex dbMutex;
+	... //state of database access
+public:
+	void createTable(...)
+	{
+		std::lock_guard<std::mutex> lg(dbMutex);
+		...
+	}
+
+	void insertData(...)
+	{
+		std::lock_guard<std::mutex> lg(dbMutex);
+		...
+	}
+
+	...
+
+};
+
+//当我们引入一个public成员函数而它可能调用其它public成员函数，情况变得复杂：
+
+void createTableAndInsertData(...)
+{
+	std::lock_guard<std::mutex> lg(dbMutex);
+
+	...
+
+	createTable(...);  //error: deadLock because dbMutex is locked again
+}
+
+```
+
+借着使用recursive_mutex,上述的行为不再有问题。这个mutex允许同一线程多次锁定，并在最近一次（last）相应的unlock()时释放lock：
+
+```c++
+class DatabaseAccess
+{
+private:
+	std::recursive_mutex dbMutex;
+	... //state of database access
+public:
+	void createTable(...)
+	{
+		std::lock_guard<std::recursive_mutex> lg(dbMutex);
+		...
+	}
+
+	void insertData(...)
+	{
+		std::lock_guard<std::recursive_mutex> lg(dbMutex);
+		...
+	}
+
+	void createTableAndInsertData(...)
+	{
+		std::lock_guard<std::recursive_mutex> lg(dbMutex);
+
+		...
+
+		createTable(...);  //ok ,no deadLock
+	}
+
+	...
+
+};
+```
+
+#### 尝试性的Lock以及带时间性的Lock
+
+有时候程序想要获得一个lock，但如果不可能成功的话它不想永远阻塞。针对这种情况，mutex提供成员函数try_lock(),它试图获取一个lock，成功就返回true，失败则返回false。
+
+为了仍能够使用lock_guard,你可以传一个额外实参adopt_lock给其构造函数：
+```c++
+std::mutex m;
+
+while (m.try_lock()==false) {
+	doSomething();
+}
+
+std::lock_guard<std::mutex> lg(m,std::adopt_lock);
+...
+```
+
+注意，try_lock()有可能假性失败，也就是说即使lock并未被他人拿走它也可能失败。
+
+为了等待特定长度的时间，你可以选用所谓的 timed mutex:
+* class std::timed_mutex
+* class std::recursive_timed_mutex
+这两个类，允许你调用try_lock_for(),try_lock_until()
+
+```c++
+std::timed_mutex m;
+
+if(m.try_lock_for(std::chrono::seconds(1)))
+{
+	std::lock_guard<std::timed_mutex> lg(m,std::adopt_lock);
+	...
+}
+else调用
+{
+	couldNotGetTheLock();
+}
+```
+
+#### 处理多个Lock
+
+通常一个线程一次只该锁定一个mutex。然而有时候必须锁定多个mutex（例如为了传递数据，从一个受保护资源到另一个。）
+
+这种情况下若以目前介绍过的lock机制来应付，可能变得复杂且具有风险：你或许取得第一个lock却拿不到第二个lock，或许发生deadlock（如果以不同的次序去锁住相同的lock）
+
+c++标准库为此提供了若干便捷函数，让你锁定多个mutex。
+```c++
+std::mutex m1;
+std::mutex m2;
+
+...
+
+{
+	std::lock(m1,m2) ; //lock both mutexs(or none if possible)
+	std::lock_guard<std::mutex> lockM1(m1,std::adopt_lock);
+	std::lock_guard<std::mutex> lockM2(m2,std::adopt_lock);
+
+	...
+} //automatically unlock all mutexs
+```
+全局std::lock()会锁住它收到的所有mutex，而且阻塞直到mutex都被锁定或直到抛出异常。如果是后者，已被成功锁定的mutex都会被解锁。
+注意，这个lock()提供了一个deadlock回避机制，但也意味着多个lock的锁定次序并不明确。
+
+以此相同方式你可以尝试“取得多个lock”且“若并非所有lock都可用也不至于造成阻塞”。全局函数std::try_lock()会在取得所有lock情况下返回-1，否则返回第一个失败的lock的索引（从0开始计），且如果这样的话所有成功的lock会被unlocked。
+
+```c++
+std::mutex m1;
+std::mutex m2;
+
+int idx=std::try_lock(m1,m2); //try to lock both mutexs
+
+if (idx<0)
+{
+	std::lock_guard<std::mutex> lockM1(m1,std::adopt_lock);
+	std::lock_guard<std::mutex> lockM2(m2,std::adopt_lock);
+	...
+}// automatically unlock all mutexs
+else
+{
+	//idx has zero-base index of first failed lock
+	std::cerr << "could not lock mutex m" <<idx+1<< '\n';
+}
+```
+
+注意，这个try_lock()不提供deadlock回避机制，但它保证以出现于实参列的次序来试着完成锁定。
+
+请注意，通常我们不会“只调用lock()或try_lock()”却“不把那些lock过继(adopt)给一个lock_guard”。虽然代码看起来好像建立了“离开作用域是会自动解锁的lock，其实并非如此，这些mutex仍然保持锁定”。
+```c++
+std::mutex m1;
+std::Mutex m2;
+
+...
+{
+	std::lock(m1,m2); //lock both mutexs (or none if not possible)
+	//no lock adopted
+	...
+}
+... //OOPS: mutexs are still locked!!!
+```
+
+#### class unique_lock
+
+除了class lock_guard<>,c++ STL还提供了[class unique_lock<>](http://en.cppreference.com/w/cpp/thread/unique_lock),它对mutex更有弹性。class unique_lock<>提供的接口和class lock_guard<>相同，而又允许明确写出“何时”以及“如何”锁定或解锁其Mutex。因此其object可能（但也可能不）拥有一个被锁住的mutex。这和lock_guard<>不同，后者的object生命中总是锁定一个mutex。此外，对unique_lock你可以调用owns_lock()或bool()来查询其mutex目前是否被锁住。
+
+注解：unique_lock 的命名解释了其行为的由来。就像unique pointer,你可以把他们在作用域之间搬移，但保证一次只有一个lock 拥有mutex。
+
+这个class的主要优点仍然是：
+* 如果析构时mutex仍被锁住，其析构函数会自动调用unlock()。如果当时没有锁住mutex，则析构函数不做任何事。
+
+class unique_lock<> VS class lock_guard<>,unique_lock添加了以下三个构造函数：
+* 你可以传递try_to_lock,表示企图锁定mutex但不希望阻塞:
+```c++
+std::mutex m;
+std::unique_lock<std::mutex> lock(m,std::try_to_lock);
+...
+if(lock)
+{// if lock was successful
+	...
+}
+```
+
+* 你可以传递一个时间段或时间点给构造函数，表示尝试在一个明确的时间周期内锁定：
+```c++
+std::timed_mutex m;
+std::unique_lock<std::timed_mutex> lock(m,std::chrono::seconds(1));
+...
+```
+* 你可以传递defer_lock,表示初始化这个lock object但尚未打算锁住mutex:
+```c++
+std::mutex m;
+std::unique_lock<std::mutex> lock(m,std::defer_lock);
+...
+lock.lock(); //or (timed) try_lock()
+...
+```
+
+有了lock_guard 和 unique_lock 作为工具，现在我们可以实现一个粗浅例子，以轮询某个ready flag的方式，令一个线程等待另一个线程：
+```c++
+#include <mutex>
+
+...
+
+bool readyFlag;
+std::mutex readyFlagMutex;
+
+void thread1()
+{
+	//do doSomething thread2 needs as preparation
+
+	...
+	std::lock_guard<std::mutex> lg(readyFlagMutex);
+	readyFlag=true;
+}
+
+void thread2()
+{
+	//wait until readyFlag is true (thread1 is done)
+
+	{
+		std::unique_lock<std::mutex>  u1(readyFlagMutex);
+		while (!readyFlag) {
+			u1.unlock();
+			std::this_thread::yield(); //hint to reschedule to the next thread
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			u1.lock();
+		}
+	}//release lock
+
+	//do whatever shall happen after threa1 has prepared things
+	...
+}
+```
+
+#### 只调用一次
+有时候某些机能初次被某个线程使用过后，其他线程再也不需要它。在多线程环境下，可以这样：只需使用一个std::once_flag以及调用[std::call_once](http://en.cppreference.com/w/cpp/thread/call_once)(也由<mutex>提供)
+```c++
+std::once_flag oc;
+static std::vector<std::string> staticData;
+
+void foo()
+{
+	static std::once_flag oc;
+	std::call_once(oc,[]{
+											staticData=initializeStaticData();
+										});
+...
 }
 ```
 
