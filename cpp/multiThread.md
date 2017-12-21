@@ -27,6 +27,9 @@
 			* [处理多个Lock](#处理多个lock)
 			* [class unique_lock](#class-unique_lock)
 			* [只调用一次](#只调用一次)
+	* [Condition Variable(条件变量)](#condition-variable条件变量)
+		* [条件变量的第一个完整的例子](#条件变量的第一个完整的例子)
+		* [使用条件变量实现多线程Queue](#使用条件变量实现多线程queue)
 
 <!-- /code_chunk_output -->
 
@@ -775,6 +778,195 @@ void foo()
 ...
 }
 ```
+## Condition Variable(条件变量)
+
+[class condition_variable](http://en.cppreference.com/w/cpp/thread/condition_variable)
+
+有时候，被不同线程执行的task必须彼此等待。所以对“并发操作”实现同步化除了data race 之外还有其他原因。
+
+条件变量可以用来同步化线程之间的数据流逻辑依赖关系。
+
+在之前的章节中介绍了“让某个线程等待另一个线程”的一个粗浅的方法，就是使用ready flag之类的东西。当某个线程已有准备，或它已经为另一个线程提供了某个东西，上述flag就发出信号。这通常意味着等待中的线程需要轮询其所需要的数据或条件是否已达到：
+```c++
+bool readyFlag;
+std::mutex readyFlagMutex;
+
+//wait until readyFlag is true
+{
+	std::unique_lock<std::mutex> u1(readyFlagMutex);
+	while (!readyFlag) {
+		ul.unlock();
+		std::this_thread::yield(); //hint to reschedule to the next thread
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		ul.lock();
+	}
+}//release lock
+```
+然而这样“针对目标条件而轮询”的动作通常不是好的解决办法。
+
+一个较好的做法是使用条件变量，c++ STL在<condition_variable>中提供了它。他是一个变量，借由它可以唤醒一个或多个其他等待中的线程。
+
+原则上，条件变量运作如下：
+* 你必须同时包含<mutex> and <condition_variable>,并声明一个mutex和一个condition variable:
+```c++
+#include <mutex>
+#include <condition_variable>
+
+std::mutex readyMute;
+std::condition_variable readyCondVar;
+```
+* 那个激发“条件终于满足”的线程必须调用：
+```c++
+readyCondVar.notify_one() ;//notify one of the waiting threads
+//or
+readyCondVar.notify_all(); //notify all the waiting threads
+```
+* 那个“等待条件被满足”的线程必须调用
+```c++
+std::unique_lock<std::mutex> l(readyMute);
+//需要 unique_lock,因为lock_guard是不够的，因为等待中的函数有可能锁定或者解除mutex
+readyCondVar.wait(l);
+```
+
+此外，条件变量也许有所谓的假醒。也就是某个条件变量的wait动作有可能在该条件变量尚未被notified时返回。
+因此，发生wakeup不一定一位这线程所需要的条件已经掌握了。更确切的说，在wakeup之后你仍然需要代码去验证“条件实际已达成”。例如我们必须检查数据是否真正备妥，或是我们仍需要ready flag之类的东西。为了设立和查询它端供应的数据或ready flag，可以使用同一个mutex。
+
+### 条件变量的第一个完整的例子
+```c++
+#include <condition_variable>
+#include <future>
+#include <iostream>
+#include <mutex>
+
+bool readyFlag;
+std::mutex readyMutex;
+std::condition_variable readyCondVar;
+
+void thread1() {
+  // do something thread2 needs as preparation
+
+  std::cout << "<return>" << '\n';
+  std::cin.get();
+
+  // signal that thread1 prepared a condition
+  {
+    std::lock_guard<std::mutex> lg(readyMutex);
+    readyFlag = true;
+  } // release lock
+  readyCondVar.notify_one();
+}
+
+void thread2() {
+  // wait until thread1 is ready
+  {
+    std::unique_lock<std::mutex> ul(readyMutex);
+    readyCondVar.wait(ul, [] { return readyFlag; });
+
+    // 在这里条件变量的wait()成员函数的第二个 lambda，用来检测条件是否真的满足。
+    // 效果等同于下面代码： {
+    //   std::unique_lock<std::mutex> ul(readyMutex);
+    //   while (!readyFlag) {
+    //     readyCondVar.wait(ul);
+    //   }
+    // } // release lock
+
+  } // release lock
+
+  // do whatever shall happen after thread1 has prepared things
+
+  std::cout << "done" << '\n';
+}
+
+int main(int argc, char const *argv[]) {
+  auto f1 = std::async(std::launch::async, thread1);
+  auto f2 = std::async(std::launch::async, thread2);
+  return 0;
+}
+```
+
+### 使用条件变量实现多线程Queue
+
+在该例中，三个线程都把数值push某个queue，另外两个线程则是从中读取数据：
+```c++
+#include <condition_variable>
+#include <future>
+#include <iostream>
+#include <mutex>
+#include <queue>
+
+std::queue<int> queue;
+std::mutex queueMutex;
+std::condition_variable queueCondVar;
+
+void provider(int val) {
+  // push different values (val til val+5 with timeouts of val milliseconds into
+  // the queue)
+
+  for (size_t i = 0; i < 6; i++) {
+    std::lock_guard<std::mutex> lg(queueMutex);
+    queue.push(val + i);
+  } // release lock
+  queueCondVar.notify_one();
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(val));
+}
+
+void consumer(int num) {
+  // pop values if available (num identifies the consumer)
+
+  while (true) {
+    int val = 0;
+    {
+      std::unique_lock<std::mutex> ul(queueMutex);
+      queueCondVar.wait(ul, [] { return !queue.empty(); });
+      val = queue.front();
+      queue.pop();
+    } // release lock
+    std::cout << "consumer " << num << ": " << val << '\n';
+  }
+}
+
+int main(int argc, char const *argv[]) {
+  // start three provider for values 100+,300+,and 500+
+  auto p1 = std::async(std::launch::async, provider, 100);
+  auto p2 = std::async(std::launch::async, provider, 300);
+  auto p3 = std::async(std::launch::async, provider, 500);
+
+  // start two consumer printing the values
+  auto c1 = std::async(std::launch::async, consumer, 1);
+  auto c2 = std::async(std::launch::async, consumer, 2);
+  return 0;
+}
+```
+
+run it :
+```terminate
+consumer consumer 12: : 100
+consumer 1: 102
+consumer 1: 103
+consumer 1: 104
+consumer 1: 105
+consumer 1: 300
+consumer 1: 301
+consumer 1: 302
+
+consumer 1: 303
+consumer 1: 304
+consumer 1: 305
+consumer 1: 500
+consumer 1: 501
+consumer 1: 502
+consumer 1: 503
+consumer 1: 504
+consumer 1: 505
+101
+```
+
+也请注意：condition_variable也提供接口允许你等待某个最大时间量：
+
+* wait_for() 等待一个时间段
+* wiat_until() 等待直到某个时间点
+
 
 [上一级](base.md)
 [上一篇](inner_class.md)
