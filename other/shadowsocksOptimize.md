@@ -25,6 +25,7 @@ in server(ubuntu):
 vim /etc/sysctl.conf
 ```
 
+add the lines:
 ```sh
 # max open files
 fs.file-max = 1024000
@@ -70,8 +71,14 @@ net.ipv4.tcp_congestion_control = hybla
 net.ipv4.ip_forward = 1
 ```
 
+in terminal,run :
+```sh
+sysctl -p
+```
+
 ## open TCP Fast Open
 1. open tcp_fastopen in kernel
+
 in ubuntu:
 ```sh
 vim /etc/sysctl.conf
@@ -82,8 +89,13 @@ in fedora(such as):
 vim /etc/sysctl.d/99-sysctl.conf
 ```
 
+add the line:
 ```sh
 net.ipv4.tcp_fastopen = 3
+```
+in terminal,run :
+```sh
+sysctl -p
 ```
 
 2. add "fast_open" in shadowsocks.json（server and client）
