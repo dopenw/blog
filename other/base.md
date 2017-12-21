@@ -1,5 +1,6 @@
 # Categories other
 * ## [home](../README.md)
+* ### [Atom](atom.md)
 * ### [安装配置hadoop httpfs](config_hadoop_httpfs.md)
 * ### [docker 使用记录（读docker实践记）](docker.md)
 * ### [c/c++面试](find_a_job.md)
