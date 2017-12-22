@@ -17,12 +17,17 @@
 		* [Bridge(桥接) 模式](#bridge桥接-模式)
 		* [composite(组合) 模式](#composite组合-模式)
 		* [Decorator(修饰) 模式](#decorator修饰-模式)
+		* [Facade(外观模式)](#facade外观模式)
+		* [Flyweight(享元模式)](#flyweight享元模式)
 
 <!-- /code_chunk_output -->
 
 参考链接：
+
 [设计模式精解－GoF 23种设计模式解析](https://manyones.files.wordpress.com/2010/07/dp-2nd.pdf)
+
 [设计模式 wiki](https://zh.wikipedia.org/zh-cn/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F)
+
 [design patterns](https://sourcemaking.com/design_patterns)
 
 ## 创建型模式
@@ -1074,6 +1079,381 @@ run it:
 [示例代码链接](https://sourcemaking.com/design_patterns/decorator/cpp/2)
 
 [Decorator in C++: Before and after](https://sourcemaking.com/design_patterns/decorator/cpp/1)
+
+### Facade(外观模式)
+
+为子系统中的一组接口提供一个一致的界面，外观模式定义了一个高层接口，这个接口使得这一子系统更加容易使用。
+
+[外观模式 wikipedia](https://zh.wikipedia.org/wiki/%E5%A4%96%E8%A7%80%E6%A8%A1%E5%BC%8F)
+
+代码示例1：
+```c++
+#include <iostream>
+
+class MisDepartment {
+public:
+  void submitNetworkRequest() { state_ = 0; }
+  bool checkOnStatus() {
+    state_++;
+    if (state_ == Complete)
+      return true;
+    return false;
+  }
+
+private:
+  enum States {
+    Received,
+    DenyAllKnowledge,
+    ReferClientToFacilities,
+    FacilitiesHasNotSentPaperwork,
+    ElectricianIsNotDone,
+    ElectricianDidItWrong,
+    DispatchTechnician,
+    SignedOff,
+    DoesNotWork,
+    FixElectriciansWiring,
+    Complete
+  };
+  int state_;
+};
+
+class ElectricianUnion {
+public:
+  void submitNetworkRequest() { state_ = 0; }
+  bool checkOnStatus() {
+    state_++;
+    if (state_ == Complete)
+      return true;
+    return false;
+  }
+
+private:
+  enum States {
+    Received,
+    RejectTheForm,
+    SizeTheJob,
+    SmokeAndJokeBreak,
+    WaitForAuthorization,
+    DoTheWrongJob,
+    BlameTheEngineer,
+    WaitToPunchOut,
+    DoHalfAJob,
+    ComplainToEngineer,
+    GetClarification,
+    CompleteTheJob,
+    TurnInThePaperwork,
+    Complete
+  };
+  int state_;
+};
+
+class FacilitiesDepartment {
+public:
+  void submitNetworkRequest() { state_ = 0; }
+  bool checkOnStatus() {
+    state_++;
+    if (state_ == Complete)
+      return true;
+    return false;
+  }
+
+private:
+  enum States {
+    Received,
+    AssignToEngineer,
+    EngineerResearches,
+    RequestIsNotPossible,
+    EngineerLeavesCompany,
+    AssignToNewEngineer,
+    NewEngineerResearches,
+    ReassignEngineer,
+    EngineerReturns,
+    EngineerResearchesAgain,
+    EngineerFillsOutPaperWork,
+    Complete
+  };
+  int state_;
+};
+
+class FacilitiesFacade {
+public:
+  FacilitiesFacade() { count_ = 0; }
+  void submitNetworkRequest() { state_ = 0; }
+
+  bool checkOnStatus() {
+    count_++;
+    if (state_ == Received) {
+      state_++;
+      engineer_.submitNetworkRequest();
+      std::cout << "submit to Facilities -" << count_ << " phone calls so far"
+                << '\n';
+    } else if (state_ == SubmitToEngineer) {
+      if (engineer_.checkOnStatus()) {
+        state_++;
+        eletrician_.submitNetworkRequest();
+        std::cout << "submit to Electrician - " << count_
+                  << " phone calls so far" << '\n';
+      }
+    } else if (state_ == SubmitToElectrician) {
+      if (eletrician_.checkOnStatus()) {
+        state_++;
+        technician_.submitNetworkRequest();
+        std::cout << "submit ro MIS - " << count_ << " phone calls so far"
+                  << '\n';
+      }
+    } else if (state_ == SubmitToTechnician) {
+      if (technician_.checkOnStatus())
+        return true;
+    }
+    return false;
+  }
+
+  int getNumberOfCalls() { return count_; }
+
+private:
+  enum States {
+    Received,
+    SubmitToEngineer,
+    SubmitToElectrician,
+    SubmitToTechnician
+  };
+
+  int state_;
+  int count_;
+  FacilitiesDepartment engineer_;
+  ElectricianUnion eletrician_;
+  MisDepartment technician_;
+};
+
+int main(int argc, char const *argv[]) {
+  FacilitiesFacade facilities;
+
+  facilities.submitNetworkRequest();
+  while (!facilities.checkOnStatus()) {
+    ;
+  }
+
+  std::cout << "job completed after only " << facilities.getNumberOfCalls()
+            << " phone calls" << '\n';
+  return 0;
+}
+```
+
+run it：
+```terminal
+submit to Facilities -1 phone calls so far
+submit to Electrician - 12 phone calls so far
+submit ro MIS - 25 phone calls so far
+job completed after only 35 phone calls
+```
+
+[代码示例链接](https://sourcemaking.com/design_patterns/facade/cpp/1)
+
+代码示例2:
+```c++
+class CPU {
+public:
+	void freeze() { ... }
+	void jump(long position) { ... }
+	void execute() { ... }
+}
+
+class Memory {
+public:
+	void load(long position, char* data) {
+		...
+	}
+}
+
+class HardDrive {
+public:
+	char* read(long lba, int size) {
+		...
+	}
+}
+
+/* Façade */
+
+class Computer {
+public:
+	void startComputer() {
+		cpu.freeze();
+		memory.load(BOOT_ADDRESS, hardDrive.read(BOOT_SECTOR, SECTOR_SIZE));
+		cpu.jump(BOOT_ADDRESS);
+		cpu.execute();
+	}
+}
+
+/* Client */
+
+class You {
+public:
+	void start(String[] args) {
+		Computer facade = new Computer();
+		facade.startComputer();
+	}
+}
+```
+
+
+[代码示例链接](https://zh.wikipedia.org/wiki/%E5%A4%96%E8%A7%80%E6%A8%A1%E5%BC%8F#C++)
+
+### Flyweight(享元模式)
+
+通过共享以便有效的支持大量小颗粒对象
+
+它使用共享对象，用来尽可能减少内存使用量以及分享资讯给尽可能多的相似对象；它适合用于当大量对象只是重复因而导致无法令人接受的使用大量内存。通常对象中的部分状态是可以分享。常见做法是把他们放在外部数据结构，当使用时在将他们传递给享元。
+
+[享元模式 wikipedia](https://zh.wikipedia.org/zh-cn/%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8F)
+
+[Flyweight in C++: Before and after](https://sourcemaking.com/design_patterns/flyweight/cpp/1)
+
+代码示例：
+```c++
+#include <cstring>
+#include <iostream>
+
+class Icon {
+public:
+  Icon(char * fileName) {
+    strcpy(name_, fileName);
+    if (!strcmp(fileName, "go")) {
+      width_ = 20;
+      height_ = 20;
+    }
+    if (!strcmp(fileName, "stop")) {
+      width_ = 40;
+      height_ = 40;
+    }
+    if (!strcmp(fileName, "select")) {
+      width_ = 60;
+      height_ = 60;
+    }
+    if (!strcmp(fileName, "undo")) {
+      width_ = 30;
+      height_ = 30;
+    }
+  }
+
+  const char *getName() { return name_; }
+
+  void draw(int x, int y) {
+    std::cout << "  drawing " << name_ << ": upper left (" << x << "," << y
+              << ") - lower right (" << x + width_ << "," << y + height_ << ")"
+              << '\n';
+  }
+
+private:
+  char name_[20];
+  int width_;
+  int height_;
+};
+
+class FlyweightFactory {
+public:
+  static Icon * getIcon(char * name) {
+    for (ssize_t i = 0; i < numIcons_; i++)
+      if (!strcmp(name, icons_[i]->getName()))
+        return icons_[i];
+    icons_[numIcons_] = new Icon(name);
+    return icons_[numIcons_++];
+  }
+
+  static void reportTheIcons() {
+    std::cout << "Active Flyweights: ";
+    for (ssize_t i = 0; i < numIcons_; i++) {
+      std::cout << icons_[i]->getName() << " ";
+    }
+    std::cout << '\n';
+  }
+
+private:
+  enum { MAX_ICONS = 5 };
+  static int numIcons_;
+  static Icon *icons_[MAX_ICONS];
+};
+
+int FlyweightFactory::numIcons_ = 0;
+Icon *FlyweightFactory::icons_[];
+
+class DialogBox {
+public:
+  DialogBox(int x, int y, int incr)
+      : iconsOriginX_(x), iconsOriginY_(y), iconsXIncrement_(incr) {}
+  virtual void draw() = 0;
+
+protected:
+  Icon *icons_[3];
+  int iconsOriginX_;
+  int iconsOriginY_;
+  int iconsXIncrement_;
+};
+
+class FileSelection : public DialogBox {
+public:
+  FileSelection(Icon * first, Icon * second, Icon * third)
+      : DialogBox(100, 100, 100) {
+    icons_[0] = first;
+    icons_[1] = second;
+    icons_[2] = third;
+  }
+
+  void draw() {
+    std::cout << "drawing FileSelection :" << '\n';
+    for (ssize_t i = 0; i < 3; i++) {
+      icons_[i]->draw(iconsOriginX_ + (i * iconsXIncrement_), iconsOriginY_);
+    }
+  }
+};
+
+class CommitTransaction : public DialogBox {
+public:
+  CommitTransaction(Icon * first, Icon * second, Icon * third)
+      : DialogBox(150, 150, 150) {
+    icons_[0] = first;
+    icons_[1] = second;
+    icons_[2] = third;
+  }
+
+  void draw() {
+    std::cout << "drawing CommitTransaction :" << '\n';
+    for (ssize_t i = 0; i < 3; i++) {
+      icons_[i]->draw(iconsOriginX_ + (i * iconsXIncrement_), iconsOriginY_);
+    }
+  }
+};
+
+int main(int argc, char const *argv[]) {
+  DialogBox * dialogs[2];
+  dialogs[0] = new FileSelection(FlyweightFactory::getIcon("go"),
+                                 FlyweightFactory::getIcon("stop"),
+                                 FlyweightFactory::getIcon("select"));
+  dialogs[1] = new CommitTransaction(FlyweightFactory::getIcon("select"),
+                                     FlyweightFactory::getIcon("stop"),
+                                     FlyweightFactory::getIcon("undo"));
+
+  for (int i = 0; i < 2; i++)
+    dialogs[i]->draw();
+  FlyweightFactory::reportTheIcons();
+
+  return 0;
+}
+```
+
+run it:
+```terminal
+drawing FileSelection :
+  drawing go: upper left (100,100) - lower right (120,120)
+  drawing stop: upper left (200,100) - lower right (240,140)
+  drawing select: upper left (300,100) - lower right (360,160)
+drawing CommitTransaction :
+  drawing select: upper left (150,150) - lower right (210,210)
+  drawing stop: upper left (300,150) - lower right (340,190)
+  drawing undo: upper left (450,150) - lower right (480,180)
+Active Flyweights: go stop select undo
+```
+
+[代码示例链接](https://sourcemaking.com/design_patterns/flyweight/cpp/2)
 
 [上一级](base.md)
 [上一篇](conv_string_to_char_pointer.md)
