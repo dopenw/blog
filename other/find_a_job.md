@@ -110,6 +110,48 @@ file locks                      (-x) unlimited
 从这里我们可以看到，堆和栈相比，由于大量new/delete的使用，容易造成大量的内存碎片；由于没有专门的系统支持，效率很低；由于可能引发用户态和核心态的切换，内存的申请，代价变得更加昂贵。所以栈在程序中是应用最广泛的，就算是函数的调用也利用栈去完成，函数调用过程中的参数，返回地址， EBP和局部变量都采用栈的方式存放。
 [source link](http://blog.csdn.net/wo17fang/article/details/52244238)
 [source link](https://unix.stackexchange.com/questions/127602/default-stack-size-for-pthreads)
+
+8. 有3个线程A，B， C， 请用多线程编程实现在屏幕上循环打印10次ABCABC...， 其中A线程打印“A”， B线程打印“B”， C线程打印“C”。
+
+```c++
+#include <condition_variable>
+#include <iostream>
+#include <thread>
+
+std::mutex mtx;
+std::condition_variable CondVar;
+char gCh = 0;
+
+void printFun(char ch) {
+  size_t count = 10;
+  char ch_ = ch - 'A';
+
+  for (size_t i = 0; i < count; i++) {
+    std::unique_lock<std::mutex> ul(mtx);
+    CondVar.wait(ul, [ch_] { return ch_ == gCh; });
+    std::cout << (char)(ch_ + 'A') << '\n';
+    gCh = (ch_ + 1) % 3;
+    ul.unlock();
+    CondVar.notify_all();
+  }
+}
+
+int main(int argc, char const *argv[]) {
+
+  std::thread t1(printFun, 'A');
+  std::thread t2(printFun, 'B');
+  std::thread t3(printFun, 'C');
+
+  t1.join();
+  t2.join();
+  t3.join();
+
+  std::cout << '\n';
+  return 0;
+}
+```
+
+
 [上一级](base.md)
 [上一篇](docker.md)
 [下一篇](google_search_tips.md)
