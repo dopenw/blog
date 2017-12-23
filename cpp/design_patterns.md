@@ -17,8 +17,11 @@
 		* [Bridge(桥接) 模式](#bridge桥接-模式)
 		* [composite(组合) 模式](#composite组合-模式)
 		* [Decorator(修饰) 模式](#decorator修饰-模式)
-		* [Facade(外观模式)](#facade外观模式)
-		* [Flyweight(享元模式)](#flyweight享元模式)
+		* [Facade(外观) 模式](#facade外观-模式)
+		* [Flyweight(享元) 模式](#flyweight享元-模式)
+		* [Proxy(代理) 模式](#proxy代理-模式)
+	* [行为型模式](#行为型模式)
+		* [Chain of responsibility(责任链) 模式](#chain-of-responsibility责任链-模式)
 
 <!-- /code_chunk_output -->
 
@@ -1080,7 +1083,7 @@ run it:
 
 [Decorator in C++: Before and after](https://sourcemaking.com/design_patterns/decorator/cpp/1)
 
-### Facade(外观模式)
+### Facade(外观) 模式
 
 为子系统中的一组接口提供一个一致的界面，外观模式定义了一个高层接口，这个接口使得这一子系统更加容易使用。
 
@@ -1298,7 +1301,7 @@ public:
 
 [代码示例链接](https://zh.wikipedia.org/wiki/%E5%A4%96%E8%A7%80%E6%A8%A1%E5%BC%8F#C++)
 
-### Flyweight(享元模式)
+### Flyweight(享元) 模式
 
 通过共享以便有效的支持大量小颗粒对象
 
@@ -1454,6 +1457,288 @@ Active Flyweights: go stop select undo
 ```
 
 [代码示例链接](https://sourcemaking.com/design_patterns/flyweight/cpp/2)
+
+
+### Proxy(代理) 模式
+
+为其他对象提供一个代理以控制对这个对象的访问
+
+[代理模式 wikipedia](https://zh.wikipedia.org/zh-cn/%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F)
+
+[Proxy in C++: Before and after](https://sourcemaking.com/design_patterns/proxy/cpp/1)
+
+```c++
+// A protection proxy controls access to the original object
+
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class Person {
+  string nameString;
+  static string list[];
+  static int next;
+
+public:
+  Person() { nameString = list[next++]; }
+
+  string name() { return nameString; }
+};
+
+string Person::list[] = {"Tom", "Dick", "Harry", "Bubba"};
+int Person::next = 0;
+
+class PettyCashProted {
+  int balance;
+
+public:
+  PettyCashProted() { balance = 500; }
+
+  bool withdraw(int amount) {
+    if (amount > balance)
+      return false;
+    balance -= amount;
+    return true;
+  }
+
+  int getBalance() { return balance; }
+};
+
+class PettyCash {
+  PettyCashProted realThing;
+
+public:
+  bool withdraw(Person &p, int amount) {
+    if (p.name() == "Tom" || p.name() == "Harry" || p.name() == "Bubba")
+      return realThing.withdraw(amount);
+    else
+      return false;
+  }
+
+  int getBalance() { return realThing.getBalance(); }
+};
+
+int main(int argc, char const *argv[]) {
+  PettyCash pc;
+  Person workers[4];
+  for (ssize_t i = 0, amount = 100; i < 4; i++, amount += 100) {
+    if (!pc.withdraw(workers[i], amount))
+      std::cout << "No money for " << workers[i].name() << '\n';
+    else
+      std::cout << amount << "  dollars for " << workers[i].name() << '\n';
+    std::cout << "Remaining balance is " << pc.getBalance() << '\n';
+  }
+  return 0;
+}
+```
+
+run it:
+```terminal
+100  dollars for Tom
+Remaining balance is 400
+No money for Dick
+Remaining balance is 400
+300  dollars for Harry
+Remaining balance is 100
+No money for Bubba
+Remaining balance is 100
+```
+
+[代码示例链接 1](https://sourcemaking.com/design_patterns/proxy/cpp/3)
+
+```c++
+// "->" and "." operator give different results
+
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class Subject {
+public:
+  virtual void execute() = 0;
+
+  virtual ~Subject(){};
+};
+
+class RealSubject : public Subject {
+  string str;
+
+public:
+  RealSubject(string s) { str = s; }
+
+  virtual void execute() { std::cout << str << '\n'; }
+};
+
+class ProxySubject : public Subject {
+  string first, second, third;
+  RealSubject * ptr;
+
+public:
+  ProxySubject(string s) {
+    int num = s.find_first_of(' ');
+    first = s.substr(0, num);
+    s = s.substr(num + 1);
+    num = s.find_first_of(' ');
+    second = s.substr(0, num);
+    s = s.substr(num + 1);
+    num = s.find_first_of(' ');
+    third = s.substr(0, num);
+    s = s.substr(num + 1);
+    ptr = new RealSubject(s);
+  }
+  ~ProxySubject() { delete ptr; }
+
+  RealSubject *operator->() {
+    cout << first << ' ' << second << ' ';
+    return ptr;
+  }
+
+  virtual void execute() {
+    cout << first << ' ' << third << ' ';
+    ptr->execute();
+  }
+};
+
+int main(int argc, char const *argv[]) {
+  ProxySubject obj(string("the quick brown fox jumped over the dog"));
+  obj->execute();
+  obj.execute();
+  return 0;
+}
+```
+
+run it:
+```terminal
+the quick fox jumped over the dog
+the brown fox jumped over the dog
+```
+
+[代码示例链接 2 ](https://sourcemaking.com/design_patterns/proxy/cpp/2)
+
+## 行为型模式
+
+在软件工程中，行为型模式为设计模式的一种类型，用来识别对象之间的常用交流模式并加以实现。如此，可在进行这些交流活动时增加弹性。
+
+### Chain of responsibility(责任链) 模式
+
+为解除请求的发送者和接收者之间耦合，而使多个对象都有机会处理这个请求。将这些对象连成一条链，并沿着这条链传递该请求，直到有一个对象处理它。
+
+
+责任链模式包含了一些命令对象和一系列的处理对象。每一个处理对象决定它能处理哪些命令，它也知道如何将它不能处理的命令对象，它也知道如何将它不能处理的命令对象传递给该链中的下一个处理对象。该模式还描述了往处理链的末尾添加新的处理对象的方法。
+
+[责任链模式 wikipedia](https://zh.wikipedia.org/zh-cn/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F)
+
+
+![](../images/design_patterns_201712232017_1.png)
+
+责任链模式避免了通过给予多个对象处理请求的机会来将请求的发送者耦合到接收者。例如ATM使用责任链的过程：
+![](../images/design_patterns_201712232017_2.png)
+
+[link](https://sourcemaking.com/design_patterns/chain_of_responsibility)
+
+```highlight
+1. Put a "next" pointer in the base class
+2. The "chain" method in the base class always delegates to the next object
+3. If the derived class cannot handle,they delegate to the base class
+```
+
+```c++
+#include <ctime>
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+class Base {
+  Base * next; //"next" pointer in the base class
+
+public:
+  Base() { next = nullptr; }
+  void setNext(Base * n) { next = n; }
+  void add(Base *n) {
+    if (next)
+      next->add(n);
+    else
+      next = n;
+  }
+
+  virtual void handle(int i) { next->handle(i); }
+};
+
+//The "chain" method in the base class always delegates to the next object
+class Handle1 : public Base {
+public:
+  virtual void handle(int i) {
+    if (rand() % 3) {
+			//3. Don't handle requests 3 times out of 4
+      std::cout << "H1 passed " << i << ' ';
+      Base::handle(i);
+			//3. Delegate to the base class
+    } else
+      std::cout << "H1 handled " << i << ' ';
+  }
+};
+
+class Handle2 : public Base {
+public:
+  virtual void handle(int i) {
+    if (rand() % 3) {
+      std::cout << "H2 passed " << i << ' ';
+      Base::handle(i);
+    } else
+      std::cout << "H2 handled " << i << ' ';
+  }
+};
+
+class Handle3 : public Base {
+public:
+  virtual void handle(int i) {
+    if (rand() % 3) {
+      std::cout << "H3 passed " << i << ' ';
+      Base::handle(i);
+    } else
+      std::cout << "H3 handled " << i << ' ';
+  }
+};
+
+int main(int argc, char const *argv[]) {
+  srand(time(0));
+  Handle1 root;
+  Handle2 two;
+  Handle3 three;
+  root.add(&two);
+  root.add(&three);
+  three.setNext(&root);
+
+  for (size_t i = 0; i < 10; i++) {
+    root.handle(i);
+    std::cout << '\n';
+  }
+
+  return 0;
+}
+```
+
+run it:
+```terminal
+H1 handled 0val
+H1 passed 1 H2 passed 1 H3 handled 1
+H1 passed 2 H2 passed 2 H3 handled 2
+H1 handled 3
+H1 passed 4 H2 passed 4 H3 passed 4 H1 passed 4 H2 handled 4
+H1 handled 5
+H1 passed 6 H2 passed 6 H3 passed 6 H1 handled 6
+H1 passed 7 H2 passed 7 H3 handled 7
+H1 passed 8 H2 handled 8
+H1 passed 9 H2 handled 9
+```
+
+[示例代码链接](https://sourcemaking.com/design_patterns/chain_of_responsibility/cpp/1)
+
+[Chain of Responsibility in C++: Chain and Composite](https://sourcemaking.com/design_patterns/chain_of_responsibility/cpp/2)
+
 
 [上一级](base.md)
 [上一篇](conv_string_to_char_pointer.md)
