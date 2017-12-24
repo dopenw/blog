@@ -22,6 +22,8 @@
 		* [Proxy(代理) 模式](#proxy代理-模式)
 	* [行为型模式](#行为型模式)
 		* [Chain of responsibility(责任链) 模式](#chain-of-responsibility责任链-模式)
+		* [command(命令) 模式](#command命令-模式)
+		* [interpreter(解释器) 模式](#interpreter解释器-模式)
 
 <!-- /code_chunk_output -->
 
@@ -1738,6 +1740,265 @@ H1 passed 9 H2 handled 9
 [示例代码链接](https://sourcemaking.com/design_patterns/chain_of_responsibility/cpp/1)
 
 [Chain of Responsibility in C++: Chain and Composite](https://sourcemaking.com/design_patterns/chain_of_responsibility/cpp/2)
+
+### command(命令) 模式
+
+将一个请求封装为一个对象，从而使你可用不同的请求对客户进行参数化；对请求排队或记录请求日志，以及支持可取消的操作。
+
+命令模式是一种软件设计模式，它尝试以对象来代表实际行动。命令对象可以把行动及参数封装起来，于是这些行动可以被：
+* 重复多次
+* 取消（如果该对象有实现的话）
+* 取消后又再重做
+这些都是现代大型应用程序所必须的功能,即“撤销”及“重复”。除此之外，可以用命令模式来实现的功能例子还有：
+* 交易行为
+* 进度列
+* 向导
+* 用户界面按钮及功能表项目
+* 线程Pool
+* 宏收录
+
+[命令模式 wikipedia](https://zh.wikipedia.org/zh-cn/%E5%91%BD%E4%BB%A4%E6%A8%A1%E5%BC%8F)
+
+```c++
+#include <iostream>
+#include <vector>
+
+class ICommand {
+public:
+  virtual void execute() = 0;
+  virtual ~ICommand() {}
+};
+
+class Swicher {
+private:
+  std::vector<ICommand * > commands_;
+
+public:
+  void storeAndExecute(ICommand * command) {
+    if (command) {
+      commands_.push_back(command);
+      command->execute();
+    }
+  }
+};
+
+class Light {
+public:
+  void TurnOn() { std::cout << "The light is on ." << '\n'; }
+
+  void turnOff() { std::cout << "The light is off ." << '\n'; }
+};
+
+class FilpUpCommand : public ICommand {
+private:
+  Light * light_;
+
+public:
+  FilpUpCommand(Light * light) { light_ = light; }
+
+  void execute() { light_->TurnOn(); }
+};
+
+class FilpDownCommand : public ICommand {
+private:
+  Light * light_;
+
+public:
+  FilpDownCommand(Light * light) { light_ = light; }
+  void execute() { light_->turnOff(); }
+};
+
+int main(int argc, char const * argv[]) {
+  Light * light = new Light();
+  ICommand * switchOn = new FilpUpCommand(light);
+  ICommand * switchOff = new FilpDownCommand(light);
+
+  Swicher * switcher = new Swicher();
+  switcher->storeAndExecute(switchOn);
+  switcher->storeAndExecute(switchOff);
+
+  delete switcher;
+  delete switchOn;
+  delete switchOff;
+  delete light;
+  return 0;
+}
+```
+
+run it:
+```terminal
+The light is on .
+The light is off .
+```
+
+[示例代码链接](https://zh.wikipedia.org/zh-cn/%E5%91%BD%E4%BB%A4%E6%A8%A1%E5%BC%8F#C++)
+
+[Command in C++: Before and after](https://sourcemaking.com/design_patterns/command/cpp/1)
+
+[Command in C++](https://sourcemaking.com/design_patterns/command/cpp/2)
+
+### interpreter(解释器) 模式
+
+给定一个语言，定义他的文法的一种表示，并定义一个解释器，该解释器使用该表示来解释语言中的句子。
+
+[Interpreter Design Pattern](https://sourcemaking.com/design_patterns/interpreter)
+
+```c++
+#include <cstring>
+#include <iostream>
+
+class RNInterpreter {
+public:
+  RNInterpreter(); // ctor for client
+  RNInterpreter(int){};
+  // ctor for subclasses,avoids infinite loop
+
+  int interpret(char *input);
+  // interpret() for client
+  virtual void interpret(char *input, int &total) {
+    // for internal use
+    int index;
+    index = 0;
+    if (!strncmp(input, nine(), 2)) {
+      total += 9 * multiplier();
+      index += 2;
+    } else if (!strncmp(input, four(), 2)) {
+      total += 4 * multiplier();
+      index += 2;
+    } else {
+      if (input[0] == five()) {
+        total += 5 * multiplier();
+        index = 1;
+      } else
+        index = 0;
+
+      for (int end = index + 3; index < end; index++) {
+        if (input[index] == one())
+          total += 1 * multiplier();
+        else
+          break;
+      }
+    }
+    strcpy(input, &(input[index]));
+  } // remove leading chars processed
+
+protected:
+  // cannot be pure virtual because client asks for instance
+  virtual char one() {}
+  virtual char *four() {}
+  virtual char five() {}
+  virtual char *nine() {}
+  virtual int multiplier() {}
+
+private:
+  RNInterpreter *thousands;
+  RNInterpreter *hundreds;
+  RNInterpreter *tens;
+  RNInterpreter *ones;
+};
+
+class Thousand : public RNInterpreter {
+public:
+  // provide 1-arg ctor to avoid infinite loop in base class ctor
+  Thousand(int) : RNInterpreter(1) {}
+
+protected:
+  char one() { return 'M'; }
+  char *four() { return ""; }
+  char five() { return '\0'; }
+  char *nine() { return ""; }
+  int multiplier() { return 1000; }
+};
+
+class Hundred : public RNInterpreter {
+public:
+  Hundred(int) : RNInterpreter(1) {}
+
+protected:
+  char one() { return 'C'; }
+  char *four() { return "CD"; }
+  char five() { return 'D'; }
+  char *nine() { return "CM"; }
+  int multiplier() { return 100; }
+};
+
+class Ten : public RNInterpreter {
+public:
+  Ten(int) : RNInterpreter(1) {}
+
+protected:
+  char one() { return 'X'; }
+  char *four() { return "XL"; }
+  char five() { return 'L'; }
+  char *nine() { return "XC"; }
+  int multiplier() { return 10; }
+};
+
+class One : public RNInterpreter {
+public:
+  One(int) : RNInterpreter(1) {}
+
+protected:
+  char one() { return 'I'; }
+  char *four() { return "IV"; }
+  char five() { return 'V'; }
+  char *nine() { return "IX"; }
+  int multiplier() { return 1; }
+};
+
+RNInterpreter::RNInterpreter() {
+  // use 1-arg ctor to avoid infinite loop
+  thousands = new Thousand(1);
+  hundreds = new Hundred(1);
+  tens = new Ten(1);
+  ones = new One(1);
+}
+
+int RNInterpreter::interpret(char *input) {
+  int total = 0;
+  thousands->interpret(input, total);
+  hundreds->interpret(input, total);
+  tens->interpret(input, total);
+  ones->interpret(input, total);
+
+  if (strcmp(input, ""))
+    // if input was invalid, return 0
+    return 0;
+
+  return total;
+}
+
+int main(int argc, char const *argv[]) {
+  RNInterpreter interpreter;
+  char input[20];
+  std::cout << "Enter roman numeral" << '\n';
+  while (std::cin >> input) {
+    std::cout << "  interpretation is " << interpreter.interpret(input) << '\n';
+    std::cout << "Enter roman numeral: " << '\n';
+  }
+  return 0;
+}
+```
+
+run it :
+```terminal
+Enter Roman Numeral: MCMXCVI
+   interpretation is 1996
+Enter Roman Numeral: MMMCMXCIX
+   interpretation is 3999
+Enter Roman Numeral: MMMM
+   interpretation is 0
+Enter Roman Numeral: MDCLXVIIII
+   interpretation is 0
+Enter Roman Numeral: CXCX
+   interpretation is 0
+Enter Roman Numeral: MDCLXVI
+   interpretation is 1666
+Enter Roman Numeral: DCCCLXXXVIII
+   interpretation is 888
+```
+
+[代码示例链接](https://sourcemaking.com/design_patterns/interpreter/cpp/1)
 
 
 [上一级](base.md)
