@@ -1971,10 +1971,10 @@ int RNInterpreter::interpret(char *input) {
 int main(int argc, char const *argv[]) {
   RNInterpreter interpreter;
   char input[20];
-  std::cout << "Enter roman numeral" << '\n';
+  std::cout << "Enter Roman Numeral: " << '\n';
   while (std::cin >> input) {
     std::cout << "  interpretation is " << interpreter.interpret(input) << '\n';
-    std::cout << "Enter roman numeral: " << '\n';
+    std::cout << "Enter Roman Numeral: " << '\n';
   }
   return 0;
 }
