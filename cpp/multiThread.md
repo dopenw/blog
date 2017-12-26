@@ -343,7 +343,7 @@ this_thread::get_id();
 ```c++
 //outer thread call
 std::thread t(test);
-test.get_id();
+t.get_id();
 ```
 
 ### Namespace this_thread
