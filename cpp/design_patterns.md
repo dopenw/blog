@@ -24,6 +24,7 @@
 		* [Chain of responsibility(责任链) 模式](#chain-of-responsibility责任链-模式)
 		* [command(命令) 模式](#command命令-模式)
 		* [interpreter(解释器) 模式](#interpreter解释器-模式)
+		* [Iterator(迭代器) 模式](#iterator迭代器-模式)
 
 <!-- /code_chunk_output -->
 
@@ -2000,6 +2001,155 @@ Enter Roman Numeral: DCCCLXXXVIII
 
 [代码示例链接](https://sourcemaking.com/design_patterns/interpreter/cpp/1)
 
+### Iterator(迭代器) 模式
+
+提供一种方法顺序访问一个聚合对象中各个元素，而又不需暴露该对象的内部表示。
+
+[迭代器模式 wikipedia](https://zh.wikipedia.org/wiki/%E8%BF%AD%E4%BB%A3%E5%99%A8%E6%A8%A1%E5%BC%8F)
+
+```highlight
+1. Design an "iterator" class for the "container" class
+2. Add a createIterator() member to the container class
+3. Clients ask the container object to create an iterator object
+4. clients use the first(),isDone(),next(),and currentItem() protocol
+```
+
+```c++
+#include <iostream>
+
+using namespace std;
+
+class StackIter;
+
+class Stack {
+  int items[10];
+  int sp;
+
+public:
+  friend class StackIter;
+  Stack() { sp = -1; }
+  void push(int in) { items[++sp] = in; }
+  int pop() { return items[sp--]; }
+  bool isEmpty() { return (sp == -1); }
+
+  StackIter *createIterator() const;
+};
+
+class StackIter {
+  const Stack * stk;
+  int index;
+
+public:
+  StackIter(const Stack * s) { stk = s; }
+  void first() { index = 0; }
+  void next() { index++; }
+  bool isDone() { return index == stk->sp + 1; }
+  int currentItem() { return stk->items[index]; }
+};
+
+StackIter *Stack::createIterator() const { return new StackIter(this); }
+
+bool operator == (const Stack &l, const Stack &r) {
+  StackIter * itl = l.createIterator();
+  StackIter * itr = r.createIterator();
+  for (itl->first(), itr->first(); !itl->isDone(); itl->next(), itr->next())
+    if (itl->currentItem() != itr->currentItem())
+      break;
+  bool ans = itl->isDone() && itr->isDone();
+  delete itl;
+  delete itr;
+  return ans;
+}
+
+int main(int argc, char const *argv[]) {
+  Stack s1;
+  for (size_t i = 0; i < 5; i++) {
+    s1.push(i);
+  }
+  Stack s2(s1), s3(s1), s4(s1), s5(s1);
+  s3.pop();
+  s5.pop();
+  s4.push(2);
+  s5.push(9);
+  cout << "s1 == s2 is " << (s1 == s2) << endl;
+  cout << "s1 == s3 is " << (s1 == s3) << endl;
+  cout << "s1 == s4 is " << (s1 == s4) << endl;
+  cout << "s1 == s5 is " << (s1 == s5) << endl;
+  return 0;
+}
+```
+
+run it:
+```terminal
+s1 == s2 is 1
+s1 == s3 is 0
+s1 == s4 is 0
+s1 == s5 is 0
+```
+
+[示例代码链接 1](https://sourcemaking.com/design_patterns/iterator/cpp/1)
+
+```c++
+#include <iostream>
+using namespace std;
+
+class Stack {
+  int items[10];
+  int sp;
+
+public:
+  friend class StackIter;
+  Stack() { sp = -1; }
+  void push(int in) { items[++sp] = in; }
+  int pop() { return items[sp--]; }
+  bool isEmpty() { return (sp == -1); }
+};
+
+class StackIter {
+  const Stack &stk;
+  int index;
+
+public:
+  StackIter(const Stack &s) : stk(s) { index = 0; }
+  void operator++() { index++; }
+  bool operator()() { return index != stk.sp + 1; }
+  int operator*() { return stk.items[index]; }
+};
+
+bool operator==(const Stack &l, const Stack &r) {
+  StackIter itl(l), itr(r);
+  for (; itl(); ++itl, ++itr)
+    if (*itl != *itr)
+      break;
+  return !itl() && !itr();
+}
+
+int main() {
+  Stack s1;
+  int i;
+  for (i = 1; i < 5; i++)
+    s1.push(i);
+  Stack s2(s1), s3(s1), s4(s1), s5(s1);
+  s3.pop();
+  s5.pop();
+  s4.push(2);
+  s5.push(9);
+  cout << "s1 == s2 is " << (s1 == s2) << endl;
+  cout << "s1 == s3 is " << (s1 == s3) << endl;
+  cout << "s1 == s4 is " << (s1 == s4) << endl;
+  cout << "s1 == s5 is " << (s1 == s5) << endl;
+}
+```
+
+run it:
+```terminal
+s1 == s2 is 1
+s1 == s3 is 0
+s1 == s4 is 0
+s1 == s5 is 0
+```
+
+[代码示例链接 2](https://sourcemaking.com/design_patterns/iterator/cpp/2)
 
 [上一级](base.md)
 [上一篇](conv_string_to_char_pointer.md)
