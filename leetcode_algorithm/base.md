@@ -21,6 +21,7 @@
 * ### [折线转换(zigzag)](ZigZag_Conversion.md)
 * ### [相加2进制字符串](add_binary.md)
 * ### [Add Two (ListNode) Numbers](add_two_numbers.md)
+* ### [atoi](atoi.md)
 * ### [总共有n步楼梯，每次只能爬1步/2步，总共有多少方案爬上楼梯](climbing_stairs.md)
 * ### [统计字符串的相同字符个数，并输出（count-char）](count_and_say.md)
 * ### [两个整数相除](divide_two_integers.md)
