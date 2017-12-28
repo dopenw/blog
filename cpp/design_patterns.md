@@ -10,21 +10,23 @@
 		* [Abstract factory(抽象工厂) 模式](#abstract-factory抽象工厂-模式)
 		* [Singleton(单例) 模式](#singleton单例-模式)
 		* [Builder(生成器) 模式](#builder生成器-模式)
-		* [object pool(对象池) 模式](#object-pool对象池-模式)
+		* [Object pool(对象池) 模式](#object-pool对象池-模式)
 		* [Prototype(原型) 模式](#prototype原型-模式)
 	* [结构型模式](#结构型模式)
 		* [Adapter(适配器) 模式](#adapter适配器-模式)
 		* [Bridge(桥接) 模式](#bridge桥接-模式)
-		* [composite(组合) 模式](#composite组合-模式)
+		* [Composite(组合) 模式](#composite组合-模式)
 		* [Decorator(修饰) 模式](#decorator修饰-模式)
 		* [Facade(外观) 模式](#facade外观-模式)
 		* [Flyweight(享元) 模式](#flyweight享元-模式)
 		* [Proxy(代理) 模式](#proxy代理-模式)
 	* [行为型模式](#行为型模式)
 		* [Chain of responsibility(责任链) 模式](#chain-of-responsibility责任链-模式)
-		* [command(命令) 模式](#command命令-模式)
-		* [interpreter(解释器) 模式](#interpreter解释器-模式)
+		* [Command(命令) 模式](#command命令-模式)
+		* [Interpreter(解释器) 模式](#interpreter解释器-模式)
 		* [Iterator(迭代器) 模式](#iterator迭代器-模式)
+		* [Mediator(中介者) 模式](#mediator中介者-模式)
+		* [Memento(备忘录) 模式](#memento备忘录-模式)
 
 <!-- /code_chunk_output -->
 
@@ -588,7 +590,7 @@ Distributed work package for :Vms
 
 [示例代码链接](https://sourcemaking.com/design_patterns/builder/cpp/1)
 
-### object pool(对象池) 模式
+### Object pool(对象池) 模式
 
 对象池模式可以提供显着的性能提升;在初始化类实例的成本高，类的实例化率高，并且在任何时候使用的实例化数量低的情况下，这是最有效的。
 
@@ -929,7 +931,7 @@ time is 1430 central standard time
 
 [示例代码链接 ](https://sourcemaking.com/design_patterns/bridge/cpp/1)
 
-### composite(组合) 模式
+### Composite(组合) 模式
 
 把多个对象组成树状结构来表示局部与整体，这样用户可以一样的对待单个对象和对象的组合
 
@@ -1742,7 +1744,7 @@ H1 passed 9 H2 handled 9
 
 [Chain of Responsibility in C++: Chain and Composite](https://sourcemaking.com/design_patterns/chain_of_responsibility/cpp/2)
 
-### command(命令) 模式
+### Command(命令) 模式
 
 将一个请求封装为一个对象，从而使你可用不同的请求对客户进行参数化；对请求排队或记录请求日志，以及支持可取消的操作。
 
@@ -1838,7 +1840,7 @@ The light is off .
 
 [Command in C++](https://sourcemaking.com/design_patterns/command/cpp/2)
 
-### interpreter(解释器) 模式
+### Interpreter(解释器) 模式
 
 给定一个语言，定义他的文法的一种表示，并定义一个解释器，该解释器使用该表示来解释语言中的句子。
 
@@ -2150,6 +2152,274 @@ s1 == s5 is 0
 ```
 
 [代码示例链接 2](https://sourcemaking.com/design_patterns/iterator/cpp/2)
+
+### Mediator(中介者) 模式
+
+定义类之间的简单通信
+
+包装了一系列对象相互作用的方式，使得这些对象不必相互明显作用，从而使它们可以松散耦合。当某些对象之间的作用发生改变时，不会立即影响其他的一些对象之间的作用，保证这些作用可以彼此独立的变化。
+
+[Mediator Design Pattern](https://sourcemaking.com/design_patterns/mediator)
+
+[Mediator in C++: Before and after](https://sourcemaking.com/design_patterns/mediator/cpp/2)
+
+FileSelectionDialog :: widgetChanged（）封装了对话框的所有集体行为（它充当通信的中心）。用户可以选择与模拟：过滤器编辑字段，目录列表，文件列表或选择编辑字段“交互”。
+
+```c++
+#include <cstring>
+#include <iostream>
+
+class FileSelectionDialog;
+
+class Widget {
+  FileSelectionDialog * mediator_;
+
+protected:
+  char name_[20];
+
+public:
+  Widget(FileSelectionDialog * mediator, char * name) {
+    mediator_ = mediator;
+    strcpy(name_, name);
+  }
+  virtual ~Widget() {}
+  virtual void changed();
+  virtual void updateWidget() = 0;
+  virtual void queryWidget() = 0;
+};
+
+class List : public Widget {
+public:
+  List(FileSelectionDialog * dir, char * name) : Widget(dir, name) {}
+  void queryWidget() { std::cout << " " << name_ << " list queried" << '\n'; }
+  void updateWidget() { std::cout << " " << name_ << " list updated" << '\n'; }
+};
+
+class Edit : public Widget {
+public:
+  Edit(FileSelectionDialog * dir, char * name) : Widget(dir, name) {}
+  void queryWidget() { std::cout << " " << name_ << " edit queried" << '\n'; }
+  void updateWidget() { std::cout << " " << name_ << " edit updated" << '\n'; }
+};
+
+class FileSelectionDialog {
+public:
+  enum Widgets { FilterEdit, DirList, FileList, SelectionEdit };
+  FileSelectionDialog() {
+    components_[FilterEdit] = new Edit(this, "filter");
+    components_[DirList] = new List(this, "dir");
+    components_[FileList] = new List(this, "file");
+    components_[SelectionEdit] = new Edit(this, "selection");
+  }
+
+  virtual ~FileSelectionDialog();
+  void handleEvent(int which) { components_[which]->changed(); }
+
+  virtual void WidgetChanged(Widget * theChangedWidget) {
+    if (theChangedWidget == components_[FilterEdit]) {
+      components_[FilterEdit]->queryWidget();
+      components_[DirList]->updateWidget();
+      components_[FileList]->updateWidget();
+      components_[SelectionEdit]->updateWidget();
+    } else if (theChangedWidget == components_[DirList]) {
+      components_[DirList]->queryWidget();
+      components_[FileList]->updateWidget();
+      components_[FilterEdit]->updateWidget();
+      components_[SelectionEdit]->updateWidget();
+    } else if (theChangedWidget == components_[FileList]) {
+      components_[FileList]->queryWidget();
+      components_[SelectionEdit]->updateWidget();
+    } else if (theChangedWidget == components_[SelectionEdit]) {
+      components_[SelectionEdit]->queryWidget();
+      std::cout << "   file opened" << std::endl;
+    }
+  }
+
+private:
+  Widget * components_[4];
+};
+
+FileSelectionDialog::~FileSelectionDialog() {
+  for (int i = 0; i < 4; i++)
+    delete components_[i];
+}
+
+void Widget::changed() { mediator_->WidgetChanged(this); }
+
+int main(int argc, char const * argv[]) {
+  FileSelectionDialog fileDialog;
+  int i;
+  std::cout << "Exit[0], Filter[1], Dir[2], File[3], Selection[4]: " << '\n';
+
+  std::cin >> i;
+
+  while (i) {
+    fileDialog.handleEvent(i - 1);
+    std::cout << "Exit[0], Filter[1], Dir[2], File[3], Selection[4]: " << '\n';
+    std::cin >> i;
+  }
+
+  return 0;
+}
+```
+
+[代码示例链接](https://sourcemaking.com/design_patterns/mediator/cpp/1)
+
+
+### Memento(备忘录) 模式
+
+捕获并恢复对象的内部状态
+
+备忘录对象是一个用来存储另外一个对象内部状态的快照的对象。备忘录模式的用意是在不破坏封装的条件下，将一个对象的状态捉住，并外部化，存储起来，从而可以在将来合适的时候把这个对象还原到存储起来的那个状态。
+
+[Memento Design Pattern](https://sourcemaking.com/design_patterns/memento)
+
+```c++
+#include <iostream>
+
+class Number;
+
+class Memento {
+public:
+  Memento(int val) { _state = val; }
+
+private:
+  friend class Number; // not essential ,but p287 suggests this
+  int _state;
+};
+
+class Number {
+private:
+  int _value;
+
+public:
+  Number(int value) { _value = value; }
+  void dubble() { _value = 2 * _value; }
+  void half() { _value = _value / 2; }
+  int getValue() { return _value; }
+  Memento *creteMemento() { return new Memento(_value); }
+
+  void reinstateMemento(Memento *mem) { _value = mem->_state; }
+
+  virtual ~Number() {}
+};
+
+class Command {
+
+public:
+  typedef void (Number::*Action)();
+  Command(Number *receiver, Action action) {
+    _receiver = receiver;
+    _action = action;
+  }
+  virtual void execute() {
+    _mementoList[_numCommands] = _receiver->creteMemento();
+    _commandList[_numCommands] = this;
+    if (_numCommands > _highWater)
+      _highWater = _numCommands;
+    _numCommands++;
+    (_receiver->*_action)();
+  }
+
+  static void undo() {
+    if (_numCommands == 0) {
+      std::cout << "*** Attempt to run off the end!! ***" << std::endl;
+      return;
+    }
+    _commandList[_numCommands - 1]->_receiver->reinstateMemento(
+        _mementoList[_numCommands - 1]);
+    _numCommands--;
+  }
+
+  void static redo() {
+    if (_numCommands > _highWater) {
+      std::cout << "*** Attempt to run off the end!! ***" << std::endl;
+      return;
+    }
+    (_commandList[_numCommands]->_receiver
+         ->*(_commandList[_numCommands]->_action))();
+    _numCommands++;
+  }
+
+  virtual ~Command() {}
+
+protected:
+  Number *_receiver;
+  Action _action;
+  static Command *_commandList[20];
+  static Memento *_mementoList[20];
+  static int _numCommands;
+  static int _highWater;
+};
+
+Command *Command::_commandList[];
+Memento *Command::_mementoList[];
+int Command::_numCommands = 0;
+int Command::_highWater = 0;
+
+int main(int argc, char const *argv[]) {
+  int i;
+  std::cout << "Interger: ";
+  std::cin >> i;
+
+  Number *object = new Number(i);
+
+  Command *commands[3];
+  commands[1] = new Command(object, &Number::dubble);
+  commands[2] = new Command(object, &Number::half);
+
+  std::cout << "Exit[0], Double[1], Half[2], Undo[3], Redo[4]: ";
+  std::cin >> i;
+
+  while (i) {
+    if (i == 3)
+      Command::undo();
+    else if (i == 4)
+      Command::redo();
+    else if (i > 4) {
+      std::cout << "please input 0-4 : ";
+      std::cin >> i;
+      continue;
+    } else
+      commands[i]->execute();
+    std::cout << "   " << object->getValue() << std::endl;
+    std::cout << "Exit[0], Double[1], Half[2], Undo[3], Redo[4]: ";
+    std::cin >> i;
+  }
+
+  return 0;
+}
+```
+
+[代码示例链接](https://sourcemaking.com/design_patterns/memento/cpp/1)
+
+run it:
+```terminal
+Integer: 11
+Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 2
+   5
+Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 1
+   10
+Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 2
+   5
+Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 3
+   10
+Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 3
+   5
+Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 3
+   11
+Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 3
+*** Attempt to run off the end!! ***
+   11
+Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 4
+   5
+Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 4
+   10
+Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 4
+   5
+Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 4
+*** Attempt to run off the end!! ***
+```
 
 [上一级](base.md)
 [上一篇](conv_string_to_char_pointer.md)
