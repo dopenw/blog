@@ -2489,6 +2489,8 @@ class NullObject(AbstractObject):
 
 [Observer in C++: Before and after](https://sourcemaking.com/design_patterns/observer/cpp/1)
 
+![](../images/design_patterns_201712292315_1.png)
+
 ```c++
 #include <iostream>
 #include <vector>
