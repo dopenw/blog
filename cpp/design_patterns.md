@@ -27,6 +27,8 @@
 		* [Iterator(迭代器) 模式](#iterator迭代器-模式)
 		* [Mediator(中介者) 模式](#mediator中介者-模式)
 		* [Memento(备忘录) 模式](#memento备忘录-模式)
+		* [Null Object(空对象) 模式](#null-object空对象-模式)
+		* [Observer(观察者) 模式](#observer观察者-模式)
 
 <!-- /code_chunk_output -->
 
@@ -284,19 +286,19 @@ Border* border = fac->CreateBorder();
 Before:
 ```c++
 class GlobaClass{
-	int m_value;
+	int mvalue_;
 public:
 	GlobaClass(int v=0)
 	{
-		m_value=v;
+		mvalue_=v;
 	}
-	int get_value()
+	int getvalue_()
 	{
-		return m_value;
+		return mvalue_;
 	}
-	void set_value(int v)
+	void setvalue_(int v)
 	{
-		m_value=v;
+		mvalue_=v;
 	}
 };
 
@@ -308,22 +310,22 @@ void foo(void)
 	{
 		global_ptr=new GlobaClass;
 	}
-	global_ptr->set_value(1);
-	std::cout << "foo:global_ptr is"<<global_ptr->get_value() << '\n';
+	global_ptr->setvalue_(1);
+	std::cout << "foo:global_ptr is"<<global_ptr->getvalue_() << '\n';
 }
 
 void bar(void)
 {
 	if (!global_ptr)
 	global_ptr=new GlobaClass;
-	global_ptr->set_value(2);
-	std::cout << "bar:global_ptr is "<<global_ptr->get_value() << '\n';
+	global_ptr->setvalue_(2);
+	std::cout << "bar:global_ptr is "<<global_ptr->getvalue_() << '\n';
 }
 
 int main(int argc, char const *argv[]) {
 	if(!global_ptr)
 	global_ptr=new GlobaClass;
-	std::cout << "main:global_ptr is"<<global_ptr->get_value() << '\n';
+	std::cout << "main:global_ptr is"<<global_ptr->getvalue_() << '\n';
 	foo();
 	bar();
 	return 0;
@@ -341,20 +343,20 @@ after:
 ```c++
 class GlobalClass
 {
-    int m_value;
+    int mvalue_;
     static GlobalClass * s_instance;
     GlobalClass(int v = 0)
     {
-        m_value = v;
+        mvalue_ = v;
     }
   public:
-    int get_value()
+    int getvalue_()
     {
-        return m_value;
+        return mvalue_;
     }
-    void set_value(int v)
+    void setvalue_(int v)
     {
-        m_value = v;
+        mvalue_ = v;
     }
     static GlobalClass *instance()
     {
@@ -371,19 +373,19 @@ GlobalClass *GlobalClass::s_instance = 0;
 
 void foo(void)
 {
-  GlobalClass::instance()->set_value(1);
-  cout << "foo: global_ptr is " << GlobalClass::instance()->get_value() << '\n';
+  GlobalClass::instance()->setvalue_(1);
+  cout << "foo: global_ptr is " << GlobalClass::instance()->getvalue_() << '\n';
 }
 
 void bar(void)
 {
-  GlobalClass::instance()->set_value(2);
-  cout << "bar: global_ptr is " << GlobalClass::instance()->get_value() << '\n';
+  GlobalClass::instance()->setvalue_(2);
+  cout << "bar: global_ptr is " << GlobalClass::instance()->getvalue_() << '\n';
 }
 
 int main()
 {
-  cout << "main: global_ptr is " << GlobalClass::instance()->get_value() << '\n';
+  cout << "main: global_ptr is " << GlobalClass::instance()->getvalue_() << '\n';
   foo();
   bar();
 }
@@ -409,14 +411,14 @@ using namespace std;
 std::mutex mutexLock;
 
 class singleton {
-  singleton(int n = 0) { m_value = n; };
+  singleton(int n = 0) { mvalue_ = n; };
   static singleton *globalPtr;
-  int m_value = 0;
+  int mvalue_ = 0;
 
 public:
   ~singleton(){};
-  int get_value() { return m_value; }
-  void set_value(int n) { m_value = n; }
+  int getvalue_() { return mvalue_; }
+  void setvalue_(int n) { mvalue_ = n; }
   static singleton *instance() {
     if (globalPtr == NULL) {
       mutexLock.lock();
@@ -436,11 +438,11 @@ int main(int argc, char const *argv[]) {
   auto f2 = async(launch::async, [] { return singleton::instance(); });
 
   ptr = f1.get();
-  std::cout << "p1:" << ptr->get_value() << '\n';
+  std::cout << "p1:" << ptr->getvalue_() << '\n';
   std::cout << "localtion:" << ptr << '\n';
   ptr = f2.get();
-  ptr->set_value(3);
-  std::cout << "p1:" << ptr->get_value() << '\n';
+  ptr->setvalue_(3);
+  std::cout << "p1:" << ptr->getvalue_() << '\n';
   std::cout << "localtion:" << ptr << '\n';
   return 0;
 }
@@ -483,70 +485,70 @@ struct PersistenceAttribute {
 class DistrWorkPackage {
 public:
   DistrWorkPackage(char * type) {
-    sprintf(_desc, "Distributed work package for :%s", type);
+    sprintf(desc_, "Distributed work package for :%s", type);
   }
   void setFile(char * f, char * v) {
-    sprintf(_temp, "\n  File(%s): %s", f, v);
-    strcat(_desc, _temp);
+    sprintf(temp_, "\n  File(%s): %s", f, v);
+    strcat(desc_, temp_);
   }
   void setQueue(char *q, char *v) {
-    sprintf(_temp, "\n  Queue(%s): %s", q, v);
-    strcat(_desc, _temp);
+    sprintf(temp_, "\n  Queue(%s): %s", q, v);
+    strcat(desc_, temp_);
   }
   void setPathway(char *p, char *v) {
-    sprintf(_temp, "\n  Pathway(%s): %s", p, v);
-    strcat(_desc, _temp);
+    sprintf(temp_, "\n  Pathway(%s): %s", p, v);
+    strcat(desc_, temp_);
   }
-  const char *getState() { return _desc; }
+  const char * getState() { return desc_; }
 
 private:
-  char _desc[200], _temp[80];
+  char desc_[200], temp_[80];
 };
 
 class Builder {
 protected:
-  DistrWorkPackage *_result;
+  DistrWorkPackage * result_;
 
 public:
-  virtual void configureFile(char *) = 0;
-  virtual void configureQueue(char *) = 0;
-  virtual void configurePathway(char *) = 0;
-  DistrWorkPackage *getResult() { return _result; }
+  virtual void configureFile(char * ) = 0;
+  virtual void configureQueue(char * ) = 0;
+  virtual void configurePathway(char * ) = 0;
+  DistrWorkPackage * getResult() { return result_; }
 };
 
 class UnixBuilder : public Builder {
 public:
-  UnixBuilder() { _result = new DistrWorkPackage("Unix"); }
-  void configureFile(char *name) { _result->setFile("flatFile", name); }
-  void configureQueue(char *queue) { _result->setQueue("FIFO", queue); }
-  void configurePathway(char *type) { _result->setPathway("thread", type); }
+  UnixBuilder() { result_ = new DistrWorkPackage("Unix"); }
+  void configureFile(char * name) { result_->setFile("flatFile", name); }
+  void configureQueue(char *queue) { result_->setQueue("FIFO", queue); }
+  void configurePathway(char *type) { result_->setPathway("thread", type); }
 };
 
 class VmsBuilder : public Builder {
 public:
-  VmsBuilder() { _result = new DistrWorkPackage("Vms"); }
-  void configureFile(char *name) { _result->setFile("ISAM", name); }
-  void configureQueue(char *queue) { _result->setQueue("priority", queue); }
-  void configurePathway(char *type) { _result->setPathway("LWP", type); }
+  VmsBuilder() { result_ = new DistrWorkPackage("Vms"); }
+  void configureFile(char * name) { result_->setFile("ISAM", name); }
+  void configureQueue(char *queue) { result_->setQueue("priority", queue); }
+  void configurePathway(char *type) { result_->setPathway("LWP", type); }
 };
 
 class Reader {
 public:
-  void setBuilder(Builder *b) { _builder = b; }
+  void setBuilder(Builder * b) { builder_ = b; }
   void construct(PersistenceAttribute[], int);
 
 private:
-  Builder *_builder;
+  Builder *builder_;
 };
 
 void Reader::construct(PersistenceAttribute list[], int num) {
   for (int i = 0; i < num; i++)
     if (list[i].type == File)
-      _builder->configureFile(list[i].value);
+      builder_->configureFile(list[i].value);
     else if (list[i].type == Queue)
-      _builder->configureQueue(list[i].value);
+      builder_->configureQueue(list[i].value);
     else if (list[i].type == Pathway)
-      _builder->configurePathway(list[i].value);
+      builder_->configurePathway(list[i].value);
 }
 
 const int NUM_ENTRIES = 6;
@@ -658,7 +660,7 @@ protected:
   int value;
 
 public:
-  virtual Prototype *clone() = 0;
+  virtual Prototype * clone() = 0;
   string getType() { return type; }
   int getValue() { return value; }
 };
@@ -670,7 +672,7 @@ public:
     value = number;
   }
 
-  Prototype *clone() { return new ConcretePrototype1(*this); }
+  Prototype * clone() { return new ConcretePrototype1(*this); }
 };
 
 class ConcretePrototype2 : public Prototype {
@@ -680,14 +682,14 @@ public:
     value = number;
   }
 
-  Prototype *clone() { return new ConcretePrototype2(*this); }
+  Prototype * clone() { return new ConcretePrototype2(*this); }
 };
 
 class ObjectFactory {
-  static Prototype *type1value1;
-  static Prototype *type1value2;
-  static Prototype *type2value1;
-  static Prototype *type2value2;
+  static Prototype * type1value1;
+  static Prototype * type1value2;
+  static Prototype * type2value1;
+  static Prototype * type2value2;
 
 public:
   static void initialize() {
@@ -697,7 +699,7 @@ public:
     type2value2 = new ConcretePrototype2(2);
   }
 
-  static Prototype *getType1Value1() { return type1value1->clone(); }
+  static Prototype * getType1Value1() { return type1value1->clone(); }
 
   static Prototype *getType1Value2() { return type1value2->clone(); }
 
@@ -713,9 +715,9 @@ Prototype *ObjectFactory::type2value2 = 0;
 
 int main() {
   ObjectFactory::initialize();
-  Prototype *object;
+  Prototype * object;
 
-  /* All the object were created by cloning the prototypes. */
+  // All the object were created by cloning the prototypes.
   object = ObjectFactory::getType1Value1();
   std::cout << object->getType() << ": " << object->getValue() << std::endl;
 
@@ -2281,25 +2283,25 @@ class Number;
 
 class Memento {
 public:
-  Memento(int val) { _state = val; }
+  Memento(int val) { state_ = val; }
 
 private:
   friend class Number; // not essential ,but p287 suggests this
-  int _state;
+  int state_;
 };
 
 class Number {
 private:
-  int _value;
+  int value_;
 
 public:
-  Number(int value) { _value = value; }
-  void dubble() { _value = 2 * _value; }
-  void half() { _value = _value / 2; }
-  int getValue() { return _value; }
-  Memento *creteMemento() { return new Memento(_value); }
+  Number(int value) { value_ = value; }
+  void dubble() { value_ = 2 * value_; }
+  void half() { value_ = value_ / 2; }
+  int getValue() { return value_; }
+  Memento *creteMemento() { return new Memento(value_); }
 
-  void reinstateMemento(Memento *mem) { _value = mem->_state; }
+  void reinstateMemento(Memento *mem) { value_ = mem->state_; }
 
   virtual ~Number() {}
 };
@@ -2307,64 +2309,64 @@ public:
 class Command {
 
 public:
-  typedef void (Number::*Action)();
-  Command(Number *receiver, Action action) {
-    _receiver = receiver;
-    _action = action;
+  typedef void (Number::* Action)();
+  Command(Number * receiver, Action action) {
+    receiver_ = receiver;
+    action_ = action;
   }
   virtual void execute() {
-    _mementoList[_numCommands] = _receiver->creteMemento();
-    _commandList[_numCommands] = this;
-    if (_numCommands > _highWater)
-      _highWater = _numCommands;
-    _numCommands++;
-    (_receiver->*_action)();
+    mementoList_[numCommands_] = receiver_->creteMemento();
+    commandList_[numCommands_] = this;
+    if (numCommands_ > highWater_)
+      highWater_ = numCommands_;
+    numCommands_++;
+    (receiver_->* action_)();
   }
 
   static void undo() {
-    if (_numCommands == 0) {
-      std::cout << "*** Attempt to run off the end!! ***" << std::endl;
+    if (numCommands_ == 0) {
+      std::cout << "*** Attempt to run off the end!! ***  " << std::endl;
       return;
     }
-    _commandList[_numCommands - 1]->_receiver->reinstateMemento(
-        _mementoList[_numCommands - 1]);
-    _numCommands--;
+    commandList_[numCommands_ - 1]->receiver_->reinstateMemento(
+        mementoList_[numCommands_ - 1]);
+    numCommands_--;
   }
 
   void static redo() {
-    if (_numCommands > _highWater) {
-      std::cout << "*** Attempt to run off the end!! ***" << std::endl;
+    if (numCommands_ > highWater_) {
+      std::cout << "*** Attempt to run off the end!! *** " << std::endl;
       return;
     }
-    (_commandList[_numCommands]->_receiver
-         ->*(_commandList[_numCommands]->_action))();
-    _numCommands++;
+    (commandList_[numCommands_]->receiver_
+         ->* (commandList_[numCommands_]->action_))();
+    numCommands_++;
   }
 
   virtual ~Command() {}
 
 protected:
-  Number *_receiver;
-  Action _action;
-  static Command *_commandList[20];
-  static Memento *_mementoList[20];
-  static int _numCommands;
-  static int _highWater;
+  Number *receiver_;
+  Action action_;
+  static Command * commandList_[20];
+  static Memento * mementoList_[20];
+  static int numCommands_;
+  static int highWater_;
 };
 
-Command *Command::_commandList[];
-Memento *Command::_mementoList[];
-int Command::_numCommands = 0;
-int Command::_highWater = 0;
+Command * Command::commandList_[];
+Memento * Command::mementoList_[];
+int Command::numCommands_ = 0;
+int Command::highWater_ = 0;
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char const * argv[]) {
   int i;
   std::cout << "Interger: ";
   std::cin >> i;
 
-  Number *object = new Number(i);
+  Number * object = new Number(i);
 
-  Command *commands[3];
+  Command * commands[3];
   commands[1] = new Command(object, &Number::dubble);
   commands[2] = new Command(object, &Number::half);
 
@@ -2420,6 +2422,160 @@ Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 4
 Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 4
 *** Attempt to run off the end!! ***
 ```
+
+### Null Object(空对象) 模式    
+
+通过提供默认对象来避免空引用
+
+[Null Object Design Pattern](https://sourcemaking.com/design_patterns/null_object)
+
+![](../images/design_patterns_201712292121_1.png)
+
+
+python示例：
+```python
+"""
+Encapsulate the absence of an object by providing a substitutable
+alternative that offers suitable default do nothing behavior.
+"""
+
+import abc
+
+
+class AbstractObject(metaclass=abc.ABCMeta):
+    """
+    Declare the interface for Client's collaborator.
+    Implement default behavior for the interface common to all classes,
+    as appropriate.
+    """
+
+    @abc.abstractmethod
+    def request(self):
+        pass
+
+
+class RealObject(AbstractObject):
+    """
+    Define a concrete subclass of AbstractObject whose instances provide
+    useful behavior that Client expects.
+    """
+
+    def request(self):
+        pass
+
+
+class NullObject(AbstractObject):
+    """
+    Provide an interface identical to AbstractObject's so that a null
+    object can be substituted for a real object.
+    Implement its interface to do nothing. What exactly it means to do
+    nothing depends on what sort of behavior Client is expecting.
+    """
+
+    def request(self):
+        pass
+```
+
+[python 代码示例链接](https://sourcemaking.com/design_patterns/null_object/python/1)
+
+
+### Observer(观察者) 模式
+
+在对象间定义一个一对多的联系性，由此当一个对象改变了状态，所有其他相关的对象会被通知并且自动刷新。
+
+[观察者模式 wikipedia](https://zh.wikipedia.org/zh-cn/%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F)
+
+[Observer Design Pattern](https://sourcemaking.com/design_patterns/observer)
+
+[Observer in C++: Before and after](https://sourcemaking.com/design_patterns/observer/cpp/1)
+
+```c++
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+class Subject {
+	// 1. "independent" functionality
+  vector<class Observer * > views; // 3.Coupled only to "interface"
+  int value;
+
+public:
+  void attach(Observer * obs) { views.push_back(obs); }
+  void setVal(int val) {
+    value = val;
+    notify();
+  }
+  int getVal() { return value; }
+
+  void notify();
+};
+
+class Observer {
+	//2. "dependent" functionality
+  Subject * model;
+  int denom;
+
+public:
+  Observer(Subject * mod, int div) {
+    model = mod;
+    denom = div;
+		//4. observer register themselves with the Subject
+    model->attach(this);
+  }
+  virtual void update() = 0;
+
+protected:
+  Subject *getSubject() { return model; }
+  int getDivisor() { return denom; }
+};
+
+void Subject::notify() {
+	//5. Publisher broadcasts
+  for (size_t i = 0; i < views.size(); i++)
+    views[i]->update();
+}
+
+class DivObserver : public Observer {
+public:
+  DivObserver(Subject * mod, int div) : Observer(mod, div) {}
+  virtual void update() {
+		// 6. "Pull" information of interest
+    int v = getSubject()->getVal(), d = getDivisor();
+    std::cout << v << " div " << d << " is " << v / d << '\n';
+  }
+};
+
+class ModObserver : public Observer {
+public:
+  ModObserver(Subject * mod, int div) : Observer(mod, div) {}
+  virtual void update() {
+    int v = getSubject()->getVal(), d = getDivisor();
+    std::cout << v << " mod " << d << " is " << v % d << '\n';
+  }
+};
+
+int main(int argc, char const *argv[]) {
+  Subject subj;
+  DivObserver divObs1(&subj, 4);
+	// 7. Client configures the number and
+	// type of Observers
+  DivObserver divObs2(&subj, 3);
+  ModObserver modObs3(&subj, 3);
+  subj.setVal(14);
+  return 0;
+}
+```
+
+run it:
+```terminal
+14 div 4 is 3
+14 div 3 is 4
+14 mod 3 is 2
+```
+
+[代码示例链接](https://sourcemaking.com/design_patterns/observer/cpp/3)
+
 
 [上一级](base.md)
 [上一篇](conv_string_to_char_pointer.md)
