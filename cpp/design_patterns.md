@@ -29,6 +29,8 @@
 		* [Memento(备忘录) 模式](#memento备忘录-模式)
 		* [Null Object(空对象) 模式](#null-object空对象-模式)
 		* [Observer(观察者) 模式](#observer观察者-模式)
+		* [State(状态) 模式](#state状态-模式)
+		* [Strategy(策略) 模式](#strategy策略-模式)
 
 <!-- /code_chunk_output -->
 
@@ -814,7 +816,7 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
-run it:
+Run:
 ```terminal
 LegacyRectangle:  create.  (120,200) => (180,240)
 RectangleAdapter: create.  (120,200), width = 60, height =
@@ -924,7 +926,7 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
-run it:
+Run:
 ```terminal
 time is 1430
 time is 2:30 PM
@@ -991,7 +993,7 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
-run it:
+Run:
 ```terminal
 0 1 2 3 4 5 6 7 8 9 10 11
 3 4 5
@@ -1078,7 +1080,7 @@ int main(int argc, char const *argv[]) {
   return 0;
 }
 ```
-run it:
+Run:
 ```terminal
   TextField: 80, 24
   ScrollDecorator
@@ -1249,7 +1251,7 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
-run it：
+Run：
 ```terminal
 submit to Facilities -1 phone calls so far
 submit to Electrician - 12 phone calls so far
@@ -1450,7 +1452,7 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
-run it:
+Run:
 ```terminal
 drawing FileSelection :
   drawing go: upper left (100,100) - lower right (120,120)
@@ -1540,7 +1542,7 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
-run it:
+Run:
 ```terminal
 100  dollars for Tom
 Remaining balance is 400
@@ -1616,7 +1618,7 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
-run it:
+Run:
 ```terminal
 the quick fox jumped over the dog
 the brown fox jumped over the dog
@@ -1728,7 +1730,7 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
-run it:
+Run:
 ```terminal
 H1 handled 0val
 H1 passed 1 H2 passed 1 H3 handled 1
@@ -1830,7 +1832,7 @@ int main(int argc, char const * argv[]) {
 }
 ```
 
-run it:
+Run:
 ```terminal
 The light is on .
 The light is off .
@@ -1985,7 +1987,7 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
-run it :
+Run :
 ```terminal
 Enter Roman Numeral: MCMXCVI
    interpretation is 1996
@@ -2083,7 +2085,7 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
-run it:
+Run:
 ```terminal
 s1 == s2 is 1
 s1 == s3 is 0
@@ -2145,7 +2147,7 @@ int main() {
 }
 ```
 
-run it:
+Run:
 ```terminal
 s1 == s2 is 1
 s1 == s3 is 0
@@ -2395,7 +2397,7 @@ int main(int argc, char const * argv[]) {
 
 [代码示例链接](https://sourcemaking.com/design_patterns/memento/cpp/1)
 
-run it:
+Run:
 ```terminal
 Integer: 11
 Exit[0], Double[1], Half[2], Undo[3], Redo[4]: 2
@@ -2569,7 +2571,7 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
-run it:
+Run:
 ```terminal
 14 div 4 is 3
 14 div 3 is 4
@@ -2578,6 +2580,273 @@ run it:
 
 [代码示例链接](https://sourcemaking.com/design_patterns/observer/cpp/3)
 
+
+### State(状态) 模式
+
+当状态改变时改变对象的行为
+
+让一个对象在内部状态改变的时候，其行为也随之改变。状态模式需要对每一个系统可能获取的状态创立一个状态类的子类。当系统的状态变化时，系统便改变所选的子类。
+
+[State Design Pattern](https://sourcemaking.com/design_patterns/state)
+
+结构图：
+
+![](../images/design_patterns_201712301646_1.png)
+
+```c++
+#include <iostream>
+using namespace std;
+class Machine {
+  class State * current;
+
+public:
+  Machine();
+  void setCurrent(State * s) { current = s; }
+  void on();
+  void off();
+};
+
+class State {
+public:
+  virtual void on(Machine * m) { cout << "   already ON\n"; }
+  virtual void off(Machine * m) { cout << "   already OFF\n"; }
+
+  virtual ~State(){};
+};
+
+void Machine::on() { current->on(this); }
+
+void Machine::off() { current->off(this); }
+
+class ON : public State {
+public:
+  ON() { cout << "   ON-ctor "; };
+  ~ON() { cout << "   dtor-ON\n"; };
+  void off(Machine *m);
+};
+
+class OFF : public State {
+public:
+  OFF() { cout << "   OFF-ctor "; };
+  ~OFF() { cout << "   dtor-OFF\n"; };
+  void on(Machine *m) {
+    cout << "   going from OFF to ON";
+    m->setCurrent(new ON());
+    delete this;
+  }
+};
+
+void ON::off(Machine *m) {
+  cout << "   going from ON to OFF";
+  m->setCurrent(new OFF());
+  delete this;
+}
+
+Machine::Machine() {
+  current = new OFF();
+  cout << '\n';
+}
+
+int main() {
+  Machine fsm;
+  int num;
+  std::cout << "please input 0 or 1, other will exit" << '\n';
+  cin >> num;
+  while (cin.good()) {
+    if (0 == num)
+      fsm.off();
+    else if (1 == num)
+      fsm.on();
+    else
+      break;
+    std::cout << "please input 0 or 1, other will exit" << '\n';
+    cin >> num;
+  }
+}
+```
+
+Run:
+```terminal
+OFF-ctor
+please input 0 or 1, other will exit
+0
+already OFF
+please input 0 or 1, other will exit
+1
+
+going from OFF to ON   ON-ctor    dtor-OFF
+please input 0 or 1, other will exit
+1
+already ON
+please input 0 or 1, other will exit
+0
+going from ON to OFF   OFF-ctor    dtor-ON
+please input 0 or 1, other will exit
+1
+going from OFF to ON   ON-ctor    dtor-OFF
+```
+
+[代码示例链接：不过该示例代码编译不过，上面是改正后的代码](https://sourcemaking.com/design_patterns/state/cpp/1)
+
+### Strategy(策略) 模式
+
+在一个类中封装一个算法
+
+定义一个算法的系列，将其可个分装，并且使他们有交互性。策略模式使得算法在用户使用的时候能够独立的改变。
+
+策略模式作为一种软件设计模式，指对象有某个行为，但是在不同的场景中，该行为有不同的实现算法。
+
+[策略模式 wikipedia](https://zh.wikipedia.org/zh-cn/%E7%AD%96%E7%95%A5%E6%A8%A1%E5%BC%8F)
+
+[Strategy Design Pattern](https://sourcemaking.com/design_patterns/strategy)
+
+UML:
+
+![](../images/design_patterns_201712310031_1.png)
+
+```c++
+#include <cstring>
+#include <fstream>
+#include <iostream>
+
+using namespace std;
+
+class Strategy;
+
+class TestBed {
+private:
+  Strategy * strategy_;
+
+public:
+  enum StrategyType { Dummy, Left, Right, Center };
+  TestBed() { strategy_ = NULL; }
+  virtual ~TestBed(){};
+  void setStrategy(int type, int width);
+  void doIt();
+};
+
+class Strategy {
+private:
+  virtual void justify(char * line) = 0;
+
+protected:
+  size_t width_;
+
+public:
+  Strategy(size_t width) : width_(width) {}
+  void format() {
+    char line[80], word[30];
+    ifstream inFile("quote.txt", ios::in);
+    line[0] = '\0';
+
+    inFile >> word;
+    strcat(line, word);
+    while (inFile >> word) {
+      if (strlen(line) + strlen(word) + 1 > width_)
+        justify(line);
+      else
+        strcat(line, " ");
+      strcat(line, word);
+    }
+    justify(line);
+  }
+  virtual ~Strategy(){};
+};
+
+class LeftStrategy : public Strategy {
+private:
+  void justify(char * line) {
+    std::cout << line << '\n';
+    line[0] = '\0';
+  }
+
+public:
+  LeftStrategy(int width) : Strategy(width) {}
+};
+
+class RightStrategy : public Strategy {
+
+private:
+  void justify(char * line) {
+    char buf[80];
+    int offset = width_ - strlen(line);
+    memset(buf, ' ', 80);
+    strcpy(&(buf[offset]), line);
+    cout << buf << endl;
+    line[0] = '\0';
+  }
+
+public:
+  RightStrategy(int width) : Strategy(width) {}
+};
+
+class CenterStrategy : public Strategy {
+
+private:
+  void justify(char * line) {
+    char buf[80];
+    int offset = (width_ - strlen(line)) / 2;
+    memset(buf, ' ', 80);
+    strcpy(&(buf[offset]), line);
+    cout << buf << endl;
+    line[0] = '\0';
+  }
+
+public:
+  CenterStrategy(int width) : Strategy(width) {}
+};
+
+void TestBed::setStrategy(int type, int width) {
+  delete strategy_;
+  if (type == Left)
+    strategy_ = new LeftStrategy(width);
+  else if (type == Right)
+    strategy_ = new RightStrategy(width);
+  else if (type == Center)
+    strategy_ = new CenterStrategy(width);
+}
+
+void TestBed::doIt() { strategy_->format(); }
+
+int main(int argc, char const *argv[]) {
+  TestBed test;
+  int answer, width;
+  cout << "Exit(0) Left(1) Right(2) Center(3): ";
+  cin >> answer;
+  while (answer) {
+    cout << "Width: ";
+    cin >> width;
+    test.setStrategy(answer, width);
+    test.doIt();
+    cout << "Exit(0) Left(1) Right(2) Center(3): ";
+    cin >> answer;
+  }
+  return 0;
+}
+```
+
+In file quote.txt:
+```highlight
+quote 1;
+quote 2;
+quote 3;
+```
+
+Run:
+```terminal
+Exit(0) Left(1) Right(2) Center(3): 2
+Width: 75
+                                                 quote 1; quote 2; quote 3;
+Exit(0) Left(1) Right(2) Center(3): 1
+Width: 75
+quote 1; quote 2; quote 3;
+Exit(0) Left(1) Right(2) Center(3): 3
+Width: 75
+                        quote 1; quote 2; quote 3;
+Exit(0) Left(1) Right(2) Center(3): 0
+```
+
+[示例代码链接](https://sourcemaking.com/design_patterns/strategy/cpp/1)
 
 [上一级](base.md)
 [上一篇](conv_string_to_char_pointer.md)
