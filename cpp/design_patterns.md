@@ -31,6 +31,7 @@
 		* [Observer(观察者) 模式](#observer观察者-模式)
 		* [State(状态) 模式](#state状态-模式)
 		* [Strategy(策略) 模式](#strategy策略-模式)
+		* [Template method(模板方法) 模式](#template-method模板方法-模式)
 
 <!-- /code_chunk_output -->
 
@@ -2847,6 +2848,82 @@ Exit(0) Left(1) Right(2) Center(3): 0
 ```
 
 [示例代码链接](https://sourcemaking.com/design_patterns/strategy/cpp/1)
+
+
+### Template method(模板方法) 模式
+
+把算法的确切步骤推迟到一个子类
+
+模板方法模式定义了一个算法的步骤，并允许子类别为一个或多个步骤提供其实践方式。让子类别在不改变算法框架的情况下，重新定义算法中的某些步骤。在软件工程中，它是一种软件设计模式，和C++模板没有关联。
+
+模板方法模式多用在：
+* 某些类别的算法中，实做了相同的方法，造成代码的重复。
+* 控制子类别必须遵守的一些事项
+
+
+[Template Method Design Pattern](https://sourcemaking.com/design_patterns/template_method)
+
+结构：
+
+![](../images/design_patterns_201712312307_1.png)
+
+[Template Method in C++: Before and After](https://sourcemaking.com/design_patterns/template_method/cpp/2)
+
+```c++
+#include <iostream>
+
+using namespace std;
+
+class Base {
+private:
+  void a() { cout << "a  "; }
+  void c() { cout << "c  "; }
+  void e() { cout << "e  "; }
+  // 2. Steps requiring peculiar implementations are "placeholders" in base
+  // class
+  virtual void ph1() = 0;
+  virtual void ph2() = 0;
+
+public:
+  // 1. Standardize the skeleton of an algorithm in a base class "template
+  // method"
+  void execute() {
+    a();
+    ph1();
+    c();
+    ph2();
+    e();
+  }
+  virtual ~Base(){};
+};
+
+class One : public Base {
+  void ph1() { cout << "b  "; }
+  void ph2() { cout << "d  "; }
+};
+
+class Two : public Base {
+  void ph1() { cout << "2  "; }
+  void ph2() { cout << "4  "; }
+};
+
+int main(int argc, char const *argv[]) {
+  Base * array[] = {new One, new Two};
+
+  for (size_t i = 0; i < 2; i++) {
+    array[i]->execute();
+    std::cout << '\n';
+  }
+  return 0;
+}
+```
+
+Run:
+```terminal
+a  b  c  d  e
+a  2  c  4  e
+```
+
 
 [上一级](base.md)
 [上一篇](conv_string_to_char_pointer.md)
