@@ -20,5 +20,8 @@ View->Developer->Reload Window（Ctrl+Shift+F5）
 ```
 
 即可使 project 目录在左侧project区域正确显示。
+
+注：在新版本已无该问题。
+
 [上一级](base.md)
 [下一篇](config_hadoop_httpfs.md)
