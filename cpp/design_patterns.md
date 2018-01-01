@@ -32,6 +32,7 @@
 		* [State(状态) 模式](#state状态-模式)
 		* [Strategy(策略) 模式](#strategy策略-模式)
 		* [Template method(模板方法) 模式](#template-method模板方法-模式)
+		* [Visitor(访问者) 模式](#visitor访问者-模式)
 
 <!-- /code_chunk_output -->
 
@@ -2924,6 +2925,115 @@ a  b  c  d  e
 a  2  c  4  e
 ```
 
+
+### Visitor(访问者) 模式
+
+访问者模式是一种将算法与对象结构分离的软件设计模式。这个模式的基本想法如下：首先我们拥有一个有许多对象构成的对象结构，这些对象的类都拥有一个accept方法，在每一个元素的accept方法中回调访问者的visit方法，从而使访问者得以处理对象结构的每一个元素。我们可以针对对象结构设计不同的实在的访问者类来完成不同的操作。
+
+[访问者模式 wikipedia](https://zh.wikipedia.org/wiki/%E8%AE%BF%E9%97%AE%E8%80%85%E6%A8%A1%E5%BC%8F)
+
+[Visitor Design Pattern](https://sourcemaking.com/design_patterns/visitor)
+
+结构：
+
+![](../images/design_patterns_201801011717_1.png)
+
+[Visitor in C++: Before and after](https://sourcemaking.com/design_patterns/visitor/cpp/1)
+
+```c++
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class Element {
+
+public:
+  Element(){};
+  virtual ~Element(){};
+  virtual void accept(class Visitor &v) = 0;
+};
+
+class This : public Element {
+
+public:
+  virtual void accept(Visitor &v);
+  string thiss() { return "This"; }
+};
+
+class That : public Element {
+
+public:
+  virtual void accept(Visitor &v);
+  string that() { return "That"; }
+};
+
+class TheOther : public Element {
+public:
+  virtual void accept(Visitor &v);
+  string theOther() { return "TheOther"; }
+};
+
+class Visitor {
+public:
+  ~Visitor(){};
+  virtual void visit(This *e) = 0;
+  virtual void visit(That *e) = 0;
+  virtual void visit(TheOther *e) = 0;
+};
+
+void This::accept(Visitor &v) { v.visit(this); }
+
+void That::accept(Visitor &v) { v.visit(this); }
+
+void TheOther::accept(Visitor &v) { v.visit(this); }
+
+class UpVistor : public Visitor {
+  virtual void visit(This * e) { cout << "do Up on " + e->thiss() << '\n'; }
+  virtual void visit(That * e) { cout << "do Up on " + e->that() << '\n'; }
+  virtual void visit(TheOther * e) {
+    cout << "do Up on " + e->theOther() << '\n';
+  }
+};
+
+class DownVisitor : public Visitor {
+  virtual void visit(This * e) { cout << "do Down on " + e->thiss() << '\n'; }
+  virtual void visit(That * e) { cout << "do Down on " + e->that() << '\n'; }
+  virtual void visit(TheOther * e) {
+    cout << "do Down on " + e->theOther() << '\n';
+  }
+};
+
+int main(int argc, char const *argv[]) {
+  Element * list[] = {new This, new That, new TheOther};
+
+  UpVistor up;
+  DownVisitor down;
+
+  for (size_t i = 0; i < 3; i++) {
+    list[i]->accept(up);
+  }
+
+  for (size_t i = 0; i < 3; i++) {
+    list[i]->accept(down);
+  }
+  return 0;
+}
+```
+
+Run:
+```terminal
+do Up on This
+do Up on That
+do Up on TheOther
+do Down on This
+do Down on That
+do Down on TheOther
+```
+
+[代码示例链接](https://sourcemaking.com/design_patterns/visitor/cpp/2)
+
+[Visitor in C++: Recovering lost type information](https://sourcemaking.com/design_patterns/visitor/cpp/3)
 
 [上一级](base.md)
 [上一篇](conv_string_to_char_pointer.md)
