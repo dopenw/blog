@@ -62,6 +62,13 @@
 
 [wiki link](https://zh.wikipedia.org/wiki/%E5%B7%A5%E5%8E%82%E6%96%B9%E6%B3%95)
 
+[Factory Method Design Pattern
+](https://sourcemaking.com/design_patterns/factory_method)
+
+Structure:
+
+![](../images/design_patterns_201801022335_1.png)
+
 Before:
 ```c++
 class Stooge
@@ -121,7 +128,7 @@ int main()
 ```
 
 output:
-```sh
+```terminal
 Larry(1) Moe(2) Curly(3) Go(0): 2
 Larry(1) Moe(2) Curly(3) Go(0): 1
 Larry(1) Moe(2) Curly(3) Go(0): 3
@@ -201,7 +208,7 @@ Stooge *Stooge::make_stooge(int choice)
 ```
 
 output:
-```sh
+```terminal
 Larry(1) Moe(2) Curly(3) Go(0):
 1
 Larry(1) Moe(2) Curly(3) Go(0):
@@ -337,7 +344,7 @@ int main(int argc, char const *argv[]) {
 ```
 
 output:
-```sh
+```terminal
 main:global_ptr is0
 foo:global_ptr is1
 bar:global_ptr is 2
@@ -396,7 +403,7 @@ int main()
 ```
 
 output:
-```sh
+```terminal
 main: global_ptr is 0
 foo: global_ptr is 1
 bar: global_ptr is 2
@@ -453,7 +460,7 @@ int main(int argc, char const *argv[]) {
 ```
 
 output:
-```sh
+```terminal
 p1:0
 localtion:0x7f9514000b10
 p1:3
@@ -761,6 +768,12 @@ Type2: 2
 
 [适配器模式 wikipedia](https://zh.wikipedia.org/wiki/%E9%80%82%E9%85%8D%E5%99%A8%E6%A8%A1%E5%BC%8F)
 
+[Adapter Design Pattern](https://sourcemaking.com/design_patterns/adapter)
+
+Structure:
+
+![](../images/design_patterns_201801031925_1.png)
+
 类适配器模式示例：
 ```c++
 #include <iostream>
@@ -829,6 +842,9 @@ LegacyRectangle:  oldDraw.  (120,200) => (180,240)
 
 [示例代码链接](https://sourcemaking.com/design_patterns/adapter/cpp/1)
 
+
+[Adapter in C++: External Polymorphism](https://sourcemaking.com/design_patterns/adapter/cpp/2)
+
 ### Bridge(桥接) 模式
 
 将对象的接口从其实现中分离出来；将一个抽象与实现解耦，以便两者可以独立的变化。
@@ -836,6 +852,12 @@ LegacyRectangle:  oldDraw.  (120,200) => (180,240)
 桥接模式时软件设计模式中最复杂的模式之一，他把事物对象和其具体行为、具体特征分离开来，使他们各自独立变化。事物对象仅时一个抽象的概念。如“圆形”、“三角形”归于抽象的“形状”之下，而“画圆”、“画三角形”归于实现行为的“画图”类之下，然后由“形状”调用“画图”。
 
 [桥接模式 wikipedia](https://zh.wikipedia.org/zh-cn/%E6%A9%8B%E6%8E%A5%E6%A8%A1%E5%BC%8F)
+
+[Bridge Design Pattern](https://sourcemaking.com/design_patterns/bridge)
+
+Structure:
+
+![](../images/design_patterns_201801031925_2.png)
 
 ```c++
 #include <iomanip>
@@ -941,6 +963,12 @@ time is 1430 central standard time
 
 把多个对象组成树状结构来表示局部与整体，这样用户可以一样的对待单个对象和对象的组合
 
+[Composite Design Pattern](https://sourcemaking.com/design_patterns/composite)
+
+Structure：
+
+![](../images/design_patterns_201801031925_3.png)
+
 ```c++
 #include <iostream>
 #include <vector>
@@ -1012,6 +1040,10 @@ Run:
 [修饰模式 wikipedia](https://zh.wikipedia.org/wiki/%E4%BF%AE%E9%A5%B0%E6%A8%A1%E5%BC%8F)
 
 [decorator design pattern](https://sourcemaking.com/design_patterns/decorator)
+
+Structure:
+
+![](../images/design_patterns_201801032311_1.png)
 
 ```c++
 #include <iostream>
@@ -1099,6 +1131,12 @@ Run:
 为子系统中的一组接口提供一个一致的界面，外观模式定义了一个高层接口，这个接口使得这一子系统更加容易使用。
 
 [外观模式 wikipedia](https://zh.wikipedia.org/wiki/%E5%A4%96%E8%A7%80%E6%A8%A1%E5%BC%8F)
+
+[Facade Design Pattern](https://sourcemaking.com/design_patterns/facade)
+
+Structure:
+
+![](../images/design_patterns_201801032311_2.png)
 
 代码示例1：
 ```c++
@@ -1320,6 +1358,12 @@ public:
 
 [享元模式 wikipedia](https://zh.wikipedia.org/zh-cn/%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8F)
 
+[Flyweight Design Pattern](https://sourcemaking.com/design_patterns/flyweight)
+
+Structure:
+
+![](../images/design_patterns_201801032311_3.png)
+
 [Flyweight in C++: Before and after](https://sourcemaking.com/design_patterns/flyweight/cpp/1)
 
 代码示例：
@@ -1475,6 +1519,12 @@ Active Flyweights: go stop select undo
 为其他对象提供一个代理以控制对这个对象的访问
 
 [代理模式 wikipedia](https://zh.wikipedia.org/zh-cn/%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F)
+
+[Proxy Design Pattern](https://sourcemaking.com/design_patterns/proxy)
+
+Structure:
+
+![](../images/design_patterns_201801032311_4.png)
 
 [Proxy in C++: Before and after](https://sourcemaking.com/design_patterns/proxy/cpp/1)
 
@@ -1768,6 +1818,13 @@ H1 passed 9 H2 handled 9
 
 [命令模式 wikipedia](https://zh.wikipedia.org/zh-cn/%E5%91%BD%E4%BB%A4%E6%A8%A1%E5%BC%8F)
 
+[Command Design Pattern
+](https://sourcemaking.com/design_patterns/command)
+
+Structure:
+
+![](../images/design_patterns_201801032311_5.png)
+
 ```c++
 #include <iostream>
 #include <vector>
@@ -1851,6 +1908,10 @@ The light is off .
 给定一个语言，定义他的文法的一种表示，并定义一个解释器，该解释器使用该表示来解释语言中的句子。
 
 [Interpreter Design Pattern](https://sourcemaking.com/design_patterns/interpreter)
+
+Structure:
+
+![](../images/design_patterns_201801032311_6.png)
 
 ```c++
 #include <cstring>
@@ -2015,6 +2076,12 @@ Enter Roman Numeral: DCCCLXXXVIII
 
 [迭代器模式 wikipedia](https://zh.wikipedia.org/wiki/%E8%BF%AD%E4%BB%A3%E5%99%A8%E6%A8%A1%E5%BC%8F)
 
+[Iterator Design Pattern](https://sourcemaking.com/design_patterns/iterator)
+
+Structure:
+
+![](../images/design_patterns_201801032311_7.png)
+
 ```highlight
 1. Design an "iterator" class for the "container" class
 2. Add a createIterator() member to the container class
@@ -2169,6 +2236,10 @@ s1 == s5 is 0
 
 [Mediator in C++: Before and after](https://sourcemaking.com/design_patterns/mediator/cpp/2)
 
+Structure:
+
+![](../images/design_patterns_201801032311_8.png)
+
 FileSelectionDialog :: widgetChanged（）封装了对话框的所有集体行为（它充当通信的中心）。用户可以选择与模拟：过滤器编辑字段，目录列表，文件列表或选择编辑字段“交互”。
 
 ```c++
@@ -2279,6 +2350,10 @@ int main(int argc, char const * argv[]) {
 备忘录对象是一个用来存储另外一个对象内部状态的快照的对象。备忘录模式的用意是在不破坏封装的条件下，将一个对象的状态捉住，并外部化，存储起来，从而可以在将来合适的时候把这个对象还原到存储起来的那个状态。
 
 [Memento Design Pattern](https://sourcemaking.com/design_patterns/memento)
+
+Structure:
+
+![](../images/design_patterns_201801032311_9.png)
 
 ```c++
 #include <iostream>
