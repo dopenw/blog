@@ -11,6 +11,7 @@
 * ### [c++ 内部类](inner_class.md)
 * ### [c++并发](multiThread.md)
 * ### [mutable的使用](mutable.md)
+* ### [MyString](myString.md)
 * ### [c++正则表达式](regex.md)
 * ### [以stream完成I/O](stream_IO.md)
 * ### [在使用晚绑定的时候，要注意对基类的析构函数加virtual](vir_del.md)
