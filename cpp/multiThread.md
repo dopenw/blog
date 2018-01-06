@@ -30,6 +30,10 @@
 	* [Condition Variable(条件变量)](#condition-variable条件变量)
 		* [条件变量的第一个完整的例子](#条件变量的第一个完整的例子)
 		* [使用条件变量实现多线程Queue](#使用条件变量实现多线程queue)
+	* [Atomic](#atomic)
+		* [Atomic 用例](#atomic-用例)
+		* [Atomic 的 C-Style 接口](#atomic-的-c-style-接口)
+		* [Atomic 的底层接口](#atomic-的底层接口)
 
 <!-- /code_chunk_output -->
 
@@ -862,7 +866,7 @@ void thread2() {
     std::unique_lock<std::mutex> ul(readyMutex);
     readyCondVar.wait(ul, [] { return readyFlag; });
 
-    // 在这里条件变量的wait()成员函数的第二个 lambda，用来检测条件是否真的满足。
+    // 在这里条件变量的 wait()成员函数的第二个 lambda，用来检测条件是否真的满足。
     // 效果等同于下面代码： {
     //   std::unique_lock<std::mutex> ul(readyMutex);
     //   while (!readyFlag) {
@@ -877,7 +881,7 @@ void thread2() {
   std::cout << "done" << '\n';
 }
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char const * argv[]) {
   auto f1 = std::async(std::launch::async, thread1);
   auto f2 = std::async(std::launch::async, thread2);
   return 0;
@@ -967,6 +971,228 @@ consumer 1: 505
 * wait_for() 等待一个时间段
 * wiat_until() 等待直到某个时间点
 
+## Atomic
+
+[atomic](http://en.cppreference.com/w/cpp/atomic/atomic)
+
+在之前我们提到的例子
+```c++
+bool readyFlag;
+std::mutex readyFlagMutex;
+
+//wait until readyFlag is true
+{
+	std::unique_lock<std::mutex> u1(readyFlagMutex);
+	while (!readyFlag) {
+		ul.unlock();
+		std::this_thread::yield(); //hint to reschedule to the next thread
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		ul.lock();
+	}
+}//release lock
+```
+中我们使用bool readyFlag让任意线程激发，表示某件事情已经为另一线程备妥或提供。你也许会惊讶为什么仍然需要mutex。如果我们有个bool值，为什么不能并发地让某些线程改变它而让另一线程校验它？在供应端（线程）将bool设置为true的那个时刻，观测端（线程）应能够看到它并执行随之发生的处理才是。
+
+正如我们之前介绍的那样，这里我们需要面对两个问题：
+1. 一般而言，即使面对基本数据类型，读和写也不是atomic（不可切割的）。因此本例你可能读取到一个被写一半的bool值，c++ Standard说这会带来不明确的行为。
+2. 编译器生成的代码有可能改变操作次序，所以供应端（线程）有可能在供应数据之前就先设置ready flag,而消费端亦有可能在侦测ready flag 之前就处理数据。
+
+借由mutex，两个问题迎刃而解，但是从必要的资源和潜藏的独占访问来看，mutex也许是个相对昂贵的操作，所以也许值的以atomic取代mutex和lock。
+
+本节中我首先介绍atomic的高层接口，它所提供的操作将使用默认保证，不论内存访问次序如何。这个默认保证提供了顺序一致性：在线程中的atomic操作保证一定“像代码出现的次序”那样地发生，“重排语句”将不会发生。本节末尾将展示atomic的底层接口：带有“放宽之次序保证”的操作。
+
+注意，c++ 标准库并不区分atomic的高层或底层接口。某些时候atomic底层接口也被称为weak或relaxed接口，而高层接口被称为normal或strong接口。
+
+### Atomic 用例
+改写上面提到的例子，改用atomic:
+
+```c++
+#include <atomic> //for atomic types
+...
+
+std::atomic<bool> readyFlag(false);
+
+void thread1()
+{
+	//do something thread2 needs as preparation
+	...
+	readyFlag.store(true);
+}
+
+void thread2()
+{
+	//wait until readyFlag is true (thread1 is done)
+	while (!readyFlag.load()) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+
+	//do whatever shall happen after thread1 has prepared things
+	...
+}
+```
+
+注意你总是应该将atomic_object初始化，因为其default构造函数并不完全初始化它（倒不是其初值不明确，而是其lock未被初始化）。面对一个static-duration atomic 对象，你应该使用一个常量作为初值。如果只使用default构造函数，接下来唯一允许的操作是如下调用global atomic_init():
+```c++
+std:atomic<bool> readyFlag;
+...
+std::atomic_init(&readyFlag,false);
+```
+
+这种初始化方式之所以出现，是为了让你写出c编译器可接受的代码。
+
+处理atomic的两个重要语句是：
+```c++
+std::atomic<bool> test(false);
+
+test.store(true); //赋予一个新值
+test.load(); //取当前值
+```
+
+重点是，这些操作都保证是atomic（不可切割的），所以我们不需要像以前那样“需要mutex的保护才能够设置 readyFlag ”
+
+然而，使用condition variable 时我们仍然需要mutex才能保护对condition variable的消费（即使它现在是个atomic object）：
+```c++
+//wait until thread1 is ready (readyFlag is true)
+{
+	std::unique_lock<std::mutex> l(readyMute);
+	readyCondVar.wait(l,[]{
+		return readyFlag.load();
+	});
+}//release lock
+```
+让我们来看下，使用atomic的一个完整的例子：
+```c++
+#include <atomic>
+#include <chrono>
+#include <future>
+#include <iostream>
+#include <thread>
+
+long data;
+std::atomic<bool> readyFlag(false);
+
+void provider() {
+  // after reading a character
+  std::cout << "<return>" << '\n';
+  std::cin.get();
+
+  // provide some data
+  data = 42;
+
+  // and signal  readiness
+  readyFlag.store(true);
+}
+
+void consumer() {
+  // wait for readlines and do something else
+  while (!readyFlag.load()) {
+    std::cout.put('.').flush();
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
+
+  // and process provided data
+  std::cout << "\nvalue: " << data << '\n';
+}
+
+int main(int argc, char const *argv[]) {
+
+  // start provider and consumer
+  auto p = std::async(std::launch::async, provider);
+  auto c = std::async(std::launch::async, consumer);
+
+  return 0;
+}
+```
+
+* store()会对影响所及的内存区执行一个所谓的release操作，确保此前所有内存操作不论是否为atomic，在store发挥效用之前都变成“可被其他线程看见”。
+
+* load()会对影响所及的内存区执行一个所谓的acquire操作，确保此前所有内存操作不论是否为atomic，在load之后都变成“可被其他线程看见”。
+
+于是，由于data的设值在 provider()将readFlay存储为true之前，而对data的处理发生在 consumer() 将true 载入 放进readFlag之后，因此对data的处理保证发生在data已提供之后。
+
+这项保证之所以存在，是因为所有atomic操作默认使用一个特别的内存次序，名为memory_order_seq_cst,它代表 sequential consistent mememory order (顺序一致的内存次序)。底层的atomic操作能够放宽这一次序保证。
+
+### Atomic 的 C-Style 接口
+
+针对c++的atomic提案，c有一分对应的提案，它应该提供相同的语义但是（当然）不使用template、reference和memeber function等c++特性。
+
+例如：
+```c
+std::atomic_bool ab;
+std::atomic_init(&ab,false);
+...
+std::atomic_store(&ab,true);
+...
+if (std::atomic_load(&ab))
+{
+		...
+}
+```
+
+### Atomic 的底层接口
+
+atomic 底层接口意味着使用 atomic 操作时不保证顺序一致性。因此编译器和硬件有可能（局部）重排对atomic的处理次序。
+
+再请小心：虽然我给了一个实例，本区域仍然地雷重重。你需要很多专家经验才能知道何时值得在内存重排上花心力-即便是专家对此也常常犯错。
+
+考虑之前提到的atomic运用实例：
+
+如果指定另外一种内存处理次序，我们就可以削弱对次序的保证，在我们的例子中这就足以（例如）要求 provider 不推迟 atomic store 之后的操作，而 consumer 不会在 atomic load 之后带来向前操作。
+
+```c++
+data=42;
+
+readyFlag.store(true,std::mememory_order_release);
+
+while (!readyFlag.load(std::mememory_order_acquire)) {
+	...
+}
+std::cout << data <<std::endl;
+```
+
+然而如果放宽 atomic 操作次序上的所有约束，会导致不明确的行为：
+```c++
+// error:undefined behavior:
+data=42;
+readyFlag.store(true,std::mememory_order_relaxed);
+```
+原因是 std::mememory_order_relaxed 不保证此前所有内存操作 在store 发挥效用前都变得 “可被其他线程看见”。因此provider 线程有可能在设置ready flag之后才写data，于是 consumer 线程有可能在data 正被写时读它，这就会造成 data race
+
+你也可以让 data 成为 atomic 并以 std::mememory_order_relaxed 作为内存次序：
+```c++
+std::atomic<long> data(0);
+std::atomic<bool> readyFlag(false);
+
+//providing thread:
+data.store(42,std::mememory_order_relaxed);
+readyFlag.store(true,std::mememory_order_relaxed);
+
+//consuming thread
+while (!readyFlag.load(std::mememory_order_relaxed)) {
+	...
+}
+std::cout << data.load(std::mememory_order_relaxed) << '\n';
+```
+
+只有当我们在 atomic 变量上的读/写动作彼此独立，memory_order_relaxed才能显现出用途。例如一个 global 计数器，不同的线程可能会对它累加或递减，而我们只需要在所有线程终结之后获得该计数器的最终值即可。
+
+底层操作概览：load,store,exchange,CAS,fetch等操作提供了一个增补能力：它们允许你额外传递一个内存次序实参。
+
+例如：
+```c++
+a.store(val,mo)
+a.load(mo)
+a.exchange(val,mo)
+a.compare_exchange_strong(exp,des,mo)
+a.compare_exchange_strong(exp,des,mo1,mo2)
+a.compare_exchange_weak(exp,des,mo)
+a.compare_exchange_weak(exp,des,mo1,mo2)
+a.fetch_add(val,mo)
+a.fetch_sub(val,mo)
+a.fetch_and(val,mo)
+a.fetch_or(val,mo)
+a.fetch_xor(val,mo)
+```
 
 [上一级](base.md)
 [上一篇](inner_class.md)
