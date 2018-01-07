@@ -34,6 +34,13 @@
 		* [Atomic 用例](#atomic-用例)
 		* [Atomic 的 C-Style 接口](#atomic-的-c-style-接口)
 		* [Atomic 的底层接口](#atomic-的底层接口)
+	* [信号量](#信号量)
+		* [使用信号量来实现互斥](#使用信号量来实现互斥)
+		* [利用信号量来调度共享资源](#利用信号量来调度共享资源)
+			* [生产者-消费者问题](#生产者-消费者问题)
+			* [读者-写者问题](#读者-写者问题)
+	* [线程安全](#线程安全)
+		* [可重入函数](#可重入函数)
 
 <!-- /code_chunk_output -->
 
@@ -1193,6 +1200,177 @@ a.fetch_and(val,mo)
 a.fetch_or(val,mo)
 a.fetch_xor(val,mo)
 ```
+
+## 信号量
+
+参考：深入理解计算机系统 2rd 12.5
+
+信号量 s 是具有非负整数值的全局变量，只能由两种特殊的操作来处理，这两种操作称为 P 和 V：
+* P(s):如果 s 是非零的，那么 P 将 s 减 1，并且立即返回。如果 s 为零，那么就挂起这个线程，知道 s 变为非零，而一个 V 操作会重启这个线程。在重启之后， P 操作将 s 减1，并将控制返回给调用者。
+* V(s):V 操作将 s 加 1 。如果有任何线程阻塞在 P 操作等待s变为非零，那么V操作会重启这些线程中的一个，然后该线程将s减 1，完成它的 P 操作。
+
+P 中的测试和减 1 操作是不可分割的，也就是说，一旦预测信号量 s 变为非零，就会将 s 减 1，不能有中断。
+V 中的加 1 操作也是不可分割的，也就是加载、 加 1 和存储信号量的过程中没有中断。
+注意：V 的定义中没有定义等待线程被重新启动的顺序。唯一要求的是 V 必须值只能重启一个等待的线程。因此，当有多个线程在等待同一个信号量时，你不能预测 V 操作要重启哪一个线程。
+
+Posix：
+```c
+#include <semaphore.h>
+
+int sem_init(sem_t *sem,unsigned int value);
+int sem_wait(sem_t *s); // P(s)
+int sem_post(sem_t *s); // V(s)
+
+// if successful resturn 0,an error occurred return -1
+```
+
+为了简明，我们可以用包装函数：
+```c++
+#include <csapp.h>
+
+void P(sem_t *s); // wrapper function for sem_wait
+void V(sem_t *s); // wrapper function for sem_post
+```
+
+### 使用信号量来实现互斥
+
+以这种方式来保护共享变量的信号量叫做 二元信号量，因为它的值总是 0 或 1 。以提供互斥为目的的二元信号量常常也称为互斥锁。
+
+```c
+volatile int cnt=0;
+sem_t mutex;
+...
+sem_init(&mutex,0,1);
+...
+for (ssize_t i = 0; i < niters; i++) {
+	P(&mutex);
+	cnt++;
+	V(&mutex);
+}
+```
+
+### 利用信号量来调度共享资源
+
+#### 生产者-消费者问题
+
+生产者和消费者线程共享一个有n个槽的有限缓冲区。生产者线程反复地生成新的项目，并把他们插入到缓冲区中。消费者线程不断地从缓冲区中取出这些项目，然后消费它们。也可能是多个生产者和消费者的变种。
+
+![](../images/multiThread_201801071724_1.png)
+
+结合书上的例子，现给出完整例子：
+```c++
+#include <iostream>
+#include <semaphore.h>
+#include <stdlib.h>
+#include <thread>
+
+using namespace std;
+
+void P(sem_t *s) {
+  if (sem_wait(s) != 0)
+    std::cerr << "sem_wait is failed" << '\n';
+  // care you need handle error
+}
+
+void V(sem_t *s) {
+  if (sem_post(s) != 0)
+    std::cerr << "sem_post is failed" << '\n';
+  // care you need handle error
+}
+
+struct sbuf_t {
+  int * buf;    // buffer array
+  int n;       // maximum number of slots
+  int front;   // buf[(front+1)%n] is first item
+  int rear;    // buf[rear%n] is last item
+  sem_t mutex; // protects accesss to buf
+  sem_t slots; // counts available slots
+  sem_t items; // counts available items
+};
+
+void sbuf_init(sbuf_t *sp, int n) {
+  sp->buf = (int * )calloc(n, sizeof(int));
+  sp->n = n;
+  sp->front = sp->rear = 0;
+  sem_init(&sp->mutex, 0, 1);
+  sem_init(&sp->slots, 0, n);
+  sem_init(&sp->items, 0, 0);
+}
+
+void sbuf_deinit(sbuf_t *sp) { free(sp->buf); }
+
+void sbuf_insert(sbuf_t *sp, int item) {
+  P(&sp->slots);
+  P(&sp->mutex);
+  sp->buf[(++sp->rear) % (sp->n)] = item;
+  std::cout << "insert: " << item << '\n';
+  V(&sp->mutex);
+  V(&sp->items);
+}
+
+void sbuf_remove(sbuf_t *sp) {
+  int item;
+  P(&sp->items);
+  P(&sp->mutex);
+  item = sp->buf[(++sp->front) % (sp->n)];
+  std::cout << "remove: " << item << '\n';
+  V(&sp->mutex);
+  V(&sp->slots);
+}
+
+void createProducer(sbuf_t *sp, int item) {
+  for (ssize_t i = 0; i < item; i++) {
+    sbuf_insert(sp, i);
+  }
+}
+
+void createConsumer(sbuf_t *sp, int item) {
+  while (--item >= 0) {
+    sbuf_remove(sp);
+  }
+}
+
+int main(int argc, char const *argv[]) {
+  sbuf_t buffer;
+  sbuf_init(&buffer, 10);
+
+  thread t1(createProducer, &buffer, 500);
+  thread t2(createConsumer, &buffer, 500);
+  t1.join();
+  t2.join();
+  sbuf_deinit(&buffer);
+  return 0;
+}
+```
+
+#### 读者-写者问题
+
+修改对象的线程叫做写者。只读对象叫做读者。写者必须拥有对对象的独占的访问，而读者可以和无限多个其他的读者共享对象。一般来说，有无限多个并发的读者和写者。
+
+读者-写者问题有几个变种，每个都是基于读者和写者的优先级的。
+* 第一类：读者优先，要求不要让读者等待，除非已经把使用对象的权限赋予了一个写者
+* 第二类：写者优先，要求一旦一个写者准备好可以写，他就会尽可能快地完成它的写操作。同第一类问题不同，在一个写者后到达的读者必须等待，即使这个写者也是在等待。
+
+对于这两种读者-写者问题的正确解答可能会导致饥饿，饥饿就是一个线程无限期地阻塞，无法进展。
+
+## 线程安全
+
+当用线程编写程序时，我们必须小心地编写那些具有称为 线程安全性 属性的函数。一个函数被称为线程安全的，当且仅当被多个并发线程反复地调用时，它会一直产生正确的结果。
+
+我们能够定义出四个（不相交的）线程不安全函数类：
+* 不保护共享变量的函数
+* 保持跨越多个调用的状态的函数。例如，rand函数是线程不安全的，因为当前调用的结构依赖于前次调用的中间结果。使得像rand这样的函数线程安全的唯一方式是重写它。
+* 返回指向静态变量的指针的函数。例如，ctime和gethostbyname，将计算结果放在一个static变量中，然后返回一个指向这个变量的指针。有两种方式来处理这类不安全函数。一种选择重写，另一种是使用加锁-拷贝。
+* 调用线程不安全函数的函数。
+
+### 可重入函数
+有一类重要的线程安全函数，叫做可重入函数，其特点就在于他们具有：当它们被多个线程调用时，不会引用任何共享数据。
+
+可重入函数通常比不可重入的线程安全函数高效一些，因为他们不需要同步操作。
+
+* 如果所有的函数参数都是传值传递的（即没有指针），并且所有的数据引用都是本地的自动栈变量（即没有引用静态或全局变量），那么函数就是 显式可重入 ，也就是说，无论它是被如何调用，我们都可以断言它是可重入的。
+* 我们把假设放松一点，允许显式可重入函数中的一些参数是引用传递的，那么我们就得到一个 隐式可重入的函数，也就是说，如果调用线程小心的传递指向非共享数据的指针，那么它是可重入的。
+
 
 [上一级](base.md)
 [上一篇](inner_class.md)
