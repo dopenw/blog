@@ -153,5 +153,5 @@ int main(int argc, char const *argv[]) {
 
 
 [上一级](base.md)
-[上一篇](docker.md)
+[上一篇](fedoraInstallSS.md)
 [下一篇](google_search_tips.md)
