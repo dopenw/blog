@@ -351,5 +351,7 @@ duration 和 timepoint 可用于线程或程序的停滞。停滞可以是无条
 * wait_for() 和 wait_until(),用来等待某条件成立或等待一个future时指定最大时间段
 
 用 ...\_for() 结束的停滞函数都会用到 duration， ...\_until() 结束的函数都会用到 timepoint
+
+
 [上一级](base.md)
 [下一篇](const.md)
