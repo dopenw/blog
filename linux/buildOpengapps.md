@@ -3,7 +3,7 @@
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [Build open Gapps from github](#build-open-gapps-from-github)
+* [Build openGapps from github](#build-opengapps-from-github)
 	* [Install git and lzip](#install-git-and-lzip)
 	* [Install android build tools and set $PATH](#install-android-build-tools-and-set-path)
 	* [Install JDK and set $PATH](#install-jdk-and-set-path)

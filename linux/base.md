@@ -1,6 +1,6 @@
 # Categories linux
 * ## [home](../README.md)
-* ### [build open Gapps from source](buildOpengapps.md)
+* ### [Build openGapps from github](buildOpengapps.md)
 * ### [理解chroot](chroot.md)
 * ### [linux实用命令集合](command.md)
 * ### [ctl + alt + f3 login incorrect](ctrl_alt_f3_login_incorrect.md)
