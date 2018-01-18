@@ -9,7 +9,7 @@
 		* [资源记录](#资源记录)
 		* [解析器和名字服务器](#解析器和名字服务器)
 		* [DNS 替代方法](#dns-替代方法)
-		* [gethostbyname 函数](#gethostbyname-函数)
+	* [gethostbyname 函数](#gethostbyname-函数)
 	* [gethostbyaddr 函数](#gethostbyaddr-函数)
 	* [getservbyname 和 getservbyport 函数](#getservbyname-和-getservbyport-函数)
 	* [getaddrinfo 函数](#getaddrinfo-函数)
@@ -78,7 +78,7 @@ yahoo.com.		54250 IN NS ns2.yahoo.com.
 [域名服务器缓存污染 wikipedia](https://zh.wikipedia.org/wiki/%E5%9F%9F%E5%90%8D%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%BC%93%E5%AD%98%E6%B1%A1%E6%9F%93)
 
 
-### gethostbyname 函数
+## gethostbyname 函数
 
 大多数应用程序应该处理名字而不是地址。当我们使用 IPV6 时，这一点显得尤为重要。
 
