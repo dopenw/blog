@@ -18,4 +18,5 @@ chroot，即change root directory（更改root目录）。在linux系统中，�
 
 
 [上一级](base.md)
+[上一篇](buildOpengapps.md)
 [下一篇](command.md)
