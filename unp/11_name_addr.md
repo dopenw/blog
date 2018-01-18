@@ -414,6 +414,7 @@ const char * gai_strerror(int error);
 ```
 
 getaddrinfo 返回的非0错误常值：
+
 | 常数 | 说明  |
 | :------------- | :------------- |
 |EAI_AGAIN|名字解析中临时失败
