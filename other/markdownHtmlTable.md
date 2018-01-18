@@ -7,6 +7,7 @@
 * [markdown 嵌入 HTML table，让其具有更多的特性](#markdown-嵌入-html-table让其具有更多的特性)
 	* [生成合并了单元格的 HTML table](#生成合并了单元格的-html-table)
 	* [使用在线工具编辑 HTML table](#使用在线工具编辑-html-table)
+	* [借助另外一个online tools，简化前面的步骤(合二为一)](#借助另外一个online-tools简化前面的步骤合二为一)
 	* [将编辑好的 HTML table 复制到 md 文件](#将编辑好的-html-table-复制到-md-文件)
 	* [参考链接](#参考链接)
 
@@ -26,6 +27,10 @@
 
 示例：
 ![](../images/markdownHtmlTable_201801181827_2.png)
+
+## 借助另外一个online tools，简化前面的步骤(合二为一)
+
+[Tables Generator](https://www.tablesgenerator.com/html_tables)
 
 ## 将编辑好的 HTML table 复制到 md 文件
 
@@ -56,6 +61,7 @@
 </tr>
 </tbody>
 </table>
+
 
 ## 参考链接
 [Can I merge table rows in markdown
