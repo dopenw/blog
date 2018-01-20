@@ -17,6 +17,10 @@
 	* [freeaddrinfo 函数](#freeaddrinfo-函数)
 	* [getaddrinfo 函数： IPV6](#getaddrinfo-函数-ipv6)
 	* [getaddrinfo 函数：例子](#getaddrinfo-函数例子)
+	* [<unp.h>提供的实用的函数接口](#unph提供的实用的函数接口)
+		* [host_serv 函数](#host_serv-函数)
+		* [tcp_connect 函数](#tcp_connect-函数)
+		* [tcp_listen 函数](#tcp_listen-函数)
 
 <!-- /code_chunk_output -->
 
@@ -585,6 +589,244 @@ options: -h <host>    (can be hostname or address string)
          -e    only do test of error returns (no options required)
   without -e, one or both of <host> and <service> must be specified.
 ```
+## <unp.h>提供的实用的函数接口
+
+### host_serv 函数
+
+访问 getaddrinfo 的第一个接口函数不要求调用者调用者分配并填写一个 hints 结构。该结构中我们感兴趣的两个字段（地址族和套接字类型）成为这个名为 host_serv 的接口函数的参数。
+```c
+#include "unp.h"
+
+struct addrinfo *host_serv(const char *hostname,const char *service,int family,int socktype);
+
+// 返回：若成功则为指向 addrinfo 结构的指针，若出错则为 NULL
+```
+
+该函数的源代码:
+```c
+struct addrinfo * host_serv(const char *hostname,const char *service,int family,int socktype)
+{
+	int n;
+	struct addrinfo hints, * res;
+
+	bzero(&hints,sizeof(struct addrinfo));
+	hints.ai_flags=AI_CANONNAME ; //always return canonical name
+	hints.ai_family=family; //AF_UNSPEC,AF_INET,AF_INET6,etc .
+	hints.ai_socktype=socktype; //0,SOCK_STREAM,SOCK_DGRAM,etc .
+
+	if ((n=getaddrinfo(host,serv,&hints,&res))!=0)
+	return NULL;
+	return res;
+}
+```
+
+### tcp_connect 函数
+
+tcp_connect 函数执行客户的通常步骤：创建一个TCP套接字并连接到一个服务器：
+```c
+#include "unp.h"
+
+int tcp_connect(const char * hostname,const char * service);
+
+// 返回：若成功则为已连接的套接字描述符，若出错则不返回
+```
+
+该函数的源代码：
+```c
+int tcp_connect(const char *host, const char *service) {
+  int sockfd, n;
+  struct addrinfo hints, * res, * ressave;
+
+  bzero(&hints, sizeof(struct addrinfo));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+
+  if ((n = getaddrinfo(host, service, &hints, &res)) != 0)
+    err_quit("tcp_connect error for %s , %s : %s", host, service,
+             gai_strerror(n));
+
+  ressave = res;
+
+  do {
+    sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+
+    if (sockfd < 0)
+      continue; // ignore this one
+
+    if (connect(sockfd, res->ai_addr, res->ai_addrlen) == 0)
+      break; // success
+
+    Close(sockfd); // ignore this one
+  } while ((res = res->ai_next) != NULL);
+
+  if (res == NULL) // errno set from final connect()
+    err_sys("tcp_connect error for %s ,%s", host, service);
+
+  freeaddrinfo(ressave);
+
+  return sockfd;
+}
+```
+
+例子：时间获取客户程序
+```c
+#include "unp.h"
+
+int main(int argc, char const *argv[]) {
+  int sockfd, n;
+
+  char recvline[MAXLINE + 1];
+  socklen_t len;
+  struct sockaddr_storage ss;
+
+  if (argc != 3)
+    err_quit("usage : daytimetcpcli <hostname/IPaddress> <service/prot#>");
+
+  sockfd = Tcp_connect(argv[1], argv[2]);
+
+  len = sizeof(ss);
+
+  Getpeername(sockfd, (SA *)&ss, &len);
+
+  printf("connected to %s \n", Sock_ntop_host((SA *)&ss, len));
+
+  while ((n = Read(sockfd, recvline, MAXLINE)) > 0) {
+    recvline[n] = 0;
+    Fputs(recvline, stdout);
+  }
+  return 0;
+}
+```
+
+### tcp_listen 函数
+
+tcp_listen 函数执行 TCP 服务器的通常步骤：创建一个TCP套接字，给它捆绑服务器的众所周知的端口，并允许接受外来的连接请求。
+```c
+#include "unp.h"
+
+int tcp_listen(const char * hostname,const char * service, socklen_t *addrlenp);
+
+// 若成功则为以连接套接字描述符，若出错则不返回
+```
+
+调用 getaddrinfo：
+初始化一个 addrinfo 结构提供如下暗示信息： AI_PASSIVE、AF_UNSPEC、SOCK_STREAM
+
+该函数的源代码：
+```c
+int tcp_listen(const char *host, const char *serv, socklen_t *addrlenp) {
+  int listenfd, n;
+  const int on = 1;
+  struct addrinfo hints, * res, * ressave;
+
+  bzero(&hints, sizeof(struct addrinfo));
+  hints.ai_flags = AI_PASSIVE;
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+
+  if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
+    err_quit("tcp listen error for %s , %s : %s", host, serv, gai_strerror(n));
+
+  ressave = res;
+
+  do {
+    listenfd = socket(res->ai_family, res->ai_soai_socktype, res->ai_protocol);
+
+    if (listenfd < 0)
+      continue; // error, try next one
+
+    Setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+
+    if (bind(listenfd, res->ai_addr, res->ai_addrlen) == 0)
+      break; // success
+
+    Close(listenfd); // bind error ,close and try next one
+  } while ((res = res->ai_next) != NULL);
+
+  if (res == NULL)
+    err_sys("tcp listen error for %s , %s", host, serv);
+
+  Listen(listenfd, LISTENQ);
+
+  if (addrlenp)
+    * addrlenp = res->ai_addrlen; // return size of protocol address
+
+  freeaddrinfo(ressave);
+
+  return listenfd;
+}
+```
+
+例子1：时间获取服务器程序
+
+```c
+#include "unp.h"
+#include <time.h>
+
+int main(int argc, char const *argv[]) {
+  int listenfd, connfd;
+  socklen_t len;
+  char buff[MAXLINE];
+  time_t ticks;
+  struct sockaddr_storage cliaddr;
+
+  if (argc != 2)
+    err_quit("usage : daytimetcpsrv1 <service or port #>");
+
+  listenfd = Tcp_listen(NULL, argv[1], NULL);
+
+  while (1) {
+    len = sizeof(cliaddr);
+    connfd = Accept(listenfd, (SA *)&cliaddr, &len);
+    printf("connection from %s\n", Sock_ntop_host((SA *)&cliaddr, len));
+
+    ticks = time(NULL);
+    snprintf(buff, sizeof(buff), "%.24s\r\n", ctime(&ticks));
+    Write(connfd, buff, strlen(buff));
+
+    Close(connfd);
+  }
+  return 0;
+}
+```
+
+该程序存在一个小问题， tcp_listen 的第一个参数是一个空指针，而且 tcp_listen 函数内部指定的地址族 AF_UNSPEC ,两者结合可能导致 getaddrinfo 返回非期望地址族的套接字地址结构。举例来说，在双栈主机上返回的第一个套接字地址结构将是 IPv6的，但我们期望该服务器仅仅处理IPV4.
+
+例子2：可指定协议的时间获取服务器程序
+
+```c
+#include "unp.h"
+#include <time.h>
+
+int main(int argc, char const *argv[]) {
+  int listenfd, connfd;
+  socklen_t len, addrlen;
+  char buff[MAXLINE];
+  time_t ticks;
+  struct sockaddr_storage cliaddr;
+
+  if (argc == 2)
+    listenfd = Tcp_listen(NULL, argv[1], &addrlen);
+  else if (argc == 3)
+    listenfd = Tcp_listen(argv[1], argv[2], &addrlen);
+  else
+    err_quit("usage : daytimetcpsrv2 [<host>] <sevice or port>");
+
+  while (1) {
+    len = sizeof(cliaddr);
+    connfd = Accept(listenfd, (SA *)&cliaddr, &len);
+    printf("connection from %s\n", Sock_ntop_host((SA *)&cliaddr, len));
+
+    ticks = time(NULL);
+    snprintf(buff, sizeof(buff), "%.24s\r\n", ctime(&ticks));
+    Write(connfd, buff, strlen(buff));
+
+    Close(connfd);
+  }
+  return 0;
+}
+```
+
 
 [上一级](base.md)
 [上一篇](8_basic_udp_socket.md)
