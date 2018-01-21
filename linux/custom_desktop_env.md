@@ -17,6 +17,10 @@
 	* [fedora 27 install nvidia-driver](#fedora-27-install-nvidia-driver)
 	* [youtube downloader](#youtube-downloader)
 		* [merge video and audio](#merge-video-and-audio)
+	* [Change the default boot entry](#change-the-default-boot-entry)
+		* [List the default kernel](#list-the-default-kernel)
+		* [List all the kernel menu entries](#list-all-the-kernel-menu-entries)
+		* [Change the default boot entry](#change-the-default-boot-entry-1)
 
 <!-- /code_chunk_output -->
 
@@ -197,6 +201,61 @@ ffmpeg -i videoplayback.webm -i videoplayback.m4a -c:v copy -c:a copy output.mkv
 ```
 
 [source link](https://kwizzu.com/construct.html)
+
+## Change the default boot entry
+
+### List the default kernel
+```sh
+[root@breap breap]# grubby --default-kernel
+/boot/vmlinuz-4.14.11-300.fc27.x86_64
+```
+
+### List all the kernel menu entries
+
+```sh
+[root@breap breap]# grubby --info=ALL
+index=0
+kernel=/boot/vmlinuz-4.14.13-300.fc27.x86_64
+args="ro rd.lvm.lv=fedora/root rd.lvm.lv=fedora/swap rhgb quiet LANG=en_US.UTF-8 rd.driver.blacklist=nouveau modprobe.blacklist=nouveau nvidia-drm.modeset=1"
+root=/dev/mapper/fedora-root
+initrd=/boot/initramfs-4.14.13-300.fc27.x86_64.img
+title=Fedora (4.14.13-300.fc27.x86_64) 27 (Workstation Edition)
+index=1
+kernel=/boot/vmlinuz-4.14.11-300.fc27.x86_64
+args="ro rd.lvm.lv=fedora/root rd.lvm.lv=fedora/swap rhgb quiet LANG=en_US.UTF-8 rd.driver.blacklist=nouveau modprobe.blacklist=nouveau nvidia-drm.modeset=1"
+root=/dev/mapper/fedora-root
+initrd=/boot/initramfs-4.14.11-300.fc27.x86_64.img
+title=Fedora (4.14.11-300.fc27.x86_64) 27 (Workstation Edition)
+index=2
+kernel=/boot/vmlinuz-4.14.8-300.fc27.x86_64
+args="ro rd.lvm.lv=fedora/root rd.lvm.lv=fedora/swap rhgb quiet LANG=en_US.UTF-8 rd.driver.blacklist=nouveau modprobe.blacklist=nouveau nvidia-drm.modeset=1"
+root=/dev/mapper/fedora-root
+initrd=/boot/initramfs-4.14.8-300.fc27.x86_64.img
+title=Fedora (4.14.8-300.fc27.x86_64) 27 (Workstation Edition)
+index=3
+kernel=/boot/vmlinuz-0-rescue-c0d86e2df9d743b0beaed7411a4d0289
+args="ro rd.lvm.lv=fedora/root rd.lvm.lv=fedora/swap rhgb quiet rd.driver.blacklist=nouveau modprobe.blacklist=nouveau nvidia-drm.modeset=1"
+root=/dev/mapper/fedora-root
+initrd=/boot/initramfs-0-rescue-c0d86e2df9d743b0beaed7411a4d0289.img
+title=Fedora (0-rescue-c0d86e2df9d743b0beaed7411a4d0289) 26 (Workstation Edition)
+index=4
+non linux entry
+index=5
+non linux entry
+index=6
+non linux entry
+```
+
+### Change the default boot entry
+```sh
+[root@breap breap]# grubby --set-default /boot/vmlinuz-4.14.11-300.fc27.x86_64
+```
+
+[Fedora GRUB2 BOOT Loader](https://docs.fedoraproject.org/f26/system-administrators-guide/kernel-module-driver-configuration/Working_with_the_GRUB_2_Boot_Loader.html)
+
+
+
+
 
 [上一级](base.md)
 [上一篇](ctrl_alt_f3_login_incorrect.md)
