@@ -21,6 +21,9 @@
 		* [host_serv 函数](#host_serv-函数)
 		* [tcp_connect 函数](#tcp_connect-函数)
 		* [tcp_listen 函数](#tcp_listen-函数)
+		* [udp_client 函数](#udp_client-函数)
+		* [udp_connect 函数](#udp_connect-函数)
+		* [udp_server 函数](#udp_server-函数)
 
 <!-- /code_chunk_output -->
 
@@ -725,12 +728,12 @@ int tcp_listen(const char *host, const char *serv, socklen_t *addrlenp) {
   hints.ai_socktype = SOCK_STREAM;
 
   if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
-    err_quit("tcp listen error for %s , %s : %s", host, serv, gai_strerror(n));
+    err_quit("tcp_listen error for %s , %s : %s", host, serv, gai_strerror(n));
 
   ressave = res;
 
   do {
-    listenfd = socket(res->ai_family, res->ai_soai_socktype, res->ai_protocol);
+    listenfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 
     if (listenfd < 0)
       continue; // error, try next one
@@ -824,6 +827,212 @@ int main(int argc, char const *argv[]) {
     Close(connfd);
   }
   return 0;
+}
+```
+
+### udp_client 函数
+udp_client： 用于创建未连接的 UDP 套接字。
+```c
+#include "unp.h"
+
+int udp_client(const char * hostname,const char * service,struct sockaddr ** saptr,socklen_t * lenp);
+
+// 若成功则为未连接套接字描述符，若出错则不返回
+```
+
+该函数返回三项数据。首先，返回值是该套接字的描述符。其次，saptr 是指向某个套接字地质结构的一个指针的地址，该函数把目地地址和端口存放在这个结构中，用于稍后调用 sendto。最后这个套接字地址结构的大小在 lenp 指向的变量中返回。lenp 这个结尾参数不能是一个空指针(而 tcp_listen 允许结尾参数是一个空指针)，因为任何 sendto 和 recvfrom 调用都需要知道套接字地址结构的长度。
+
+该函数的源代码：
+```c
+int udp_client(const char *host, const char *serv, SA **saptr,
+               socklen_t *lenp) {
+  int sockfd, n;
+  struct addrinfo hints, * res, * ressave;
+
+  bzero(&hints, sizeof(struct addrinfo));
+  hints.family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_DGRAM;
+
+  if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
+    err_quit("udp_client erorr for %s, %s : %s", host, serv, gai_strerror(n));
+  ressave = res;
+
+  do {
+    sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (sockfd >= 0)
+      break;
+  } while ((res = res->ai_next) != NULL);
+
+  if (res == NULL)
+    err_sys("udp_client error for %s , %s", host, serv);
+
+  * saptr = Malloc(res->ai_addrlen);
+  memecpy(*saptr, res->ai_addr, res->ai_addrlen);
+  * lenp = res->ai_addrlen;
+
+  freeaddrinfo(ressave);
+
+  return (sockfd);
+}
+```
+
+例子：协议无关时间获取客户程序
+
+```c
+#include "unp.h"
+
+int main(int argc, char const *argv[]) {
+  int sockfd, n;
+  char recvline[MAXLINE + 1];
+  socklen_t salen;
+  struct sockaddr * sa;
+
+  if (argc != 3)
+    err_quit("usage : daytimeudpcli1 <hostname/IPaddress> <service/port#>");
+
+  sockfd = Udp_client(argv[1], argv[2], (void **)&sa, &salen);
+
+  printf("sending to %s\n", Sock_ntop_host(sa, salen));
+
+  Sendto(sockfd, "", 1, 0, sa, salen); // send 1 byte datagram
+
+  n = Recvfrom(sockfd, recvline, MAXLINE, 0, NULL, NULL);
+  recvline[n] = '\0';
+  Fputs(recvline, stdout);
+  return 0;
+}
+```
+
+
+### udp_connect 函数
+
+该函数创建一个已连接 UDP 套接字
+```c
+#include "unp.h"
+
+int udp_connect(const char *hostname,const char * service);
+
+// 返回：若成功则为以连接套接字描述符，若出错则不返回
+```
+
+该函数源代码：
+```c
+int udp_connect(const char *host, const char *serv) {
+  int sockfd, n;
+  struct addrinfo hints, * res, * ressave;
+
+  bzero(&hints, sizeof(struct addrinfo));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_DGRAM;
+
+  if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
+    err_quit("udp_connect error for %s, %s : %s", host, serv, gai_strerror(n));
+
+  ressave = res;
+
+  do {
+    sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+
+    if (sockfd < 0)
+      continue;
+
+    if (connect(sockfd, res->ai_addr, res->ai_addrlen) == 0)
+      break;
+
+    Close(sockfd);
+  } while ((res = res->ai_next) != NULL);
+
+  if (res == NULL)
+    err_sys("udp_connect error for %s, %s ", host, serv);
+
+  freeaddrinfo(ressave);
+
+  return sockfd;
+}
+```
+
+### udp_server 函数
+
+```c
+#include "unp.h"
+
+int udp_server(const char *hostname,const char *service,socklen_t *lenptr);
+
+// 返回：若成功则为以连接套接字描述符，若出错则不返回
+```
+
+该函数的源代码：
+```c
+int udp_server(const char *host, const char *serv, socklen_t *addrlenp) {
+  int sockfd, n;
+  struct addrinfo hints, * res, * ressave;
+
+  bzero(&hints, sizeof(struct addrinfo));
+  hints.ai_flags = AI_PASSIVE;
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_DGRAM;
+
+  if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
+    err_quit("udp_server error for %s, %s : %s", host, serv, gai_strerror(n));
+
+  ressave = res;
+
+  do {
+    sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+
+    if (sockfd < 0)
+      continue;
+
+    if (bind(sockfd, res->ai_addr, res->addrlen)) == 0)
+      break;
+
+    Close(sockfd);
+  } while ((res = res->ai_next) != NULL);
+
+  if (res == NULL)
+    err_sys("udp_server error for %s, %s ", host, serv);
+
+  if (addrlenp)
+    * addrlenp = res->ai_addrlen;
+
+  freeaddrinfo(ressave);
+
+  return sockfd;
+}
+```
+
+例子：协议无关时间获取服务器程序
+
+```c
+#include	"unp.h"
+#include	<time.h>
+
+int
+main(int argc, char **argv)
+{
+	int				sockfd;
+	ssize_t			n;
+	char			buff[MAXLINE];
+	time_t			ticks;
+	socklen_t		len;
+	struct sockaddr_storage	cliaddr;
+
+	if (argc == 2)
+		sockfd = Udp_server(NULL, argv[1], NULL);
+	else if (argc == 3)
+		sockfd = Udp_server(argv[1], argv[2], NULL);
+	else
+		err_quit("usage: daytimeudpsrv [ <host> ] <service or port>");
+
+	for ( ; ; ) {
+		len = sizeof(cliaddr);
+		n = Recvfrom(sockfd, buff, MAXLINE, 0, (SA *)&cliaddr, &len);
+		printf("datagram from %s\n", Sock_ntop((SA *)&cliaddr, len));
+
+		ticks = time(NULL);
+		snprintf(buff, sizeof(buff), "%.24s\r\n", ctime(&ticks));
+		Sendto(sockfd, buff, strlen(buff), 0, (SA *)&cliaddr, len);
+	}
 }
 ```
 
