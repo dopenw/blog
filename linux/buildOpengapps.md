@@ -9,7 +9,6 @@
 	* [Install JDK and set $PATH](#install-jdk-and-set-path)
 	* [Download open Gapps from github](#download-open-gapps-from-github)
 	* [Build arm64-8.1-full](#build-arm64-81-full)
-	* [du -sh opengapps](#du-sh-opengapps)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -65,6 +64,12 @@ cd $opengapps_home
 ./download_sources.sh --shallow arm64
 # will download 20G file  
 ```
+
+```sh
+cd $opengapps_home
+./download_sources.sh arm64
+# will download 66G file  
+```
 * --shallow will order to fetch only the latest snapshot of the APKs (reduces space used and amount of data to be retrieved by git, by not fetching the APKs' history)
 * arch can be one of the following "arm, arm64, x86, x86_64" to fetch only data required for specified architecture (note that fallback architectures will be fetched too)
 
@@ -72,12 +77,6 @@ cd $opengapps_home
 
 ```sh
 make arm64-27-full
-```
-
-## du -sh opengapps
-```sh
-[breap@breap ~]$ du -sh opengapps/
-21G	opengapps/
 ```
 
 ## Link
