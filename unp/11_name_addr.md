@@ -24,6 +24,17 @@
 		* [udp_client 函数](#udp_client-函数)
 		* [udp_connect 函数](#udp_connect-函数)
 		* [udp_server 函数](#udp_server-函数)
+	* [getnameinfo 函数](#getnameinfo-函数)
+	* [可重入函数](#可重入函数)
+	* [gethostbyname_r 和 gethostbyaddr_r 函数](#gethostbyname_r-和-gethostbyaddr_r-函数)
+		* [gethostbyname_r 函数](#gethostbyname_r-函数)
+		* [gethostbyaddr_r 函数](#gethostbyaddr_r-函数)
+	* [作废的 IPV6 地址解析函数](#作废的-ipv6-地址解析函数)
+		* [RES_USE_INET6 常值](#res_use_inet6-常值)
+		* [gethostbyname2 函数](#gethostbyname2-函数)
+		* [getipnodbyname](#getipnodbyname)
+		* [getipnodebyaddr](#getipnodebyaddr)
+	* [其它网络相关信息](#其它网络相关信息)
 
 <!-- /code_chunk_output -->
 
@@ -1036,6 +1047,142 @@ main(int argc, char **argv)
 }
 ```
 
+## getnameinfo 函数
+
+该函数是 getaddrinfo 的互补函数，它以一个函数套接字为参数，返回描述其中的主机的一个字符串和描述其中服务的另一个字符串。该函数以协议无关的方式提供这些信息。
+```c
+#include <netdb.h>
+
+int getnameinfo(const struct sockaddr *sockaddr,socklen_t addrlen,char *host,socklen_t hostlen,char * serv,socklen_t servlen,int flags);
+
+// 返回：若成功则为0，若出错则为非0
+```
+
+sockaddr 指向一个套接字地址结构，其中包含待转换成直观可读的字符串的协议地址，addrlen 是这个结构的长度。
+
+待返回的2个直观可读字符串由调用者预先分配存储空间，host和hostlen指定主机字符串，serv和servlen指定服务字符串。如果调用者不想返回主机字符串，那就指定hostlen为0.同样，把servlen指定为0就是不想返回服务字符串。
+
+sock_ntop 和 getnameinfo 的差别在于，前者不涉及 DNS ，只返回 IP 地址和端口号的一个可显示版本：后者通常尝试获取主机和服务的名字。
+
+6个可指定的标志：
+
+| 常值            | 说明                             |
+|-----------------|----------------------------------|
+| NI_DGRAM        | 数据报服务                       |
+| NI_NAMEREQD     | 若不能从地址解析出名字则返回错误 |
+| NI_NOFQDN       | 只返回 FQDN 的主机名部分         |
+| NI_NUMERICHOST  | 以数串格式返回主机字符串         |
+| NI_NUMERICSCOPE | 以数串格式返回范围标识字符串     |
+| NI_NUMERICSERV  | 以数串格式返回服务字符串         |
+
+NI_NOFQDN 标志导致返回的主机名第一个点号之后的内容截去。
+
+NI_NUMERICHOST 告知 getnameinfo 不要调用 DNS （因为调用 DNS 可能耗时），而是以数值表达式以字符串的形式返回IP地址 （可能通过调用 inet_ntop实现）。类似地， NI_NUMERICSERV 标志指定以十进制数格式作为字符串返回端口号，以代替查找服务名；NI_NUMERICSCOPE 标志指定以数值格式作为字符串返回范围标识，以代替其名字。既然客户的端口号通常没有关联的服务名-它们是临时的端口，服务器通常应该设置 NI_NUMERICSERV 标志。
+
+
+## 可重入函数
+
+查看本章讲解的名字和地址转换函数以及第4章中的 inet_XXX 函数，我们就重入函数提请注意以下几点:
+
+* 因历史原因， gethostbyname,gethostbyname,getservbyname,getservbyport 这4个函数是不可重入的，因为他们都返回指向同一个静态结构的指针
+* inet_pton,inet_ntop 总是可重入的
+* 因历史原因，inet_ntoa 是不可重入的，不过支持线程的一些实现提供了使用线程特定数据的可重入版本
+* getaddrinfo 可重入的前提是它调用的函数都是可重入的，这就是说，他应该调用可重入版本的 gethostbyname 和 getservbyname 。该函数返回的结果全部存放在动态分配内存空间的原因之一就是允许它可重入。
+* getnameinfo 可重入的前提是它调用的函数都是可重入的，这就是说，他应该调用可重入版本的 gethostbyaddr 和  getservbyport
+
+errono 变量存在类似的问题：
+首先因该注意若没有任何错误发生则errno的值不会改变。因此，除非知道发生了一个错误，否则不应该查看 errno 的值。
+
+## gethostbyname_r 和 gethostbyaddr_r 函数
+
+### gethostbyname_r 函数
+
+```c
+int gethostbyname_r(const char *name,
+               struct hostent *ret, char *buf, size_t buflen,
+               struct hostent **result, int *h_errnop);
+
+// 返回：若成功则为非空指针，若出错则为NULL
+```
+
+注意：与书中提供的函数原型不同
+
+### gethostbyaddr_r 函数
+
+```c
+int gethostbyaddr_r(const void *addr, socklen_t len, int type,
+               struct hostent *ret, char *buf, size_t buflen,
+               struct hostent **result, int *h_errnop);
+// 返回：若成功则为非空指针，若出错则为NULL							 
+```
+
+注意：与书中提供的函数原型不同
+
+## 作废的 IPV6 地址解析函数
+
+### RES_USE_INET6 常值
+
+### gethostbyname2 函数
+
+gethostbyname2 函数给 gethostbyname 函数增设了一个地址族参数
+
+```c
+#include <netdb.h>
+#include <sys/socket.h>
+
+struct hostent *gethostbyname2(const char *name, int af);
+// 返回：若成功则为非空指针，若出错则为NULL且设置 h_errno
+```
+
+### getipnodbyname
+
+```c
+#include <sys/socket.h>
+#include <netdb.h>
+
+struct hostent *getipnodebyname(const char *name, int af,int flags, int *error_num);
+
+// 返回：若成功则为非空指针，若出错则为NULL且设置 error_num
+```
+
+### getipnodebyaddr
+
+```c
+#include <sys/socket.h>
+#include <netdb.h>
+
+struct hostent *getipnodebyaddr(const void *addr, size_t len,int af, int *error_num);
+
+// 返回：若成功则为非空指针，若出错则为NULL且设置 error_num
+```
+
+## 其它网络相关信息
+
+我们在本章中一直关注主机名和IP地址以及服务名和端口号。然而我们的视野可以更广阔，应用程序可能想要查找四类与网络相关的信息：主机、网络、协议、服务。
+
+所有四类信息都可以存放在一个文件中，每类信息各定义有三个访问函数：
+* 函数 getXXXent 读出文件中的下一个表项，必要的话首先打开文件。
+* 函数 setXXXent 打开（如果尚未打开的话） 并回绕文件。
+* 函数 endXXXent 关闭文件。
+
+每类信息都定义了各自的结构，包括 hostent,netent,servent . 都由 <netdb.h> 提供
+
+除了顺序处理文件 get、set、end这三个函数外，每类信息还提供一些键值查找函数。这些函数顺序遍历整个文件(通过调用 getXXXent 函数读出每一行)，并寻找与某个参数匹配的一个表项。这些键值查找函数具有形如 getXXXbyYYY 的名字。
+
+四类网络相关信息：
+
+| 信息 | 数据文件       | 结构     | 键值查找函数                    |
+|------|----------------|----------|---------------------------------|
+| 主机 | /etc/hosts     | hostent  | gethostbyaddr,gethostbyname     |
+| 网络 | /etc/networks  | netent   | getnetbyaddr,getnetbyname       |
+| 协议 | /etc/protocols | protoent | getprotobyname,getprotobynumber |
+| 服务 | /etc/services  | servent  | getservbyname,getservbyport     |
+
+在使用 DNS 的前提下如何应用这些函数呢？首先只有主机和网络信息可以通过 DNS 获取，协议和服务信息总是从相应的文件中读取。我们之前有提到过，不同的实现有不同的方法供系统管理员指定是使用 DNS 还是使用文件来查找主机和网络信息。
+
+其次，如果使用DNS查找主机和网络信息，那么只有键值查找函数才有意义。举例来说，你不能使用 gethostent 并期待顺序遍历 DNS 中所有表项。如果调用 gethostent,那么它仅仅读取 /etc/hosts 文件并避免访问 DNS。
+
+注：虽然网络信息可以做成通过 DNS 能够访问到，但是很少有人这么做。
 
 [上一级](base.md)
 [上一篇](8_basic_udp_socket.md)
