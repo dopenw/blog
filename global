@@ -1,6 +1,5 @@
 cpp
 linux
-lua
 mysql
 python
 windows
@@ -10,3 +9,4 @@ other
 java
 unp
 Qt
+system
