@@ -65,4 +65,4 @@ userdel $old_user
 
 [上一级](base.md)
 [上一篇](process.md)
-[下一篇](su_diff_su-.md)
+[下一篇](restoreGRUB2.md)

@@ -85,4 +85,4 @@ _=/usr/bin/printenv
 
 小结：使用这两个命令都可以切换root账户，但是本身切换后的环境变量是不一样的，su切换后的环境变量是切换前用户的环境变量，而su - 切换后的环境变量是root的环境变量
 [上一级](base.md)
-[上一篇](rename_linux_user.md)
+[上一篇](restoreGRUB2.md)
