@@ -67,3 +67,4 @@ pyperclip.paste()
 'Hello world'
 ```
 [上一级](base.md)
+[上一篇](noRootUserInstallPackage.md)
