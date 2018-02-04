@@ -12,4 +12,4 @@ fi
 ```
 [上一级](base.md)
 [上一篇](failsToLoadVirtualBoxKernelModules.md)
-[下一篇](linux.md)
+[下一篇](gnomeUSBError.md)

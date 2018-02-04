@@ -7,6 +7,7 @@
 * ### [自定义fedora桌面环境](custom_desktop_env.md)
 * ### [virtualbox on fedora 27 fails to load virtualbox Kernel Modules](failsToLoadVirtualBoxKernelModules.md)
 * ### [自动编译并运行cpp程序shell脚本](gen_cpp_bin.md)
+* ### [插入U盘、手机等设备，gnome异常退出到登陆界面](gnomeUSBError.md)
 * ### [linux 下遇到的一些问题、](linux.md)
 * ### [进程相关](process.md)
 * ### [更改linux用户名](rename_linux_user.md)

@@ -10,5 +10,5 @@
 
 
 [上一级](base.md)
-[上一篇](gen_cpp_bin.md)
+[上一篇](gnomeUSBError.md)
 [下一篇](process.md)
