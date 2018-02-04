@@ -11,5 +11,5 @@ if [ $(echo $?) -eq 0 ];then
 fi
 ```
 [上一级](base.md)
-[上一篇](failsToLoadVirtualBoxKernelModules.md)
+[上一篇](fedoraInstallCinnamonDesktop.md)
 [下一篇](gnomeUSBError.md)
