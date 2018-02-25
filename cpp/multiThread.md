@@ -46,7 +46,7 @@
 
 ## 高级接口：async()和future
 
-* async()提供了一个接口，让一段机能（a piece of functionality）或者说是一个callable object若是可能的化在后台运行，成为一个独立线程。
+* async()提供了一个接口，让一段机能（a piece of functionality）或者说是一个callable object若是可能的话在后台运行，成为一个独立线程。
 * class future<>允许你等待线程结束并获取其结果（一个返回值，或者也许是一个异常）。
 
 ```c++
@@ -287,7 +287,7 @@ thread() vs async() :
 * 没有接口可处理线程结果(std::future_status::deferred,std::future_status::timeout,std::future_status::ready).唯一可以获得的是一个独一无二的线程ID
 * 如果发生异常，但未被捕获于线程之内，程序会立刻中止并调用std::terminate()。若向将异常传播至线程外的某个context，必须使用exception_ptr
 * 你必须使用join()或者detach().如果你在thread object 寿命结束前不这么做，或如果它发生了一次move assignment,程序会中止并调用std::terminate()
-* 如果你让线程运行与后台而main()结束了，所有线程会被鲁莽而硬性的终止
+* 如果你让线程运行于后台而main()结束了，所有线程会被鲁莽而硬性的终止
 
 ```c++
 #include <chrono>
@@ -365,7 +365,7 @@ t.get_id();
 |this_thread::sleep_until(tp)|将某个线程阻塞直到时间点tp
 |this_thread::yield()|让下一个线程能够执行
 
-函数this_thread::yield()用来告诉系统，放弃当前线程的时间切片余额，这将石运行环境得以重新调度以便允许其他线程执行。
+函数this_thread::yield()用来告诉系统，放弃当前线程的时间切片余额，这将使运行环境得以重新调度以便允许其他线程执行。
 
 “放弃控制-yield()”的典型的例子：
 1. 当等待或轮询另一线程，或等待或轮询“某个atomic flag被另一线程设定”：
@@ -634,7 +634,7 @@ if(m.try_lock_for(std::chrono::seconds(1)))
 	std::lock_guard<std::timed_mutex> lg(m,std::adopt_lock);
 	...
 }
-else调用
+else
 {
 	couldNotGetTheLock();
 }
@@ -775,7 +775,7 @@ void thread2()
 ```
 
 #### 只调用一次
-有时候某些机能初次被某个线程使用过后，其他线程再也不需要它。在多线程环境下，可以这样：只需使用一个std::once_flag以及调用[std::call_once](http://en.cppreference.com/w/cpp/thread/call_once)(也由<mutex>提供)
+有时候某些机能初次被某个线程使用过后，其他线程再也不需要它。在多线程环境下，可以这样：只需使用一个std::once_flag以及调用[std::call_once](http://en.cppreference.com/w/cpp/thread/call_once)(也由\<mutex\>提供)
 ```c++
 std::once_flag oc;
 static std::vector<std::string> staticData;
@@ -784,8 +784,8 @@ void foo()
 {
 	static std::once_flag oc;
 	std::call_once(oc,[]{
-											staticData=initializeStaticData();
-										});
+						staticData=initializeStaticData();
+						});
 ...
 }
 ```
