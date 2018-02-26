@@ -1,5 +1,17 @@
 # wxWidget
 
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+<!-- code_chunk_output -->
+
+* [wxWidget](#wxwidget)
+	* [在linux下编译安装 wxWidget](#在linux下编译安装-wxwidget)
+	* [hello world example](#hello-world-example)
+	* [Link](#link)
+
+<!-- /code_chunk_output -->
+
+
 [wxWidget](https://www.wxwidgets.org/)
 
 wxWidget，是一个跨平台的标准的C++库，和Qt一样庞大。它的语法看上去和MFC类似，有大量的宏。据说，一个MFC程序员可以很容易的转换到wxWidget上面来。wxWidget有一个很大的优点，就是它的界面都是原生风格的。这是其他的库所不能做到的。wxWidget的运行效率很高，据说在Windows平台上比起微软自家的MFC也不相上下。[原文链接](http://blog.51cto.com/devbean/193918)
@@ -18,7 +30,8 @@ wxWidget，是一个跨平台的标准的C++库，和Qt一样庞大。它的语�
 ## hello world example
 
 test.cpp:
-```cpp
+
+```c++
 // wxWidgets "Hello World" Program
 // For compilers that support precompilation, includes "wx/wx.h".
 #include <wx/wxprec.h>
@@ -94,10 +107,20 @@ Running wxWidgets projects:
 ```sh
 ./test:error while loading shared libraries: libwx_baseu-3.0.so.0: cannot open shared object file: No such file or directory
 ```
-出现该错误的解决办法：
-```export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/breap/software/wxWidget/lib```
+出现该错误的解决办法:
+
+```sh
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/breap/software/wxWidget/lib
+```
 
 Run it:
+
 ![](../images/wxWidget_201802261940_1.png)
+
+## Link
+
+[Compiling and getting started](https://wiki.wxwidgets.org/Compiling_and_getting_started)
+
+
 [上一级](base.md)
 [上一篇](vir_del.md)
