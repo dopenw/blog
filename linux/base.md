@@ -1,5 +1,6 @@
 # Categories linux
 * ## [home](../README.md)
+* ### [fedora install boostnote](boostnote.md)
 * ### [Build openGapps from github](buildOpengapps.md)
 * ### [理解chroot](chroot.md)
 * ### [linux实用命令集合](command.md)

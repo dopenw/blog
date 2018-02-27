@@ -89,4 +89,5 @@ make arm64-27-full
 
 [opengapps github](https://github.com/opengapps/opengapps)
 [上一级](base.md)
+[上一篇](boostnote.md)
 [下一篇](chroot.md)
