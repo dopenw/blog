@@ -34,4 +34,4 @@ export no_proxy=localhost
 6. proxy 支持过滤规则
 
 [上一级](base.md)
-[上一篇](shadowsocksOptimize.md)
+[上一篇](skip_opengapps_init.md)

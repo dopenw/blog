@@ -120,4 +120,4 @@ In this environment: aes better than chacha20
 [link2](https://github.com/iMeiji/shadowsocks_install/wiki/shadowsocks-optimize)
 [上一级](base.md)
 [上一篇](openresty_test.md)
-[下一篇](ss_privoxy.md)
+[下一篇](skip_opengapps_init.md)
