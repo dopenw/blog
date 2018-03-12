@@ -35,3 +35,4 @@ export no_proxy=localhost
 
 [上一级](base.md)
 [上一篇](skip_opengapps_init.md)
+[下一篇](xiaomiMini.md)
