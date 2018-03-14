@@ -208,6 +208,12 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
+Run it:
+```sh
+Following is Breadth First Traversal (starting from vertex 2)
+2 0 3 1
+```
+
 [geeksforgeeks.org/breadth-first-traversal-for-a-graph](https://www.geeksforgeeks.org/breadth-first-traversal-for-a-graph/)
 
 算法导论上的伪代码：
