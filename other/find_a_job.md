@@ -150,7 +150,37 @@ int main(int argc, char const *argv[]) {
   return 0;
 }
 ```
+9.下列两个程序的输出结果
+```c++
+#include <iostream>
 
+char * test() {
+  char * p = "hello world";
+  return p;
+}
+
+int main(int argc, char const *argv[]) {
+  std::cout << test() << '\n';
+  return 0;
+}
+```
+该程序能够正常输出 “hello world”
+
+```c++
+#include <iostream>
+
+char *test() {
+  char p[] = "hello";
+  return p;
+}
+
+int main(int argc, char const *argv[]) {
+  std::cout << test() << '\n';
+  return 0;
+}
+```
+
+程序正常运行，但只有输出一个换行符
 
 [上一级](base.md)
 [上一篇](fedoraInstallSS.md)
