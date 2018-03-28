@@ -24,6 +24,12 @@
 		* [msgrcv 函数](#msgrcv-函数)
 		* [消息队列示例](#消息队列示例)
 		* [消息队列的用途](#消息队列的用途)
+	* [共享存储](#共享存储)
+		* [shmget 函数](#shmget-函数)
+		* [shmctl 函数](#shmctl-函数)
+		* [shmat 函数](#shmat-函数)
+		* [shmdt 函数](#shmdt-函数)
+		* [共享存储示例](#共享存储示例)
 
 <!-- /code_chunk_output -->
 
@@ -239,7 +245,7 @@ int main(int argc, char const *argv[]) {
 
 ## FIFO
 
-FIFI 有时被称为命名管道。未命名的管道只能在两个相关的进程之间使用，而且这两个相关的进程还要有一个共同创建了他们的祖先进程。但是，通过 FIFO ，不相关的进程也能够交换数据。
+FIFO 有时被称为命名管道。未命名的管道只能在两个相关的进程之间使用，而且这两个相关的进程还要有一个共同创建了他们的祖先进程。但是，通过 FIFO ，不相关的进程也能够交换数据。
 
 FIFO 是一种文件类型。通过 [stat 结构](https://linux.die.net/man/2/stat) 的 st_mode 成员的编码可以知道文件是否是 FIFO 类型。可以用 S_ISFIFO 宏对此进行测试
 
@@ -605,6 +611,170 @@ Run it:
 参考原文链接：
 * [使用消息队列的 10 个理由](https://www.oschina.net/translate/top-10-uses-for-message-queue)
 * [top-10-uses-for-message-queue](https://blog.iron.io/top-10-uses-for-message-queue/)
+
+## 共享存储
+
+共享存储允许两个或多个进程共享一个给定的存储区。因为数据不需要在客户进程和服务器进程之间复制，所以这是最快的一种 IPC 。使用共享存储时要掌握的唯一窍门是：在多个进程之间 “同步” 访问一个给定的存储区。通常，可以使用信号量、记录锁、互斥量来同步共享存储访问。
+
+内核为每个共享存储段维护着一个结构，该结构至少要为每个共享存储段包含以下成员：
+
+```c
+struct shmid_ds{
+	struct ipc_perm shm_perm;
+	size_t shm_segsz; // size of segment in bytes
+	pid_t shm_lpid; //pid of last shmop()
+	pid_t shm_cpid; //pid of creator
+	shmatt_t shm_nattch; // number of current attaches
+	time_t shm_atime; //last-attach time
+	time_t shm_dtime; //last-detach time
+	time_t shm_ctime; //last-change time
+}
+```
+
+### shmget 函数
+
+它获得一个共享存储标识符
+
+```c
+#include <sys/shm.h>
+int shmget(key_t key,size_t size,int flag);
+
+// if success return 共享存储 ID,else return -1
+```
+
+参数 size 是该共享存储段的长度，以字节为单位。实现通常为向上取为系统页长的整倍数。但是，若应用指定的size值并非系统页长的整倍数，那么最后一页的余下部分是不可使用的。如果正在创建一个新段，则必须指定其 size。如果正在引用一个现存的段，则将 size 指定为 0。当创建一个新段时，段内的内容初始化为 0。
+
+
+### shmctl 函数
+该函数对共享存储段执行多种操作。
+
+```c
+#include <sys/shm.h>
+
+int shmctl(int shmid,int cmd,struct shmid_ds *buf);
+
+//if success return 0,else return -1
+```
+
+cmd 参数指定下列 5 种命令中的一种，使其在 shmid 指定的段上执行：
+
+* IPC_STAT
+* IPC_SET
+* IPC_RMID
+* LINUX 和 Solaris 提供了另外两种命令，但他们并非 Single UNIX Specification 的组成部分：
+* SHM_LOCK 在内存中对共享存储段加锁。此命令只能由超级用户执行
+* SHM_UNLOCK 解锁共享存储段。此命令只能由超级用户执行
+
+IPC_SET,IPC_STAT,IPC_RMID 类似 消息队列中cmd参数的说明，这里就不说明了。
+
+### shmat 函数
+
+一旦创建了一个共享存储段，进程就可调用 shmat 将其连接到它的地址空间中。
+
+```c
+#include <sys/shm.h>
+
+void * shmat(int shmid,const *addr,int flag);
+
+// 若成功，返回指向共享存储段的指针；若出错，返回 -1
+```
+
+共享存储段连接到调用进程的哪个地址上于 addr 参数以及 flag 中是否指定 SHM_RND 位有关。
+
+* 如果 addr 为 0，则此段连接到由内核选择的第一个可用地址上。这是推荐的使用方式。
+* 如果 addr 非 0，并且没有指定 SHM_RND ，则此段连接到 addr 所指定的地址上
+* 如果 addr 非 0， 并且指定了 SHM_RND ，则此段连接到 （addr -(addr mod SHMLBA)）。 SHM_RND 命令的意思是 “取整”。SHMLBA 的意思是 “底边界地址倍数”，它总是 2 的乘方。该算式是将地址向下取最近 1 个 SHMLBA 的倍数。
+
+除非只计划在一种硬件上运行程序，否则不应指定共享存储段所连接到的地址。而是应该指定 addr 为 0，以便由系统选择地址。
+
+如果在 flag 中指定了 SHM_RDONLY 位，则以只读方式连接此段，否则以读写方式连接此段。
+
+如果 shmat 成功执行，那么内核将使与该共享存储段相关的 shmid_ds 结构中的 shm_nattch 计数器值加 1 。
+
+### shmdt 函数
+
+当对共享存储段的操作已经结束时，则调用 shmdt 与该段分离。注意，这并不从系统中删除其标识符以及其相关的数据结构。该标识符仍然存在，直至某个进程 （一般是服务器进程） 带 IPC_RMID 命令的调用 shmctl 特地删除它为止。
+
+```c
+#include <sys/shm.h>
+
+int shmdt(const void *addr);
+
+// if success return 0,else return -1
+```
+
+addr 参数是以前调用 shmat 时的返回值。如果成功，shmdt 将使相关 shmid_ds 结构中的 shm_nattch 计数器值减 1。
+
+
+### 共享存储示例
+
+```c++
+// SHARED MEMORY FOR WRITER PROCESS
+#include <iostream>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdio.h>
+using namespace std;
+
+int main()
+{
+    // ftok to generate unique key
+    key_t key = ftok("shmfile",65);
+
+    // shmget returns an identifier in shmid
+    int shmid = shmget(key,1024,0666|IPC_CREAT);
+
+    // shmat to attach to shared memory
+    char *str = (char*) shmat(shmid,(void*)0,0);
+
+    cout<<"Write Data : ";
+    gets(str);
+
+    printf("Data written in memory: %s\n",str);
+
+    //detach from shared memory
+    shmdt(str);
+
+    return 0;
+}
+```
+
+```c++
+// SHARED MEMORY FOR READER PROCESS
+#include <iostream>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdio.h>
+using namespace std;
+
+int main()
+{
+    // ftok to generate unique key
+    key_t key = ftok("shmfile",65);
+
+    // shmget returns an identifier in shmid
+    int shmid = shmget(key,1024,0666|IPC_CREAT);
+
+    // shmat to attach to shared memory
+    char *str = (char*) shmat(shmid,(void*)0,0);
+
+    printf("Data read from memory: %s\n",str);
+
+    //detach from shared memory
+    shmdt(str);
+
+    // destroy the shared memory
+    shmctl(shmid,IPC_RMID,NULL);
+
+    return 0;
+}
+```
+
+![](../images/IPC_201803281948_1.png)
+
+[geeksforgeeks.org/ipc-shared-memory](https://www.geeksforgeeks.org/ipc-shared-memory/)
+
+[Boost shared memory C++](http://www.boost.org/doc/libs/1_54_0/doc/html/interprocess/sharedmemorybetweenprocesses.html)
 
 [上一级](base.md)
 [下一篇](pthread.md)
