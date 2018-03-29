@@ -30,6 +30,18 @@
 		* [shmat 函数](#shmat-函数)
 		* [shmdt 函数](#shmdt-函数)
 		* [共享存储示例](#共享存储示例)
+	* [XSI 信号量](#xsi-信号量)
+	* [POSIX 信号量](#posix-信号量)
+		* [sem_open 函数](#sem_open-函数)
+		* [sem_close 函数](#sem_close-函数)
+		* [sem_unlink 函数](#sem_unlink-函数)
+		* [sem_wait、sem_trywait 函数](#sem_wait-sem_trywait-函数)
+		* [sem_timedwait 函数](#sem_timedwait-函数)
+		* [sem_post 函数](#sem_post-函数)
+		* [sem_init 函数](#sem_init-函数)
+		* [sem_destory 函数](#sem_destory-函数)
+		* [sem_getvalue 函数](#sem_getvalue-函数)
+		* [POSIX 信号量示例](#posix-信号量示例)
 
 <!-- /code_chunk_output -->
 
@@ -775,6 +787,221 @@ int main()
 [geeksforgeeks.org/ipc-shared-memory](https://www.geeksforgeeks.org/ipc-shared-memory/)
 
 [Boost shared memory C++](http://www.boost.org/doc/libs/1_54_0/doc/html/interprocess/sharedmemorybetweenprocesses.html)
+
+## XSI 信号量
+
+信号量与 管道、FIFO、消息队列 不同。它是一个计数器，用于为多个进程提供对共享数据的访问
+
+为了获得共享资源，进程需要执行下列操作：
+1. 测试控制该资源的信号量
+2. 若此信号量的值为正，则进程可以使用该资源。在这种情况下，进程会将信号量值减 1 ，表示它使用了一个资源单位。
+3. 否则，若此信号量的值为 0 ，则进程进入休眠状态，直至信号量值大于 0 。进程被唤醒后，它返回至步骤 1。
+
+当进程不再使用由一个信号量控制的共享资源时，该信号量值增  1。如果由进程正在休眠等待此信号量，则唤醒它们。
+
+为了正确实现信号量，信号量值的测试及减 1 操作应当时原子操作。为此，信号量通常时在内核中实现的。
+
+常用的信号量形式称为 二元信号量。它控制单个资源，其初始值为 1 。但是，一般而言，信号量的初值可以是任意一个正值，该值表明了由多个共享资源单位可供共享应用。
+
+暂时不详细说明 XSI 信号量。
+
+## POSIX 信号量
+
+POSIX 信号量接口意在解决 XSI 信号量接口的几个缺陷：
+* 相比 XSI 接口，POSIX 信号量接口考虑到更高性能的实现。
+* POSIX 信号量接口使用更简单。
+* POSIX 信号量在删除时表现更完美。
+
+POSIX 信号量有两种形式：
+* 命名的信号量
+* 未命名的信号量
+* 它们的差异性在与创建和销毁的形式上，但其他工作一样。未命名信号量只存在于内存中，并要求能使用信号量的进程必须可以访问内存。这意味着他们只能应用在同一进程中的线程，或者不同进程中已经映射相同内存内容到他们的地址空间中的线程。相反，命名信号量可以通过名字访问，因此可以被任何已知他们名字的进程中的线程使用。
+
+### sem_open 函数
+
+创建一个新的命名信号量或者使用一个现有信号量
+
+```c
+#include <semaphore.h>
+
+sem_t *sem_open(const char *name,int oflag, ...
+ /* mode_t mode ,unsigned int value */);
+
+ // 若成功，返回指向信号量的指针；若出错，返回 SEM_FAILED
+```
+
+* 当使用一个现有的命名信号量时，我们仅仅指定两个参数： name , oflag 参数的 0 值。当这个 oflag 参数有 O_CREAT 标志集时，如果命名信号量不存在，则创建一个新的。如果它已经存在，则会被使用，但是不会有额外的初始化发生。
+
+* 当我们指定 O_CREAT 标志时，需要提供两个额外的参数。 mode 参数指定权限（同打开文件文件的权限位）。赋值给信号量的权限可以被调用者的文件创建屏蔽字修改。注意，只有读和写访问要紧，但是当我们打开一个现有信号量时接口不允许指定模式。实现经常为读和写打开信号量。
+
+* value 参数用来指定信号量的初始值，取值 0 ～ SEM_VALUE_MAX
+* 如果我们想确保创建的时信号量，可以设置 oflag 为 O_CREAT | O_EXCL.如果信号量已经存在，会导致 sem_open 失败
+
+为了增加可移植性，在选择信号量命名时必须遵循一定的规则：
+* 名字的第一个字符应该为 “/”
+* 名字不应包含其他斜杠以此避免实现定义的行为。例如，若文件系统被使用了，"/mysem" 和 "//mysem" 会被认为时同一文件名，当若实现没有实现文件系统，那么这两种命名可以被认为是不同的。
+* 信号量名字的最大长度是实现定义的。
+
+### sem_close 函数
+
+用来释放任何信号量相关的资源。
+
+```c
+#include <semaphore.h>
+
+int sem_close(sem_t *sem);
+
+// if success return 0,else return -1
+```
+
+如果进程没有首先调用 sem_close 而退出，那么内核将自动关闭任何打开的信号量。注意，这并不会影响信号量值的状态。若首先调用 sem_close ,信号量也不会受到影响。
+
+### sem_unlink 函数
+删除信号量的名字。如果没有打开的信号量引用，则该信号量会被销毁。否则，销毁将延迟到最后一个打开的引用关闭。
+
+```c
+#include <semaphore.h>
+
+int sem_unlink(const char *name);
+
+// if success return 0,else return -1
+```
+
+### sem_wait、sem_trywait 函数
+
+使用这两个函数实现信号量的减 1 操作。
+```c
+#include <semaphore.h>
+
+int sem_trywait(sem_t *sem);
+int sem_wait(sem_t *sem);
+
+// if success return 0,else return -1
+```
+
+使用 sem_wait 函数，若信号量计数是 0 就会发生阻塞。知道成功使信号量减 1 或者被信号中断时才返回。可以使用 sem_trywait 函数来避免阻塞。调用 sem_trywait 时，若信号量是 0 ，则不会阻塞，而是会返回 -1 并将 errno 设置为 EAGAIN。
+
+### sem_timedwait 函数
+
+阻塞一段确定的时间。
+
+```c
+#include <semaphore.h>
+
+int sem_timedwait(sem_t *restrict sem,const struct timespec * restrict tsptr);
+
+// if success return 0,else return -1
+```
+
+想要放弃等待信号量的时候，可以用 tsptr 参数指定绝对时间，超时是基于 CLOCK_REALTIME 时钟的。若超时到期并且信号量计数没能减 1 ，该函数将返回 -1 且将 errno 设置为 ETIMEDOUT。
+
+### sem_post 函数
+
+使信号量值加 1 。
+
+```c
+#include <semaphore.h>
+
+int sem_post(sem_t *sem);
+// if success return 0,else return -1
+```
+
+调用 sem_post 时，如果调用 sem_wait (or sem_timedwait) 中发生进程阻塞，那么进程会被唤醒并且被 sem_post 增 1 的信号量计数会再次被 sem_wait(or sem_timedwait) 减 1。
+
+### sem_init 函数
+
+当我们想在单个进程中使用 POSIX 信号量时，使用未命名信号量更容易。这仅仅改变创建和销毁信号量的方式。
+
+可以调用 sem_init 函数来创建一个未命名的信号量。
+
+```c
+#include <semaphore.h>
+
+int sem_init(sem_t * sem,int pshared,unsigned int value);
+
+// if success return 0,else return -1
+```
+
+pshared 参数表明是否在多个进程中使用信号量。如果是，将其设置为一个非 0 的值。 value 参数指定了信号量的初始值。
+
+需要声明一个 sem_t 类型的变量并把它的地址传递给 sem_init 来实现初始化。若要在两个进程之间使用信号量，需要确保 sem 参数指向两个进程之间共享的内存范围。
+
+### sem_destory 函数
+
+对未命名信号量的使用已经完成时，可以调用 sem_destory 函数丢弃它。
+
+```c
+#include <semaphore.h>
+
+int sem_destory(sem_t *sem);
+
+// if success return 0,else return -1
+```
+
+调用 sem_destory 后，不能在使用任何带有 sem 的信号量函数，除非通过调用 sem_init 重新初始化。
+
+### sem_getvalue 函数
+可以用来检索信号量值。
+
+```c
+#include <semaphore.h>
+
+int sem_getvalue(sem_t *restrict sem,int *restrict valp);
+
+// if success return 0,else return -1
+```
+
+成功后， valp 指向的整数值将包含信号量值。但是请注意，我们试图使用我们刚读出来的值的时候，信号量克的值可能已经变了。除非使用额外的同步机制来避免这种竞争，否则 sem_getvalue 函数只能用于调试。
+
+### POSIX 信号量示例
+
+```c++
+#include <iostream>
+#include <semaphore.h>
+#include <thread>
+#include <unistd.h>
+
+sem_t mutex;
+
+void fun() {
+  // wait
+  sem_wait(&mutex);
+
+  std::cout << "\nEntered .. " << '\n';
+
+  sleep(4);
+
+  std::cout << "\nJust Exiting .. " << '\n';
+  sem_post(&mutex);
+}
+
+int main(int argc, char const *argv[]) {
+  sem_init(&mutex, 0, 1);
+  std::thread t1(fun);
+  sleep(2);
+  std::thread t2(fun);
+  t1.join();
+  t2.join();
+  sem_destroy(&mutex);
+  return 0;
+}
+```
+
+Run  it:
+```sh
+[breap@breap IPC]$ ./semaphore
+
+Entered ..
+
+Just Exiting ..
+
+Entered ..
+
+Just Exiting ..
+```
+
+[geeksforgeeks.org/use-posix-semaphores-c](https://www.geeksforgeeks.org/use-posix-semaphores-c/)
+
 
 [上一级](base.md)
 [下一篇](pthread.md)
