@@ -1,5 +1,6 @@
 # Categories other
 * ## [home](../README.md)
+* ### [利用 Fusion App 创建个人blog安卓客户端](UseFusionAppCreateBlogApp.md)
 * ### [Atom](atom.md)
 * ### [安装配置hadoop httpfs](config_hadoop_httpfs.md)
 * ### [docker 使用记录（读docker实践记）](docker.md)
