@@ -2,6 +2,7 @@
 * ## [home](../README.md)
 * ### [STL](STL.md)
 * ### [Clock 和 Timer](chrono.md)
+* ### [判断浮点数是否相等](compareDoubleFloat.md)
 * ### [const限定符](const.md)
 * ### [将string转换为char指针](conv_string_to_char_pointer.md)
 * ### [设计模式](design_patterns.md)
