@@ -9,6 +9,7 @@
 	* [basic Assertions](#basic-assertions)
 	* [Binary Comparison](#binary-comparison)
 	* [String Comparison](#string-comparison)
+	* [Floating-Point Comparison](#floating-point-comparison)
 	* [create test project](#create-test-project)
 	* [run test project](#run-test-project)
 	* [run gtest sample unit test](#run-gtest-sample-unit-test)
@@ -50,6 +51,27 @@ ASSERT_STRNE(str1,str2);|	EXPECT_STRNE(str1,str2);	|the two C strings have diffe
 ASSERT_STRCASEEQ(str1,str2);|	EXPECT_STRCASEEQ(str1,str2);	|the two C strings have the same content, ignoring case
 ASSERT_STRCASENE(str1,str2);|	EXPECT_STRCASENE(str1,str2);	|the two C strings have different content, ignoring case
 
+## Floating-Point Comparison
+
+Due to round-off errors, it is very unlikely that two floating-points will match exactly. Therefore, ASSERT_EQ 's naive comparison usually doesn't work.
+
+| Fatal assertion | Nonfatal assertion     |  Verifies |
+| :------------- | :------------- | -|
+| ASSERT_FLOAT_EQ(val1,val2)       | EXPECT_FLOAT_EQ(val1,val2)       |  the two float values are almost equal |
+| ASSERT_DOUBLE_EQ(val1,val2) | EXPECT_DOUBLE_EQ(val1,val2) | the two values are almost equal |
+
+The following assertions allow you to choose the acceptable error bound:
+
+| **Fatal assertion** | **Nonfatal assertion** | **Verifies** |
+|:--------------------|:-----------------------|:-------------|
+| `ASSERT_NEAR(`_val1, val2, abs\_error_`);` | `EXPECT_NEAR`_(val1, val2, abs\_error_`);` | the difference between _val1_ and _val2_ doesn't exceed the given absolute error |
+
+[Floating-Point Comparison](https://github.com/google/googletest/blob/master/googletest/docs/AdvancedGuide.md#floating-point-macros)
+
+[Error with EXPECT_EQ for sum of double or float
+](https://stackoverflow.com/questions/15128510/error-with-expect-eq-for-sum-of-double-or-float)
+
+
 ## create test project
 
 ```c++
@@ -69,14 +91,14 @@ double squareRoot(const double a) {
 }
 
 TEST(SquareRootTest, PositiveNos) {
-  EXPECT_EQ(18.0, squareRoot(324.0));
-  EXPECT_EQ(25.4, squareRoot(645.16));
-  ASSERT_EQ(50.3321, squareRoot(2533.310224));
+	EXPECT_DOUBLE_EQ(18.0, squareRoot(324.0));
+	EXPECT_DOUBLE_EQ(25.4, squareRoot(645.16));
+	ASSERT_DOUBLE_EQ(50.3321, squareRoot(2533.310224));
 }
 
 TEST(SquareRootTest, NegativeNos) {
-  ASSERT_EQ(-1.0, squareRoot(-16.0));
-  ASSERT_EQ(-1.0, squareRoot(-0.2));
+	ASSERT_DOUBLE_EQ(-1.0, squareRoot(-16.0));
+  ASSERT_DOUBLE_EQ(-1.0, squareRoot(-0.2));
 }
 TEST(i, j) { ASSERT_TRUE(false); }
 
@@ -93,22 +115,25 @@ g++ test.cpp -lpthread -lgtest  -o test
 ```
 运行结果：
 ```sh
+[breap@breap cpp]$ ./test
 [==========] Running 3 tests from 2 test cases.
 [----------] Global test environment set-up.
 [----------] 2 tests from SquareRootTest
 [ RUN      ] SquareRootTest.PositiveNos
-test.c:19: Failure
+test.cpp:19: Failure
       Expected: 50.3321
+      Which is: 50.332099999999997
 To be equal to: squareRoot(2533.310224)
-      Which is: 50.332
+      Which is: 50.332000000000001
 [  FAILED  ] SquareRootTest.PositiveNos (0 ms)
 [ RUN      ] SquareRootTest.NegativeNos
+
 [       OK ] SquareRootTest.NegativeNos (0 ms)
 [----------] 2 tests from SquareRootTest (0 ms total)
 
 [----------] 1 test from i
 [ RUN      ] i.j
-test.c:26: Failure
+test.cpp:26: Failure
 Value of: false
   Actual: false
 Expected: true
@@ -116,7 +141,7 @@ Expected: true
 [----------] 1 test from i (0 ms total)
 
 [----------] Global test environment tear-down
-[==========] 3 tests from 2 test cases ran. (0 ms total)
+[==========] 3 tests from 2 test cases ran. (1 ms total)
 [  PASSED  ] 1 test.
 [  FAILED  ] 2 tests, listed below:
 [  FAILED  ] SquareRootTest.PositiveNos
@@ -126,6 +151,7 @@ Expected: true
 ```
 
 [gtest doc](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
+
 [gtest quick introduction](https://www.ibm.com/developerworks/aix/library/au-googletestingframework.html#list1)
 
 
