@@ -8,6 +8,7 @@
 	* [Atom 简介](#atom-简介)
 	* [优秀的插件](#优秀的插件)
 		* [atom-beautify](#atom-beautify)
+		* [ask-stack](#ask-stack)
 		* [atom-clock](#atom-clock)
 		* [atom-html-preview](#atom-html-preview)
 		* [goto-definition](#goto-definition)
@@ -23,6 +24,7 @@
 		* [file-icons](#file-icons)
 		* [docblockr](#docblockr)
 		* [highlight-line](#highlight-line)
+	* [设置代理](#设置代理)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -48,6 +50,13 @@ atom-beautify 是一个代码美化工具，可以让你保存代码时美化代
 需要安装 clang-format :
 * 下载 [LLVM](http://releases.llvm.org/download.html)
 * 将上一步中下载好的 Pre-Built Binaries 里面的 bin/clang-format 拷贝到相应的路径下(取决于 atom-beautify 设置里面的执行文件路径)
+
+### ask-stack
+
+The [Ask Stack](https://atom.io/packages/ask-stack) Overflow package allows you to quickly search Stack Overflow and get code samples directly in the Atom editor. To use, simply type ```ctrl + alt + a``` or type “Ask Stack” in the Command Palette.
+
+![](https://i.github-camo.com/8498f81330c46a879f51af467c8b7fba808f87c6/68747470733a2f2f692e696d6775722e636f6d2f796e5a6c4f41542e676966)
+
 
 ### atom-clock
 [atom-clock](https://atom.io/packages/atom-clock)
@@ -157,11 +166,17 @@ Assign file extension icons and colours for improved visual grepping
 
 Highlights the current line in the editor
 
+## 设置代理
+
+```sh
+apm config set https-proxy http://127.0.0.1:8118
+```
+
 ## Link
 
 [开发神器Atom编辑器优秀插件推荐](https://blog.wangjunfeng.com/archives/647)
-
-
+[The 20 Best Atom Packages for Front End Developers](https://www.shopify.com/partners/blog/best-atom-packages-2017)
+[Installing Atom](https://flight-manual.atom.io/getting-started/sections/installing-atom/)
 
 
 [上一级](base.md)
