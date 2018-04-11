@@ -7,10 +7,14 @@
 	* [活动选择问题](#活动选择问题)
 		* [递归贪心算法](#递归贪心算法)
 		* [迭代贪心算法](#迭代贪心算法)
+		* [代码实现](#代码实现)
 	* [贪心算法原理](#贪心算法原理)
 		* [贪心选择性质](#贪心选择性质)
 		* [最优子结构](#最优子结构)
 		* [贪心 VS 动态规划](#贪心-vs-动态规划)
+	* [赫夫曼编码](#赫夫曼编码)
+		* [构造赫夫曼编码](#构造赫夫曼编码)
+		* [构造赫夫曼编码代码实现](#构造赫夫曼编码代码实现)
 
 <!-- /code_chunk_output -->
 
@@ -130,7 +134,136 @@ Run it:
 
 两个背包问题都具有最优子结构性质。对于 0-1 背包问题，只能使用动态规划；分数背包问题使用贪心算法更为合适。
 
+## 赫夫曼编码
 
+赫夫曼编码可以很有效地压缩数据：通常可以节省 20%～90% 的空间，具体压缩率依赖于数据的特性。我们将待压缩数据看做字符序列。根据每个字符的出现频率，赫夫曼贪心算法构造出字符的最优二进制表示。
+
+下图给出了文件中所出现的字符和他们出现频率。
+
+|              | a   | b   | c   | d   | e    | f    |
+|--------------|-----|-----|-----|-----|------|------|
+| 频率（千次） | 45  | 13  | 12  | 16  | 9    | 5    |
+| 定长编码     | 000 | 001 | 010 | 011 | 100  | 101  |
+| 变长编码     | 0   | 101 | 100 | 111 | 1101 | 1100 |
+
+二叉树表示：
+
+![](../images/GreedyAlgorithms_201804111951_1.png)
+
+### 构造赫夫曼编码
+
+![](../images/GreedyAlgorithms_201804111951_2.png)
+
+图示：
+
+![](../images/GreedyAlgorithms_201804111951_3.png)
+
+### 构造赫夫曼代码实现
+
+```c++
+#include <iostream>
+#include <queue>
+
+struct node {
+  node(char k, long long v) {
+    count = v;
+    key = k;
+    left = nullptr;
+    right = nullptr;
+  }
+  node * left;
+  node * right;
+  long long count;
+  char key;
+};
+
+struct customComp {
+  bool operator()(node * a, node * b) { return a->count > b->count; }
+};
+
+std::priority_queue<node *, std::vector<node *>, customComp> priorityQueue;
+
+char key[6] = {'a', 'b', 'c', 'd', 'e', 'f'};
+int value[6] = {45, 13, 12, 16, 9, 5};
+
+void createNode() {
+  for (size_t i = 0; i < 6; i++) {
+    node * tmp = new node(key[i], value[i]);
+    priorityQueue.push(tmp);
+  }
+}
+
+void printTree(node *root, std::vector<bool> bin) {
+  if (root != nullptr) {
+    bin.push_back(0);
+    printTree(root->left, bin);
+    bin.pop_back();
+    bin.push_back(1);
+    printTree(root->right, bin);
+    bin.pop_back();
+    if (root->left == nullptr && root->right == nullptr) {
+      std::cout << "key: " << root->key << ",huffman: ";
+      for (auto i : bin) {
+        std::cout << i;
+      }
+      std::cout << '\n';
+    }
+  }
+}
+
+void printTree1(node *root) {
+  if (root != nullptr) {
+
+    std::cout << "key: " << root->key << ",value: " << root->count << '\n';
+    printTree1(root->left);
+    printTree1(root->right);
+  } else {
+    std::cout << "end" << '\n';
+  }
+}
+
+node * huffman() {
+  for (int i = 1; i < 6; i++) {
+    node * z = new node(' ', 0);
+    node * x = priorityQueue.top();
+    z->left = x;
+    priorityQueue.pop();
+    node * y = priorityQueue.top();
+    z->right = y;
+    priorityQueue.pop();
+    z->count = x->count + y->count;
+    priorityQueue.push(z);
+  }
+  return priorityQueue.top();
+}
+
+int main(int argc, char const *argv[]) {
+  createNode();
+  // while (!priorityQueue.empty()) {
+  //   auto i = priorityQueue.top();
+  //   std::cout << "key: " << i->key << ",value: " << i->count << '\n';
+  //   priorityQueue.pop();    printTree1(root->left);
+  // }
+  std::vector<bool> v;
+  printTree(huffman(), v);
+  // printTree1(huffman());
+  return 0;
+}
+```
+
+Run it:
+```sh
+[breap@breap algorithm]$ gcp huffman.cpp
+key: a,huffman: 0
+key: c,huffman: 100
+key: b,huffman: 101
+key: f,huffman: 1100
+key: e,huffman: 1101
+key: d,huffman: 111
+```
+
+[std::priority_queue](http://en.cppreference.com/w/cpp/container/priority_queue)
+[rajshadow/Huffman_Compression](https://github.com/rajshadow/Huffman_Compression/blob/master/Huffman_Compression.cpp)
 
 注：
 * 参考 《算法导论 3rd》 第 16 章
