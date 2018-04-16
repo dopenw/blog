@@ -182,6 +182,12 @@ int main(int argc, char const *argv[]) {
 
 程序正常运行，但只有输出一个换行符
 
+10. 进程间通信有哪几种? 着重理解消息队列
+[apue/IPC](../apue/IPC.md)
+
+11. mysql 存储过程和函数的区别?
+[mysql/procedureVSFunction](../mysql/procedureVSFunction.md)
+
 [上一级](base.md)
 [上一篇](fedoraInstallSS.md)
 [下一篇](google_search_tips.md)
