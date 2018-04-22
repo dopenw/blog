@@ -16,6 +16,9 @@
 			* [消息循环](#消息循环)
 			* [编写窗口过程函数](#编写窗口过程函数)
 		* [动手写第一个 windows 程序](#动手写第一个-windows-程序)
+	* [MFC 框架程序剖析](#mfc-框架程序剖析)
+		* [MFC AppWizard](#mfc-appwizard)
+		* [添加一个 button 示例](#添加一个-button-示例)
 
 <!-- /code_chunk_output -->
 
@@ -205,13 +208,86 @@ LRESULT CALLBACK WinProc
 }
 ```
 
+```highlight
 Run it:
+```
+
+
 
 ![](../images/visualC++_201804221517_1.png)
 
 ![](../images/visualC++_201804221517_2.png)
 
 ![](../images/visualC++_201804221517_3.png)
+
+## MFC 框架程序剖析
+
+### MFC AppWizard
+
+MFC AppWizard 是一个辅助我们生成源代码的向导工具，它可以帮助我们自动生成基于 MFC框架的源代码。该向导的每一个步骤，我们都可以根据需要来选择各种特性，从而实现定制应用程序。
+
+在这，我们创建一个基于 MFC的单文档界面应用程序。
+
+![visualC++_201804221633](../images/visualC++_201804221633.PNG)
+
+![visualC++_201804221633_1](../images/visualC++_201804221633_1.PNG)
+
+Run it：
+
+![visualC++_201804221633_2](../images/visualC++_201804221633_2.PNG)
+
+MFC 程序的运行过程：
+* 首先利用全局应用程序对象 theApp 启动应用程序。正是产生了这个全局对象，基类 CWinApp 中的 this 指针才能指向这个对象。如果没有这个全局对象，程序在编译时不会出错，但在运行时就会出错。
+* 调用全局应用程序对象的构造函数，从而就会先调用其基类 CWinApp 的构造函数。后者完成应用程序的一些初始化工作，并将应用程序对象的指针保存起来。
+* 进入 winMain 函数。在 AfxWinMain 函数中可以获取子类 （对 Test 程序来说，就是 CTestApp类）的指针，利用此指针调用虚函数： InitInstance ,根据多态性原理，实际上调用的是子类 (CTestApp类) 的 InitInstance 函数。后者完成应用程序的一些初始化工作，包括窗口类的注册、创建、窗口的显示和更新。期间会多次调用 CreateEx 函数，因为一个单文档 MFC 应用程序有多个窗口，包括框架窗口、工具条、状态条等。
+* 进入消息循环。虽然也设置了默认的窗口过程函数，但是，MFC 应用程序实际上是采用消息映射机制来处理各种消息的。当收到 WM_QUIT 消息时，退出消息循环，程序结束。
+
+[MFC消息映射机制详解](https://blog.csdn.net/ocean2006/article/details/5498265)
+
+消息映射示例：
+
+```c++
+BEGIN_MESSAGE_MAP(CTestApp, CWinAppEx)
+	ON_COMMAND(ID_APP_ABOUT, &CTestApp::OnAppAbout)
+	// 基于文件的标准文档命令
+	ON_COMMAND(ID_FILE_NEW, &CWinAppEx::OnFileNew)
+	ON_COMMAND(ID_FILE_OPEN, &CWinAppEx::OnFileOpen)
+	// 标准打印设置命令
+	ON_COMMAND(ID_FILE_PRINT_SETUP, &CWinAppEx::OnFilePrintSetup)
+END_MESSAGE_MAP()
+```
+
+### 添加一个 button 示例
+
+为 TestView 类添加消息处理函数：
+
+在 visual studio 右侧切换到类视图，指向 TestView 类并右键：
+
+![visualC++_201804221633_6](../images/visualC++_201804221633_6.PNG)
+
+![visualC++_201804221633_4](../images/visualC++_201804221633_4.png)
+
+选中 类向导：
+
+
+
+![visualC++_201804221633_3](../images/visualC++_201804221633_3.PNG)
+
+在 TestView.h 中添加：
+```c++
+private:
+	CButton m_btn;
+```
+在 TestView.cpp 中的 OnCreate 函数 中添加：
+```c++
+m_btn.Create(_T("按钮"), WS_CHILD | BS_DEFPUSHBUTTON | WS_VISIBLE, CRect(200, 200, 300, 300), GetParent(), 123);
+```
+
+[CRect Class](https://msdn.microsoft.com/en-us/library/h58f4c7y.aspx)
+
+Run it:
+
+![visualC++_201804221633_5](../images/visualC++_201804221633_5.PNG)
 
 参考链接：
 * 《VC ++ 深入详解》
