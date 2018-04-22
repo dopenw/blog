@@ -228,8 +228,6 @@ MFC AppWizard 是一个辅助我们生成源代码的向导工具，它可以帮
 
 在这，我们创建一个基于 MFC的单文档界面应用程序。
 
-![visualC++_201804221633](../images/visualC++_201804221633.PNG)
-
 ![visualC++_201804221633_1](../images/visualC++_201804221633_1.PNG)
 
 Run it：
