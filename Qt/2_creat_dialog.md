@@ -27,7 +27,7 @@ dialog.h:
 
 class Dialog : public QDialog
 {
-    Q_OBJECT //对于所有定义了信号和槽的类，再类定义开始处的Q_OB所JECT宏都是必需的
+    Q_OBJECT //对于所有定义了信号和槽的类，再类定义开始处的Q_OBJECT宏都是必需的
 public:
     explicit Dialog(QWidget * parent = 0);
     ~Dialog();
@@ -105,7 +105,7 @@ Dialog::Dialog(QWidget *parent) :
 
    setWindowTitle(tr("Find"));
    setFixedHeight(sizeHint().height());
-   //QWidget::sizeHint()函数可以返回一个窗口不见所理想的尺寸大小
+   //QWidget::sizeHint()函数可以返回一个窗口比较理想的尺寸大小
 }
 
 void Dialog::findClicked()
