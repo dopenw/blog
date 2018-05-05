@@ -5,7 +5,7 @@
 
 * [MFC 对比 QT](#mfc-对比-qt)
 	* [MFC 简单介绍](#mfc-简单介绍)
-	* [MFC 程序的运行过程](#mfc-程序的运行过程)
+		* [MFC 程序的运行过程](#mfc-程序的运行过程)
 		* [MFC 的示例 1](#mfc-的示例-1)
 		* [消息映射](#消息映射)
 	* [QT 简单介绍](#qt-简单介绍)
@@ -60,10 +60,11 @@ MFC 缺点：
 
 
 
-## MFC 程序的运行过程
+### MFC 程序的运行过程
 
 基于MFC开发的应用程序在启动时，Windows操作系统：
 
+```highlight
 1. 首先调用WinMain函数（位于appmodul.cpp中，封装到mfc80.dll（VS2005版）），WinMain函数内调用了AfxWinMain函数。
 	2.  AfxWinMain函数（位于WinMain.cpp中）调用了
 		1. 该应用程序自定义的App类（这个类派生于CWinApp的，CWinApp又是派生于CWinThread，因此代表了应用程序的主线程）的InitInstance函数，该函数注册并创建窗口（通过AppUI2.cpp中的ProcessShellCommmand函数)，然后ShowWindow、UpdateWindow;
@@ -72,7 +73,9 @@ MFC 缺点：
 			1. PumpMessage()。实际调用AfxInternalPumpMessage函数实现其功能：GetMessage()、AfxPreTranslateMessage()、TranslateMessage()、DispatchMessage().即：从UI线程消息队列移除一条消息、遍历该消息的CWnd类直到该窗口的各级别父窗口的CWnd类以提供预处理该消息的机会、如果该消息是按键消息则翻译为WM_CHAR消息、把该消息给相应的窗口函数。
 			2. IsIdleMessage()：实际调用了AfxInternalIsIdleMessage函数，对于WM_PAINT、WM_SYSTIMER、以及光标位置没有变化的WM_MOUSEMOVE或WM_NCMOUSEMOVE，为Idle Message。
 		4. 各个窗口函数（WndProc）内部首先获取对应当前窗口句柄的CWnd类的指针，然后调用AfxCallWndProc函数。
+```
 
+[MFC 运行过程 wikipedia](https://zh.wikipedia.org/wiki/MFC_(%E5%BE%AE%E8%BB%9F)#%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E5%90%AF%E5%8A%A8)
 
 ### MFC 的示例 1
 
