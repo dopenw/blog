@@ -1,5 +1,6 @@
 # Categories cpp
 * ## [home](../README.md)
+* ### [MFC 对比 QT](MFC_VS_QT.md)
 * ### [STL](STL.md)
 * ### [Clock 和 Timer](chrono.md)
 * ### [判断浮点数是否相等](compareDoubleFloat.md)
