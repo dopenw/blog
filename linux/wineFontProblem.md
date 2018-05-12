@@ -6,6 +6,7 @@
 ```sh
 # copy windows system C://windows/Fonts (TTC and TTF font format) to $HOME/.font
 # then run
+cd $HOME/.font
 mkfontscale
 mkfontsdir
 ```
