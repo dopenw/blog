@@ -100,3 +100,4 @@ set path=C:\Program Files (x86)\Windows Kits\10\bin\10.0.16299.0\x64;%path%
 ](http://hahaya.github.io/use-protobuf-in-c-plus-plus/)
 * [CMake生成Visual Studio Nmake文件时报错问题分析](http://www.tiger2doudou.com/blog/post/metorm/CMake%E7%94%9F%E6%88%90Visual-Studio-Nmake%E6%96%87%E4%BB%B6%E6%97%B6%E6%8A%A5%E9%94%99%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90)
 * [error LNK2038: 检测到“RuntimeLibrary”的不匹配项: 值“MTd_StaticDebug”不匹配值“MDd_DynamicDebug”](https://blog.csdn.net/chan20/article/details/77040441)
+* [error LNK2038: mismatch detected for '_ITERATOR_DEBUG_LEVEL': value '0' doesn't](http://huaxiamian.iteye.com/blog/1379287)
