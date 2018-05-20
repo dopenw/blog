@@ -26,6 +26,11 @@
 
 ### linux 下安装 protobuf
 
+```sh
+dnf install protobuf
+dnf install protobuf-compiler
+```
+
 ### windows 下编译安装库及生成 Protobuf Compiling
 
 [ build protobuf with MSVC on Windows](https://github.com/google/protobuf/blob/master/cmake/README.md)
@@ -88,6 +93,11 @@ set path=C:\Program Files (x86)\Windows Kits\10\bin\10.0.16299.0\x64;%path%
 
 ### 在 linux 下使用 protobuf
 
+使用示例：
+```sh
+g++ -lprotobuf -lpthread reader.cpp addressbook.pb.cc -o read
+```
+
 ### 在 VS2015 下使用 protobuf
 将上面编译后的 libprotobuf.lib 文件加入到工程中，并包含上面生成的 include 文件夹
 
@@ -101,3 +111,7 @@ set path=C:\Program Files (x86)\Windows Kits\10\bin\10.0.16299.0\x64;%path%
 * [CMake生成Visual Studio Nmake文件时报错问题分析](http://www.tiger2doudou.com/blog/post/metorm/CMake%E7%94%9F%E6%88%90Visual-Studio-Nmake%E6%96%87%E4%BB%B6%E6%97%B6%E6%8A%A5%E9%94%99%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90)
 * [error LNK2038: 检测到“RuntimeLibrary”的不匹配项: 值“MTd_StaticDebug”不匹配值“MDd_DynamicDebug”](https://blog.csdn.net/chan20/article/details/77040441)
 * [error LNK2038: mismatch detected for '_ITERATOR_DEBUG_LEVEL': value '0' doesn't](http://huaxiamian.iteye.com/blog/1379287)
+
+[上一级](base.md)
+[上一篇](function_arg_stack.md)
+[下一篇](google_test_framework.md)
