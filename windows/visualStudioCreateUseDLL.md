@@ -65,3 +65,8 @@ if (hDLL != NULL)
 
 ## 参考链接
 * [为何Windows下的动态库总伴随一个静态库？](http://blog.shengbin.me/posts/windows-dll-with-lib)
+
+
+[上一级](base.md)
+[上一篇](insertUSBDevicesNotResponse.md)
+[下一篇](vmvare_windows.md)
