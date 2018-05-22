@@ -1,6 +1,7 @@
 # Categories windows
 * ## [home](../README.md)
 * ### [将中文docx文档转换为英文文档](DocZhToEn.md)
+* ### [Visual studio 安装 Visual Assist](VisualStudioInstallVisualAssist.md)
 * ### [Win 10 插入U盘后，听见插入提示音，但在我的电脑里没有相应的入口](insertUSBDevicesNotResponse.md)
 * ### [visual studio 创建和使用 DLL 文件](visualStudioCreateUseDLL.md)
 * ### [Vmvare_window使用问题及解决方法](vmvare_windows.md)
