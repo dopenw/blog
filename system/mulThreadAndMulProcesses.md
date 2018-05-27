@@ -233,13 +233,6 @@ for (i = 0; i < niters; i++)
 ```
 线程 i 的汇编代码：
 
-<style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
-.tg .tg-c3ow{border-color:inherit;text-align:center;vertical-align:top}
-.tg .tg-uys7{border-color:inherit;text-align:center}
-</style>
 <table class="tg" style="undefined;table-layout: fixed; width: 511px">
 <colgroup>
 <col style="width: 403px">
@@ -269,6 +262,7 @@ for (i = 0; i < niters; i++)
 
 
 正确的顺序如下：
+
 | 步骤 | 线程 | 指令 | %eax.1 | %eax.2 | cnt |
 |------|------|------|--------|--------|-----|
 |   1  |   1  |  H.1 | ------ | ------ |  0  |
@@ -284,6 +278,7 @@ for (i = 0; i < niters; i++)
 
 
 不正确的顺序如下：
+
 | 步骤 | 线程 | 指令 | %eax.1 | %eax.2 | cnt |
 |------|------|------|--------|--------|-----|
 |   1  |   1  |  H.1 | ------ | ------ |  0  |
