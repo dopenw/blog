@@ -314,6 +314,8 @@ for (i = 0; i < niters; i++)
 
  在进度图中，两个临界区的交集形成的状态空间区域称为不安全区（unsafe region）。下图展示了变量 cnt 的不安全区。注意，不安全区和与它交界的状态相毗邻，但并不包括这些状态。绕开不安全区俄轨迹线叫做安全轨迹线（safe trajectory）.相反，接触到任何不安全区的轨迹线叫做不安全轨迹线 (unsafe trajectory).下图给出了上面的示例程序的状态空间中的安全和不安全区。
 
+![](../images/mulThreadAndMulProcesses_201805271931_1.png)
+
  任何安全轨迹线都将正确地更新共享计数器。为了保证任何共享全局数据结构的并发程序的正确执行，我们必须以某种方式 同步线程 ，使他们总是有一条安全轨迹线。
 
 ## 多进程对比多线程
@@ -332,5 +334,5 @@ for (i = 0; i < niters; i++)
 * [操作系统 wikipedia](https://zh.wikipedia.org/wiki/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F)
 
 [上一级](base.md)
-[上一篇](mulThread.md)
+[上一篇](graph.md)
 [下一篇](sort.md)
