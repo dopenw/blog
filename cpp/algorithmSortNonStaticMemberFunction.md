@@ -21,6 +21,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cctype>
 
 using namespace std;
 struct FileValue {
@@ -124,7 +125,7 @@ int main() {
 }
 ```
 
-编译：
+在fedora 28下编译：
 ```sh
 sortFileName.cpp: In member function ‘void FileNameSort::handle()’:
 sortFileName.cpp:52:56: error: invalid use of non-static member function ‘bool FileNameSort::Compare3Value(FileValue&, FileValue&)’
@@ -133,6 +134,14 @@ sortFileName.cpp:52:56: error: invalid use of non-static member function ‘bool
 sortFileName.cpp:38:8: note: declared here
    bool Compare3Value(FileValue &a, FileValue &b) {
         ^~~~~~~~~~~~~
+```
+
+在VS2015下编译：
+```sh
+1>e:\customworkspace\project\sortfilename\sortfilename\main.cpp(53): error C3867: “FileNameSort::Compare3Value”: 非标准语法；请使用 "&" 来创建指向成员的指针
+1>e:\customworkspace\project\sortfilename\sortfilename\main.cpp(53): error C2672: “std::sort”: 未找到匹配的重载函数
+1>e:\customworkspace\project\sortfilename\sortfilename\main.cpp(53): error C2780: “void std::sort(_RanIt,_RanIt)”: 应输入 2 个参数，却提供了 3 个
+1>  e:\program files (x86)\microsoft visual studio 14.0\vc\include\algorithm(2789): note: 参见“std::sort”的声明
 ```
 
 解决办法：
