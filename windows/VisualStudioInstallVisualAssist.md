@@ -7,6 +7,7 @@
 * [Visual studio 安装 Visual Assist](#visual-studio-安装-visual-assist)
 	* [Visual Assist 概览](#visual-assist-概览)
 	* [crack visual Assist](#crack-visual-assist)
+	* [VisualStudio 2008 install visual assist](#visualstudio-2008-install-visual-assist)
 
 <!-- /code_chunk_output -->
 
@@ -58,6 +59,15 @@ __random_dir__ and __second_random_dir__ are generated and looks like "v3tpxirz.
 
 WorldSrc.com
 ```
+
+## VisualStudio 2008 install visual assist
+
+以管理员权限运行该安装程序，运行后如下图所示：
+
+![](../images/VisualStudioInstallVisualAssist_201805312037_1.PNG)
+
+点击安装就可以给 VisualStudio 2008 安装 Visual assist。
+
 [上一级](base.md)
 [上一篇](DocZhToEn.md)
 [下一篇](insertUSBDevicesNotResponse.md)
