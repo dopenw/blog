@@ -8,5 +8,5 @@
 
 
 [上一级](base.md)
-[上一篇](command.md)
+[上一篇](createGitServer.md)
 [下一篇](custom_desktop_env.md)

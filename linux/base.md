@@ -4,6 +4,7 @@
 * ### [Build openGapps from github](buildOpengapps.md)
 * ### [理解chroot](chroot.md)
 * ### [linux实用命令集合](command.md)
+* ### [Create git server](createGitServer.md)
 * ### [ctl + alt + f3 login incorrect](ctrl_alt_f3_login_incorrect.md)
 * ### [自定义fedora桌面环境](custom_desktop_env.md)
 * ### [virtualbox on fedora 27 fails to load virtualbox Kernel Modules](failsToLoadVirtualBoxKernelModules.md)
