@@ -9,6 +9,7 @@
 	* [将执行文件链接到到 DLL](#将执行文件链接到到-dll)
 		* [隐式链接](#隐式链接)
 		* [显式链接](#显式链接)
+	* [利用 Dependency Walker 查看依赖关系](#利用-dependency-walker-查看依赖关系)
 	* [参考链接](#参考链接)
 
 <!-- /code_chunk_output -->
@@ -62,6 +63,12 @@ if (hDLL != NULL)
    }  
 }  
 ```
+
+## 利用 Dependency Walker 查看依赖关系
+
+Dependency Walker是一个免费的实用程序，可扫描任何32位或64位Windows模块（exe，dll，ocx，sys等），并构建所有相关模块的分层树状图。对于找到的每个模块，它列出了该模块导出的所有功能，以及其中哪些功能实际上由其他模块调用。另一个视图显示所需文件的最小集合，以及有关每个文件的详细信息，包括文件的完整路径，基本地址，版本号，机器类型，调试信息等。对于加载和执行模块相关的系统错误，Dependency Walker也非常有用。 Dependency Walker检测许多常见的应用程序问题，如缺少模块，无效模块，导入/导出不匹配，循环依赖性错误，模块的机器类型不匹配以及模块初始化失败。 Dependency Walker可在Windows 95,98，Me，NT，2000，XP，2003，Vista，7和8上运行。它可以处理任何32位或64位Windows模块，包括专为Windows CE设计的模块。
+
+[Dependency Walker official](http://www.dependencywalker.com/)
 
 ## 参考链接
 * [为何Windows下的动态库总伴随一个静态库？](http://blog.shengbin.me/posts/windows-dll-with-lib)
