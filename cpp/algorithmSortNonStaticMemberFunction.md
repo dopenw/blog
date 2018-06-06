@@ -210,9 +210,13 @@ int main()
 ```
 
 ## Link
-[problem sorting using member function as comparator
+* [problem sorting using member function as comparator
 ](https://stackoverflow.com/questions/1902311/problem-sorting-using-member-function-as-comparator?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa)
-[std::sort with a non-static compare method](http://tipsandtricks.runicsoft.com/Cpp/Sort.html)
+* [std::sort with a non-static compare method](http://tipsandtricks.runicsoft.com/Cpp/Sort.html)
+
+* [Why callback functions needs to be static when declared in class
+](https://stackoverflow.com/questions/2400690/why-callback-functions-needs-to-be-static-when-declared-in-class?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa)
+
 [上一级](base.md)
 [上一篇](STL.md)
 [下一篇](chrono.md)
