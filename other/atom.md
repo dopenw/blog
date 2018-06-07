@@ -25,6 +25,7 @@
 		* [docblockr](#docblockr)
 		* [highlight-line](#highlight-line)
 	* [设置代理](#设置代理)
+	* [一键安装](#一键安装)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -170,6 +171,12 @@ Highlights the current line in the editor
 
 ```sh
 apm config set https-proxy http://127.0.0.1:8118
+```
+## 一键安装
+```sh
+apm config set https-proxy http://127.0.0.1:8118
+# 需要先设置代理，要不速度感人
+apm install atom-beautify ask-stack atom-clock atom-html-preview goto-definition highlight-selected markdown-preview-enhanced minimap minimap-highlight-selected minimap-linter platformio-ide-terminal symbols-tree-view file-icons docblockr highlight-line
 ```
 
 ## Link
