@@ -108,6 +108,26 @@ echo "net.ipv4.tcp_fastopen = 3" >> /etc/sysctl.conf
 sysctl -p
 
 ```
+
+Create shadowsocks.service
+```sh
+vim /etc/systemd/system/shadowsocks.service
+
+[Unit]
+Description=shadowsocks
+After=network.target
+
+[Service]
+User=breap
+ExecStart=/usr/bin/ss-local -c /etc/shadowsocks.json -u
+Restart=on-failure
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
+```
+
 [上一级](base.md)
 [上一篇](docker.md)
 [下一篇](find_a_job.md)
