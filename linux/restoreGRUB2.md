@@ -28,4 +28,4 @@ reboot
 
 [上一级](base.md)
 [上一篇](rename_linux_user.md)
-[下一篇](su_diff_su-.md)
+[下一篇](shutterException.md)
