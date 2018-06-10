@@ -55,3 +55,6 @@
 * [win10_ubuntu1604_caffe安装](http://www.voidcn.com/article/p-uznbwqnf-nx.html)
 * [fedora Troubleshooting documents](https://docs.fedoraproject.org/f28/install-guide/install/Troubleshooting.html)
 * [Configuring the Installation System at the Boot Menu](https://docs.fedoraproject.org/f28/install-guide/advanced/Boot_Options.html#sect-boot-options-installer)
+[上一级](base.md)
+[上一篇](gnomeUSBError.md)
+[下一篇](install-netease-cloud-music.md)

@@ -12,6 +12,7 @@
 * ### [fedora install cinnamon desktop](fedoraInstallCinnamonDesktop.md)
 * ### [自动编译并运行cpp程序shell脚本](gen_cpp_bin.md)
 * ### [插入U盘、手机等设备，gnome异常退出到登陆界面](gnomeUSBError.md)
+* ### [惠普暗影精灵4安装fedora 28](hpOmenInstallFedora.md)
 * ### [fedora install netease cloud music](install-netease-cloud-music.md)
 * ### [linux 下遇到的一些问题、](linux.md)
 * ### [进程相关](process.md)

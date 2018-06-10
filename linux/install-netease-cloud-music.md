@@ -15,5 +15,5 @@ dnf install qt5-qtgamepad jasper
 rpm -ivh --nodeps --force netease-cloud-music.rpm
 ```
 [上一级](base.md)
-[上一篇](gnomeUSBError.md)
+[上一篇](hpOmenInstallFedora.md)
 [下一篇](linux.md)
