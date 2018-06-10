@@ -2,7 +2,7 @@
 
 截取到的屏幕像这样：
 
-addimage 1
+![](../images/shutterException_201806101950_1.png)
 
 我在命令行运行 ```shutter```,根据提示的信息：
 ```sh
