@@ -8,7 +8,8 @@
 	* [Install git](#install-git)
 	* [Create git user](#create-git-user)
 	* [Add your ssh key to the accesss list](#add-your-ssh-key-to-the-accesss-list)
-	* [Create git server](#create-git-server-1)
+	* [Initialize Git repository](#initialize-git-repository)
+	* [Disable shell login](#disable-shell-login)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -45,18 +46,32 @@ In client:
 cat $HOME/.ssh/id_rsa.pub | ssh user@123.45.56.78 "cat >> ~/.ssh/authorized_keys"
 ```
 
-## Create git server
+## Initialize Git repository
 In server:
 ```sh
 git init --bare my-project.git
-cd my-project.git
-git init && git remote add origin git@123.45.56.78:my-project.git
+chown -R git:git my-project.git
 ```
+
+## Disable shell login
+```sh
+sudo vim /etc/passwd
+```
+```sh
+# change this
+git:x:1001:1001:,,,:/home/git:/bin/bash
+# to
+git:x:1001:1001:,,,:/home/git:/usr/bin/git-shell
+```
+
+
 
 ## Link
 * [How To Set Up a Private Git Server on a VPS](https://www.digitalocean.com/community/tutorials/how-to-set-up-a-private-git-server-on-a-vps)
 * [How to Run Your Own Git Server](https://www.linux.com/learn/how-run-your-own-git-server)
 * [SSH Passwordless Login Using SSH Keygen in 5 Easy Steps](https://www.tecmint.com/ssh-passwordless-login-using-ssh-keygen-in-5-easy-steps/)
+* [廖学峰：搭建Git服务器
+](https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/00137583770360579bc4b458f044ce7afed3df579123eca000)
 
 [上一级](base.md)
 [上一篇](command.md)
