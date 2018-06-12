@@ -37,3 +37,7 @@
 
 ## 链接
 * 《代码大全 2rd》 第 11 章
+
+[上一级](base.md)
+[上一篇](GreedyAlgorithms.md)
+[下一篇](UML.md)
