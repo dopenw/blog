@@ -16,12 +16,11 @@
 dnf remove gnome-desktop3
 dnf remove gnome-session
 # reinstall
-dnf install gnome-desktop3
-dnf install gnome-session
-dnf install gnome-tweak-tool
+dnf install @gnome-desktop
 ```
 
 重新配置 gnome 界面
+
 [上一级](base.md)
 [上一篇](gen_cpp_bin.md)
 [下一篇](hpOmenInstallFedora.md)
