@@ -1,6 +1,7 @@
 # Categories cpp
 * ## [home](../README.md)
 * ### [MFC 对比 QT](MFC_VS_QT.md)
+* ### [C++ Preprocessor](Preprocessor.md)
 * ### [Put functions into vector and execute](PutFunctionsIntoVectorAndExecute.md)
 * ### [STL](STL.md)
 * ### [problem sorting using member function as comparator](algorithmSortNonStaticMemberFunction.md)
