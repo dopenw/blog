@@ -8,6 +8,16 @@
 	* [最重要的命名注意事项](#最重要的命名注意事项)
 	* [以问题为导向](#以问题为导向)
 	* [最适当的名字长度](#最适当的名字长度)
+	* [作用域对变量名的影响](#作用域对变量名的影响)
+	* [变量名中的计算值限定词](#变量名中的计算值限定词)
+	* [变量中的常用对仗词](#变量中的常用对仗词)
+	* [为特定类型的数据命名](#为特定类型的数据命名)
+		* [为循环下标命名](#为循环下标命名)
+		* [为状态变量命名](#为状态变量命名)
+		* [为临时变量命名](#为临时变量命名)
+		* [为布尔变量命名](#为布尔变量命名)
+		* [为枚举类型命名](#为枚举类型命名)
+		* [为常量命名](#为常量命名)
 	* [与语言相关的命名规则的指导原则](#与语言相关的命名规则的指导原则)
 		* [C 的命名规则](#c-的命名规则)
 		* [C++ 的命名规则](#c-的命名规则-1)
@@ -56,6 +66,179 @@ Gorla、Benander 发现，当变量名的平均长度在 10 到 16 个字符的�
 | 太长 | numberOfPeopleOnTheUSOlympicTeam numberOfSeatsInTheStadium  maximumNumberOfPointsInModernOlympics |
 | 太短 | n,np,ntm,ms,nsisd,m,mp,max,points                                                              |
 | 正好 | numTeamMembers,teamMemberCount, numSeatsInStadium,seatCount, teamPointsMax,pointsRecord           |
+
+## 作用域对变量名的影响
+短的变量名总是不好吗？不，不总是这样。当你把一个变量名取得非常短的时候，如 i ，这一长度本身就对该变量做出了一些说明--也就是说，该变量代表的是一个临时的数据，他的作用域非常有限。
+
+较长的名字适用于很少用到的变量或者全局变量，而较短的名字则适用于局部变量或者循环变量。不过，短的变量名常常会带来一些麻烦，因此，作为一项防御式编程策略，一些细心的程序员会避免使用短的变量名。
+
+对位于全局命名空间中的名字加以限定词。在 C++ 中，你可以使用 namespace 关键词来划分全局命名空间。
+
+## 变量名中的计算值限定词
+很多程序都有表示计算结果的变量：总额、平均值、最大值，等等。如果你要用类似于 Total、Sum、Average、Max、Min、Record、String、Pointer 这样的限定词来修改某个名字，那么请记住把限定词加到名字的最后。
+
+这种方法具有很多优点：
+* 变量名中最重要的那部分，即为这一变量赋予主要含义的部分应当位于最前面，这样，这一部分就可以显得最为突出，并会被首先阅读到
+* 采纳了这一规则，你将避免由于同时在程序中使用 totalRevenue 和 revenueTotal 而产生的歧义。
+
+把计算的量放到名字最后这条规则也有例外，那就是 Num 限定词的位置已经是约定俗成的。
+* Num 放在变量名的开始位置代表一个总数： numCustomers 表示的是员工的总数
+* Num 放在变量名的结束位置代表的是一个下标：customerNum 表示当前员工的序号
+
+由于这样使用 Num 常常会带来麻烦，因此可能最好的办法是避开这些问题，用 Count 或者 Total 来代表员工的总数，用 Index 来指代某个特定的员工。这样 customerCount 就代表员工的总数，customerIndex 代表某个特定的员工。
+
+## 变量中的常用对仗词
+* begin/end
+* first/last
+* locked/unlocked
+* min/max
+* next/previous
+* old/new
+* opened/closed
+* visible/invisible
+* source/target
+* source/destination
+* up/down
+
+## 为特定类型的数据命名
+在为数据命名的时候，除了通常的考虑事项之外，为一些特定类型数据的命名还要求做出一些特殊的考虑。
+
+### 为循环下标命名
+循环是一种极为常见的计算机编程特征，为循环中的变量进行命名的原则也由此应运而生。 i,j,k 这些名字都是约定俗成的：
+
+简单的循环变量名：
+```c++
+for (size_t i = firstItem; i < lastItem; i++) {
+	data[i]=0;
+}
+```
+
+嵌套循环中的好循环变量名：
+```c++
+for (size_t teamIndex = 0; teamIndex < teamCount; teamIndex++) {
+	for (size_t eventIndex = 0; eventIndex < eventCount[teamIndex]; eventIndex++) {
+		sore[teamIndex][eventIndex]=0;
+	}
+}
+```
+
+谨慎地为循环下标变量命名可以避免下标串话（index cross-talk） 的常见问题：想用 j 的时候写了 i，想用 i 的时候时候却写了 j。同时，这也使得数据访问变得更加清晰： score[teamIndex][eventIndex] 要比 score[i][j] 给出的信息更多。
+
+如果你一定要用 i,j,k,那么不要把他们用于简单循环的循环下标之外的任何场合-这种传统已经太深入人心了，一旦违背该原则，将这些变量用于其他用途就可能造成误解。要想避免出现这些问题，最简单的方法就是想出一个比 i、j和 k 更具描述性的名字来。
+
+### 为状态变量命名
+
+状态变量用于描述你的程序的状态。下面给出它的命名规则。
+
+为状态u变量取一个 flag 更好的名字。最好把标记 (flag) 看做状态变量。标记的名字中不应该含有 flag,因为你从中丝毫看不出该标记是做什么的。为了清楚起见，标记应该用枚举类型、具名常量，或用作具名常量的全局变量来对其赋值，而且其值应该与上面这些量做比较。下面例子中标记俄命名都很差：
+```c++
+if (flag) ...
+if (statusFlag & 0x0F) ...
+if (printFlag == 16) ...
+if (computeFlag == 0) ...
+flag=0x1;
+statusFlag=0x80;
+printFlag =16;
+computeFlag=0;
+```
+
+下面是作用相同但更为清晰的代码：
+```c++
+if (dataReady) ...
+if (characterType & PRINTABLE_CHAR) ...
+if (reportType==ReportType_Annual) ...
+if (recalcNeeded == false ) ...
+
+dataReady=true;
+characterType=CONTROL_CHARACTER;
+reportType=ReportType_Annual;
+recalcNeeded=false;
+```
+
+下面例子展示了如何使用具名常量和枚举类型来组织例子中的数值：
+```C++
+//values for CharacterType
+const int LETTER=0x01;
+const int DIGIT=0x02;
+const int PUNCTUATION= 0x04;
+cosnt int LINE_DRAW= 0x08;
+
+const int PRINTABLE_CHAR=(LETTER | DIGIT | PUNCTUATION | LINE_DRAW);
+
+CONST INT CONTROL_CHARACTER=0X80；
+
+// values for ReportType
+enum ReportType{
+	ReportType_Daily,
+	ReportType_Monthly,
+	ReportType_Quarterly,
+	ReportType_Annual,
+	ReportType_All
+};
+```
+
+ 如果你发现自己需要猜测某段代码的含义的时候，就该考虑为变量重新命名。猜测谋杀案中谁是神秘凶手是可行的，但你没有必要去猜测代码。你应该能直接读懂它们。
+
+### 为临时变量命名
+
+警惕 “临时” 变量，考虑如下的两个例子：
+
+```c++
+//不提供信息的 “临时” 变量名
+temp=sqrt(b^2 -4*a*c);
+root[0] =(-b + temp)/ (2 * a);
+root[1] =(-b - temp)/(2 * a);
+```
+
+```c++
+//用真正的变量替代 “临时” 变量
+discriminant=sqrt(b^2 -4*a*c);
+root[0] =(-b + discriminant)/ (2 * a);
+root[1] =(-b - discriminant)/(2 * a);
+```
+就本质而言，这段代码与上面一段是完全相同的，但是它却通过使用了准确而且具有描述性的变量名 (discriminant,判别式) 而得到了改善。
+
+### 为布尔变量命名
+
+下面是为布尔变量命名是要遵循的几条原则。
+
+* 谨记典型的布尔变量名：
+	* done 用 done 表示某件事情已经完成。在事情完成之前把 done 设为 false，在事情完成之后把它设为 true
+	* error 用 error 来表示有错误发生。在错误发生之前把变量设为 false，在错误已经发生时把它设为 true
+	* found 用 found 来表明某个值已经找到了。在还没有找到该值的时候把 found 设为 false，一旦找到该值就把 found 设为 true。
+	* success 或 ok 用 success 或 ok 来表明一项操作是否成功。在操作失败的时候把变量设为 false，在操作成功的时候把其设为 true。如果可以，请用一个更具体的名字代替 success ,以便更具体地描述成功的含义。如果完成处理就表示这个程序执行成功，那么或许你应该用 processingComplete 来取而代之。如果找到某个值就是程序执行成功，那么你也许应该换用 found。
+
+* 给布尔变量赋予隐含 “真/假” 含义的名字,避免使用 "status" 这样的名字
+* 使用肯定的布尔变量名
+否定的名字如 notFound ， notDone , notSuccessful 等较难阅读，特别是如果他们被求反：
+```hightlight
+if not notFound
+```
+### 为枚举类型命名
+在使用枚举类型的时候，可以通过使用组前缀，如 Color_, Planet_ 或者 Month_ 来明确表示该类型的成员都同属一个组。示例：
+```c++
+enum Color {
+	Color_Red,
+	Color_Green,
+	Color_Blue
+  };
+
+enum Planet {  
+	Planet_Earth,
+	Planet_Mars,
+	Planet_Venus
+};
+
+enum Month {  
+	Month_January,
+	Month_February,
+	...
+	Month_December
+};
+```
+
+### 为常量命名
+在具名常量时，应该根据该常量所表示的含义，而不是该常量所具有的数值为该抽象事物命名。
 
 ## 与语言相关的命名规则的指导原则
 
