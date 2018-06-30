@@ -10,18 +10,18 @@
 		* [fedora install Git](#fedora-install-git)
 		* [windows install Git](#windows-install-git)
 	* [起步](#起步)
-	* [Git 命令行](#git-命令行)
-	* [Git 使用快速入门](#git-使用快速入门)
-		* [创建初始化版本库](#创建初始化版本库)
-		* [将文件添加到版本库中](#将文件添加到版本库中)
-		* [配置提交作者](#配置提交作者)
-		* [再次提交](#再次提交)
-		* [查看提交](#查看提交)
-		* [查看提交差异](#查看提交差异)
-		* [版本库内文件的删除和重命名](#版本库内文件的删除和重命名)
-		* [创建版本库副本](#创建版本库副本)
-	* [配置文件](#配置文件)
-		* [配置别名](#配置别名)
+		* [Git 命令行](#git-命令行)
+		* [Git 使用快速入门](#git-使用快速入门)
+			* [创建初始化版本库](#创建初始化版本库)
+			* [将文件添加到版本库中](#将文件添加到版本库中)
+			* [配置提交作者](#配置提交作者)
+			* [再次提交](#再次提交)
+			* [查看提交](#查看提交)
+			* [查看提交差异](#查看提交差异)
+			* [版本库内文件的删除和重命名](#版本库内文件的删除和重命名)
+			* [创建版本库副本](#创建版本库副本)
+		* [配置文件](#配置文件)
+			* [配置别名](#配置别名)
 
 <!-- /code_chunk_output -->
 
@@ -64,7 +64,7 @@ Git 负责管理变化。鉴于这一意图，Git 与其他版本控制系统有
 
 当然，Git 还提供了许多新奇的事物。
 
-## Git 命令行
+### Git 命令行
 
 ```hightlight
 [breap@localhost ~]$ git --help
@@ -125,7 +125,7 @@ git checkout main.c
 git checkout -- main.c
 ```
 
-## Git 使用快速入门
+### Git 使用快速入门
 
 有两种建立 Git 版本库的基础技术：
 * 从头开始创建，用现有的内容填充它
@@ -133,7 +133,7 @@ git checkout -- main.c
 
 从一个空的版本库开始比较简单，所以由此开始吧：
 
-### 创建初始化版本库
+#### 创建初始化版本库
 
 ```sh
 mkdir test
@@ -146,7 +146,7 @@ echo "Hello world" > hello
 Initialized empty Git repository in /home/breap/test/.git/
 ```
 
-### 将文件添加到版本库中
+#### 将文件添加到版本库中
 
 ```sh
 git add hello
@@ -205,7 +205,7 @@ On branch master
 nothing to commit, working tree clean
 ```
 
-### 配置提交作者
+#### 配置提交作者
 
 ```sh
 [breap@localhost test]$ git config user.name "Tester"
@@ -214,7 +214,7 @@ nothing to commit, working tree clean
 
 也可以使用 ```GIT_AUTHOR_NAME``` 和 ```GIT_AUTHOR_EMAIL``` 环境变量来设置 ```name ,email``` 。这些变量一旦设置就会覆盖所有的配置设置。
 
-### 再次提交    
+#### 再次提交    
 
 修改一下文件
 ```sh
@@ -230,7 +230,7 @@ Modify
 注：
 这个文件已添加到版本库里了，没有必要再次使用 ```git add``` 把文件添加到版本库.
 
-### 查看提交
+#### 查看提交
 一旦在版本库中有了提交，就可以通过多种方式查看他们。
 
 如 ：```git log``` 命令会产生版本库里一系列单独提交的历史：
@@ -277,7 +277,7 @@ index 0000000..802992c
 [master^] init repo
 ```
 
-### 查看提交差异
+#### 查看提交差异
 
 ```sh
 [breap@localhost test]$ git diff c646998491f03467cab4a464d19dea73e34cd4bc d7b7aaab097379242654bd03423cdb543f57939b
@@ -290,7 +290,7 @@ index 802992c..6129209 100644
 +Modify
 ```
 
-### 版本库内文件的删除和重命名
+#### 版本库内文件的删除和重命名
 
 删除：
 ```sh
@@ -308,12 +308,12 @@ rm 'hello'
 git mv test hello
 ```
 
-### 创建版本库副本
+#### 创建版本库副本
 
 可以使用 ```git clone``` 命令
 
 
-## 配置文件
+### 配置文件
 
 可以使用 ```git config``` 命令
 Git 的配置文件全都是简单的 .ini 文件风格的文本文件。它们记录了很多 Git 命令使用的各种选项和设置。有的设置表示纯个人偏好（是否用到 color.paper?）;有些则是对版本库的正常运作非常重要（如 core.repositoryformatversion）;再之外的一些设置会稍微改变命令的行为（如 gc.auto）。
@@ -353,7 +353,7 @@ git config --unset --global user.name
 * EDITOR 环境变量
 * vi 命令
 
-### 配置别名
+#### 配置别名
 对初学者来说，这有一个设置命令别名的提示。
 ```sh
 git config --global alias.show-graph \
