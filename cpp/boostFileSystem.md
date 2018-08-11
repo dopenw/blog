@@ -11,6 +11,7 @@
 	* [Sample 3：排序目录里面的(文件和目录)](#sample-3排序目录里面的文件和目录)
 	* [Sample 4: path 类的一些方法](#sample-4-path-类的一些方法)
 	* [Sample 5:create directory](#sample-5create-directory)
+	* [在 IDE 中使用 boost 库](#在-ide-中使用-boost-库)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -385,11 +386,18 @@ mv Test Test2
 
 [The boost filesystem :Files and Directories](https://theboostcpplibraries.com/boost.filesystem-files-and-directories)
 
+## 在 IDE 中使用 boost 库
+
+[Boost with Qt Creator and Linux](https://stackoverflow.com/questions/13480765/boost-with-qt-creator-and-linux)
+
+[visual studio use boost](https://stackoverflow.com/questions/13042561/fatal-error-lnk1104-cannot-open-file-libboost-system-vc110-mt-gd-1-51-lib)
+
 ## Link
 * [Boost Filesystem Library Version 3](https://www.boost.org/doc/libs/1_67_0/libs/filesystem/doc/index.htm)
 * [Boost Filesystem Tutorial](https://www.boost.org/doc/libs/1_67_0/libs/filesystem/doc/tutorial.html)
 * [Can't link program using Boost.Filesystem](https://stackoverflow.com/questions/15634114/cant-link-program-using-boost-filesystem)
 * [The boost filesystem :Files and Directories](https://theboostcpplibraries.com/boost.filesystem-files-and-directories)
+
 [上一级](base.md)
 [上一篇](algorithmSortNonStaticMemberFunction.md)
 [下一篇](chrono.md)
