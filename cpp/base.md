@@ -1,5 +1,6 @@
 # Categories cpp
 * ## [home](../README.md)
+* ### [再探 c++ primer](C++Primer.md)
 * ### [MFC 对比 QT](MFC_VS_QT.md)
 * ### [C++ Preprocessor](Preprocessor.md)
 * ### [Put functions into vector and execute](PutFunctionsIntoVectorAndExecute.md)
