@@ -15,6 +15,7 @@
 * ### [设计模式](design_patterns.md)
 * ### [开发注意事项](develop_care_detail.md)
 * ### [do_while_false的功用](do_while_false.md)
+* ### [Effective c++ 改善程序与设计的55个具体做法](effectiveCpp55.md)
 * ### [函数参数入栈的顺序](function_arg_stack.md)
 * ### [google protobuf 的简单使用](googleProtobuf.md)
 * ### [Google c++ test framework](google_test_framework.md)
