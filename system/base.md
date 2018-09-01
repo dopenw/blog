@@ -5,6 +5,7 @@
 * ### [变量名的力量](ThePowerOfVariableName.md)
 * ### [UML 统一建模语言](UML.md)
 * ### [C++ VS Java](c++VSjava.md)
+* ### [开发者测试](developTest.md)
 * ### [动态规划](dynamicProgramming.md)
 * ### [利用 enterprise architect 从源代码生成类图](enterpriseArchitectClassView.md)
 * ### [数据结构-图](graph.md)
