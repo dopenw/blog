@@ -138,4 +138,4 @@ cout<<a++<<endl; //wrong
 
 [上一级](base.md)
 [上一篇](compareDoubleFloat.md)
-[下一篇](conv_string_to_char_pointer.md)
+[下一篇](constructorThrowException.md)

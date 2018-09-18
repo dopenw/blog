@@ -19,5 +19,5 @@ char *pc=&v[0];
 
 
 [上一级](base.md)
-[上一篇](const.md)
+[上一篇](constructorThrowException.md)
 [下一篇](createOwnIterator.md)
