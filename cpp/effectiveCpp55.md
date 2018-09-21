@@ -10,6 +10,8 @@
 	* [条款 03：尽可能使用 const](#条款-03尽可能使用-const)
 		* [const 成员函数](#const-成员函数)
 		* [在 const 和 non-const 成员函数中避免重复](#在-const-和-non-const-成员函数中避免重复)
+	* [条款 04：确定对象被使用前已先被初始化](#条款-04确定对象被使用前已先被初始化)
+		* [请以 local static 对象替换 non-local static 对象](#请以-local-static-对象替换-non-local-static-对象)
 
 <!-- /code_chunk_output -->
 
@@ -211,6 +213,109 @@ class TextBlock
 * 将某些东西声明为 const 可帮助编译器侦测出错误用法。
 * 编译器强制实施 bitwise constness,但你编写程序应该使用 “概念上的常量性” (conceptual constness)
 * 当 const 和 non-const 成员函数有着实质等价的实现时，令 non-const 版本调用 const 版本可避免代码重复。
+
+## 条款 04：确定对象被使用前已先被初始化
+
+读取未初始化的值会导致不明确的行为。
+
+这个规则很容易奉行，重要的是别混淆了赋值(assignment)和初始化(initalization)。考虑一个用来表现通讯簿的 class ,其构造函数如下：
+```c++
+class PhoneNumber {...};
+class ABEntry {
+private:
+	std::string theName;
+	std::string theAddress;
+	std::list<PhoneNumber> thePhones;
+	int numTimesConsulted;
+
+public:
+	ABEntry (const std::string &name,const std::string & address,const std::list<PhoneNumber>&phones);
+};
+
+ABEntry::ABEntry(const std::string &name,const std::string & address,const std::list<PhoneNumber>&phones)
+{
+	theName=name;
+	theAddress=address;
+	thePhones=phones;
+	numTimesConsulted=0;
+	//以上都是 赋值 ，而非 初始化
+}
+```
+
+ABEntry 构造函数的一个较佳的写法是，使用所谓的 member initalization list(成员初值列) 替换赋值动作：
+```c++
+ABEntry::ABEntry(const std::string &name,const std::string & address,const std::list<PhoneNumber>&phones):theName(name),
+theAddress(address),thePhones(phones),numTimesConsulted(0)
+{}
+```
+### 请以 local static 对象替换 non-local static 对象
+`编译单元`是指产出单一目标文件(single object file) 的那些源码。基本上它是单一源码文件加上其所包含入的头文件 (#include files)。
+
+[C++编译器compliler与链接器Linker工作原理](https://www.jianshu.com/p/5b3aa1b55cb4)
+
+现在，我们关心的问题涉及至少两个源码文件，每一个内含至少一个 non-local static 对象。
+参考如下示例：
+```c++
+class FileSystem{
+public:
+	...
+	std::size_t numDisks() const;
+	...
+};
+extern FileSystem tfs; //预备给客户使用的对象
+```
+在另一个源码文件中：
+```c++
+class Directory{
+public:
+	Directory(params);
+	...
+};
+Directory::Directory(params)
+{
+	...
+	std::size_t disks=tfs.numDisks(); //使用 tfs 对象
+	...
+}
+```
+
+进一步假设，这些客户决定创建一个 Directory 对象，用来放置临时文件；
+```c++
+Directory tempDir(params); //为临时文件而做出的目录
+```
+现在，初始化次序的重要性显现出来了：除非tfs在 tempDir 之前先被初始化，否则 tempDir 的构造函数可能会用到尚未初始化的 tfs。但 tfs 和 tempDir 是不同的人在不同的时间于不同的源码文件建立起来的，它们是定义于不同编译单元内的 non-local static 对象。
+
+如何确定 tfs 会在 tempDir 之前先被初始化？
+```highlight
+喔，你无法确定。再说一次，C++ 对 “定义于不同编译单元内的 non-local static 对象” 的初始化相对次序并无明确的定义。
+```
+
+幸运的是一个小小的设计便可完全消除这个问题。就像 Singleton 模式的一种实现那样。这种手法的基础在于:c++ 保证，函数内的 local static 对象会在 “该函数被调用期间” “首次遇上该对象之定义式”时会被初始化。
+```c++
+class FileSystem{...};
+FileSystem &tfs()
+{
+	static FileSystem fs;
+	return fs;
+}
+class Directory {...};
+Directory::Directory(params)
+{
+	...
+	std::size_t disks=tfs.numDisks();
+	...
+}
+Directory &tempDir()
+{
+	static Directory td;
+	return td;
+}
+```
+
+请注意：
+* 为内置型对象进行手工初始化，因为 C++ 不保证初始化它们。
+* 构造函数最好使用成员初值列(member initialization list),而不要在构造函数本体内使用赋值操作 (assignment)。初值列列出的成员变量，其排列次序应该和它们在 class 中的声明次序相同。
+* 为免除 “跨编译单元之初始化次序”问题，请以 local static 对象替换 non-local static 对象。
 
 [上一级](base.md)
 [上一篇](do_while_false.md)
