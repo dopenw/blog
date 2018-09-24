@@ -22,6 +22,10 @@
 			* [创建版本库副本](#创建版本库副本)
 		* [配置文件](#配置文件)
 			* [配置别名](#配置别名)
+	* [更改提交](#更改提交)
+		* [关于修改历史记录的注意事项](#关于修改历史记录的注意事项)
+		* [使用 git reset](#使用-git-reset)
+			* [revert a commit already pushed to a remote repository](#revert-a-commit-already-pushed-to-a-remote-repository)
 
 <!-- /code_chunk_output -->
 
@@ -359,6 +363,55 @@ git config --unset --global user.name
 git config --global alias.show-graph \
   'log --graph --abbrev-commit --pretty=oneline'
 ```
+
+## 更改提交
+提交记录你的工作历史记录，并且保证你所做的更改时神圣不可侵犯的，但该提交自身并不是一成不变的。 Git 提供了几个工具和命令，专门用来帮你修改完善版本库中的提交。有很多正当理由让你去修改或返工某个提交或整个提交序列：
+* 可以在某个问题变为遗留问题之前修复它；
+* 可以将大而全面的变更分解为一系列小而专题的提交。相反，也可以将一些小的变更组合成一个更大的提交；
+* 可以合并反馈评论和建议；
+* 可以在不破坏构建需求的情况下重新排列提交序列；
+* 可以将提交调整为一个更合乎逻辑的序列；
+* 可以删除意外提交的调试代码；
+
+### 关于修改历史记录的注意事项
+作为一般原则，只要没有其他开发人员已经获得了你的版本库的副本，你就可以自由地修改和完善版本库提交历史记录。或者更学术一点，只要没人有版本库中某个分支的副本，你就可以修改该分支。不过要记住一个概念，如果一个分支已经公开了，并且可能已经存在于其他版本库中了，那你就不应该重写、修改或更改该分支的任何部分。
+
+### 使用 git reset
+git reset 命令会把版本库和工作目录改变为已知状态。具体而言， git reset 调整 HEAD 引用指向给定的提交，默认情况下还会更新索引已匹配该提交。根据需要， git reset 命令也可以修改工作目录以呈现给定提交代表的项目修订版本。
+
+可以把 git reset 当成 “破坏性的”，因为它可以覆盖并销毁工作目录中的修改。事实上，数据可能会丢失。即使你备份了文件，也可能无法恢复你的工作。然而，此命令的重点时为 HEAD 、索引和工作目录建立与恢复已知的状态。
+
+git reset 命令主要有三个选项: --soft 、--mixed 、--hard。
+* git reset --soft:会将 HEAD 引用指向给定提交。索引和工作目录的内容保持不变。这个版本的命令有 “最小” 影响，只改变一个符号引用的状态使其指向一个新提交。
+* git reset --mixed:会将 HEAD 引用指向给定提交。索引内容也跟着改变以符合给定提交的树结构，但是工作目录中的内容保持不变。这个版本的命令将索引变成你刚刚暂存该提交全部变化时的状态，它会显示工作目录中还有什么修改。
+注意，--mixed 是 git reset 的默认模式。
+* git reset --hard:会将 HEAD 引用指向给定提交。索引的内容也跟着改变以符合给定提交的树结构。此外，工作目录的内容也随之改变以反映给定提交表示树的状态。
+当改变工作目录的时候，整个目录结构都改成给定提交对应的样子。做的修改都将丢失，新文件将被删除。在给定提交中但不再工作目录中的文件将恢复过来。
+git reset 选项影响如下表：
+
+|   选项  | HEAD | 索引 | 工作目录 |
+|:-------:|:----:|:----:|:--------:|
+|  --soft |   Y  |   N  |     N    |
+| --mixed |   Y  |  Y   |     N    |
+|  --hard |   Y  |   Y  |     Y    |
+
+#### revert a commit already pushed to a remote repository
+[Git HowTo: revert a commit already pushed to a remote repository
+](https://gist.github.com/gunjanpatel/18f9e4d1eb609597c50c2118e416e6a6)
+eg:
+```sh
+git reset HEAD^ --hard
+
+git push origin -f
+#If forcing a push is failed，it might mean that the remote server is refusing
+#non fast-forward pushes either via receive.denyNonFastForwards config variable.
+#please read the next link;
+```
+
+[Git reset --hard and a remote repository
+](https://stackoverflow.com/questions/1377845/git-reset-hard-and-a-remote-repository)
+
+
 
 [上一级](base.md)
 [上一篇](graph.md)
