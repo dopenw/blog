@@ -1,5 +1,16 @@
 # fedora install SS libev
 
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+<!-- code_chunk_output -->
+
+* [fedora install SS libev](#fedora-install-ss-libev)
+	* [Install SS libev shell script](#install-ss-libev-shell-script)
+	* [Create shadowsocks.service](#create-shadowsocksservice)
+	* [Link](#link)
+
+<!-- /code_chunk_output -->
+
+## Install SS libev shell script
 ```sh
 #!/bin/bash
 
@@ -14,14 +25,26 @@ dnf update -y
 dnf install shadowsocks-libev -y
 
 # add shadowsocks config
-
+# server config
 echo "{
     \"server\":[\"[::0]\", \"0.0.0.0\"],
-    \"server_port\":5633,
+    \"server_port\":80,
     \"local_port\":1080,
     \"password\":\"password\",
     \"plugin\":\"obfs-server\",
     \"plugin_opts\":\"obfs=tls\",
+    \"timeout\":600,
+    \"method\":\"aes-256-gcm\",
+    \"fast_open\":true
+}" > /etc/shadowsocks-libev/config.json
+# Client config
+echo "{
+    \"server\":\"server_ip_address\",
+    \"server_port\":80,
+    \"local_port\":1080,
+    \"password\":\"password\",
+    \"plugin\":\"obfs-local\",
+    \"plugin_opts\":\"obfs=tls;obfs-host=github.com\",
     \"timeout\":600,
     \"method\":\"aes-256-gcm\",
     \"fast_open\":true
@@ -109,7 +132,7 @@ sysctl -p
 
 ```
 
-Create shadowsocks.service
+## Create shadowsocks.service
 ```sh
 vim /etc/systemd/system/shadowsocks.service
 
@@ -127,6 +150,9 @@ KillMode=process
 [Install]
 WantedBy=multi-user.target
 ```
+
+## Link
+* [shadowsocks/simple-obfs](https://github.com/shadowsocks/simple-obfs)
 
 [上一级](base.md)
 [上一篇](docker.md)
