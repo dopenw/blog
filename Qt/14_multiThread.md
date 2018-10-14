@@ -6,6 +6,11 @@
 
 * [14.多线程](#14多线程)
 	* [创建线程](#创建线程)
+	* [同步线程](#同步线程)
+		* [生产者-消费者](#生产者-消费者)
+			* [使用信号量](#使用信号量)
+			* [使用条件变量](#使用条件变量)
+		* [线程本地存储](#线程本地存储)
 	* [参考链接](#参考链接)
 
 <!-- /code_chunk_output -->
@@ -172,8 +177,149 @@ void ThreadDialog::closeEvent(QCloseEvent *event)
     event->accept();
 }
 ```
+## 同步线程
+对于多线程应用程序，一个最基本的要求就是能实现几个线程的同步执行。Qt 提供了以下用于同步的类： [QMutex](http://doc.qt.io/qt-5/qmutex.html),[QReadWriteLock](http://doc.qt.io/qt-5/qreadwritelock.html),[QSemaphore](http://doc.qt.io/archives/qt-4.8/qsemaphore.html) 和 [QWaitCondition](http://doc.qt.io/archives/qt-4.8/qwaitcondition.html).
 
+Qt 提供了方便的 [QMutexLocker](http://doc.qt.io/qt-5/qmutexlocker.html) 类来简化对互斥量的处理。类似于 [std::lock_guard](https://en.cppreference.com/w/cpp/thread/lock_guard).
+
+QSemaphore 是互斥量的另外一种泛化表示形式，但与 读-写 锁定不同，信号量可以用于保护一定数量的相同资源。下面两小段程序代码给出了 QSemaphore 和 QMutex 之间的对应关系：
+```c++
+QSemaphore semaphore(1);
+semaphore.acquire();
+semaphore.release();
+```
+```c++
+QMutex mutex;
+mutex.lock();
+mutex.unlock();
+```
+
+### 生产者-消费者
+#### 使用信号量
+```c++
+#include <QtCore>
+#include <iostream>
+
+const int DataSize = 100000;
+const int BufferSize = 4096;
+char buffer[BufferSize];
+
+QSemaphore freeSpace(BufferSize);
+QSemaphore usedSpace(0);
+
+class Producer : public QThread
+{
+public:
+    void run();
+};
+
+void Producer::run()
+{
+    for (int i = 0; i < DataSize; ++i) {
+        freeSpace.acquire();
+        buffer[i % BufferSize] = "ACGT"[uint(std::rand()) % 4];
+        usedSpace.release();
+    }
+}
+
+class Consumer : public QThread
+{
+public:
+    void run();
+};
+
+void Consumer::run()
+{
+    for (int i = 0; i < DataSize; ++i) {
+        usedSpace.acquire();
+        std::cerr << buffer[i % BufferSize];
+        freeSpace.release();
+    }
+    std::cerr << std::endl;
+}
+
+int main()
+{
+    Producer producer;
+    Consumer consumer;
+    producer.start();
+    consumer.start();
+    producer.wait();
+    consumer.wait();
+    return 0;
+}
+```
+#### 使用条件变量
+```c++
+#include <QtCore>
+#include <iostream>
+
+const int DataSize = 100000;
+const int BufferSize = 4096;
+char buffer[BufferSize];
+
+QWaitCondition bufferIsNotFull;
+QWaitCondition bufferIsNotEmpty;
+QMutex mutex;
+int usedSpace = 0;
+
+class Producer : public QThread
+{
+public:
+    void run();
+};
+
+void Producer::run()
+{
+    for (int i = 0; i < DataSize; ++i) {
+        mutex.lock();
+        while (usedSpace == BufferSize)
+            bufferIsNotFull.wait(&mutex);
+        buffer[i % BufferSize] = "ACGT"[uint(std::rand()) % 4];
+        ++usedSpace;
+        bufferIsNotEmpty.wakeAll();
+        mutex.unlock();
+    }
+}
+
+class Consumer : public QThread
+{
+public:
+    void run();
+};
+
+void Consumer::run()
+{
+    for (int i = 0; i < DataSize; ++i) {
+        mutex.lock();
+        while (usedSpace == 0)
+            bufferIsNotEmpty.wait(&mutex);
+        std::cerr << buffer[i % BufferSize];
+        --usedSpace;
+        bufferIsNotFull.wakeAll();
+        mutex.unlock();
+    }
+    std::cerr << std::endl;
+}
+
+int main()
+{
+    Producer producer;
+    Consumer consumer;
+    producer.start();
+    consumer.start();
+    producer.wait();
+    consumer.wait();
+    return 0;
+}
+```
+
+### 线程本地存储
+在不同线程中保存不同数值的全局变量。这种变量通常称为 线程本地存储 或者 线程特定数据。
+
+[QThreadStorage Class](http://doc.qt.io/qt-5/qthreadstorage.html)
 ## 参考链接
 * [Threading Basics](http://doc.qt.io/qt-5/thread-basics.html)
+
 [上一级](base.md)
 [上一篇](2_creat_dialog.md)
