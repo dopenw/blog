@@ -144,8 +144,10 @@ select 示例：
 test table :
 ```sql
 sqlite> .schema test
-CREATE TABLE test(name string,age int);
+CREATE TABLE test(name TEXT,age int);
 ```
+
+[Difference Between “Text” and “String” datatype in SQLite](https://stackoverflow.com/questions/11938401/difference-between-text-and-string-datatype-in-sqlite)
 
 ```c++
 #include <stdio.h>
