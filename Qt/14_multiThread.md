@@ -11,6 +11,7 @@
 			* [使用信号量](#使用信号量)
 			* [使用条件变量](#使用条件变量)
 		* [线程本地存储](#线程本地存储)
+	* [与主线程通信](#与主线程通信)
 	* [参考链接](#参考链接)
 
 <!-- /code_chunk_output -->
@@ -318,8 +319,18 @@ int main()
 在不同线程中保存不同数值的全局变量。这种变量通常称为 线程本地存储 或者 线程特定数据。
 
 [QThreadStorage Class](http://doc.qt.io/qt-5/qthreadstorage.html)
+
+## 与主线程通信
+当 QT 应用程序开始执行时，只有主线程时在运行的。主线程是唯一允许创建 QApplication 或 QCoreApplication 对象，并且可以对创建的对象调用 exec() 的线程。在调用 exec() 后，这个线程或者等待一个事件，或者处理一个事件。
+
+在次线程和主线程之间通信的一个解决方案是在线程之间使用信号-槽的连接。然而，当连接位于不同线程中的对象时，这一机制就会变得不同步起来【这种状态可以通过修改 QObject::connect() 中的第 5 个可选参数而改变】。在底层，实际是通过置入一个事件来实现这些连接的。这个槽接着就会由线程的事件循环调用，而在该线程中存在着接收器对象。在默认情况下，QObject 存在与创建它的线程中，通过调用 QObject::moveToThread() 可以在任何时刻修改它。
+
+代码示例，可参见：
+[qt5-book-code/chap14/imagepro/](https://github.com/mutse/qt5-book-code/tree/master/chap14/imagepro) ，次线程具有一系列的任务，或者是“事务”，可以用来完成事件并发送事件给主窗口以报告进度。
+
 ## 参考链接
 * [Threading Basics](http://doc.qt.io/qt-5/thread-basics.html)
+* [Porting source code of the book C++ GUI Programming with Qt 4 from Qt4 to Qt5](https://github.com/mutse/qt5-book-code)
 
 [上一级](base.md)
 [上一篇](2_creat_dialog.md)
