@@ -12,6 +12,7 @@
 			* [使用条件变量](#使用条件变量)
 		* [线程本地存储](#线程本地存储)
 	* [与主线程通信](#与主线程通信)
+	* [在次线程中使用 Qt 的类](#在次线程中使用-qt-的类)
 	* [参考链接](#参考链接)
 
 <!-- /code_chunk_output -->
@@ -327,6 +328,19 @@ int main()
 
 代码示例，可参见：
 [qt5-book-code/chap14/imagepro/](https://github.com/mutse/qt5-book-code/tree/master/chap14/imagepro) ，次线程具有一系列的任务，或者是“事务”，可以用来完成事件并发送事件给主窗口以报告进度。
+
+## 在次线程中使用 Qt 的类
+[c++并发/线程安全](../cpp/multiThread.md)
+
+绝大多数 Qt 的非图形用户界面类都符合一个并不太严格的要求：它们都必须是可重入的。
+
+QObject 是可重入的，但必要记住它的三个约束条件：
+1. QObject 的子对象必须在它的父对象线程中创建
+2. 在删除对应的 QThread 对象之前，必须删除所有在次线程中创建的 QObject 对象
+3. 必须在创建 QObject 对象的线程中删除它们
+如果需要删除一个存在于不同线程中的 QObject 对象，则必须调用线程安全的 [QObject::deleteLater()](http://doc.qt.io/qt-5/qobject.html#deleteLater) 函数，它可以置入一个“延期删除”(deferred later) 事件。
+
+很多 Qt 的非图形用户界面类，包括 QImage ，QString 和一些容器类，都使用了隐士共享作为一项优化技术。虽然这样的优化通常会让类变成不可重入的，但在 Qt 中这不是一个大问题，因为 Qt 使用原子汇编语言指令(atomic assembly language instruction) 来实现线程安全引用计数，这可以让 Qt 的隐式共享类变成可重入的。
 
 ## 参考链接
 * [Threading Basics](http://doc.qt.io/qt-5/thread-basics.html)
