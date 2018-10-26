@@ -15,6 +15,7 @@
 * ### [惠普暗影精灵4安装fedora 28](hpOmenInstallFedora.md)
 * ### [fedora install netease cloud music](install-netease-cloud-music.md)
 * ### [linux 下遇到的一些问题、](linux.md)
+* ### [开源库 muduo 学习笔记](muduo.md)
 * ### [进程相关](process.md)
 * ### [更改linux用户名](rename_linux_user.md)
 * ### [linux 恢复 GRUB2](restoreGRUB2.md)
