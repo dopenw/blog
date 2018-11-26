@@ -7,9 +7,11 @@
 * [sqlite 学习](#sqlite-学习)
 	* [sqlite 官网](#sqlite-官网)
 	* [tutorialspoint sqlite](#tutorialspoint-sqlite)
+	* [Cross-platform open source sqlite gui](#cross-platform-open-source-sqlite-gui)
 	* [sqlite 简介](#sqlite-简介)
 	* [sqlite 特征](#sqlite-特征)
 	* [sqlite help](#sqlite-help)
+	* [sqlite Format output](#sqlite-format-output)
 	* [sqlite 语法](#sqlite-语法)
 	* [sqlite c/c++](#sqlite-cc)
 	* [参考链接](#参考链接)
@@ -21,6 +23,9 @@
 
 ## tutorialspoint sqlite
 [tutorialspoint/sqlite](https://www.tutorialspoint.com/sqlite/)
+
+## Cross-platform open source sqlite gui
+[DB Browser for SQLite](https://sqlitebrowser.org/)
 
 ## sqlite 简介
 SQLite 是遵守 [ACID](https://zh.wikipedia.org/wiki/ACID) 的 [关系数据库](https://zh.wikipedia.org/wiki/%E5%85%B3%E7%B3%BB%E6%95%B0%E6%8D%AE%E5%BA%93) 管理系统，它包含在一个相对小的C程序库中。与许多其它数据库管理系统不同，SQLite不是一个客户端/服务器结构的数据库引擎，而是被集成在用户程序中。
@@ -131,6 +136,14 @@ sqlite> .help
 .vfsname ?AUX?         Print the name of the VFS stack
 .width NUM1 NUM2 ...   Set column widths for "column" mode
                          Negative values right-justify
+sqlite>
+```
+
+## sqlite Format output
+```sh
+sqlite>.header on
+sqlite>.mode column
+sqlite>.timer on
 sqlite>
 ```
 
