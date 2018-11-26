@@ -32,5 +32,5 @@ Link :
 安装 visual studio 2010 和 visio 2010 ，然后按照 [vs2010将类图导入visio](https://blog.csdn.net/shiqijiamengjie/article/details/50884744)即可实现。
 
 [上一级](base.md)
-[上一篇](dynamicProgramming.md)
+[上一篇](eclipse.md)
 [下一篇](graph.md)
