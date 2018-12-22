@@ -7,7 +7,7 @@
 * ### [C++ VS Java](c++VSjava.md)
 * ### [开发者测试](developTest.md)
 * ### [动态规划](dynamicProgramming.md)
-* ### [eclipse IDE](eclipse.md)
+* ### [Eclipse IDE](eclipse.md)
 * ### [利用 enterprise architect 从源代码生成类图](enterpriseArchitectClassView.md)
 * ### [数据结构-图](graph.md)
 * ### [Git 学习笔记](learnGit.md)

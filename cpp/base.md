@@ -28,6 +28,7 @@
 * ### [mutable的使用](mutable.md)
 * ### [MyString](myString.md)
 * ### [c++正则表达式](regex.md)
+* ### [智能指针](smartPointer.md)
 * ### [以stream完成I/O](stream_IO.md)
 * ### [在使用晚绑定的时候，要注意对基类的析构函数加virtual](vir_del.md)
 * ### [VC++ 学习](visualC++.md)
