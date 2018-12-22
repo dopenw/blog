@@ -7,6 +7,7 @@
 * [开源库 muduo 学习笔记](#开源库-muduo-学习笔记)
 	* [muduo 简介](#muduo-简介)
 	* [编译 muduo](#编译-muduo)
+	* [将 muduo 导入 eclipse](#将-muduo-导入-eclipse)
 	* [参考链接](#参考链接)
 
 <!-- /code_chunk_output -->
@@ -39,6 +40,12 @@ add_definitions(-DBOOST_ERROR_CODE_HEADER_ONLY)
 no matching function for call to 'hash_value'
 # 根据搜索到的提示，将报错的地方更改为 std library 即可解决；
 ```
+
+## 将 muduo 导入 eclipse
+1. 打开 eclipse
+2. File -> New -> MakeFile Project With Existing Code
+3. 找到 muduo 路径
+
 
 ## 参考链接
 * [开源访谈】Muduo 作者陈硕访谈实录](https://www.oschina.net/question/28_61182)
