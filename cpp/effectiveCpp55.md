@@ -18,6 +18,8 @@
 		* [条款 06： 若不想使用编译器自动生成的函数，就该明确拒绝](#条款-06-若不想使用编译器自动生成的函数就该明确拒绝)
 		* [条款 07：为多态基类声明 virtual 析构函数](#条款-07为多态基类声明-virtual-析构函数)
 		* [条款 08：别让异常逃离析构函数](#条款-08别让异常逃离析构函数)
+		* [条款 10：令 operator= 返回一个 reference to * this](#条款-10令-operator-返回一个-reference-to-this)
+		* [条款 11：在 operator= 中处理“自我赋值”](#条款-11在-operator-中处理自我赋值)
 
 <!-- /code_chunk_output -->
 
@@ -595,6 +597,138 @@ private:
 请记住：
 * 析构函数绝不要吐出异常。如果一个被析构函数调用的函数可能抛出异常，析构函数应该捕捉任何异常，然后吞下它们（不传播）或结束程序；
 * 如果客户需要对某个操作函数运行期间抛出的异常做出反应，那么 class 应该提供一个普通函数（而非在析构函数中）执行该操作。
+
+### 条款 10：令 operator= 返回一个 reference to * this
+关于赋值，有趣的是你可以把它们写成连锁形式：
+```c++
+int x,y,z;
+x=y=z=15; //赋值连锁形式
+```
+同样有趣的是，赋值采用右结合律，所以上述连锁赋值被解析为：
+```c++
+x=(y=(z=15));
+```
+为了实现“连锁赋值”，赋值操作符必须返回一个 reference 指向操作符的左侧实参。这是你为 classes 实现赋值操作符时应该遵循的协议：
+```c++
+class Widgets{
+public:
+	...
+
+	Widget& operator=(const Widget &rhs)
+	{
+		...
+		return * this;
+	}
+	...
+};
+```
+
+这个协议不仅适用于以上标准赋值形式，也适用于所有赋值相关运算，例如：
+```c++
+class Widget
+{
+public:
+	...
+	Widget& operator+=(const Widget &rhs)
+	{
+		...
+		return * this;
+	}
+
+	Widget& operator=(int rhs)
+	{
+		...
+		return * this;
+	}
+	...
+};
+```
+注意，这只是个协议，并无强制性。如果不遵循它，代码一样可以通过编译。然而这份协议被 STL 提供的诸如 string,vector,complex,tr1::shared_ptr 等类型共同遵守。因此除非你有一个非常标新立异的好理由，不然还是随众吧。
+
+### 条款 11：在 operator= 中处理“自我赋值”
+”自我赋值” 发生在对象被赋值给自己时：
+```c++
+class Widget{...};
+Widget w;
+...
+w=w;
+```
+这看起来有点愚蠢，但他合法，所以不要认定客户决不会这么做。此外赋值操作并不总是那么可被一眼辨识出来，例如：
+```c++
+// 潜在的自我赋值
+a[i]=a[j]; // if i==j
+*px=*py; // 如果 px 和 py 恰巧指向同一个东西
+```
+```c++
+class Base{...};
+class Derived:public Base{...};
+void doSomething(const Base& rb,Derived* pd);
+// rb 和 *pd 有可能其实是同一对象
+```
+
+示例：
+```c++
+class Bitmap{...};
+class Widget{
+	...
+private:
+	Bitmap * pb; // pointer to object by new
+};
+```
+
+让我们来看一份不安全的 operator= 实现版本：
+```c++
+Widget& Widget::operator=(const Widget& rhs)
+{
+	delete pb;
+	pb=new Bitmap(* rhs.pb);
+	return * this;
+}
+```
+这里自我赋值的问题时，operator 函数内的 * this 和 rhs 有可能时同一个对象。果真如此 delete 就不只是销毁当前对象的 bitmap,它也销毁 rhs 的 bitmap。在函数末尾， Widget -- 它原本不该被自我赋值动作改变的--发现自己持有一个指针指向一个已被删除的对象！
+阻止这种错误，可以这样：
+```c++
+Widget& Widget::operator=(const Widget& rhs)
+{
+	if (this == &rhs) {
+		return * this;
+	}
+	delete pb;
+	pb=new Bitmap(* rhs.pb);
+	return * this;
+}
+```
+但这个版本仍然存在异常方面的麻烦。更明确地说，如果“new BitMap”导致异常（不论时因为分配时内存不足或因为 Bitmap 的 copy 构造函数抛出异常），Widget 最终持有一个指针指向一块被删除的 bitmap。这样的指针有害。
+你可以这样处理：
+```c++
+class Widget
+{
+	...
+	void swap(Widget & rhs); //交换 * this 和 rhs 数据；详见条款 29
+	...
+};
+```
+```c++
+Widget& Widget::operator=(const Widget &rhs)
+{
+	Widget tmp(rhs);
+	swap(temp);
+	return * this;
+}
+```
+or
+```c++
+Widget& Widget::operator=(Widget rhs)
+{
+	swap(rhs);
+	return * this;
+}
+```
+注：作者比较忧虑第二种做法，认为它为了伶俐巧妙的修补而牺牲了清晰性，然而将"copy动作"从函数体内移至“函数参数构造阶段”却可令编译器有时生成更高效的代码。
+
+请记住：
+* 确保当对象自我赋值时 operator= 有良好的行为。其中技术包括比较“来源对象”和“目标对象”的地址、精心周到的语句顺序、以及 copy-and-swap;
+* 确定任何函数如果操作一个以上的对象，而其中多个对象时同一个对象时，其行为仍然正确。
 
 [上一级](base.md)
 [上一篇](do_while_false.md)
