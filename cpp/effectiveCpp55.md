@@ -20,6 +20,7 @@
 		* [条款 08：别让异常逃离析构函数](#条款-08别让异常逃离析构函数)
 		* [条款 10：令 operator= 返回一个 reference to * this](#条款-10令-operator-返回一个-reference-to-this)
 		* [条款 11：在 operator= 中处理“自我赋值”](#条款-11在-operator-中处理自我赋值)
+		* [条款 12：复制对象时务忘其每一个成分](#条款-12复制对象时务忘其每一个成分)
 
 <!-- /code_chunk_output -->
 
@@ -729,6 +730,103 @@ Widget& Widget::operator=(Widget rhs)
 请记住：
 * 确保当对象自我赋值时 operator= 有良好的行为。其中技术包括比较“来源对象”和“目标对象”的地址、精心周到的语句顺序、以及 copy-and-swap;
 * 确定任何函数如果操作一个以上的对象，而其中多个对象时同一个对象时，其行为仍然正确。
+
+### 条款 12：复制对象时务忘其每一个成分
+
+设计良好之面向对象系统会将对象的内部封装起来，只留两个函数负责对象拷贝（复制），那便是带着适切名称的 copy 构造函数和 copy assignment 操作符，作者称其为 copying 函数。
+
+如果你声明自己的 copying 函数，便拒绝了编译器生成的缺省 copying 函数。编译器仿佛被冒犯似的，会以一种奇怪的方式回敬：当你的实现代码几乎必然出错却不告诉你。
+考虑如下示例：
+```c++
+void logCall(const std::string& funcName);
+class Customer{
+public:
+	...
+	Customer (const Customer& rhs);
+	Customer& operator=(const Customer& rhs);
+	...
+private:
+	std::string name;
+};
+
+Customer::Customer(const Customer& rhs):name(rhs.name)
+{
+	logCall("Customer copy constructor");
+}
+
+Customer& Customer::operator=(const Customer& rhs)
+{
+	logCall("Customer copy assignment operator");
+	name=rhs.name;
+	return * this;
+}
+```
+这里的每一件事情看起来都很好，而实际上每件事情也的确都好，直到另一个成员变量加入战局：
+```c++
+class Date {...};
+class Customer
+{
+public:
+	...
+private:
+	std::string name;
+	Date lastTransaction; // other val
+}
+```
+
+这时的既有 copying 函数执行的是局部拷贝:它们的确复制了name,但是没有复制新添加的 lastTransaction。大多数编译器对此不出任何怨言-即使在最高等警告级别中。
+
+结论很明显：如果你为 calss 添加一个成员变量，你必须同时修改 copying 函数。（你也需要修改 class 的所有构造函数(见条款 4 和 45)以及任何非标准形式的 operator= 。如果你忘记，编译器不太可能提醒你）。
+
+另外一旦发生继承，可能会造成此一主题最暗中肆虐的一个潜藏危机。请考虑：
+```c++
+class PriorityCustomer:public Customer
+{
+public:
+	...
+	PriorityCustomer(const PriorityCustomer& rhs);
+	PriorityCustomer& operator=(const PriorityCustomer& rhs);
+	...
+private:
+	int priority;
+}
+PriorityCustomer::PriorityCustomer(const PriorityCustomer& rhs):priority(rhs.priority)
+{
+	logCall("PriorityCustomer copy constructor");
+}
+
+PriorityCustomer& PriorityCustomer::operator=(const PriorityCustomer& rhs)
+{
+	logCall("PriorityCustomer copy assignment operator");
+	priority=rhs.priority;
+	return * this;
+}
+```
+PriorityCustomer 的 copying 函数看起来好像复制了 PriorityCustomer 内的每一样东西，但是请再看一眼。是的，它们复制了 PriorityCustomer 声明的成员变量，但每个 PriorityCustomer 还内含它所继承的 Customer 成员变量副本，而那些成员变量却未被复制。
+
+以上事态在 PriorityCustomer 的 copy assignment 操作符身上只是轻微不同。它不曾企图修改其 base class 的成员变量，所以那些成员变量保持不变。
+任何时候只要你承担起"为 derived class 撰写 copying 函数"的重责大任，必须很小心地也复制其 base class 成分。那些成分往往是 private,所以你无法直接访问它们，你应该让 derived class 的 copying 函数调用相应的 base class 函数：
+```c++
+PriorityCustomer::PriorityCustomer(const PriorityCustomer& rhs):
+	Customer(rhs), // 调用 base class copy 构造函数
+	priority(rhs.priority)
+{
+	logCall("PriorityCustomer copy constructor");
+}
+
+PriorityCustomer& PriorityCustomer::operator=(const PriorityCustomer& rhs)
+{
+	logCall("PriorityCustomer copy assignment operator");
+	Customer::operator=(rhs); // 对 base class 成分进行赋值操作
+	priority=rhs.priority;
+	return * this;
+}
+```
+
+请记住：
+* copying 函数应该确保复制“对象内的所有成员变量”及“所有 base class 成分”。
+* 你不该令 copy assignment 操作符调用 copy 构造函数；同样不该令 copy 构造函数调用 copy assignment 操作符。
+* 不要尝试以某个 copying 函数实现另一个 copying 函数。应该将共同机能放进第三个函数中，并由两个 copying 函数共同调用。
 
 [上一级](base.md)
 [上一篇](do_while_false.md)
