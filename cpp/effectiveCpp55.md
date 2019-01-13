@@ -638,14 +638,16 @@ int main(int argc, char const *argv[]) {
 
 ```
 
-Complile it:
+生成执行文件:
 ```sh
 # 使用g++ 8.2.1 ，生成执行文件失败；
+# 编译出现警告
 ... : In constructor ‘Transaction::Transaction()’:
 ... :warning: pure virtual ‘virtual void Transaction::logTransaction() const’ called from constru
 ctor
   logTransaction();
                  ^
+# 链接错误
 /usr/bin/ld: /tmp/ccE9rBeB.o: in function `Transaction::Transaction()`:
 ... :(.text+0x20): undefined reference to `Transaction::logTransaction() const`
 collect2: error: ld returned 1 exit status
@@ -699,7 +701,7 @@ int main(int argc, char const *argv[]) {
   return 0;
 }
 ```
-使用 g++ 编译，并不会有警告信息；但是运行
+使用 g++ 生成执行文件，并不会有警告及错误信息；但是运行
 ```sh
 pure virtual method called
 terminate called without an active exception
