@@ -18,6 +18,7 @@
 		* [条款 06： 若不想使用编译器自动生成的函数，就该明确拒绝](#条款-06-若不想使用编译器自动生成的函数就该明确拒绝)
 		* [条款 07：为多态基类声明 virtual 析构函数](#条款-07为多态基类声明-virtual-析构函数)
 		* [条款 08：别让异常逃离析构函数](#条款-08别让异常逃离析构函数)
+		* [条款 09：绝不在构造和析构过程中调用 virtual 函数](#条款-09绝不在构造和析构过程中调用-virtual-函数)
 		* [条款 10：令 operator= 返回一个 reference to * this](#条款-10令-operator-返回一个-reference-to-this)
 		* [条款 11：在 operator= 中处理“自我赋值”](#条款-11在-operator-中处理自我赋值)
 		* [条款 12：复制对象时务忘其每一个成分](#条款-12复制对象时务忘其每一个成分)
@@ -598,6 +599,146 @@ private:
 请记住：
 * 析构函数绝不要吐出异常。如果一个被析构函数调用的函数可能抛出异常，析构函数应该捕捉任何异常，然后吞下它们（不传播）或结束程序；
 * 如果客户需要对某个操作函数运行期间抛出的异常做出反应，那么 class 应该提供一个普通函数（而非在析构函数中）执行该操作。
+
+### 条款 09：绝不在构造和析构过程中调用 virtual 函数
+本条款开始之前先阐述重点：你不应该在构造函数和析构函数期间调用 virtual 函数，因为这样的调用不会带来你预想的结果，就算有你也不会高兴。如果你同时也是一位 java 或 c# 程序uan，请更加注意本条款，因为这是 C++ 与它们不相同的一个地方。
+
+请看下面的一个例子：
+```c++
+#include <iostream>
+
+class Transaction{
+public:
+	Transaction();
+	virtual void logTransaction() const =0;
+};
+
+Transaction::Transaction()
+{
+	logTransaction();
+}
+
+class BuyTransaction:public Transaction{
+public:
+	virtual void logTransaction() const
+  {}
+};
+
+class SellTransaction:public Transaction
+{
+public:
+	virtual void logTransaction() const
+  {}
+};
+
+int main(int argc, char const *argv[]) {
+  BuyTransaction test;
+  return 0;
+}
+
+```
+
+Complile it:
+```sh
+# 使用g++ 8.2.1 ，生成执行文件失败；
+... : In constructor ‘Transaction::Transaction()’:
+... :warning: pure virtual ‘virtual void Transaction::logTransaction() const’ called from constru
+ctor
+  logTransaction();
+                 ^
+/usr/bin/ld: /tmp/ccE9rBeB.o: in function `Transaction::Transaction()`:
+... :(.text+0x20): undefined reference to `Transaction::logTransaction() const`
+collect2: error: ld returned 1 exit status
+```
+
+base class 构造期间 virtual 函数绝不会下降到 derived classes 阶层。取而代之的是，对象的作为就像隶属 base 类型一样。非正式的说法或许比较传神：在 base class 构造期间，virtual 函数不是 virtual 函数。
+
+这一似乎反直觉的行为有个好理由。由于 base class 构造函数的执行更早于 derived class 构造函数，当 base class 构造函数执行时 derived class 的成员变量尚未初始化。如果此期间调用 virtual 函数下降至 derived classes 阶层，要知道 derived class 的函数几乎必然取用 local 成员变量，而这些成员变量尚未初始化。这将是一张通往不明确行为和彻夜调试大会串的直达车票。“要求使用对象内部尚未初始化的成分”是危险的代名词，所以 c++ 不会让你走这条路。
+
+对象在 derived class 构造函数开始执行之前不会成为一个 derived class 对象。
+
+相同道理也适用于析构函数。一旦 derived class 析构函数开始执行，对象内的 derived class成员变量便呈现未定义值，所以 c++ 视他们仿佛不再存在。进入 base class 析构函数后对象就成为了一个 base class 对象，而 c++ 的任何部分包括 virtual 函数、 dynamic_casts 等等也就这么看待它。
+
+上述示例中的问题，某些编译器会为此发出一些警告信息。
+
+再看下面的例子：
+```c++
+#include <iostream>
+
+class Transaction{
+public:
+	Transaction();
+	virtual void logTransaction() const =0;
+private:
+  void init()
+  {
+    logTransaction(); //这里调用 virtual
+  }
+};
+
+Transaction::Transaction()
+{
+	init(); // 调用 non-virtual
+}
+
+class BuyTransaction:public Transaction{
+public:
+	virtual void logTransaction() const
+  {}
+};
+
+class SellTransaction:public Transaction
+{
+public:
+	virtual void logTransaction() const
+  {}
+};
+
+int main(int argc, char const *argv[]) {
+  BuyTransaction test;
+  return 0;
+}
+```
+使用 g++ 编译，并不会有警告信息；但是运行
+```sh
+pure virtual method called
+terminate called without an active exception
+Aborted (core dumped)
+```
+
+这段代码概念上和稍早版本相同，但它比较潜藏并且暗中为害，因为它通常不会引发编译器和连接器的抱怨。此时由于 logTransaction 是 Transaction 内的一个 pure virtual 函数，当 pure virtual 函数被调用，大多执行系统会中止程序（通常对此结果发出一个信息）。
+
+很显然，在构造函数里面调用 virtual 函数是一个错误的错法。
+
+其他方案可以解决这个问题。像这样：
+```c++
+class Transaction
+{
+	public:
+	explicit Transaction(const std::string& logInfo);
+	void logTransaction(const std::string& logInfo) const ; // non-virtual function
+	...
+};
+
+Transaction::Transaction(const std::string& logInfo)
+{
+	...
+	logTransaction(logInfo); // non-virtual 调用
+}
+
+class BuyTransaction:public Transaction
+{
+	public：
+	BuyTransaction(params)
+	:Transaction(createLogString(params))
+	{
+		...
+	}
+	...
+	private:
+	static std::string createLogString(params);
+}
+```
 
 ### 条款 10：令 operator= 返回一个 reference to * this
 关于赋值，有趣的是你可以把它们写成连锁形式：
