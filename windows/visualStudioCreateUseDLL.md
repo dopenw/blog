@@ -92,6 +92,8 @@ Dependency Walker是一个免费的实用程序，可扫描任何32位或64位Wi
 
 6. Dependent dlls can also have their own dependent dlls, which can make this problem very difficult to resolve. Depends might help, but if it doesn't, try filemon. The last dll that's successfully read before your error message is the one that's the wrong version.
 
+后发现该项目生成目录下依赖的qt dll 文件版本不正确，将使用 vs1010 编译好的 qt dll 替换原始 qt dll 文件，问题得到解决。
+
 ## Process Monitor
 
 Process Monitor 是windows下高级实时监听工具，用于监视文件系统、注册表、进程和线程的活动。它兼并了两个Sysinternals实用工具Filemon和Regmon的特点，并且增加了一系列的扩展包括丰富而无干扰的过滤全面的事件属性比如会话ID和用户名，可靠的进程信息，全部的线程栈和对每一个操作完整的符号支持，同时一个或多个文件。这些优秀的功能将使Process Monitor成为解决操作系统问题和恶意软件跟踪的重要工具之一。
