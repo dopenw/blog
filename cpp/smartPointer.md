@@ -10,6 +10,9 @@
 		* [移转 unique_ptr 的拥有权](#移转-unique_ptr-的拥有权)
 		* [对付 Array](#对付-array)
 		* [使用自定义的 deleter](#使用自定义的-deleter)
+	* [class shared_ptr](#class-shared_ptr)
+		* [对付 array](#对付-array-1)
+		* [shared_ptr 环形指向](#shared_ptr-环形指向)
 
 <!-- /code_chunk_output -->
 
@@ -142,6 +145,159 @@ std::unique_ptr<D, std::function<void(D*)>> p(new D, [](D* ptr)
            delete ptr;
        });  // p owns D
    p->bar();
+```
+
+## class shared_ptr
+[class shared_ptr](https://en.cppreference.com/w/cpp/memory/shared_ptr) 实现共享式拥有的概念。多个 smart pointer 可以指向相同对象，该对象和其相关资源会在“最后一个 reference 被销毁”时被释放。为了在结构较复杂的情境中执行上述操作，STL 还提供了 [weak_ptr](https://en.cppreference.com/w/cpp/memory/weak_ptr), [bad_weak_ptr](https://en.cppreference.com/w/cpp/memory/bad_weak_ptr), [enable_shared_from_this](https://en.cppreference.com/w/cpp/memory/enable_shared_from_this)等辅助类
+shared_ptr sample:
+```c++
+// come from https://en.cppreference.com/w/cpp/memory/shared_ptr
+#include <iostream>
+#include <memory>
+#include <thread>
+#include <chrono>
+#include <mutex>
+
+struct Base
+{
+    Base() { std::cout << "  Base::Base()\n"; }
+    // Note: non-virtual destructor is OK here
+    ~Base() { std::cout << "  Base::~Base()\n"; }
+};
+
+struct Derived: public Base
+{
+    Derived() { std::cout << "  Derived::Derived()\n"; }
+    ~Derived() { std::cout << "  Derived::~Derived()\n"; }
+};
+
+void thr(std::shared_ptr<Base> p)
+{
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::shared_ptr<Base> lp = p; // thread-safe, even though the
+                                  // shared use_count is incremented
+    {
+        static std::mutex io_mutex;
+        std::lock_guard<std::mutex> lk(io_mutex);
+        std::cout << "local pointer in a thread:\n"
+                  << "  lp.get() = " << lp.get()
+                  << ", lp.use_count() = " << lp.use_count() << '\n';
+    }
+}
+
+int main()
+{
+    std::shared_ptr<Base> p = std::make_shared<Derived>();
+
+    std::cout << "Created a shared Derived (as a pointer to Base)\n"
+              << "  p.get() = " << p.get()
+              << ", p.use_count() = " << p.use_count() << '\n';
+    std::thread t1(thr, p), t2(thr, p), t3(thr, p);
+    p.reset(); // release ownership from main
+    std::cout << "Shared ownership between 3 threads and released\n"
+              << "ownership from main:\n"
+              << "  p.get() = " << p.get()
+              << ", p.use_count() = " << p.use_count() << '\n';
+    t1.join(); t2.join(); t3.join();
+    std::cout << "All threads completed, the last one deleted Derived\n";
+}
+```
+
+run it:
+```sh
+Base::Base()
+Derived::Derived()
+Created a shared Derived (as a pointer to Base)
+p.get() = 0x10a2c30, p.use_count() = 1
+Shared ownership between 3 threads and released
+ownership from main:
+p.get() = 0, p.use_count() = 0
+local pointer in a thread:
+lp.get() = 0x10a2c30, lp.use_count() = 4
+local pointer in a thread:
+lp.get() = 0x10a2c30, lp.use_count() = 4
+local pointer in a thread:
+lp.get() = 0x10a2c30, lp.use_count() = 2
+Derived::~Derived()
+Base::~Base()
+All threads completed, the last one deleted Derived
+```
+
+### 对付 array
+请注意， shared_ptr 提供的 default deleter 调用的是 delete,不是 delete []。
+```c++
+std::shared_ptr<int> p(new int[10]); //error,but compiles
+```
+不过你可以这样：
+```c++
+std::shared_ptr<int> p(new int[10],
+						[](int* p){
+						delete [] p;
+								});
+```
+也可以这样：
+```c++
+std::shared_ptr<int> p(new int[10],
+						std::default_delete<int[]>());
+```
+当然也可以使用：
+```c++
+std::unique_ptr<int[]> p(new int[10]);
+```
+也请注意，shared_ptr 不提供 operator []。至于 unique_ptr ，它有一个针对 array 的偏特化版本，详见 [unique_ptr 对付 Array](#对付-array)
+
+### shared_ptr 环形指向
+如果两对象使用 shared_ptr 互相指向对方，而一旦不存在其他 reference 指向它们时，你想释放它们和其相应资源。这种情况下 shared_ptr 不会释放数据，因为每个对象的 use_count() 仍是 1。
+```c++
+#include <iostream>
+#include <memory>
+#include <vector>
+#include <string>
+
+class Person{
+public:
+  std::string name;
+  std::shared_ptr<Person> mother;
+  std::shared_ptr<Person> father;
+  std::vector<std::shared_ptr<Person>> kids;
+
+  Person(const std::string& n,
+  std::shared_ptr<Person> m=nullptr,
+std::shared_ptr<Person> f=nullptr):name(n),mother(m),father(f)
+{}
+  ~Person()
+  {
+    std::cout<<"delete "<<name<<std::endl;
+  }
+};
+
+std::shared_ptr<Person> initFamily(const std::string& name)
+{
+  std::shared_ptr<Person> mom(new Person(name+"'s mom"));
+  std::shared_ptr<Person> dad(new Person(name+"'s dad"));
+  std::shared_ptr<Person> kid(new Person(name,mom,dad));
+  mom->kids.push_back(kid);
+  dad->kids.push_back(kid);
+  return kid;
+}
+
+int main(int argc, char const *argv[]) {
+  std::shared_ptr<Person> p=initFamily("nico");
+
+  std::cout<<"nico 's family exists"<<std::endl;
+  std::cout<<"- nico is shared "<<p.use_count()<<" times"<<std::endl;
+  std::cout<<"- name of 1st kid of nico's mom :"
+  <<p->mother->kids[0]->name<<std::endl;
+
+  return 0;
+}
+```
+
+Run it:
+```sh
+nico 's family exists
+- nico is shared 3 times
+- name of 1st kid of nico's mom :nico
 ```
 
 注，参考 《c++ 标准库第二版》 第五章
