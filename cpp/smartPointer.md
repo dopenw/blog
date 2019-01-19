@@ -5,6 +5,7 @@
 <!-- code_chunk_output -->
 
 * [智能指针](#智能指针)
+	* [智能指针错误用法](#智能指针错误用法)
 	* [Class unique_ptr](#class-unique_ptr)
 		* [使用 unique_ptr](#使用-unique_ptr)
 		* [移转 unique_ptr 的拥有权](#移转-unique_ptr-的拥有权)
@@ -15,6 +16,42 @@
 		* [shared_ptr 环形指向](#shared_ptr-环形指向)
 
 <!-- /code_chunk_output -->
+
+## 智能指针错误用法
+```c++
+#include <iostream>
+#include <memory>
+
+struct Base
+{
+    Base() { std::cout << "  Base::Base()\n"; }
+    // Note: non-virtual destructor is OK here
+    ~Base() { std::cout << "  Base::~Base()\n"; }
+};
+
+struct Derived: public Base
+{
+    Derived() { std::cout << "  Derived::Derived()\n"; }
+    ~Derived() { std::cout << "  Derived::~Derived()\n"; }
+};
+
+int main()
+{
+    Derived * pDerived=new Derived;                            
+    std::shared_ptr<Base> p(pDerived);
+    std::shared_ptr<Base> p1(pDerived);
+     //std::cout << "All threads completed, the last one deleted Derived\n";
+}
+```
+Run it:
+```sh
+Base::Base()
+Derived::Derived()
+Derived::~Derived()
+Base::~Base()
+Derived::~Derived()
+Base::~Base()
+```
 
 ## Class unique_ptr
 [unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr) 一般而言，这个 smart pointer 实现了独占式拥有概念，意味着它可确保一个对象和其相应资源同一时间只被一个 pointer 拥有。一旦拥有者被销毁或变成 empty,或开始拥有另外一个对象，先前拥有的那个对象就会被销毁，其任何相应资源亦会被释放。
