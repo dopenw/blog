@@ -14,6 +14,13 @@ dnf install qt5-qtgamepad jasper
 ```sh
 rpm -ivh --nodeps --force netease-cloud-music.rpm
 ```
+
+[Fedora 中文社区软件源](https://github.com/FZUG/repo)
+
+## Link
+* [重打包网易云音乐1.1? ](https://github.com/FZUG/repo/issues/288)
+
+
 [上一级](base.md)
 [上一篇](hpOmenInstallFedora.md)
 [下一篇](linux.md)
