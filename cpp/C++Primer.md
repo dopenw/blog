@@ -49,6 +49,9 @@
 	* [语句](#语句)
 		* [范围 for 语句](#范围-for-语句)
 		* [标准异常](#标准异常)
+	* [函数](#函数)
+		* [参数传递](#参数传递)
+			* [含有可变形参的函数](#含有可变形参的函数)
 
 <!-- /code_chunk_output -->
 
@@ -673,7 +676,44 @@ c++ STL 定义了一组类，用于报告标准库函数遇到的问题。这些
 我们只能以默认初始化的方式初始化 exception bad_cast bad_alloc 对象，不允许为这些对象提供初始值。
 其他异常类型的行为则恰好相反：应该使用 string 对象或者 C 风格字符串初始化这些类型的对象，但是不允许使用默认初始化的方式。当创建此类对象时，必须提供初始值，该初始值含有错误相关的信息。
 
+## 函数
+### 参数传递
+* 传递多维数组：
+```c++
+void print(int (*matrix)[10],int rowSize)
+{}
+//or
+void print(int matrix[][10],int rowSize)
+{}
+```
 
+#### 含有可变形参的函数
+为了编写能处理不同数量实参的函数，c++ 11 新标准提供了两种主要的方法：
+* 如果所有的实参类型相同，可以传递一个名为 [std::initializer_list](https://en.cppreference.com/w/cpp/utility/initializer_list)
+* 如果实参类型不同，我们可以编写一种特殊的函数，也就是所谓的可变参数模板 [Parameter pack](https://en.cppreference.com/w/cpp/language/parameter_pack)
+
+C++ 还有一种特殊的形参类型（即省略符），可以用它传递可变数量的实参。不过请注意，这种功能一般只用于与 c 函数交互的接口程序：
+* `省略符形参应该仅仅用于 c 和 c++ 通用的类型。特别应该注意的是，大多数类类型的对象在传递给省略符形参时都无法正确拷贝。`
+
+一个简单的 initializer_list 示例：
+```c++
+#include <iostream>
+#include <initializer_list>
+#include <string>
+
+void errorMsg(int errorCode,std::initializer_list<std::string> par)
+{
+  std::cout << "errorCode:"<<errorCode<<", ";
+  for(auto i:par)
+  std::cout << i << " ";
+  std::cout << '\n';
+}
+
+int main(int argc, char const *argv[]) {
+  errorMsg(-1,{"functionX","is","error"});
+  return 0;
+}
+```
 
 [上一级](base.md)
 [下一篇](MFC_VS_QT.md)
