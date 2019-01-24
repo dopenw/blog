@@ -52,6 +52,9 @@
 	* [函数](#函数)
 		* [参数传递](#参数传递)
 			* [含有可变形参的函数](#含有可变形参的函数)
+		* [返回类型和 return 语句](#返回类型和-return-语句)
+			* [不要返回局部对象的引用或指针](#不要返回局部对象的引用或指针)
+			* [返回数组指针](#返回数组指针)
 
 <!-- /code_chunk_output -->
 
@@ -714,6 +717,53 @@ int main(int argc, char const *argv[]) {
   return 0;
 }
 ```
+
+### 返回类型和 return 语句
+
+* 主函数 main 的返回值
+如果函数的返回类型不是 void ,那么它必须返回一个值。但是这条规则有个例外：我们允许 main 函数没有 return 语句直接结束。如果控制到达了 main 函数的结尾而且没有 return 语句，编译器将隐式地插入一条返回 0 的 return 语句。（返回 0 表示执行成功，返回其他值表示执行失败，其中非 0 值的具体含义依机器而定）
+
+#### 不要返回局部对象的引用或指针
+```c++
+//严重错误
+
+const std::string &manip()
+{
+	std::string ret;
+	if(!ret.empty())
+	  return ret;
+	else
+	  return "Empty";
+}
+```
+
+#### 返回数组指针
+因为数组不能被拷贝，所以函数不能返回数组。不过，函数可以返回数组的指针或引用。
+
+* 声明一个返回数组指针的函数
+	举个例子：
+	```c++
+	int (* func(int i))[10];
+	```
+
+* 使用尾置返回类型
+在 c++ 11 新标准中还有一种可以简化上述 func 声明的方法，就是使用尾置返回类型([trailing return type](https://arne-mertz.de/2016/11/trailing-return-types-everywhere/))
+上面的函数，你可以这么写：
+	```c++
+	auto func(int i)->int( * )[10];
+	```
+* 使用 decltype
+	eg:
+	```c++
+	int odd[]={1,3,5,7,9};
+	int even[]={0,2,4,6,8};
+	// 返回一个指针，该指针指向含有 5 个 整数的数组
+	decltype(odd) *arrPtr(int i)
+	{
+		return (i%2) ? &odd : &even;
+	}
+	```
+
 
 [上一级](base.md)
 [下一篇](MFC_VS_QT.md)
