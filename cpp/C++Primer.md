@@ -12,6 +12,8 @@
 		* [引用](#引用)
 		* [指针](#指针)
 		* [const限定符](#const限定符)
+			* [顶层 const](#顶层-const)
+			* [constexpr 和常量表达式](#constexpr-和常量表达式)
 	* [字符串、向量、和数组](#字符串-向量-和数组)
 		* [数组](#数组)
 			* [定义和初始化内置数组](#定义和初始化内置数组)
@@ -55,6 +57,9 @@
 		* [返回类型和 return 语句](#返回类型和-return-语句)
 			* [不要返回局部对象的引用或指针](#不要返回局部对象的引用或指针)
 			* [返回数组指针](#返回数组指针)
+		* [函数重载](#函数重载)
+			* [重载和 const 形参](#重载和-const-形参)
+			* [重载与作用域](#重载与作用域)
 
 <!-- /code_chunk_output -->
 
@@ -159,6 +164,58 @@ error: invalid conversion from ‘int’ to ‘int*’ [-fpermissive]
 
 ### const限定符
 [const限定符](const.md)
+
+#### 顶层 const
+对于 const 和指针的组合：
+* 顶层 const (top-level const) 表示指针本身是个常量。
+* 底层 const (low-level const) 表示指针所指的对象是一个常量。
+
+#### constexpr 和常量表达式
+常量表达式 ([const expresion](https://en.cppreference.com/w/cpp/language/constant_expression))是指不会改变并且在编译过程就能得到计算结果的表达式。
+一个对象（或表达式）是不是常量表达式由它的数据类型和初始值共同决定的，例如：
+```c++
+const int maxFiles=20 ; // const expresion
+const int limit=maxFiles + 1; //const expresion
+int staffSize=27; //not const expresion
+const int size=getSize(); //not const expresion
+```
+
+c++11 新标准规定，允许将变量声明为 constexpr 类型以便由编译器来验证变量的值是否是一个常量表达式。声明为 constexpr 的变量一定是一个常量，而且必须用常量表达式初始化.
+```c++
+constexpr int mf=20; //20 是常量表达式
+constexpr int limit=mf+1; //const expresion
+constexpr int size=size(); //只有当 size 是一个 constexpr 函数时才是一条正确的声明语句
+```
+```highLight
+一般来说，如果你认定变量是一个常量表达式，那就把它声明为 constexpr 类型
+```
+
+* 字面值类型
+	字面值类型：这些类型一般比较简单，值也显而易见、容易得到。比如，算术类型、引用和指针都属于字面值类型。自定义类、IO库、string类型则不属于字面值类型。
+
+	尽管指针和引用都能定义成 constexpr,但他们的初始值却受到严格限制。一个 constexpr 指针的初始值必须时 nullptr 或者 0，或者是存储在某个固定地址中的对象。
+
+* 指针和 constexpr
+	必须明确一点，在 constexpr 声明中如果定义了一个指针，限定符 constexpr 仅对指针有效，与指针所指的对象无关：
+	```c++
+	const int * p=nullptr; //p 是一个指向整型常量的指针
+	constexpr int * q=nullptr; //q 是一个指向整数的常量指针
+	```
+
+注意，下面代码是不合法的：
+```c++
+#include <iostream>
+
+int main(int argc, char const *argv[]) {
+  int null=0,* p=null;
+  return 0;
+}
+```
+Run it:
+```sh
+error: invalid conversion from ‘int’ to ‘int*’ [-fpermissive]
+   int null=0,*p=null;
+```
 
 ## 字符串、向量、和数组
 ### 数组
@@ -763,6 +820,93 @@ const std::string &manip()
 		return (i%2) ? &odd : &even;
 	}
 	```
+
+### 函数重载
+如果同一作用域内的几个函数名字相同但形参列表不同，我们称之为重载([overloaded](https://www.geeksforgeeks.org/function-overloading-c/)) 函数。
+eg:
+```c++
+#include <iostream>
+using namespace std;
+
+void print(int i) {
+	cout << " Here is int " << i << endl;
+}
+void print(double f) {
+	cout << " Here is float " << f << endl;
+}
+void print(char const *c) {
+	cout << " Here is char* " << c << endl;
+}
+
+int main() {
+print(10);
+print(10.10);
+print("ten");
+return 0;
+}
+```
+不过请注意：
+```highLight
+main 函数不能重载。
+```
+
+#### 重载和 const 形参
+如 6.2.3 介绍的，顶层 const 不能影响传入函数的对象。一个拥有顶层 const 形参无法和另一个没有顶层 const 的形参区分开来：
+```c++
+Record lookup(Phone);
+Record lookup(const Phone); //重复声明了 Record lookup(Phone);
+
+Record lookup(Phone*);
+Record lookup(Phone* const);//重复声明了 Record lookup(Phone*);
+```
+
+另一方面，如果形参时某种类型的指针或引用，则通过区分其指向的是常量对象还是非常量对象可以实现函数重载，此时 const 是底层：
+```c++
+Record lookup(Account &);
+Record lookup(const Account&); //两个不同的函数
+
+Record lookup(Account *);
+Record lookup(const Account*); //两个不同的函数
+```
+
+#### 重载与作用域
+```highLight
+一般来说，将函数声明置于局部作用域内不是一个明智的选择。但是为了说明作用域和重载的相互关系，我们暂时违反这一原则而使用局部函数声明。
+```
+在不同的作用域中无法重载函数名：
+```c++
+std::string read();
+void print(const std::string &);
+void print(double);
+void fooBar(int val)
+{
+	bool read=false; // 新作用域：隐藏了外层 read
+	std::string s=read(); //错误： read 是一个布尔值，而非函数
+	//不好的习惯：通常来说，在局部作用域中声明函数不是一个好的选择
+	void print(int); //新作用域：隐藏了之前的 print
+	print("Value: ");//错误，print(const std::string&)被隐藏掉了
+	print(val); //正确，当前 作用域内的 print(int) 可见
+	print(3.14); //正确，调用 作用域内的 print(int); 外面的print(double) 被隐藏掉了
+}
+```
+```highLight
+在 c++ 中，名字查找发生在类型检查之前
+```
+假设我们这样，将其放在同一作用域中，则它将成为另一种重载形式
+:
+```c++
+void print(const std::string &);
+void print(double);
+void print(int);
+
+void fooBar2(int val)
+{
+	print("Value ");
+	print(val);
+	print(3.14);
+}
+```
+
 
 
 [上一级](base.md)
