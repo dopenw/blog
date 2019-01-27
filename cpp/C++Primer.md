@@ -6,6 +6,7 @@
 
 * [再探 c++ primer](#再探-c-primer)
 	* [变量和基本类型](#变量和基本类型)
+		* [基本内置类型](#基本内置类型)
 		* [列表初始化](#列表初始化)
 		* [默认初始化](#默认初始化)
 		* [变量声明和定义的关系](#变量声明和定义的关系)
@@ -52,6 +53,8 @@
 		* [范围 for 语句](#范围-for-语句)
 		* [标准异常](#标准异常)
 	* [函数](#函数)
+		* [函数基础](#函数基础)
+			* [形参和实参](#形参和实参)
 		* [参数传递](#参数传递)
 			* [含有可变形参的函数](#含有可变形参的函数)
 		* [返回类型和 return 语句](#返回类型和-return-语句)
@@ -60,10 +63,28 @@
 		* [函数重载](#函数重载)
 			* [重载和 const 形参](#重载和-const-形参)
 			* [重载与作用域](#重载与作用域)
+		* [特殊用途语言特性](#特殊用途语言特性)
+			* [默认实参](#默认实参)
+			* [内联函数和 constexpr 函数](#内联函数和-constexpr-函数)
+				* [内联函数可避免函数调用的开销](#内联函数可避免函数调用的开销)
+				* [constexpr函数](#constexpr函数)
+				* [把内联函数和 constexpr函数放在头文件内](#把内联函数和-constexpr函数放在头文件内)
+			* [调试帮助](#调试帮助)
+				* [NDEBUG 预处理变量](#ndebug-预处理变量)
+		* [函数匹配](#函数匹配)
+			* [候选函数和可行函数](#候选函数和可行函数)
+			* [实参类型转换](#实参类型转换)
+				* [函数匹配和 const 实参](#函数匹配和-const-实参)
+		* [函数指针](#函数指针)
 
 <!-- /code_chunk_output -->
 
 ## 变量和基本类型
+
+### 基本内置类型
+c++ 定义了一套包括算术类型([arithmetic type](https://en.cppreference.com/w/c/language/arithmetic_types))和 空类型(void) 在内的基本数据类型。
+* 其中算术类型包含了字符、整型数、布尔值和浮点数。
+* 空类型不对应具体的值，仅用于一些特殊的场合。
 
 ### 列表初始化
 
@@ -737,6 +758,12 @@ c++ STL 定义了一组类，用于报告标准库函数遇到的问题。这些
 其他异常类型的行为则恰好相反：应该使用 string 对象或者 C 风格字符串初始化这些类型的对象，但是不允许使用默认初始化的方式。当创建此类对象时，必须提供初始值，该初始值含有错误相关的信息。
 
 ## 函数
+
+### 函数基础
+
+#### 形参和实参
+实参是形参的初时值。第一个实参初始化第一个形参，第二个实参初始化第二个形参，以此类推。尽管实参和形参存在对应关系，但是并没有规定实参的求值顺序。
+
 ### 参数传递
 * 传递多维数组：
 ```c++
@@ -907,7 +934,266 @@ void fooBar2(int val)
 }
 ```
 
+### 特殊用途语言特性
+本节主要介绍三种函数相关的语言特性：
+* 默认实参
+* 内联函数和 constexpr函数
+* 程序调试过程中常用的一些功能
 
+#### 默认实参
+[default argument](https://en.cppreference.com/w/cpp/language/default_arguments)
+
+#### 内联函数和 constexpr 函数
+在大多数机器上，一次函数调用其实包含着一系列工作：
+* 调用前要先保存寄存器，并在返回时恢复;
+* 可能需要拷贝实参；
+* 程序转向一个新的位置继续执行；
+
+##### 内联函数可避免函数调用的开销
+将函数指定为 内联函数 （inline）,通常就是将它每个调用点上 “内联地”展开。
+```c++
+const std::string &shorterString(const std::string &s1,const std::string &s2)
+{
+	return s1.size() <= s2.size() ? s1:s2;
+}
+```
+假设我们把 shorterString 函数定义成内联函数，
+```c++
+inline const std::string &shorterString(const std::string &s1,const std::string &s2)
+{
+	return s1.size() <= s2.size() ? s1:s2;
+}
+```
+则如下调用
+```c++
+std::cout << shorterString(s1,s2) << '\n';
+```
+将在编译过程中展开成类似于下面地形式：
+```c++
+std::cout << (s1.size() <= s2.size() ? s1:s2) << '\n';
+```
+从而消除了 shorterString 函数地运行时开销。
+
+Note:
+* 内联说明只是向编译器发出一个请求，编译器可以选择忽略这个请求。
+
+一般来说，内联机制用于优化规模较小、流程直接、频繁调用的函数。很多编译器都不支持内联递归函数，而且一个 75 行的函数也不大可能在调用点内联地展开。
+
+##### constexpr函数
+constexpr函数（constexpr function）是指用于常量表达式的函数。
+定义 constexpr函数 与其他函数类似，不过要遵循几项约定：
+* 函数的返回类型及所有形参的类型都得是字面值类型
+* 函数体中必须有且只有一条 return 语句
+
+为了能在编译过程中随时展开，constexpr函数被隐式地指定为内联函数。
+
+constexpr函数体内也可以包含其他语句，只要这些语句在运行时不执行任何操作就行。例如，constexpr函数中可以由空语句、类型别名以及 using 声明。
+```c++
+constexpr size_t scale(size_t cnt)
+{
+	return 3*cnt;
+}
+```
+当 scale 的实参是常量表达式时，它的返回值也是常量表达式；反之则不然：
+```c++
+int arr[scale(2)]; //正确
+int i=2;
+int a2[scale(i)]; //error，scale(i) 不是常量表达式
+```
+
+Note:
+* constexpr函数不一定返回常量表达式。
+
+##### 把内联函数和 constexpr函数放在头文件内
+对于某个给定地内联函数或者 constexpr函数来说，它的多个定义必须完全一致。基于这个原因，内联函数和 constexpr 函数通常定义在头文件中。
+
+#### 调试帮助
+
+##### NDEBUG 预处理变量
+assert 的行为依赖于一个名为 NDEBUG 的预处理变量。如果定义了 NDEBUG ,则 assert 什么也不做。默认状态下没有定义 NDEBUG,此时 assert 将执行运行时检查。
+
+除了用于 assert 外，也可以使用 NDEBUG 编写自己的条件调试代码。
+```c++
+void print(const int arr[],size_t size)
+{
+	#ifndef NDEBUG
+		std::cerr << __func__ <<": array size is "<<size<< '\n';
+	#endif
+}
+```
+
+预处理器还定义了另外 4 个对于程序调试很有用的名字：
+* \_\_FILE\_\_ 存放文件名的字符串字面值
+* \_\_LINE\_\_ 存放当前行号的整型字面值
+* \_\_TIME\_\_ 存放文件编译时间的字符串字面值
+* \_\_DATE\_\_ 存放文件编译日期的字符串字面值
+
+### 函数匹配
+eg：
+```c++
+void f();
+void f(int);
+void f(int,int);
+void f(double,double=3.14);
+f(5.6); //use f(double,double);
+```
+
+#### 候选函数和可行函数
+函数匹配的第一步是选定本次调用对应的重载函数集，集合中的函数称为候选函数(candidate function)。候选函数具有的特征：
+* 与被调用的函数同名
+* 其声明在调用点可见
+
+第二步考察本次调用提供的实参，然后从候选函数中选出能被这组实参调用的函数，这些新选出来的函数称为可行函数 (viable function)。可行函数的特征：
+* 其形参数量与本次调用提供的实参数量相等
+* 每个实参的类型与对应的形参类型相同，或者能够转换成形参的类型。
+
+要注意：
+```c++
+f(42,2.56);
+//error,
+//对第一个实参 42 来说，f(int,int)是更好的匹配
+//对第二个实参 2.56 来说，f(double,double)是更好的匹配
+```
+use gcc:
+```sh
+error: call of overloaded ‘f(int, double)’ is ambiguous
+ f(42,2.56);
+```
+同理：
+```c++
+f(2.56,42); //error
+```
+
+编译器最终将因为这个调用具有二义性而拒绝其请求。
+
+Note:
+```highLight
+调用重载函数时应尽量避免强制类型转换。如果在实际应用中确实需要强制类型转换，则说明我们设计的形参集合不合理。
+```
+
+Test code:
+```c++
+#include <iostream>
+
+void f()
+{
+  std::cout << "f()" << '\n';
+}
+
+void f(int i)
+{
+  std::cout << "f(int)" << '\n';
+}
+
+void f(int i,int j)
+{
+  std::cout << "f(int,int)" << '\n';
+}
+
+void f(double i,double j)
+{
+  std::cout << "f(double,double)" << '\n';
+}
+
+int main(int argc, char const *argv[]) {
+ //f(42,2.56);
+ //f(2.56,42);
+ f(42);
+ f(42,0);
+ f(2.56,3.14);
+ return 0;
+}
+```
+
+#### 实参类型转换
+为了确定最佳匹配，编译器将实参类型到形参类型的转换划分为几个等级，具体排序如下所示：
+1. 精确匹配：
+	* 实参类型和形参类型相同
+	* 实参从数组类型或函数类型转换成对应地指针类型
+	* 向实参添加顶层 const 或者从实参中删除顶层 const
+2. 通过 const 转换实现的匹配
+3. 通过类型提升实现的匹配
+4. 通过算术类型转换实现的匹配
+5. 通过类类型转换实现的匹配
+
+Warning:
+```highLight
+内置类型的提升和转换可能在函数匹配时产生意想不到的结果，但幸运的是，在设计良好的系统中函数很少会含有与下面例子类似的形参。
+```
+分析函数调用前，我们应该知道小整型一般会被提升到 int 类型或更大的整数类型。
+
+有时候即使实参是一个很小的整数值，也会直接将它提升成 int 类型；比如
+```c++
+void ff(int);
+void ff(short);
+ff('a'); //char 提升成 int ；调用 f(int)
+```
+所有算术类型转换的级别都一样。例如，从 int 向 unsigned int 的转换并不比从 int 向 double 的转换级别高。比如
+```c++
+void manip(long);
+void manip(float);
+manip(3.14); //错误，二义性调用
+```
+
+##### 函数匹配和 const 实参
+如果重载函数的区别在与它们的引用类型的形参是否引用了 const，或者指针类型的形参是否指向 const,则当调用发生时编译器通过实参是否是常量来决定选择哪个函数：
+eg:
+```c++
+Record lookup(Account&);
+Record lookup(const Account&);
+
+const Account a;
+Account b;
+
+lookup(a); //use Record lookup(const Account&);
+lookup(b); //use Record lookup(Account&);
+```
+
+### 函数指针
+eg:
+```c++
+#include <iostream>
+#include <string>
+
+using namespace std;
+bool lengthCompare(const string & str1,const string & str2)
+{
+  if (str1.size() == str2.size()) {
+    return true;
+  }
+  else
+    return false;
+}
+
+bool (* pf)(const string &,const string &);
+
+int main(int argc, char const * argv[]) {
+  pf=lengthCompare; //pf 指向 lengthCompare 函数,等价与 pf=&lengthCompare;取地址符是可选的
+  bool sizeIsEqual=pf("hello","goodbye");
+  std::cout << sizeIsEqual << '\n';
+  return 0;
+}
+```
+
+* 返回指向函数的指针
+eg：
+使用类型别名：
+```c++
+using F=int(int * ,int); //F 是函数类型，不是指针
+using PF=int(* )(int * ,int); //PF 是指针类型
+
+PF f1(int); //PF 是指向函数的指针，f1 返回指向函数的指针
+F f1(int); //error,F 是函数类型
+F *f1(int); //正确，显式地指定返回类型是指向函数地指针
+```
+当然，我们也可以这样：
+```c++
+int (* f1(int))（int *,int);
+```
+还可以这样：
+```c++
+auto f1(int)->int ( * )(int * ,int);
+```
 
 [上一级](base.md)
 [下一篇](MFC_VS_QT.md)
