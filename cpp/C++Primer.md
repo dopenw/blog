@@ -76,6 +76,9 @@
 			* [实参类型转换](#实参类型转换)
 				* [函数匹配和 const 实参](#函数匹配和-const-实参)
 		* [函数指针](#函数指针)
+	* [类](#类)
+		* [定义抽象数据类型](#定义抽象数据类型)
+			* [构造函数](#构造函数)
 
 <!-- /code_chunk_output -->
 
@@ -1193,6 +1196,76 @@ int (* f1(int))（int *,int);
 还可以这样：
 ```c++
 auto f1(int)->int ( * )(int * ,int);
+```
+
+## 类
+类的基本思想是数据抽象(data abstraction) 和 封装(encapsulation)。 数据抽象是一种依赖于接口(interface) 和 实现(implementation) 分离的编程(以及设计)技术。
+
+封装实现了类的接口和实现的分离。封装后的类隐藏了它的实现细节。
+
+类要想实现数据抽象和封装，需要首先定义一个抽象数据类型 (abstract data type，封装了实现细节的数据结构)。在抽象数据类型中，由类的设计者负责考虑类的实现过程；使用该类的程序员只需要抽象地思考类型做了什么，而无须了解类型的工作细节。
+
+### 定义抽象数据类型
+
+```highLight
+定义在类内部的函数是隐式的 inline 函数。
+```
+
+```highLight
+常量对象，以及常量对象的引用或指针都只能调用常量成员函数。
+```
+
+#### 构造函数
+编译器创建的构造函数又被称为 合成的默认构造函数 (synthesized default constructor)。对于大多数类来说，这个合成的默认构造函数将按照如下规则初始化类的数据成员：
+* 如果存在类内的初始值，用它来初始化成员。
+* 否则，[默认初始化](#默认初始化) 该成员。
+
+```highLight
+只有当类没有声明任何构造函数时，编译器才会自动地生成默认构造函数。
+```
+
+```highLight
+如果类包含有内置类型或者复合类型地成员，则只有当这些成员全都被赋予了类内的初始值时，这个类才适合于使用合成的默认构造函数。
+```
+
+* `=default` 的含义
+我们定义这构造函数的目的仅仅是因为我们既需要其他形式的构造函数，也需要默认的构造函数。我们希望这个函数的作用完全等同于之前使用的合成默认构造函数。
+
+[Default constructors](https://en.cppreference.com/w/cpp/language/default_constructor)
+
+```highLight
+如果你的编译器不支持类内初始值，那么你的默认构造函数就应该使用构造函数初始值列表来初始化类的每个成员。
+```
+
+构造函数初始值列表([constructor initialized list](https://en.cppreference.com/w/cpp/language/initializer_list))
+
+目前所用的 gcc version 8.2.1 是支持 类内初始值  的,eg:
+```c++
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class test {
+private:
+ const std::string a="hello";
+public:
+  void print()
+  {
+    std::cout << a << '\n';
+  }
+};
+
+int main(int argc, char const *argv[]) {
+  test tmp;
+  tmp.print();
+  return 0;
+}
+```
+
+Run it:
+```sh
+hello
 ```
 
 [上一级](base.md)
