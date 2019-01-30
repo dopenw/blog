@@ -79,6 +79,12 @@
 	* [类](#类)
 		* [定义抽象数据类型](#定义抽象数据类型)
 			* [构造函数](#构造函数)
+		* [访问与封装](#访问与封装)
+			* [使用 class 或 struct 关键字](#使用-class-或-struct-关键字)
+			* [友元](#友元)
+			* [返回 * this 的成员函数](#返回-this-的成员函数)
+				* [从 const 成员函数返回 * this](#从-const-成员函数返回-this)
+			* [类的声明](#类的声明)
 
 <!-- /code_chunk_output -->
 
@@ -634,7 +640,7 @@ int val=3.541+3; // 编译器可能会警告该运算损失了精度
 上述的类型转换是自动执行的，无须程序员的介入，有时甚至不需要程序员了解。因此，它们被称作隐式转换。
 
 * 何时发生隐式转换
-	在下面这些情况下，编译器会自动地转换运算对象的类型：
+	在下面这些情况下，编译器会自动的转换运算对象的类型：
 	* 在大多数表达式中，比 int 类型小的整型值首先提升为较大的整数类型。
 	* 在条件中，非布尔值转换成布尔类型。
 	* 初始化过程中，初始值转换成变量的类型；在赋值语句中，右侧运算对象转换成左侧运算对象的类型。
@@ -687,7 +693,7 @@ double slope=i/j;
 		what():  basic_string::_M_construct null not valid
 		(core dumped)
 		```
-		reinterpret_cast 本质上依赖于机器。要想安全地使用 reinterpret_cast ，必须对涉及的类型和编译器实现转换的过程都非常了解。
+		reinterpret_cast 本质上依赖于机器。要想安全的使用 reinterpret_cast ，必须对涉及的类型和编译器实现转换的过程都非常了解。
 
 建议：`避免强制类型转换`
 强制类型转换干扰了正常的类型检查，因此我们强烈建议程序员避免使用强制类型转换。这个建议对于 reinterpret_cast 尤其适用，因为此类类型转换总是充满了风险。在有重载函数的上下文中使用 const_cast 无可厚非；但是在其他情况下使用 const_cast 也就意味着程序存在某种设计缺陷。其他强制类型转换，比如 static_cast 和 dynamic_cast,都不应该频繁使用。每次书写一次强制类型转换语句，都应该反复斟酌能否以其他方式实现相同目标。就算实在无法避免，也应该尽量限制类型转换值的作用域，并且记录对相关类型的所有假定，这样可以减少错误发生的机会 。
@@ -971,16 +977,16 @@ inline const std::string &shorterString(const std::string &s1,const std::string 
 ```c++
 std::cout << shorterString(s1,s2) << '\n';
 ```
-将在编译过程中展开成类似于下面地形式：
+将在编译过程中展开成类似于下面的形式：
 ```c++
 std::cout << (s1.size() <= s2.size() ? s1:s2) << '\n';
 ```
-从而消除了 shorterString 函数地运行时开销。
+从而消除了 shorterString 函数的运行时开销。
 
 Note:
 * 内联说明只是向编译器发出一个请求，编译器可以选择忽略这个请求。
 
-一般来说，内联机制用于优化规模较小、流程直接、频繁调用的函数。很多编译器都不支持内联递归函数，而且一个 75 行的函数也不大可能在调用点内联地展开。
+一般来说，内联机制用于优化规模较小、流程直接、频繁调用的函数。很多编译器都不支持内联递归函数，而且一个 75 行的函数也不大可能在调用点内联的展开。
 
 ##### constexpr函数
 constexpr函数（constexpr function）是指用于常量表达式的函数。
@@ -1008,7 +1014,7 @@ Note:
 * constexpr函数不一定返回常量表达式。
 
 ##### 把内联函数和 constexpr函数放在头文件内
-对于某个给定地内联函数或者 constexpr函数来说，它的多个定义必须完全一致。基于这个原因，内联函数和 constexpr 函数通常定义在头文件中。
+对于某个给定的内联函数或者 constexpr函数来说，它的多个定义必须完全一致。基于这个原因，内联函数和 constexpr 函数通常定义在头文件中。
 
 #### 调试帮助
 
@@ -1112,7 +1118,7 @@ int main(int argc, char const *argv[]) {
 为了确定最佳匹配，编译器将实参类型到形参类型的转换划分为几个等级，具体排序如下所示：
 1. 精确匹配：
 	* 实参类型和形参类型相同
-	* 实参从数组类型或函数类型转换成对应地指针类型
+	* 实参从数组类型或函数类型转换成对应的指针类型
 	* 向实参添加顶层 const 或者从实参中删除顶层 const
 2. 通过 const 转换实现的匹配
 3. 通过类型提升实现的匹配
@@ -1187,7 +1193,7 @@ using PF=int(* )(int * ,int); //PF 是指针类型
 
 PF f1(int); //PF 是指向函数的指针，f1 返回指向函数的指针
 F f1(int); //error,F 是函数类型
-F *f1(int); //正确，显式地指定返回类型是指向函数地指针
+F *f1(int); //正确，显式地指定返回类型是指向函数的指针
 ```
 当然，我们也可以这样：
 ```c++
@@ -1221,17 +1227,21 @@ auto f1(int)->int ( * )(int * ,int);
 * 否则，[默认初始化](#默认初始化) 该成员。
 
 ```highLight
-只有当类没有声明任何构造函数时，编译器才会自动地生成默认构造函数。
+只有当类没有声明任何构造函数时，编译器才会自动的生成默认构造函数。
 ```
 
 ```highLight
-如果类包含有内置类型或者复合类型地成员，则只有当这些成员全都被赋予了类内的初始值时，这个类才适合于使用合成的默认构造函数。
+如果类包含有内置类型或者复合类型的成员，则只有当这些成员全都被赋予了类内的初始值时，这个类才适合于使用合成的默认构造函数。
 ```
 
 * `=default` 的含义
 我们定义这构造函数的目的仅仅是因为我们既需要其他形式的构造函数，也需要默认的构造函数。我们希望这个函数的作用完全等同于之前使用的合成默认构造函数。
 
 [Default constructors](https://en.cppreference.com/w/cpp/language/default_constructor)
+
+```highLight
+如果你的编译器支持类内初始值,当我们提供一个类内初始值时，必须以符号 = 或者 花括号 表示。
+```
 
 ```highLight
 如果你的编译器不支持类内初始值，那么你的默认构造函数就应该使用构造函数初始值列表来初始化类的每个成员。
@@ -1266,6 +1276,58 @@ int main(int argc, char const *argv[]) {
 Run it:
 ```sh
 hello
+```
+
+### 访问与封装
+
+在 c++ 语言中，我们使用 访问说明符 ([access specifiers](https://stackoverflow.com/questions/5447498/what-are-access-specifiers-should-i-inherit-with-private-protected-or-public)) 加强类的封装性；
+
+封装有两个重要的优点：
+* 确保用户代码不会无意间破坏封装对象的状态。
+* 被封装的类的具体实现细节可以随时改变，而无须调整用户级别的代码
+
+#### 使用 class 或 struct 关键字
+使用 `class` 和 `struct` 定义类唯一的区别就是默认的访问权限。
+
+#### 友元
+[Friend class and function in C++](https://www.geeksforgeeks.org/friend-class-function-cpp/)
+
+```highLight
+一般来说，最好在类定义开始或结束前的位置集中声明友元。
+```
+
+```c++
+class Screen{
+	friend class Window_mgr;
+};
+```
+必须要注意的一点是，友元关系并不存在传递性。也就是说，如果 Window_mgr 有它自己的友元，则这些友元并不能理所当然的具有访问 Screen 的特权。
+
+```highLight
+每个类控制自己的友元类或友元函数。
+```
+
+[When should you use 'friend' in C++?](https://stackoverflow.com/questions/17434/when-should-you-use-friend-in-c)
+
+#### 返回 * this 的成员函数
+
+##### 从 const 成员函数返回 * this
+`一个 const 成员函数如果以引用的形式返回 * this ，那么它的返回类型将是常量引用。`
+
+#### 类的声明
+就像可以把函数的声明和定义分离开来一样，我们也能仅仅声明类而暂时不定义它：
+```c++
+class Screen; // Screen 类的声明
+```
+这种声明有时被称作前向声明 (forward declaration)，它向程序中引入名字 Screen 并且指明 Screen 是一种类类型。对于类型 Screen 来说，在它声明之后定义之前是一个不完全类型 (incomplete type)，也就是说，此时我们已知 Screen 是一个类类型，但是不清楚它到底包含哪些成员。
+
+一旦一个类的名字出现后，他就被认为是声明过了（但尚未定义），因此类允许包含指向它自身类型的引用或指针:
+```c++
+class Link_screen{
+	Screen window;
+	Link_screen * next;
+	Link_screen * prev;
+};
 ```
 
 [上一级](base.md)
