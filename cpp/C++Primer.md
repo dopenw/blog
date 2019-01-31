@@ -79,12 +79,15 @@
 	* [类](#类)
 		* [定义抽象数据类型](#定义抽象数据类型)
 			* [构造函数](#构造函数)
+				* [委托构造函数](#委托构造函数)
+				* [聚合类](#聚合类)
 		* [访问与封装](#访问与封装)
 			* [使用 class 或 struct 关键字](#使用-class-或-struct-关键字)
 			* [友元](#友元)
 			* [返回 * this 的成员函数](#返回-this-的成员函数)
 				* [从 const 成员函数返回 * this](#从-const-成员函数返回-this)
 			* [类的声明](#类的声明)
+		* [类的作用域](#类的作用域)
 
 <!-- /code_chunk_output -->
 
@@ -1249,7 +1252,9 @@ auto f1(int)->int ( * )(int * ,int);
 
 构造函数初始值列表([constructor initialized list](https://en.cppreference.com/w/cpp/language/initializer_list))
 
-目前所用的 gcc version 8.2.1 是支持 类内初始值  的,eg:
+c++11 新标准规定，可以为数据成员提供一个类内初始值 ([in-class initializer](https://stackoverflow.com/questions/13662441/c11-allows-in-class-initialization-of-non-static-and-non-const-members-what-c)).
+
+Sample:
 ```c++
 #include <iostream>
 #include <string>
@@ -1277,6 +1282,92 @@ Run it:
 ```sh
 hello
 ```
+
+```highLight
+如果成员是 const、引用，或者属于某种未提供默认构造函数的类类型，我们必须通过构造函数初始值列表为这些成员提供初值。
+```
+
+```highLight
+最好令构造函数初始值的顺序与成员声明的顺序保持一致。而且如果可能的话，尽量避免使用某些成员初始化其他成员。
+```
+
+##### 委托构造函数
+c++ 11 新标准扩展了构造函数初始值的功能，使得我们可以定义所谓的 委托构造函数 ([delegating constructors](https://www.geeksforgeeks.org/constructor-delegation-c/))。一个委托构造函数使用它所属类的其他构造函数执行它自己的初始化过程，或者说它把它自己的一些（或者全部）职责委托给其他构造函数。
+
+Sample:
+```c++
+// Program to demonstrate constructor delegation
+// in C++
+#include <iostream>
+using namespace std;
+class A {
+	int x, y, z;
+
+public:
+	A()
+	{
+		x = 0;
+		y = 0;
+		z = 0;
+	}
+
+	// Constructor delegation
+	A(int z) : A()
+	{
+		this->z = z; // Only update z
+	}
+
+	void show()
+	{
+		cout << x << '\n'
+			<< y << '\n'
+			<< z;
+	}
+};
+int main()
+{
+	A obj(3);
+	obj.show();
+	return 0;
+}
+```
+Run it:
+```sh
+0
+0
+3
+```
+
+* 对于 c++ 新手程序员来说有一种常犯的错误，它们试图以如下的形式声明一个用默认构造函数初始化的对象。
+```c++
+Sales_data obj(); // 错误，声明了一个函数而非对象
+Sales_data obj2; //正确，obj2 是一个对象而非函数
+```
+
+* 抑制构造函数定义的隐式转换
+
+	* 我们可以通过将构造函数声明为 [explicit](https://en.cppreference.com/w/cpp/language/explicit) 来阻止类类型的隐式转换。
+	* explicit 构造函数只能用于直接初始化，不能将 explicit 构造函数用于拷贝形式的初始化过程
+
+##### 聚合类
+聚合类 ([aggregate class](http://www.enseignement.polytechnique.fr/informatique/INF478/docs/Cpp/en/cpp/language/aggregate_initialization.html))使得用户可以直接访问其成员，并且具有特殊的初始化语法形式。当一个类满足如下条件时，我们说它是聚合的：
+* 所有成员都是 public
+* 没有定义任何构造函数
+* 没有类内初始值
+* 没有基类，也没有 virtual 函数
+
+Sample:
+```c++
+struct Data{
+	int val;
+	string s;
+};
+```
+我们可以提供一个花括号括起来的成员初始值列表，并用它初始化聚合类的数据成员：
+```c++
+Data val1={0,"hello"};
+```
+当然，初始值的顺序必须与声明的顺序一致。与初始化数组元素的规则一样，如果初始值列表中的元素个数少于类的成员数量，则靠后的成员被值初始化。初始值列表的元素个数绝对不能超过类的成员数量。
 
 ### 访问与封装
 
@@ -1328,6 +1419,36 @@ class Link_screen{
 	Link_screen * next;
 	Link_screen * prev;
 };
+```
+
+### 类的作用域
+```highLight
+编译器处理完类中的全部声明后才会处理成员函数的定义。
+```
+
+```c++
+// 不建议这样写
+void Screen::dummy_fcn(pos height)
+{
+	cursor=width * this->height; // 成员 height
+	// 另一种表示该成员的方式
+	cursor=width * Screen::height; //成员 height
+}
+```
+```highLight
+尽管类的成员被隐藏了，但我们仍然可以通过加上类的名字或显式地使用 this 指针来强制访问成员。
+```
+
+如果我们需要的是外层作用域中的名字，可以显式地通过作用域运算符来进行请求:
+```c++
+//不建议的写法
+void Screen::dummy_fcn(pos height)
+{
+	cursor=width * ::height; //那个 height? 不是成员 height,而是全局的 height
+}
+```
+```highLight
+尽管外层的对象被隐藏掉了，但我们仍然可以用作用域运算符访问它。
 ```
 
 [上一级](base.md)
