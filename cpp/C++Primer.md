@@ -88,6 +88,9 @@
 				* [从 const 成员函数返回 * this](#从-const-成员函数返回-this)
 			* [类的声明](#类的声明)
 		* [类的作用域](#类的作用域)
+		* [类的静态成员](#类的静态成员)
+			* [静态成员能用于某些场景，而普通成员不能](#静态成员能用于某些场景而普通成员不能)
+	* [Link](#link)
 
 <!-- /code_chunk_output -->
 
@@ -1450,6 +1453,149 @@ void Screen::dummy_fcn(pos height)
 ```highLight
 尽管外层的对象被隐藏掉了，但我们仍然可以用作用域运算符访问它。
 ```
+
+### 类的静态成员
+```c++
+class Account{
+public:
+	void calculate() {amount += amount * interestRate;}
+	static double rate() {return interestRate;}
+	static void rate(double);
+private:
+	std::string owner;
+	double amount;
+	static double interestRate;
+	static double initRate();
+};
+```
+类的静态成员存在于任何对象之外，对象中不包含任何与静态数据有关的数据。类似的，静态成员函数也不与任何对象绑定在一起，它们不包含 this 指针。作为结果，静态成员函数不能声明成 const ，而且我们也不能再 static 函数体内使用 this 指针。这一限制适用于 this 的显式使用，也对调用非静态成员的隐式使用有效。
+
+使用类的静态成员
+```c++
+double r = Account::rate(); // 使用作用域运算符访问静态成员
+```
+虽然静态成员不属于类的某个对象，但是我们仍然可以使用类的对象、引用或者指针来访问静态成员：
+```c++
+Account ac1;
+Account * ac2=&ac1;
+// 调用静态成员函数 rate 的等价形式
+r = ac1.rate();
+r = ac2->rate();
+```
+成员函数不用通过作用域运算符就能直接使用静态成员：
+```c++
+class Account{
+public:
+	void calculate() {amount += amount * interestRate;}
+private:
+	static double interestRate;
+	//其他成员与之前的版本一致
+};
+
+// 当在类的外部定义静态成员时，不能重复 static 关键字，该关键字只出现在类内部的声明语句：
+void Account::rate(double newRate)
+{
+	interestRate=newRate;
+}
+```
+
+Note:
+* `和类的所有成员一样，当我们指向类外部的静态成员时，必须指明成员所属的类名。staic 关键字则只出现在类内部的声明语句中`。
+
+```c++
+double Account::interestRate=initRate();
+//和其他成员的定义一样， interestRate 的定义也可以访问类的私有成员
+```
+
+Tips:
+* `要想确保对象只定义一次，最好的办法是把静态数据成员的定义与其他非内联函数的定义放在同一个文件中。`
+
+静态成员的类内初始化
+通常情况下，类的静态成员不应该在类的内部初始化。然而，我们可以为静态成员提供 const 整数类型的类内初始值，不过要求静态成员必须是字面值常量类型的 constexpr。
+```c++
+class Account{
+public:
+	static double rate(){return interestRate;}
+	static void rate(double);
+private:
+	static constexpr int period = 30; // period 是常量表达式
+	double daily_tbl[period];
+};
+
+// 即使一个常量静态数据成员在类内部被初始化了，通常情况下也应该在类的外部定义一下该成员。
+constexpr int Account::period;
+```
+
+如果某个静态成员的应用场景仅限于编译器可以替换它的值的情况，则一个初始化的 const 或 constexpr static 不需要分别定义。相反，如果我们将它用于值不能替换的场景中，则该成员必须有一条定义语句。
+
+#### 静态成员能用于某些场景，而普通成员不能
+```c++
+class Bar{
+public:
+	// ...
+private:
+	static Bar mem1; // 正确，静态成员可以是不完全类型
+	Bar * mem2; //正确，指针成员可以是不完全类型
+	Bar mem3; //错误，数据成员必须是完全类型
+};
+```
+
+静态成员和普通成员的另外一个区别就是我们可以使用静态成员作为默认实参
+```c++
+class Screen{
+public:
+	// bkground 表示一个在类中稍后定义的静态成员
+	Screen& clear(char = bkground);
+private:
+	static const char bkground;
+};
+```
+非静态数据成员不能作为默认实参，因为它的值本身属于对象的一部分，这么做的结果是无法真正提供一个对象以便从中获取成员的值，最终将引发错误。
+
+Exercise 7.58
+```c++
+// example.h
+class Example {
+public:
+    static double rate = 6.5;
+    static const int vecSize = 20;
+    static vector<double> vec(vecSize);
+};
+
+// example.C
+#include "example.h"
+double Example::rate;
+vector<double> Example::vec;
+```
+
+```c++
+static double rate = 6.5;
+                ^
+            rate should be a constant expression.
+
+static vector<double> vec(vecSize);
+                            ^
+            we may not specify an in-class initializer inside parentheses.
+```
+
+Fixed:
+```c++
+// example.h
+class Example {
+public:
+    static constexpr double rate = 6.5;
+    static const int vecSize = 20;
+    static vector<double> vec;
+};
+
+// example.C
+#include "example.h"
+constexpr double Example::rate;
+vector<double> Example::vec(Example::vecSize);
+```
+
+## Link
+* [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
 
 [上一级](base.md)
 [下一篇](MFC_VS_QT.md)
