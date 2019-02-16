@@ -90,6 +90,15 @@
 		* [类的作用域](#类的作用域)
 		* [类的静态成员](#类的静态成员)
 			* [静态成员能用于某些场景，而普通成员不能](#静态成员能用于某些场景而普通成员不能)
+		* [小结](#小结)
+	* [IO 类](#io-类)
+		* [IO 类](#io-类-1)
+			* [IO 对象无拷贝或赋值](#io-对象无拷贝或赋值)
+			* [条件状态](#条件状态)
+			* [管理输出缓冲](#管理输出缓冲)
+		* [文件输入输出](#文件输入输出)
+			* [文件模式](#文件模式)
+		* [string 流](#string-流)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -1593,6 +1602,102 @@ public:
 constexpr double Example::rate;
 vector<double> Example::vec(Example::vecSize);
 ```
+
+### 小结
+类有两项基本能力：
+1. 数据抽象，即定义数据成员和函数成员的能力
+2. 封装，即保护类的成员不被随意访问的能力。通过将类的实现细节设为 private ，我们就能完成类的封装。
+
+## IO 类
+[cplusplus/Input/output library](http://www.cplusplus.com/reference/iolibrary/)
+[cppreference/Input/output library](https://en.cppreference.com/w/cpp/io)
+
+### IO 类
+
+#### IO 对象无拷贝或赋值
+```c++
+ofstream out1,out2;
+out1=out2; //error
+ofstream print(ofstream); //error
+out2=print(out2); //error
+```
+由于不能拷贝 IO 对象，因此我们也不能将形参或返回类型设置为流类型。进行 IO 操作的函数通常以引用方式传递和返回流。读写一个 IO 对象会改变其状态，因此传递和返回的引用不能是 const 的。
+
+#### 条件状态
+[std::basic_ios](https://en.cppreference.com/w/cpp/io/basic_ios)
+[std::ios_base::iostate](https://en.cppreference.com/w/cpp/io/ios_base/iostate)
+
+下面是一个 IO 错误的例子：
+```c++
+int val;
+cin >> val;
+```
+如果我们在标准输入上键入 Boo,读操作就会失败。代码中的输入运算符期待读取一个 int ，但却得到了一个字符 B。这样，cin 会进入错误状态。类似的，如果我们输入一个文件结束标识，cin 也会进入错误状态。
+
+一个流一旦发生错误，其上后续的 IO 操作都会失败。确定一个流对象的最简单的方法将它当作一个条件来使用：
+```c++
+while (cin >> word) {
+	// ok: 读操作成功 ...
+}
+```
+我们可以使用 good() 或 fail() 来确定流的总体状态。
+
+管理条件状态,eg:
+```c++
+auto oldState=cin.rdstate(); // 记住 cin 的当前状态
+cin.clear(); //使 cin 有效
+processInput(cin); //使用 cin
+cin.setstate(oldState); // 将 cin 置为原有状态
+```
+
+#### 管理输出缓冲
+每个输出流都管理一个缓冲区，用来保存程序读写的数据。例如
+```c++
+os << "please enter a value: ";
+```
+文本串可能立即打印出来，但也有可能被操作系统保存在缓冲区中，随后再打印。`有了缓冲机制，操作系统就可以将程序的多个输出操作组合成单一的系统级写操作。由于设备的写操作可能很耗时，允许操作系统将多个输出操作组合为单一的设备写操作可以带来很大的性能提升。`
+
+一个输出流可能被关联到另一个流。在这种情况下，当读写被关联的流时，关联到的流的缓冲区会被刷新。例如，默认情况下，cin 和 cerr 都被关联到 cout。 因此，读 cin 或 写 cerr 都会导致 cout 的缓冲区被刷新。
+
+[std::flush](https://en.cppreference.com/w/cpp/io/manip/flush)
+
+[std::unitbuf, std::nounitbuf](https://en.cppreference.com/w/cpp/io/manip/unitbuf),如果想在每次输出操作后都刷新缓冲区，我们可以使用 unitbuf 操作符，eg:
+```c++
+cout<<unitbuf; // 所有输出操作后都会立即刷新缓冲区
+//任何输出都立即刷新，无缓冲
+cout<< nounitbuf; //回到正常的缓冲方式
+```
+
+警告：`如果程序崩溃，输出缓冲区不会被刷新`
+
+关联输入和输出流
+当一个输入流被关联到一个输出流时，任何试图从输入流读取数据的操作都会先刷新关联的输出流。标准库将 cout 和 cin 关联在一起，因此下面语句：
+```c++
+cin >> val;
+```
+导致 cout 的缓冲区被刷新。
+
+Note：`交互式系统通常应该关联输入流和输出流。这意味着所有输出，包括用户提示信息，都会在读操作之前被打印出来。`
+
+将一个给定的流关联到一个新的流，我们可以使用[std::basic_ios::tie](https://en.cppreference.com/w/cpp/io/basic_ios/tie)
+
+### 文件输入输出
+
+#### 文件模式
+[openmode](https://en.cppreference.com/w/cpp/io/ios_base/openmode)
+
+以 out 模式打开文件会丢弃已有数据
+
+```c++
+ofstream out("file1"); //隐含以输出模式打开文件并截断文件
+// 为了保留文件内容，我们必须显式指定 app 模式
+ofstream app("file2",ofstream::app);
+```
+
+Warning:`保留被 ofstream 打开的文件中已有数据的唯一方法是显式指定 app 或 in 模式`
+
+### string 流
+[stringstream in C++ and its applications](https://www.geeksforgeeks.org/stringstream-c-applications/)
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
