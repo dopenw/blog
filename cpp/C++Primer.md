@@ -99,6 +99,11 @@
 		* [文件输入输出](#文件输入输出)
 			* [文件模式](#文件模式)
 		* [string 流](#string-流)
+	* [顺序容器](#顺序容器)
+		* [顺序容器概述](#顺序容器概述)
+		* [容器库概览](#容器库概览)
+			* [使用 assign (仅顺序容器)](#使用-assign-仅顺序容器)
+			* [使用 swap](#使用-swap)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -1698,6 +1703,88 @@ Warning:`保留被 ofstream 打开的文件中已有数据的唯一方法是显�
 
 ### string 流
 [stringstream in C++ and its applications](https://www.geeksforgeeks.org/stringstream-c-applications/)
+
+## 顺序容器
+一个容器就是一些特定类型对象的集合。顺序容器(sequential container) 为程序员提供了控制元素存储和访问顺序的能力。这种顺序不依赖于元素的值，而是与元素加入容器时的位置相对应。
+
+* [std::vector](https://en.cppreference.com/w/cpp/container/vector)
+* [std::array](https://en.cppreference.com/w/cpp/container/array)
+* [std::deque](https://en.cppreference.com/w/cpp/container/deque)
+* [std::forward_list](https://en.cppreference.com/w/cpp/container/forward_list)
+
+### 顺序容器概述
+下表列出了标准库中的顺序容器。但是，这些容器在以下方面都有不同的性能折中：
+* 向容器添加或从容器中删除元素的代价
+* 非顺序访问容器中元素的代价
+
+|    vector    |    可变大小数组。支持快速随机访问。在尾部之外的位置插入或删除元素可能很慢   |
+|:------------:|:---------------------------------------------------------------------------:|
+|     deque    |           双端队列。支持快速随机访问。在头尾位置插入/删除速度很快           |
+|     list     | 双向链表。只支持双向顺序访问。在 list 中任何位置进行插入/删除操作速度都很快 |
+| forward_list |   单向链表。只支持单向顺序访问。在链表任何位置进行插入/删除操作速度都很快   |
+|     array    |             固定大小数组。支持快速随机访问。不能添加或删除元素。            |
+|    string    | 与 vector 相似的容器，但专门用于保存字符。随机访问快。在尾部插入/删除速度快 |
+
+除了固定大小的 array 外，其他容器都提供高效、灵活的内存管理。我们可以添加和删除元素，扩张和收缩容器的大小。容器保存元素的策略对容器操作的效率有着固有的，有时是重大的影响。在某些情况下，存储策略还会影响特定容器是否支持特定操作。
+
+例如，string 和 vector 将元素保存在连续的内存空间中。由于元素是连续存储的，由元素的下标来计算其地址是非常快速的。但是，在这两种容器的中间位置添加或删除元素就会非常耗时：在一次插入或删除操作后，需要移动插入/删除位置之后的所有元素，来保持连续存储。而且，添加一个元素有时可能还需要分配额外的存储空间。在这种情况下，每个元素都必须移动到新的存储空间中。
+
+list 和 forward_list 两个容器的设计目的是令容器任何位置的添加和删除操作都很快速。作为代价，这两个容器不支持元素的随机访问：为了访问一个元素，我们只能遍历整个容器。而且，与 vector 、 deque 和 array 相比，这两个容器的额外内存开销也很大。
+
+deque 是一个更为复杂的数据结构。与 string 和 vector 一样，在 deque 的中间位置添加或删除元素的代价（可能）很高。但是，在 deque 的两端添加或删除元素都是很快的，与 list 或 forward_list 添加删除元素的速度相当。
+
+forward_list 和 array 是 c++11 增加的类型。与内置数组相比， array 是一种更安全、更容易使用的数组类型。与内置数组类似， array 对象的大小是固定的。forward_list 的设计目标是达到与最好的手写的单向链表数据结构相当的性能。因此， forward_list 没有 size 操作，因为保存或计算其大小就会比手写链表多出额外的开销。对其他容器而言，size 保证是一个快速的常量时间的操作。
+
+Tips：`通常，使用 vector 是最好的选择，除非你有很好的理由选择其他容器`
+
+[Choosing the Right Container: Sequential Containers](https://embeddedartistry.com/blog/2017/9/11/choosing-the-right-stl-container-sequential-containers)
+
+### 容器库概览
+
+```c++
+// 假定 noDefault 是一个没有默认构造函数的类型
+std::vector<noDefault> v1(10,init); //正确，提供了元素初始化器
+std::vector<noDefault> v2(10); // 错误，必须提供一个元素初始化器
+```
+
+迭代器范围：`[begin,end)`
+
+Note:`只有顺序容器的构造函数才接受大小参数，关联容器并不支持`
+
+#### 使用 assign (仅顺序容器)
+[std::vector::assign](https://en.cppreference.com/w/cpp/container/vector/assign)
+
+赋值运算符要求左边和右边的运算对象具有相同的类型。它将右边运算符对象中所有元素拷贝到左边运算对象中。顺序容器（array 除外）还定义了一个名为 assign 的成员，允许我们从一个不同但相容的类型赋值，或者从容器的一个子序列赋值。例如：
+```c++
+list<string> names;
+std::vector<const char *> oldstyle;
+names = oldstyle; //错误，容器类型不匹配
+// 正确，可以将 const char * 转换为 string
+names.assign(oldstyle.cbegin(),oldstyle.cend());
+```
+
+Warning:`由于其旧元素被替换，因此传递给 assign 的迭代器不能指向调用 assign 的容器`。
+
+#### 使用 swap
+swap 操作交换两个相同类型容器的内容。调用 swap 之后，两个容器中的元素将会交换：
+```c++
+std::vector<string> v1(10);
+std::vector<string> v2(24);
+std::swap(v1,v2);
+```
+除 array 外，交换两个容器内容的操作保证会很快`（元素本身并未交换，swap 只是交换了两个容器的内部数据结构）`
+
+Note：`除 array 外，swap 不对任何元素进行拷贝、删除或插入操作，因此可以保证在常数时间内完成.`
+
+除 string 外，指向容器的迭代器、引用和指针在 swap 操作之后都不会失效。它们仍指向 swap 操作之前所指向的那些元素。但是，在 swap 之后，这些元素已经属于不同的容器了。例如，假定 iter 在 swap 之前指向  v1[3] 的 string ,那么在 swap 之后它指向  v2[3] 的元素。
+
+与其他容器不同，swap 两个 array 会真正交换它们的元素。因此，交换两个 array 所需的时间与 array 中元素的数目成正比。
+
+#### 关系运算符
+
+容器的关系运算符使用元素的关系运算符完成比较
+Note：`只有当其元素类型也定义了相应的比较运算符时，我们才可以使用关系运算符来比较两个容器。`
+
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
