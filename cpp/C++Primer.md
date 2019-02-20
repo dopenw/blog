@@ -104,6 +104,16 @@
 		* [容器库概览](#容器库概览)
 			* [使用 assign (仅顺序容器)](#使用-assign-仅顺序容器)
 			* [使用 swap](#使用-swap)
+			* [关系运算符](#关系运算符)
+		* [顺序容器操作](#顺序容器操作)
+			* [使用 emplace 操作](#使用-emplace-操作)
+			* [访问元素](#访问元素)
+			* [删除元素](#删除元素)
+			* [特殊的 forward_list 操作](#特殊的-forward_list-操作)
+			* [改变容器大小](#改变容器大小)
+			* [容器操作可能使迭代器失效](#容器操作可能使迭代器失效)
+				* [编写改变容器的循环程序](#编写改变容器的循环程序)
+				* [不要保存 end 返回的迭代器](#不要保存-end-返回的迭代器)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -1785,6 +1795,232 @@ Note：`除 array 外，swap 不对任何元素进行拷贝、删除或插入操
 容器的关系运算符使用元素的关系运算符完成比较
 Note：`只有当其元素类型也定义了相应的比较运算符时，我们才可以使用关系运算符来比较两个容器。`
 
+
+### 顺序容器操作
+
+Warning:`向一个 vector,string 或 deque 插入元素会使所有指向容器的迭代器、引用和指针失效`
+
+当我们使用这些操作时，必须记得不同容器使用不同的策略来分配元素空间，而这些策略直接影响性能。在一个 vector 或 string 的尾部之外的任何位置，或是一个 deque 的首尾之外的任何位置添加元素，都需要移动元素。而且，像一个 vector 或 string 添加元素可能引起整个对象存储空间的重新分配。重新分配一个对象的存储空间需要分配新的内存，并将元素从旧的空间移动到新的空间中。
+
+Warning:`将元素插入到 vector、deque 和 string 中的任何位置都是合法的。然而，这样做可能很耗时。`
+
+插入范围内元素，eg:
+```c++
+svec.insert(svec.end(),10,"Anna");
+
+std::vector<string> v={"quasi","simba","frollo","scar"};
+slist.insert(slist.end(),v.end()-2,v.end());
+slist.insert(slist.end(),{"these","words","will",
+	"go","at","the","end"});
+```
+
+```c++
+slist.insert(slist.begin(),slist.begin(),slist.end());
+//运行时错误，迭代器表示要拷贝的范围，不能指向与目的位置相同的容器
+```
+如果我们传递给 insert 一对迭代器，它们不能指向添加元素的目标容器。
+
+使用 insert 的返回值,eg:
+```c++
+list<string> lst;
+auto iter=lst.begin();
+while(cin>>word)
+	iter=lst.insert(iter,word); // 等价于调用push_front
+```
+
+#### 使用 emplace 操作
+[std::vector::emplace](https://en.cppreference.com/w/cpp/container/vector/emplace)
+
+新标准引入了三个新成员 - emplace_front, emplace 和 emplace_back ,这些操作构造而不是拷贝元素。这些操作分别对应 push_front,insert 和 push_back,允许我们将元素放置在容器头部、一个指定的位置之前或容器尾部。
+当调用 push 或 insert 成员函数时，我们将元素类型的对象传递给它们，这些对象被拷贝到容器中。而当我们调用一个 emplace 成员函数时，则是将参数传递给元素类型的构造函数。 emplace 成员使用这些参数在容器管理的内存空间中直接构造元素。
+
+[vector emplace() function in C++ STL](https://www.geeksforgeeks.org/vector-emplace-function-in-c-stl/)
+
+Note:`emplace 函数在容器中直接构造元素。传递给 emplace 函数的参数必须与元素类型的构造函数相匹配。`
+
+练习 9.22:假定 iv 是一个 int 的 vector ，下面的程序存在什么错误？你将如何修改？
+```c++
+vector<int>::iterator iter = iv.begin(), mid = iv.begin() + iv.size()/2;
+while (iter != mid)
+    if (* iter == some_val)
+        iv.insert(iter, 2 * some_val);
+```
+Fixed:
+```c++
+#include <iostream>
+#include <vector>
+
+void double_and_insert(std::vector<int>& v, int some_val)
+{
+    auto mid = [&]{ return v.begin() + v.size() / 2; };
+    for (auto curr = v.begin(); curr != mid(); ++curr)
+        if (*curr == some_val)
+            ++(curr = v.insert(curr, 2 * some_val));
+}
+
+int main()
+{
+    std::vector<int> v{ 1, 9, 1, 9, 9, 9, 1, 1 };
+    double_and_insert(v, 1);
+
+    for (auto i : v)
+        std::cout << i << std::endl;
+}
+```
+[Exercise 9.22:](https://github.com/Mooophy/Cpp-Primer/tree/master/ch09#exercise-922)
+
+#### 访问元素
+Warning:`对一个空容器调用 front 和 back ，就像使用一个越界的下标一样，是一个严重的程序设计错误。`
+
+在容器中访问元素的成员函数（即，front,back,下标和 at）返回的都是引用。
+
+#### 删除元素
+Warning:`删除 deque 中除首尾位置之外的任何元素都会使所有迭代器、引用和指针失效。指向 vector 或 string 中删除点之后位置的迭代器、引用和指针都会失效。`
+
+Warning:`删除元素的成员函数并不检查其参数。在删除元素之前，程序员必须确保它们是存在的。`
+
+例如，下面的循环删除一个list 中的所有奇数元素：
+```c++
+list<int> lst={0,1,2,3,4,5,6,7,8,9};
+auto it=lst.begin();
+while (it!=lst.end()) {
+	if(*it%2) // 若元素为奇数
+		it=lst.erase(it); //删除此元素
+	else
+		++it;
+}
+```
+
+练习 9.26: 使用下面代码定义的 ia，将 ia 拷贝到一个 vector 和一个 list 中。使用单迭代器版本的 erase 从 list 中删除奇数元素，从 vector 中删除偶数元素。
+```highLight
+int ia[] = { 0, 1, 1, 2, 3, 5, 8, 13, 21, 55, 89 };
+```
+```c++
+#include <iostream>
+#include <vector>
+#include <list>
+
+using std::vector; using std::list; using std::cout; using std::endl; using std::end;
+
+int main()
+{
+    int ia[] = { 0, 1, 1, 2, 3, 5, 8, 13, 21, 55, 89 };
+
+    // init
+    vector<int> vec(ia, end(ia));
+    list<int> lst(vec.begin(), vec.end());
+
+    // remove odd value
+    for(auto it = lst.begin();  it != lst.end(); )
+        if(*it & 0x1) it = lst.erase(it);
+        else ++it;
+
+    // remove even value
+    for(auto it = vec.begin();  it != vec.end(); )
+        if(! (*it & 0x1)) it = vec.erase(it);
+        else ++it;
+
+    // print
+    cout << "list : ";
+    for(auto i : lst)   cout << i << " ";
+    cout << "\nvector : ";
+    for(auto i : vec)   cout << i << " ";
+    cout << std::endl;
+
+    return 0;
+}
+```
+[Cpp-Primer/ch09/ex9_26.cpp](https://github.com/Mooophy/Cpp-Primer/blob/master/ch09/ex9_26.cpp)
+
+#### 特殊的 forward_list 操作
+[std::forward_list](https://en.cppreference.com/w/cpp/container/forward_list)
+
+当在 forward_list 中添加或删除元素时，我们必须关注两个迭代器-一个指向我们要处理的元素，另一个指向其前驱。例如，可以改写之前从list 中删除奇数元素的循环程序，将其改为从 forward_list 中删除元素：
+```c++
+forward_list<int> flst={0,1,2,3,4,5,6,7,8,9};
+auto prev=flst.before_begin(); // 表示 flst 的“首前元素”
+auto curr=flst.begin();
+while (curr!=flst.end()) {
+	if(*curr % 2)
+		curr=flst.erase_after(prev); //删除并移动 curr
+	else
+	{
+		prev=curr; // 移动迭代器 curr,指向下一个元素，prev 指向
+		++curr; // curr 之前的元素
+	}
+}
+```
+
+#### 改变容器大小
+我们可以使用 resize 来增大或缩小容器，与往常一样， array 不支持 resize。如果当前大小大于所要求的大小，容器后部的元素会被删除；如果当前大小小于新大小，会将新元素添加到容器后部；
+```c++
+c.resize(n); // 调整 c 的大小为 n 个元素。
+c.resize(n,t); //调整 c 的大小为 n 个元素。任何新添加的元素都被初始化为 t
+```
+Warning:`如果 resize 缩小容器，则指向被删除元素的迭代器、引用和指针都会失效；对 vector string deque 进行 resize 可能导致迭代器、指针和引用失效。`
+
+#### 容器操作可能使迭代器失效
+向容器中添加元素和从容器中删除元素的操作可能会使指向容器元素的指针、引用或迭代器失效。一个失效的指针、引用或迭代器将不再表示任何元素。使用失效的指针、引用或迭代器是一种严重的程序设计错误，很可能引起与使用未初始化指针一样的问题。
+
+在向容器添加元素后：
+* 如果容器是 vector 或 string ，且存储空间被重新分配，则指向容器的迭代器、指针和引用都会失效。如果存储空间未重新分配，指向插入位置之前的元素迭代器、指针和引用仍有效，但指向插入位置之后元素的迭代器、指针和引用将会失效。
+* 对于 deque ,插入到除首尾位置之外的任何位置都会导致迭代器、指针和引用失效。如果在首尾位置添加元素，迭代器会失效，但指向存在的元素的引用和指针不会失效。
+* 对于 list 和 forward_list ，指向容器的迭代器（包括尾后迭代器和首前迭代器）、指针和引用仍有效。
+
+当我们从一个容器中删除元素后，指向被删除元素的迭代器、指针和引用会失效，这应该不会令人惊讶。毕竟，这些元素都已经被销毁了。当我们删除一个元素后：
+* 对于 list 和 forward_list ，指向容器其他位置的迭代器（包括尾后迭代器和首前迭代器）、引用和指针仍有效。
+* 对于 deque,如果在首尾之外的任何位置删除元素，那么指向被删除元素外其他元素的迭代器、引用或指针也会失效。如果是删除 deque 的尾元素，则尾后迭代器也会失效，但其他迭代器、引用和指针不受影响；如果是删除首元素，这些也不会受影响。
+* 对于 vector 和 string ，指向被删元素之前元素的迭代器、引用和指针仍有效。注意：当我们删除元素时，尾后迭代器总是会失效。
+
+Warning:`使用失效的迭代器、指针或引用时严重的运行时错误。`
+
+建议：管理迭代器
+`当你使用迭代器（或指向容器元素的引用或指针）时，最小化要求迭代器必须保持有效的程序片段是一个好的方法。
+由于向迭代器添加元素和从迭代器删除元素的代码可能会使迭代器失效，因此必须保证每次改变容器的操作之后都正确地重新定位迭代器。这个建议对 vector string 和 deque 尤为重要。`
+
+##### 编写改变容器的循环程序
+添加/删除 vector string 或 deque 元素的循环程序必须考虑迭代器、引用和指针可能失效的问题。程序必须保证每个循环步中都更新迭代器、引用或指针。如果循环中调用的是 insert 或 erase ，那么更新迭代器很容易。这些操作都返回迭代器，我们可以用来更新：
+```c++
+//傻瓜循环，删除偶数元素，复制每个奇数元素
+std::vector<int> vi={0,1,2,3,4,5,6,7,8,9};
+auto iter=vi.begin();
+while (iter != vi.end()) {
+	if(*iter % 2)
+	{
+		iter=vi.insert(iter,*iter); // 复制当前元素
+		iter+=2; // 向前移动迭代器，跳过当前元素以及插入到它之前的元素
+	}else
+		iter=vi.erase(iter); //删除偶数元素
+		//不应向前移动迭代器，iter 指向我们删除的元素之后的元素
+}
+```
+在调用 erase 后，不必递增迭代器，因为 erase 返回的迭代器已经指向序列中下一个元素。调用 insert 后，需要递增迭代器两次。记住，insert 在给定位置之前插入新元素，然后返回指向新插入元素的迭代器。因此，在调用 insert 后，iter 指向新插入元素，位于我们正在处理的元素之前。我们将迭代器递增两次，恰好越过了新添加的元素和正在处理的元素，指向下一个未处理的元素。
+
+##### 不要保存 end 返回的迭代器
+当我们添加/删除 vector 或 string 的元素后，或在 deque 中首元素之外任何位置添加/删除元素后，原来 end 返回的迭代器总会失效。因此，添加或删除元素的循环程序必须反复调用 end ,而不能在循环之前保存 end 返回的迭代器，一直当作容器末尾使用。通常 c++ STL 实现中 end() 操作都很快，部分就是因为这个原因。
+```c++
+// 灾难： 此循环的行为是未定义的
+auto begin=v.begin(),end=v.end(); // 保存尾迭代器的值是一个坏主意
+while (begin!=end) {
+	// 做一些处理
+	//插入新值，对 begin 重新赋值，否则的话它就会失效
+	++begin; //向前移动 begin,因为我们想在此元素之后插入元素
+	begin=v.insert(begin,42); //向前移动 begin 跳过我们刚刚加入的元素
+	++begin;
+}
+```
+此代码的行为是未定义的。在很多标准库实现上，此代码会导致无限循环。
+Tips:`如果在一个循环中插入/删除 deque string 或 vector 中的元素，不要缓存 end 返回的迭代器。`
+必须在每次插入操作后重新调用end()，而不能在循环开始前保存它返回的迭代器：
+```c++
+//
+while (begin!=v.end()) {
+	// 做一些处理
+	++begin;  //向前移动 begin,因为我们想在此元素之后插入元素
+	begin=v.insert(begin,42);
+	++begin; //向前移动 begin 跳过我们刚刚加入的元素
+}
+```
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
