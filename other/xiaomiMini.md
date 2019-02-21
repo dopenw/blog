@@ -164,4 +164,4 @@ config dnsmasq
 	option local '127.0.0.1#5353'
 ```
 [上一级](base.md)
-[上一篇](ss_privoxy.md)
+[上一篇](v2ray.md)
