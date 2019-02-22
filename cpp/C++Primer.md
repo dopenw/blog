@@ -114,6 +114,7 @@
 			* [容器操作可能使迭代器失效](#容器操作可能使迭代器失效)
 				* [编写改变容器的循环程序](#编写改变容器的循环程序)
 				* [不要保存 end 返回的迭代器](#不要保存-end-返回的迭代器)
+		* [vector 对象是如何增长的](#vector-对象是如何增长的)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -2010,16 +2011,154 @@ while (begin!=end) {
 }
 ```
 此代码的行为是未定义的。在很多标准库实现上，此代码会导致无限循环。
+
 Tips:`如果在一个循环中插入/删除 deque string 或 vector 中的元素，不要缓存 end 返回的迭代器。`
+
 必须在每次插入操作后重新调用end()，而不能在循环开始前保存它返回的迭代器：
 ```c++
-//
+// 更安全的方法：在每个循环步添加/删除元素后都重新计算 end
 while (begin!=v.end()) {
 	// 做一些处理
 	++begin;  //向前移动 begin,因为我们想在此元素之后插入元素
 	begin=v.insert(begin,42);
 	++begin; //向前移动 begin 跳过我们刚刚加入的元素
 }
+```
+
+### vector 对象是如何增长的
+为了支持快速随机访问，vector 将元素连续存储。
+
+为了避免每次添加新元素都重新分配容器内存空间，STL 实现者采用了可以减少容器重新分配次数的策略。当不得不获取新的内存空间时，vector 和 string 的实现通常会分配比新的空间需求更大的内存空间。其实际性能也表现的足够好-虽然 vector 在每次重新分配内存空间时都要移动所有元素，但使用此策略后，其扩张操作通常比 list 和 deque 还要快。
+
+管理容量的成员函数：
+[std::vector::shrink_to_fit](https://en.cppreference.com/w/cpp/container/vector/shrink_to_fit) 请将 capacity() 减少为与 size() 相同大小
+[std::vector::capacity](https://en.cppreference.com/w/cpp/container/vector/capacity) 不重新分配内存空间的话，可以保存多少元素
+[std::vector::reserve](https://en.cppreference.com/w/cpp/container/vector/reserve) 分配至少能容纳 n 个元素的内存空间
+shrink_to_fit 只适用于 vector string 和 deque
+capacity 和 reserve 只适用于 vector 和 string
+
+Note:`reserve 并不改变容器中元素的数量，它仅影响 vector 预先分配多大的内存空间。`
+
+只有当需要的内存空间超过当前容量时，reserve 调用才会改变容器的容量。
+我们可以调用 shrink_to_fit 来要求容器退回不需要的内存空间。但是具体的实现可以选择忽略此请求。也就是说，调用 shrink_to_fit 也不保证一定退回内存空间。
+下面是一个简单的示例:
+```c++
+#include <vector>
+#include <iostream>
+
+using namespace std;
+
+void showInfo(const std::vector<int> &v)
+{
+  std::cout << "v: size: "<< v.size()
+    << " capacity: "<< v.capacity() << '\n';
+}
+
+int main(int argc, char const *argv[]) {
+  std::vector<int> v;
+  showInfo(v);
+
+  // add 24 item
+  std::cout << "add 24 item" << '\n';
+  for(vector<int>::size_type i=0;i!=24;++i)
+    v.push_back(i);
+  showInfo(v);
+
+  std::cout << "reserve(50)" << '\n';
+  v.reserve(50); //将 capacity 至少设定为50，可能会更大
+  showInfo(v);
+
+  // 用光这些预留空间
+  std::cout << "use all" << '\n';
+  while (v.size() != v.capacity()) {
+    v.push_back(0);
+  }
+  showInfo(v);
+
+  //再添加一个新的元素，vector 就不得不重新分配空间：
+  std::cout << "add one item,vector must resize " << '\n';
+  v.push_back(12);
+  showInfo(v);
+
+  // 用光这些预留空间
+  std::cout << "use all" << '\n';
+  while (v.size() != v.capacity()) {
+    v.push_back(0);
+  }
+  showInfo(v);
+
+  //再添加一个新的元素，vector 就不得不重新分配空间：
+  std::cout << "add one item,vector must resize " << '\n';
+  v.push_back(12);
+  showInfo(v);
+
+  std::cout << "use shrink_to_fit function" << '\n';
+  v.shrink_to_fit();
+  showInfo(v);
+  return 0;
+}
+```
+Run:
+```sh
+v: size: 0 capacity: 0
+add 24 item
+v: size: 24 capacity: 32
+reserve(50)
+v: size: 24 capacity: 50
+use all
+v: size: 50 capacity: 50
+add one item,vector must resize
+v: size: 51 capacity: 100
+use all
+v: size: 100 capacity: 100
+add one item,vector must resize
+v: size: 101 capacity: 200
+use shrink_to_fit function
+v: size: 101 capacity: 101
+```
+vector的实现策略似乎是在每次需要分配新内存空间时将当前容量翻倍。
+
+Note:`每个 vector 实现都可以选择自己的内存分配策略。但是必须遵守的一条原则是：只有当迫不得已时才可以分配新的内存空间。`
+
+虽然不同的实现可以采用不同的分配策略，但所有实现都应遵循一个原则：确保用 push_back 向 vector 添加元素的操作有高效率。从技术角度说，就是通过再一个初始为空的 vector 上调用n次 push_back 来创建一个 n 个元素的 vector,所花费的时间不能超过 n 的常数倍。
+
+练习 9.38: 编写程序，探究在你的标准库实现中，vector 是怎样增长的.
+```c++
+#include <vector>
+#include <iostream>
+
+using namespace std;
+
+int main(int argc, char const *argv[]) {
+  std::vector<int> v;
+  std::cout << "v: size: "<< v.size()
+    << " capacity: "<< v.capacity() << '\n';
+  v.push_back(1);
+
+  for (size_t i = 0; i < 10; i++) {
+    while (v.size() != v.capacity()) {
+      v.push_back(0);
+    }
+    v.push_back(1);
+    std::cout << "v: size: "<< v.size()
+      << " capacity: "<< v.capacity() << '\n';
+  }
+  return 0;
+}
+```
+Run:
+```sh
+v: size: 0 capacity: 0
+v: size: 2 capacity: 2
+v: size: 3 capacity: 4
+v: size: 5 capacity: 8
+v: size: 9 capacity: 16
+v: size: 17 capacity: 32
+v: size: 33 capacity: 64
+v: size: 65 capacity: 128
+v: size: 129 capacity: 256
+v: size: 257 capacity: 512
+v: size: 513 capacity: 1024
 ```
 
 ## Link
