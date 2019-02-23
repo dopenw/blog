@@ -115,6 +115,17 @@
 				* [编写改变容器的循环程序](#编写改变容器的循环程序)
 				* [不要保存 end 返回的迭代器](#不要保存-end-返回的迭代器)
 		* [vector 对象是如何增长的](#vector-对象是如何增长的)
+		* [额外的 string 操作](#额外的-string-操作)
+			* [构造函数的其他方法](#构造函数的其他方法)
+				* [substr 操作](#substr-操作)
+			* [改变 string 的其他方法](#改变-string-的其他方法)
+			* [string 搜索操作](#string-搜索操作)
+			* [compare 函数](#compare-函数)
+			* [数值转换](#数值转换)
+		* [容器适配器](#容器适配器)
+			* [栈适配器](#栈适配器)
+			* [deque](#deque)
+			* [priority_queue](#priority_queue)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -2031,9 +2042,10 @@ while (begin!=v.end()) {
 为了避免每次添加新元素都重新分配容器内存空间，STL 实现者采用了可以减少容器重新分配次数的策略。当不得不获取新的内存空间时，vector 和 string 的实现通常会分配比新的空间需求更大的内存空间。其实际性能也表现的足够好-虽然 vector 在每次重新分配内存空间时都要移动所有元素，但使用此策略后，其扩张操作通常比 list 和 deque 还要快。
 
 管理容量的成员函数：
-[std::vector::shrink_to_fit](https://en.cppreference.com/w/cpp/container/vector/shrink_to_fit) 请将 capacity() 减少为与 size() 相同大小
-[std::vector::capacity](https://en.cppreference.com/w/cpp/container/vector/capacity) 不重新分配内存空间的话，可以保存多少元素
-[std::vector::reserve](https://en.cppreference.com/w/cpp/container/vector/reserve) 分配至少能容纳 n 个元素的内存空间
+* [std::vector::shrink_to_fit](https://en.cppreference.com/w/cpp/container/vector/shrink_to_fit) 请将 capacity() 减少为与 size() 相同大小
+* [std::vector::capacity](https://en.cppreference.com/w/cpp/container/vector/capacity) 不重新分配内存空间的话，可以保存多少元素
+* [std::vector::reserve](https://en.cppreference.com/w/cpp/container/vector/reserve) 分配至少能容纳 n 个元素的内存空间
+
 shrink_to_fit 只适用于 vector string 和 deque
 capacity 和 reserve 只适用于 vector 和 string
 
@@ -2160,6 +2172,229 @@ v: size: 129 capacity: 256
 v: size: 257 capacity: 512
 v: size: 513 capacity: 1024
 ```
+
+### 额外的 string 操作
+[std::basic_string](https://en.cppreference.com/w/cpp/string/basic_string)
+除了顺序容器的共同操作之外，string 类型还提供了一些额外的操作。
+#### 构造函数的其他方法
+* string s(cp,n) s 是 cp 指向的数组中前 n 个字符的拷贝。此数组至少应该包含 n 个字符
+* string s(s2,pos) s 是 string s2 从下标 pos2 开始的字符的拷贝。若 pos2 > s2.size() ，构造函数的行为未定义
+* string s(s2,pos2,len2) s 是 string s2 从下标 pos2 开始 len2 个字符的拷贝。若 pos2>s2.size(), 构造函数的行为未定义。不管 len2 的值是多少，构造函数至多拷贝 s2.size()-pos2 个字符。
+* n,len2,pos2 都是无符号值。
+##### substr 操作
+* [std::basic_string::substr](https://en.cppreference.com/w/cpp/string/basic_string/substr)
+
+#### 改变 string 的其他方法
+* [std::basic_string::insert](https://en.cppreference.com/w/cpp/string/basic_string/insert)
+* [std::basic_string::erase](https://en.cppreference.com/w/cpp/string/basic_string/erase)
+* [std::basic_string::assign](https://en.cppreference.com/w/cpp/string/basic_string/assign)
+* [std::basic_string::append](https://en.cppreference.com/w/cpp/string/basic_string/append)
+* [std::basic_string::replace](https://en.cppreference.com/w/cpp/string/basic_string/replace)
+
+string 类型支持顺序容器的赋值运算符以及 assign,insert,erase 操作。除此之外，它还定义了额外的 insert 和 erase 版本。
+
+除了接受迭代器的 insert 和 erase 版本外， string 还提供了接受下标的版本。下标指出了开始删除的位置，或是 insert 到给定值之前的位置：
+```c++
+s.insert(s.size(),5,'!'); //在 s 末尾插入 5 个感叹号
+s.erase(s.size()-5,5); //从 s 删除最后 5 个字符
+```
+STL string 类型还提供了接受 c 风格字符数组的 insert 和 assign 版本。
+```c++
+const char *cp="Stately,Plump Buck";
+s.assign(cp,7); //s == "Stately"
+s.insert(s.size(),cp+7); //s == "Stately,Plump Buck"
+```
+我们也可以指定将来自其他 string 或 子字符串的字符插入到当前 string 中赋予当前 string:
+```c++
+string s="some string",s2="some other string";
+s.insert(0,s2); //再 s 中位置 0 之前插入 s2 的拷贝
+s.insert(0,s2,0,s2.size()); //在 s[0] 之前插入 s2 中 s2[0] 开始的 s2.size() 个字符
+```
+
+append 操作是在 string 末尾进行插入操作的一种简写形式：
+```c++
+string s("C++ Primer"),s2=s;
+s.insert(s.size()," 4th Ed.");
+s2.append(" 4th Ed.");
+```
+replace 操作是调用 erase 和 insert 的一种简写形式：
+```c++
+// 将 "4th" 替换为"5th" 的等价方法
+s.erase（11，3）；
+s.insert(11,"5th");
+// equal
+s2.replace(11,3,"5th"); // s==s2
+```
+此例中调用 replace 时，插入的文本恰好与删除的文本一样长。这不是必须的，可以插入一个更长或更短的 string：
+```c++
+s.replace(11,3,"Fifth"); //s == "C++ Primer Fifth Ed."
+```
+
+#### string 搜索操作
+* [std::basic_string::find(args)](https://en.cppreference.com/w/cpp/string/basic_string/find) 查找 s 中 args 第一次出现的位置
+* [std::basic_string::rfind(args)](https://en.cppreference.com/w/cpp/string/basic_string/rfind) 查找 s 中 args 最后一次出现的位置
+* [std::basic_string::find_first_of(args)](https://en.cppreference.com/w/cpp/string/basic_string/find_first_of) 在 s 中查找 args 中任何一个字符第一次出现的位置
+* [std::basic_string::find_first_not_of(args)](https://en.cppreference.com/w/cpp/string/basic_string/find_first_not_of) 在 s 中 查找第一个不在 args 中的字符
+* [std::basic_string::find_last_of(args)](https://en.cppreference.com/w/cpp/string/basic_string/find_last_of) 在 s 中查找 args 中任何一个字符最后一次出现的位置
+* [std::basic_string::find_last_not_of(args)](https://en.cppreference.com/w/cpp/string/basic_string/find_last_not_of) 在 s 中 查找最后一个不在 args 中的字符
+
+每个搜索操作都返回一个 string::size_type 值，表示匹配发生位置的下标。如果搜索失败，则返回一个名为 string::npos 的 static 成员。STL 将 npos 定义为一个 const string::size_type 类型，并初始化为 -1。由于 npos 是一个 unsigned 类型，此初时值意味着 npos 等于任何 string 最大的可能大小。
+
+Warning:`用一个 int 或其他带符号类型来保存 搜索函数的返回值不是一个好主意`
+
+指定在哪里开始搜索：
+```c++
+string::size_type pos=0;
+//每步循环查找 name 中下一个数
+while ((pos= name.find_first_of(number,pos)!= string::npos)) {
+	std::cout << "found number at index:"<< pos
+	<< " element is "<< name[pos] << '\n';
+	++pos;
+}
+```
+
+逆向搜索：
+```c++
+string river("Mississippi");
+auto first_pos=river.find("is"); //return 1
+auto last_pos=river.rfind("is") //return 4
+```
+#### compare 函数
+* [std::basic_string::compare](https://en.cppreference.com/w/cpp/string/basic_string/compare)
+
+STL string 类型还提供了一组 compare 函数，这些函数与 c 标准库的 strcmp 函数很相似。类似 strcmp,根据 s 是 等于、大于还是小于参数指定的字符串，s.compare 返回0，正数或负数。
+
+#### 数值转换
+* [std::stoi, std::stol, std::stoll](https://en.cppreference.com/w/cpp/string/basic_string/stol)
+* [std::stoul, std::stoull](https://en.cppreference.com/w/cpp/string/basic_string/stoul)
+* [std::stof, std::stod, std::stold](https://en.cppreference.com/w/cpp/string/basic_string/stof)
+* [std::to_string](https://en.cppreference.com/w/cpp/string/basic_string/to_string)
+* [std::to_wstring](https://en.cppreference.com/w/cpp/string/basic_string/to_wstring)
+
+Note:`如果 string 不能转换为一个数值，这些函数抛出一个 invalid_argument 异常。如果转换得到的数值无法用任何类型来表示，则抛出一个 out_of_range 异常。`
+
+```c++
+#include <iostream>
+
+int main(int argc, char const *argv[]) {
+  std::size_t index=0;
+  float j=std::stof("+0.9_fjdsk",&index);
+  std::cout << "val:"<< j <<",invaild index:"<<index <<'\n';
+  int k=std::stoi("0x66",&index,16); //or 0X66
+  std::cout << "val:"<< k <<",invaild index:"<<index <<'\n';
+  return 0;
+}
+```
+Run :
+```sh
+val:0.9,invaild index:4
+val:102,invaild index:4
+```
+
+### 容器适配器
+除了顺序容器外，STL 还定义了三个顺序容器适配器：stack queue 和 priority_queue。适配器是 STL 中的一个通用概念。容器、迭代器和函数都有适配器。本质上，一个适配器是一个机制，能使某种事物的行为看起来像另外一种事物一样。一个适配器接受一种已有的容器类型，使其行为看起来像一种不同的类型。例如，stack适配器接受一个顺序容器（除 array 或 forward_list外），并使其操作起来像一个 stack 一样。
+
+所有容器适配器都支持的操作和类型：
+
+|       size_type      |                     一种类型，足以保存当前类型的最大对象的大小                     |
+|:--------------------:|:----------------------------------------------------------------------------------:|
+|      value_type      |                                      元素类型                                      |
+|    container_type    |                              实现适配器的底层容器类型                              |
+|         A a;         |                              创建一个名为 a 的空适配器                             |
+|        A a(c);       |                   创建一个名为 a 的适配器，带有容器 c 的一个拷贝                   |
+|      关系运算符      | 每个适配器都支持关系运算符：==、！=、<、<=、>、>= 这些运算符返回底层容器的比较结果 |
+|       a.empty()      |                                   适配器是否为空                                   |
+|       a.size()       |                                 返回 a 中的元素数目                                |
+| swap(a,b)  a.swap(b) |       交换a 和 b 的内容，a 和 b 必须有相同的类型，包括底层容器类型也必须相同       |
+
+定义一个适配器:
+默认情况下，stack 和 queue 是基于 deque 实现的，priority_queue 是在 vector 之上实现的。我们可以创建一个适配器时将一个命名的顺序容器作为第二个类型参数，来重载默认容器类型。
+```c++
+deque<int> deq;
+stack<int> stk(deq); //从 deq 拷贝元素到 stk
+
+// 在vector 上实现的空栈
+stack<string,vector<string>> str_stk;
+// str_stk2 在 vector 上实现，初始化时保存 svec的拷贝
+stack<string,vector<string>> str_stk2(svec);
+```
+
+对于一个给定的适配器，可以使用哪些容器是有限制的。
+* 所有适配器都要求容器具有添加和删除元素的能力。因此，适配器不能构造在 array 之上。类似的，我们也不能用 forward_list 来构造适配器，因为所有适配器要求容器具有添加、删除以及访问尾元素的能力。
+* stack 只要求 push_back pop_back 和 back 操作，因此可以使用除 array 和 forward_list 之外的任何容器类型来构造 stack。
+* queue 适配器要求 back push_back front 和 push_front,因此它可以构造于 list 或 deque 之上，但不能基于 vector 构造。
+* priority_queue 除了 front push_back 和 pop_back 操作之外还要求随机访问能力，因此它可以构造于 vector 和 deque 之上，但不能基于 list 构造。
+
+#### 栈适配器
+* [std::stack](https://en.cppreference.com/w/cpp/container/stack)
+
+```c++
+stack<int> intStack;
+for(size_t i=0;i!=10;++i)
+	intStack.push_back(i);
+while (!intStack.empty) {
+	int value=intStack.top();
+	// 使用栈顶值的代码
+	intStack.pop_back(); // 弹出栈顶元素，继续循环
+}
+```
+
+#### deque
+* [std::queue](https://en.cppreference.com/w/cpp/container/queue)
+
+#### priority_queue
+* [std::priority_queue](https://en.cppreference.com/w/cpp/container/priority_queue)
+
+priority_queue 允许我们为队列中的元素建立优先级。新加入的元素会排在所有优先级比它低的已有元素之前。
+
+```c++
+#include <functional>
+#include <queue>
+#include <vector>
+#include <iostream>
+
+template<typename T> void print_queue(T& q) {
+    while(!q.empty()) {
+        std::cout << q.top() << " ";
+        q.pop();
+    }
+    std::cout << '\n';
+}
+
+int main() {
+    std::priority_queue<int> q;
+
+    for(int n : {1,8,5,6,3,4,0,9,7,2})
+        q.push(n);
+
+    print_queue(q);
+
+    std::priority_queue<int, std::vector<int>, std::greater<int> > q2;
+
+    for(int n : {1,8,5,6,3,4,0,9,7,2})
+        q2.push(n);
+
+    print_queue(q2);
+
+    // Using lambda to compare elements.
+    auto cmp = [](int left, int right) { return (left ^ 1) < (right ^ 1);};
+    std::priority_queue<int, std::vector<int>, decltype(cmp)> q3(cmp);
+
+    for(int n : {1,8,5,6,3,4,0,9,7,2})
+        q3.push(n);
+
+    print_queue(q3);
+
+}
+```
+Run:
+```sh
+9 8 7 6 5 4 3 2 1 0
+0 1 2 3 4 5 6 7 8 9
+8 9 6 7 4 5 2 3 0 1
+```
+练习 9.52: 使用 stack 处理括号化的表达式。当你看到一个左括号，将其记录下来。当你在一个左括号之后看到一个右括号，从 stack 中 pop 对象，直到遇到左括号，将左括号也一起弹出栈。然后将一个值（括号内的运算结果）push 到栈中，表示一个括号化的（子）表达式已经处理完毕，被其运算结果所替代。
+[Cpp-Primer/ch09/ex9_52.cpp](https://github.com/Mooophy/Cpp-Primer/blob/master/ch09/ex9_52.cpp)
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
