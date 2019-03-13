@@ -6,6 +6,7 @@
 * ### [docker 使用记录（读docker实践记）](docker.md)
 * ### [fedora install SS libev](fedoraInstallSS.md)
 * ### [c/c++面试](find_a_job.md)
+* ### [google cloud 使用](googleCloud.md)
 * ### [google Tips](google_search_tips.md)
 * ### [markdown 嵌入 HTML table，让其具有更多的特性](markdownHtmlTable.md)
 * ### [openresty测试](openresty_test.md)

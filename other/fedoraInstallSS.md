@@ -6,6 +6,10 @@
 * [fedora install SS libev](#fedora-install-ss-libev)
 	* [Install SS libev shell script](#install-ss-libev-shell-script)
 	* [Create shadowsocks.service](#create-shadowsocksservice)
+	* [为其他区域网设备提供代理服务](#为其他区域网设备提供代理服务)
+		* [linux](#linux)
+		* [windows](#windows)
+		* [在其他设备设置](#在其他设备设置)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -151,8 +155,34 @@ KillMode=process
 WantedBy=multi-user.target
 ```
 
+## 为其他区域网设备提供代理服务
+
+### linux
+这里我们可以使用 privoxy,安装及简单介绍可以看 [ss+privoxy实现全局代理](./ss_privoxy.md)
+修改配置文件：
+```sh
+vim /etc/privoxy/config
+```
+```sh
+# modify
+listen-address  :8118  
+enable-remote-toggle  1
+enable-remote-http-toggle 1
+# add ,端口号是网络代理(eg ss)的 local_port
+forward-socks5 / 127.0.0.1:1080  
+```
+
+### windows
+打开 shadowsocks 客户端 :[shadowsocks/shadowsocks-windows](https://github.com/shadowsocks/shadowsocks-windows)
+打开全局代理，勾选“允许来自局域网的连接”
+
+### 在其他设备设置
+
+然后在需要提供代理的设备上，修改连接的wifi配置-添加代理服务器和端口就可以了：
+
 ## Link
 * [shadowsocks/simple-obfs](https://github.com/shadowsocks/simple-obfs)
+* [Linux下部署代理服务器](https://blog.csdn.net/m0_38110132/article/details/79796171)
 
 [上一级](base.md)
 [上一篇](docker.md)
