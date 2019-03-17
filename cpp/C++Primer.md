@@ -16,6 +16,8 @@
 			* [顶层 const](#顶层-const)
 			* [constexpr 和常量表达式](#constexpr-和常量表达式)
 	* [字符串、向量、和数组](#字符串-向量-和数组)
+		* [标准库类型 vector](#标准库类型-vector)
+			* [值初始化](#值初始化)
 		* [数组](#数组)
 			* [定义和初始化内置数组](#定义和初始化内置数组)
 		* [访问数组元素](#访问数组元素)
@@ -137,6 +139,14 @@
 			* [map 的下标操作](#map-的下标操作)
 			* [访问元素](#访问元素-1)
 		* [无序容器](#无序容器)
+	* [动态内存](#动态内存)
+		* [动态内存与智能指针](#动态内存与智能指针)
+			* [shared_ptr 类](#shared_ptr-类)
+			* [直接管理内存](#直接管理内存)
+			* [shared_ptr 和 new 结合使用](#shared_ptr-和-new-结合使用)
+			* [智能指针和异常](#智能指针和异常)
+			* [unique_ptr](#unique_ptr)
+			* [weak_ptr](#weak_ptr)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -301,6 +311,11 @@ error: invalid conversion from ‘int’ to ‘int*’ [-fpermissive]
 ```
 
 ## 字符串、向量、和数组
+
+### 标准库类型 vector
+#### 值初始化
+通常情况下，可以只提供 vector 对象容纳的元素数量而略去初始值。此时库会创建一个 值初始化(value-initialized) 元素初值，并把它赋给容器中的所有元素。这个初值由 vector 对象中元素的类型决定。
+
 ### 数组
 #### 定义和初始化内置数组
 数组是一种复合类型。数组的声明形如 a[d],其中 a 是数组的名字， d 是数组的维度。维度说明了数组中元素的个数，因此必须大于0。数组中元素的个数也属于数组类型的一部分，编译的时候应该是已知的。也就是说，维度必须是一个常量表达式：
@@ -2656,6 +2671,586 @@ bool eqOp(const Sales_data& lhs, const Sales_data& rhs)
 
 using SD_multiset=unordered_multiset<Sales_data,decltype(hasher) *,decltype(eqOp) *>;
 SD_multiset bookstore(42,hasher,eqOp);
+```
+
+## 动态内存
+除了静态内存和栈内存，每个程序还拥有一个内存池。这部分内存被称作自由空间(free store)或堆(heap)。程序使用堆来存储动态分配(dynamically allocate)的对象-即，那些在程序运行时分配的对象。动态对象的生存期由程序来控制，也就是说，当动态对象不再使用时，我们的代码必须显式地销毁它们。
+
+Warning:`虽然使用动态内存有时是必要的，但众所周知，正确地管理动态内存是非常棘手的。`
+
+### 动态内存与智能指针
+为了更容易（同时也更安全）地使用动态内存，新的标准库提供了两种智能指针类型来管理动态对象。新标准提供的这两种智能指针的区别在于管理底层指针的方式：shared_ptr 允许多个指针指向同一个对象；unique_ptr 则“独占”所指向的对象。STL 还定义了一个名为 weak_ptr 的伴随类，它是一种弱引用，指向 shared_ptr 所管理的对象。这三种类型都定义在 memory 头文件中。
+
+#### shared_ptr 类
+* [std::shared_ptr](https://en.cppreference.com/w/cpp/memory/shared_ptr)
+
+shared_ptr 和 unique_ptr 都支持的操作：
+* shared_ptr<T> sp ， unique_ptr<T> up ：空智能指针，可以指向类型为 T 的对象
+* p ：将 p 用作一个条件判断，若 p 指向一个对象，则为 true
+* \* p : 解引用 p，获得它所指向的对象
+* p->mem :等价于 (* p).mem
+* p.get() ： 返回 p 中保存的指针，要小心使用，若智能指针释放了其对象，返回的指针所指向的对象也就消失了
+* swap(p,q)， p.swap(q) : 交换 p 和 q 的指针
+
+shared_ptr 独有的操作：
+* make_shared<T>(args) : 返回一个 shared_ptr,指向一个动态分配的类型为 T 的对象。使用 args 初始化此对象
+* shared_ptr<T>p(q) ：p 是 shared_ptr q 的拷贝；此操作会递增 q 中的计数器。q 中的指针必须能转换为 T*
+* p=q : p 和 q 都是 shared_ptr,所保存的指针必须能相互转换。此操作会递减 p 的引用计数，递增 q 的引用计数；若 p 的引用计数变为 0，则将其管理的原内存释放
+* p.unique() : 若 p.use_count() 为 1，返回 true；否则返回 false
+* p.use_count() ：返回与 p 共享对象的智能指针数量；可能很慢，主要用于调试
+
+make_shared 函数：
+```c++
+shared_ptr<int> p=make_shared<int>();
+// 如果我们不传递任何参数，对象就会进行值初始化
+```
+
+shared_ptr 的拷贝和赋值：
+当进行拷贝或赋值操作时，每个 shared_ptr 都会记录有多少个其他 shared_ptr 指向相同的对象：
+```c++
+auto p = make_shared<int>(42); // p 指向的对象只有只有 p 一个引用者
+auto q(p); //p 和 q 指向相同对象，此对象有两个引用者
+```
+我们可以认为每个 shared_ptr 都有一个关联的计数器，通常称其为引用计数（refefence count）。无论何时我们拷贝一个 shared_ptr ,计数器都会递增。当我们给 shared_ptr 赋予一个新值或是 shared_ptr 被销毁（例如一个局部的 shared_ptr 离开其作用域）时，计数器就会递减。
+一旦一个 shared_ptr 的计数器变为 0，它就会自动释放自己所管理的对象：
+```c++
+auto r = make_shared<int>(42); //r 指向的 int 只有一个引用者
+r = q； //给 r 赋值，令他指向另一个地址，递增 q 指向的对象的引用计数，递减 r 原来指向的对象的引用计数，r 原来指向的对象已没有引用者，会自动释放
+```
+此例中我们分配了一个 int，将其指针保存在 r 中。接下来，我们将一个新值赋予 r。在此情况下，r 是唯一指向此 int 的 shared_ptr，在把 q 赋值给 r 的过程中，此 int 被自动释放。
+
+Note:`到底是用一个计数器还是其他数据结构来记录有多少指针共享对象，完全由 STL 的具体实现来决定。关键是智能指针类能记录有多少个 shared_ptr 指向相同的对象，并能在恰当的时候自动释放对象。`
+
+Note:`如果你将 shared_ptr 存放于一个容器中，而后不再需要全部元素，而只使用其中一部分，要记得用 erase 删除不再需要的那些元素。`
+
+使用了动态生存期的资源的类:
+
+程序使用动态内存出于以下三种原因之一：
+1. 程序不知道自己需要使用多少对象
+2. 程序不知道所需对象的准确类型
+3. 程序需要在多个对象间共享数据
+
+容器类是出于第一种原因而使用动态内存的典型例子。一般而言，如果两个对象共享底层的数据，当某个对象被销毁时，我们不能单方面地销毁底层数据：
+```c++
+Blob<string> b1; // 空 Blob
+{ // 新作用域
+	Blob<string> b2={"a","an","the"};
+	b1 = b2; //b1 和 b2 共享相同的元素
+} // b2 被销毁了，但 b2 中的元素不能销毁
+// b1 指向最初由 b2 创建的元素
+```
+
+定义 StrBlob 类
+```c++
+#include <string>
+#include <vector>
+#include <iostream>
+#include <memory>
+
+using namespace std;
+
+class StrBlob{
+public:
+	typedef std::vector<std::string>::size_type size_type;
+	StrBlob();
+	StrBlob(std::initializer_list<std::string> il);
+	size_type size() const {return data->size();}
+  bool empty() const {return data->empty();}
+
+	//添加和删除元素
+	void push_back(const std::string &t)
+	{
+		data->push_back(t);
+	}
+	void pop_back();
+	//元素访问
+	std::string& front();b,c}; //错误：括号中只能有单个初始化器
+	std::string& back();
+private:
+	std::shared_ptr<std::vector<std::string>> data;
+	//如果 data[i]不合法，抛出一个异常
+	void check(size_type i,const std::string &msg) const;
+};
+
+StrBlob::StrBlob():data(make_shared<vector<string>>()){}
+StrBlob::StrBlob(initializer_list<string> il):data(make_shared<vector<string>>(il)){}
+
+void StrBlob::check(size_type i,const string &msg) const
+{
+	if(i >= data->size())
+		throw out_of_range(msg);
+}
+
+string& StrBlob::front()
+{
+	check(0,"front on empty StrBlob");
+	return data->front();
+}
+
+string& StrBlob::back()
+{
+	check(0,"back on empty StrBlob");
+	return data->back();
+}
+
+void StrBlob::pop_back()
+{
+	check(0,"pop_back on empty StrBlob");
+	data->pop_back();
+}
+
+// StrBlob 使用默认版本的拷贝、赋值和销毁成员函数来对此类型的对象进行这些操作。
+
+int main(int argc, char const * argv[]) {
+  StrBlob b1;
+  {
+    StrBlob b2={"a","an","the"};
+    b1=b2;
+    b2.push_back("about");
+    std::cout << "b1 size:"<< b1.size() << '\n';
+    std::cout << "b2 size:"<< b2.size() << '\n';
+  }
+  return 0;
+}
+```
+Run it:
+```sh
+b1 size:4
+b2 size:4
+```
+
+#### 直接管理内存
+c++ 语言定义了两个运算符来分配和释放动态内存。运算符 new 分配内存，delete 释放 new 分配的内存。
+相对于智能指针，使用这两个运算符管理内存非常容易出错。
+
+使用 new 动态分配和初始化对象
+在自由空间分配的内存时无名的，因此 new 无法为其分配的对象命名，而是返回一个指向该对象的指针。默认情况下，动态分配的对象时默认初始化的，这意味着内置类型或组合类型的对象的值将是未定义的，而类类型将用默认构造函数进行初始化。
+
+Best practices:`由于与变量初始化相同的原因，对动态分配的对象进行初始化通常是个好主意。`
+
+如果我们提供了一个括号包围额初始化器，就可以使用 auto 从此初始化器来推断我们想要分配的对象的类型。但是，由于编译器要用初始化器的类型来推断要分配的类型，只有当括号中仅有单一初始化器才可以使用 auto:
+
+```c++
+auto p1 = new auto(obj); //p 指向一个与 obj 类型相同的对象，该对象用 obj 进行初始化
+auto p2 = new auto{a,b,c}; //错误：括号中只能有单个初始化器
+```
+
+动态分配的 const 对象：
+用 new 分配 const 对象是合法的：
+```c++
+const int * pci = new const int(1024);
+const string * pcs = new const string;
+```
+
+内存耗尽：
+虽然现代计算机通常都配备大容量内存，但是自由空间被耗尽的情况还是有可能发生。一旦一个程序用光了它所可用的的内存， new 表达式就会失败。默认情况下，如果 new 不能分配所要求的内存空间，它会抛出一个类型为 bad_alloc 的异常。我们可以改变使用 new 的方式来阻止它抛出异常：
+```c++
+//如果分配失败，new 返回一个空指针
+int * p1 = new int; // 如果分配失败，new 抛出 bad_alloc
+int * p2 = new (nothrow) int; //如果分配失败，new 返回一个空指针
+```
+我们称这种形式的 new 为 定位new(placement new)，定位 new 表达式允许我们向 new 传递额外的参数。在此例中，我们传递给它由 STL 定义的名为 nothrow 的对象。
+
+指针值和 delete
+我们传递给 delete 的指针必须指向动态分配的内存，或者是一个空指针。释放一块并非 new 分配的内存，或者将相同的指针值释放多次，其行为是未定义的：
+```c++
+int i,* pi1=&i, * pi2=nullptr;
+double * pd=new double(33),* pd2=pd;
+delete i; // 错误，i 不是指针
+delete pi1; //未定义：pi1 指向一个局部变量
+delete pd; // 正确
+delete pd2; // 未定义： pd2 指向的内存已经被释放了
+delete pi2; // 正确：释放一个空指针总是没有错误的
+```
+
+Warning:`由内置指针（而不是智能指针）管理的动态内存在被显式释放前一直都会存在。`
+
+小心：动态内存的管理非常容易出错：
+`使用 new 和 delete 管理动态内存存在三个常见的问题：1. 忘记delete 内存；2. 使用已经释放掉的对象；3. 同一块内存释放两次`
+
+delete 之后重置指针值 ......
+当我们 delete 一个指针后，指针值就变得无效了。虽然指针已经无效，但在很多机器上指针仍旧保存着（已经释放了的）动态内存的地址。在 delete 之后，指针就变成人们所说的 空悬指针(dangling pointer),即，指向一块曾经保存数据对象但现在已经无效的内存的指针。
+未初始化指针的所有缺点空悬指针也都有。
+
+...... 这只是提供了有限的保护
+动态内存的一个基本问题是可能有多个指针指向相同的内存。在 delete 内存之后重置指针的方法只对这个指针有效，对其他任何指向（已释放的）内存的指针是没有作用的。例如：
+```c++
+int *p (new int(42));
+auto q=p;
+delete p;
+p=nullptr;
+```
+但是，重置 p 对 q 没有任何作用，在我们释放 p 所指向的内存时，q 也变为无效了。在实际系统中，查找指向相同内存的所有指针是异常困难的。
+
+#### shared_ptr 和 new 结合使用
+shared_ptr 接受指针参数的智能指针的构造函数是 explicit 的。因此，我们不能将一个内置指针隐式转换为一个智能指针，必须使用直接初始化形式来初始化一个智能指针：
+```c++
+shared_ptr<int> p1=new int(1024); //error
+shared_ptr<int> p2(new int(1024)); //正确
+
+// 一个返回 shared_ptr 的函数不能在其返回语句中隐式转换一个普通指针：
+shared_ptr<int> clone(int p)
+{
+	return new int(p); //error
+}
+//我们必须将 shared_ptr 显式绑定到一个想要返回的指针上：
+shared_ptr<int> clone(int p)
+{
+	return shared_ptr(new int(p));
+}
+```
+
+定义和改变 shared_ptr 的其他方法：
+* shared_ptr<T> p(q): p 管理内置指针 q 所指向的对象；q 必须指向 new 分配的内存，且能够转换为 T* 类型
+* shared_ptr<T> p(u): p 从 unique_ptr u 那里接管了对象的所有权；将 u 置为空
+* shared_ptr<T> p(q,d):p 接管了内置指针 q 所指向的对象的所有权；q 必须能转换为 T* 类型。p 将使用可调用对象 d 来代替 delete
+* shared_ptr<T> p(p2,d): p 是 shared_ptr p2 的拷贝，唯一的区别是 p 将用可调用对象 d 来代替 delete
+* p.reset()，p.reset(q)，p.reset(q,d): 若 p 是唯一指向其对象的 shared_ptr,reset 会释放此对象。若传递了可选的参数内置指针 q，会令 p 指向 q，否则会将 p 置为空。若还传递了参数 d ，将会调用 d 而不是 delete 来释放 q
+
+不要混合使用普通指针和智能指针 ......
+```c++
+void process(shared_ptr<int> ptr)
+{
+	//use ptr
+} // ptr 离开作用域，被销毁
+
+//正确使用
+shared_ptr<int> p(new int(42)); //引用计数为 1
+process(p); // 拷贝会递增它的引用计数；在 process 中引用计数为 2
+int i = *p; //正确，引用计数值为 1
+
+//错误的使用
+int * x(new int(42)); // 危险，x 是一个普通指针，而不是一个智能指针
+process(x); //错误：不能将 int * 转换为一个 shared_ptr<int>
+process(shared_ptr<int>(x)); // 合法的，但内存会被释放
+int j=* x;// 未定义的: x 是一个空悬指针
+```
+
+...... 也不要使用 get 初始化另一个智能指针或为智能指针赋值
+
+```c++
+shared_ptr<int> p(new int(42));
+int * q=p.get();
+{
+	shared_ptr<int>(q);
+}// 程序块结束，q 被销毁，它指向的内存被释放
+int foo = * p; // 未定义： p 指向的内存已经被释放了
+```
+Warning:`get 用来将指针的访问权限传递给代码，你只有在确定代码不会 delete 指针的情况下，才能使用 get。特别是，永远不要用 get 初始化另一个智能指针或为另一个智能指针赋值`
+
+其他 shared_ptr 操作：
+我们可以用 reset 来将一个新的指针赋予一个 shared_ptr:
+```c++
+p = new int(1024);  //错误：不能将一个指针赋予 shared_ptr
+p.reset(new int(1024)); // 正确：p指向一个新对象
+```
+与赋值类似，reset 会更新引用计数，如果需要的话，会释放 p 指向的对象。reset 成员经常与 unique 一起使用，来控制多个 shared_ptr 共享的对象。在改变底层对象之前，我们检查自己是否是当前对象仅有的用户。如果不是，在改变之前要制作一份新的拷贝：
+```c++
+if (!p.unique()) {
+	p.reset(new string(*p));// 我们不是唯一用户；分配新的拷贝
+}
+* p+=newVal; //现在我们知道自己是唯一的用户，可以改变对象的值
+```
+
+#### 智能指针和异常
+```c++
+void f()
+{
+	shared_ptr<int> sp(new int(42)); //分配一个新对象
+	//这段代码抛出一个异常，且在 f 中未被捕获
+} // 在函数结束时 shared_ptr 自动释放内存
+```
+
+智能指针和哑类：
+与管理动态内存类似，我们通常可以使用类似的技术用来管理不具有良好定义的析构函数的类。例如，假定我们正在使用一个 c 和 c++ 都使用的网络库，使用这个库的代码可能是这样的：
+```c++
+struct destination; // 表示我们正在连接什么
+struct connection; // 使用连接所需的信息
+connection connect(destination *); // 打开连接
+void disconnect(connection); //关闭给定的连接
+void f(destination &d /* 其他参数 */)
+{
+	// 获得一个连接；记住使用完后要关闭它
+	connection c= connect(&d);
+	// 使用连接
+	// 如果我们在 f 退出前忘记调用 disconnect,就无法关闭 c 了
+}
+```
+
+使用我们自己的释放操作：
+```c++
+void end_connection(connection * p)
+{
+	disconnect(* p);
+}
+
+void f(destination &d /* 其他参数 */)
+{
+	connection c= connect(&d);
+	shared_ptr<connection> p(&c,end_connection);
+	// 使用连接
+	// 当 f 退出时（即使是由于异常而退出），connection 会被正确关闭
+}
+
+// 改为使用 lambda ，可以这样写
+shared_ptr<connection> p(&c,[](connection * ptr){
+	disconnect(* ptr);
+});
+```
+
+注意：智能指针陷阱：
+智能指针可以提供对动态分配的内存安全而又方便的管理，但这建立在正确使用前提下。为了正确使用智能指针，我们必须坚持一些基本规范：
+* 不使用相同的内置指针值初始化（或 reset）多个智能指针。
+* 不 delete get（） 返回的指针。
+* 不使用 get() 初始化或 reset 另一个指针
+* 如果你使用 get() 返回的指针，记住当最后一个对应的智能指针销毁后，你的指针就变为无效了。
+* 如果你使用智能指针管理的资源不是 new 分配的内存，记住传递给它一个删除器。
+
+#### unique_ptr
+一个 unique_ptr "拥有" 它所指向的对象。与 shared_ptr 不同，某个时刻只能有一个 unique_ptr 指向一个给定对象。当 unique_ptr 被销毁时，它所指向的对象也被销毁。
+与 shared_ptr 不同，没有类似 make_shared 的标准库函数返回一个 unique_ptr。当我们定义一个 unique_ptr 时，需要将其绑定到一个 new 返回的指针上。类似 shared_ptr ,初始化 unique_ptr 必须采用直接初始化形式：
+```c++
+unique_ptr<double> p1;
+unique_ptr<int> p2(new int(42));
+// 由于一个 unique_ptr 拥有它指向的对象，因此 unique_ptr 不支持普通的拷贝或赋值操作：
+
+unique_ptr<string> p1(new string("Stegosaurus"));
+unique_ptr<string> p2(p1); //error
+unique_ptr<string> p3;
+p3=p2; //error
+```
+
+unique_ptr 操作：
+* unique_ptr<T> u1 : 空 unique_ptr,可以指向类型为 T 的对象。u1 会使用 delete 来释放它的指针；
+* unique_ptr<T,D> u2 :  u2 会使用一个类型为 D 的可调用对象来释放它的指针
+* unique_ptr<T,D> u(d) : 空 unique_ptr,指向类型为 T 的对象，用类型为 D 的对象 d 代替 delete
+* u =nullptr: 释放 u 指向的对象，将 u 置为空
+* u.release() : u 放弃对指针的控制权，返回指针，并将 u 置为空
+* u.reset() : 释放 u 指向的对象
+* u.reset(q),u.reset(nullptr) :如果提供了内置指针 q ，令 u 指向这个对象；否则将 u 置为空
+
+我们可以通过调用 release 或 reset 将指针的所有权从一个（非 const） unique_ptr 转移给另一个 unique_ptr：
+```c++
+unique_ptr<string> p2(p1.release()); // release 将 p1  置为空
+unique_ptr<string> p3(new string("Trex"));
+p2.reset(p3.release()); //reset 释放了 p2 原来指向的内存
+```
+
+调用 release 会切断 unique_ptr 和它原来管理的对象间的联系。在本例中，管理内存的责任简单地从一个智能指针转移给另一个。但是，如果我们不用另一个智能指针来保存 release 返回的指针，我们的程序就要负责资源的释放：
+```c++
+p2.release(); //错误： p2 不会释放内存，而且我们丢失了指针
+auto p = p2.release(); // 正确，但我们必须记得 delete(p)
+```
+
+传递 unique_ptr 参数和返回 unique_ptr:
+不能拷贝 unique_ptr 的规则有一个例外：我们可以拷贝或赋值一个将要被销毁的 unique_ptr。最常见的例子是从函数返回一个 unique_ptr:
+```c++
+unique_ptr<int> clone(int p)
+{
+	return unique_ptr<int>(new int(p));
+}
+```
+还可以返回一个局部对象的拷贝：
+```c++
+unique_ptr<int> clone(int p)
+{
+	unique_ptr<int> ret(new int(p));
+	// ...
+	return ret;
+}
+```
+对于两段代码，编译器都知道要返回的对象将要被销毁。在此情况下，编译器执行一种特殊的“拷贝”。
+
+向后兼容： auto_ptr
+`STL 的较早版本包含了一个名为 auto_ptr 的类，它具有 unique_ptr 的部分特性，但不是全部。特别是，我们不能在容器中保存 auto_ptr,也不能从函数中返回 auto_ptr。
+虽然 auto_ptr 仍然是标准库中的一部分，但编写程序应该使用 unique_ptr。`
+
+向 unique_ptr 传递删除器：
+unique_ptr 管理删除器的方式与 shared_ptr 不同。重载一个 unique_ptr 中的删除器会影响到 unique_ptr 类型以及如何构造（或 reset）该类型的对象。与重载关联容器的比较操作类似，我们必须在尖括号中 unique_ptr 指向类型之后提供删除器类型。在创建或reset一个这种 unique_ptr 类型的对象时，必须提供一个指定类型的可调用对象（删除器）：
+```c++
+unique_ptr<objT,delT> p(new objT,fcn);
+```
+我们重写连接程序，用 unique_ptr 代替 shared_ptr:
+```c++
+void f(destination &d /* 其他参数 */)
+{
+	connection c= connect(&d);
+	unique_ptr<connection,decltype(end_connection)* > p(&c,end_connection);
+	// 使用连接
+	// 当 f 退出时（即使是由于异常而退出），connection 会被正确关闭
+}
+```
+
+#### weak_ptr
+weak_ptr 是一种不控制所指向对象生存期的智能指针，它指向由一个 shared_ptr 管理的对象。将一个 weak_ptr 绑定到一个 shared_ptr 不会改变 shared_ptr 的引用计数。一旦最后一个指向对象的 shared_ptr 被销毁，对象就会被销毁。即使有 weak_ptr 指向对象，对象也还是会被释放，因此， weak_ptr 的名字抓住了这种智能指针“弱”共享对象的特点。
+
+weak_ptr:
+* weak_ptr<T> w : 空 weak_ptr
+* weak_ptr<T> w(sp) : 与 shared_ptr sp 指向相同对象的 weak_ptr。 T 必须能转换为 sp 指向的类型
+* w = p : p 可以是一个 shared_ptr 或一个 weak_ptr。赋值后 w 与 p 共享对象
+* w.reset() : 将 w 置为空
+* w.use_count() ：与 w 共享对象的 shared_ptr 的数量
+* w.expired() : 若 w.use_count 为 0，返回 true,否则返回 false
+* w.lock() : 如果 expired 为 true，返回一个空 shared_ptr；否则返回一个指向 w 的对象的 shared_ptr
+
+当我们创建一个 weak_ptr 时，要用一个 shared_ptr 来初始化它：
+```c++
+auto p=make_shared<int>(42);
+weak_ptr<int> wp(p); //wp 弱共享p； p 的引用计数未改变
+```
+由于对象可能不存在，我们不能使用 weak_ptr 直接访问对象，而必须调用 lock。此函数检查 weak_ptr 指向的对象是否存在。与其他 shared_ptr 类似，只要此 shared_ptr 存在，它所指向的底层对象也就会一直存在。例如：
+```c++
+if (shared_ptr<int> np = wp.lock()) { //如果 np 不为空则条件成立
+	// 在 if 中 ，np 与 p 共享对象
+}
+```
+
+StrBlobPtr.h:
+```c++
+#include <string>
+#include <vector>
+#include <iostream>
+#include <memory>
+
+class StrBlobPtr; //对于 StrBlob 中的友元声明来说，此前置声明是必要的
+class StrBlob{
+public:
+	friend class StrBlobPtr;
+	StrBlobPtr begin();
+	StrBlobPtr end();
+public:
+	typedef std::vector<std::string>::size_type size_type;
+	StrBlob();
+	StrBlob(std::initializer_list<std::string> il);
+	size_type size() const {return data->size();}
+  bool empty() const {return data->empty();}
+
+	//添加和删除元素
+	void push_back(const std::string &t)
+	{
+		data->push_back(t);
+	}
+	void pop_back();
+	//元素访问
+	std::string& front();
+	std::string& back();
+private:
+	std::shared_ptr<std::vector<std::string>> data;
+	//如果 data[i]不合法，抛出一个异常
+	void check(size_type i,const std::string &msg) const;
+};
+
+class StrBlobPtr{
+public:
+  StrBlobPtr():curr(0) {}
+  StrBlobPtr(StrBlob &a,size_t sz=0):
+  wptr(a.data),curr(sz){}
+  std::string& deref() const;
+  StrBlobPtr& incr(); //前缀递增
+	bool operator!=(const StrBlobPtr& p)
+	{ return p.curr != curr; }
+private:
+  std::shared_ptr<std::vector<std::string>>
+  check(std::size_t i,const std::string& msg) const ;
+  std::weak_ptr<std::vector<std::string>> wptr;
+  std::size_t curr;
+};
+```
+
+StrBlobPtr.cpp:
+```c++
+#include "StrBlobPtr.h"
+
+using namespace std;
+
+std::shared_ptr<std::vector<std::string>>
+StrBlobPtr::check(std::size_t i,const std::string& msg) const
+{
+  auto ret = wptr.lock();
+  if (!ret) {
+    throw std::runtime_error("unbound StrBlobPtr");
+  }
+  if (i>= ret->size()) {
+    throw std::out_of_range(msg);
+  }
+  return ret;
+}
+
+std::string& StrBlobPtr::deref() const
+{
+  auto p =check(curr,"dereference past end");
+  return (* p)[curr]; //(* p) 是对象所指向的 vector
+}
+
+StrBlobPtr& StrBlobPtr::incr()
+{
+  check(curr,"increment past end of StrBlobPtr");
+  ++curr;
+  return * this;
+}
+
+StrBlobPtr StrBlob::begin()
+{
+	return StrBlobPtr(* this);
+}
+StrBlobPtr StrBlob::end()
+{
+	auto ret = StrBlobPtr(* this,data->size());
+	return ret;
+}
+
+StrBlob::StrBlob():data(make_shared<vector<string>>()){}
+StrBlob::StrBlob(initializer_list<string> il):data(make_shared<vector<string>>(il)){}
+
+void StrBlob::check(size_type i,const string &msg) const
+{
+	if(i >= data->size())
+		throw out_of_range(msg);
+}
+
+string& StrBlob::front()
+{
+	check(0,"front on empty StrBlob");
+	return data->front();
+}
+
+string& StrBlob::back()
+{
+	check(0,"back on empty StrBlob");
+	return data->back();
+}
+
+void StrBlob::pop_back()
+{
+	check(0,"pop_back on empty StrBlob");
+	data->pop_back();
+}
+
+int main(int argc, char const *argv[]) {
+  StrBlob b1;
+  {
+    StrBlob b2={"a","an","the"};
+    b1=b2;
+    b2.push_back("about");
+    std::cout << "b1 size:"<< b1.size() << '\n';
+    std::cout << "b2 size:"<< b2.size() << '\n';
+  }
+
+	for(auto i(b1.begin()),e(b1.end());i!=e;i.incr())
+	{
+		std::cout << "val:"<< i.deref() << '\n';
+	}
+  return 0;
+}
+```
+Run it:
+```sh
+b1 size:4
+b2 size:4
+val:a
+val:an
+val:the
+val:about
 ```
 
 ## Link
