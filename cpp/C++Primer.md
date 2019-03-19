@@ -147,6 +147,9 @@
 			* [智能指针和异常](#智能指针和异常)
 			* [unique_ptr](#unique_ptr)
 			* [weak_ptr](#weak_ptr)
+		* [动态数组](#动态数组)
+			* [new 和数组](#new-和数组)
+			* [allocator 类](#allocator-类)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -3252,6 +3255,124 @@ val:an
 val:the
 val:about
 ```
+
+### 动态数组
+STL 中包含一个名为 allocator 的类，允许我们将分配和初始化分离。使用 allocate 通常会提供更好的性能和更灵活的内存管理能力。
+
+#### new 和数组
+```c++
+int * pia = new int[get_size()]; //pia 指向第一个 int
+```
+方括号中的大小必须是整形，但不必是常量。
+还可以这样：
+```c++
+typedef int arrT[42];
+int * p = new arrT; //分配一个 42 个 int 的数组； p 指向第一个 int
+// 编译器执行如下形式：
+// int * p = new int[42];
+```
+
+分配一个数组会得到一个元素类型的指针：
+虽然我们通常称 new T[] 分配的内存为“动态数组”，但这种叫法某种程度上有些误导。当用 new 分配一个数组时，我们并未得到一个数组类型的对象，而是得到一个数组元素类型的指针。即使我们使用类型别名定义了数组类型，new 也不会分配一个数组类型的对象。在上例中，我们正在分配一个数组的事实甚至都是不可见的  -- 连 [num] 都没有。new 返回的是一个元素类型的指针。
+由于分配的内存并不是一个数组类型，因此不能对动态数组调用 begin 或 end。这些函数使用数组维度来返回指向首元素和尾后元素的指针。出于相同的原因，也不能用范围 for 语句来处理（所谓的）动态数组中的元素。
+
+Warning:`要记住我们所说的动态数组并不是数组类型，这点很重要的。`
+
+初始化动态分配对象的数组：
+默认情况下，new 分配的对象，不管是单个分配的还是数组中的，都是默认初始化的。可以对数组中的元素进行值初始化，方法是在大小之后跟一对空括号：
+```c++
+int * pia = new int[10]; //10 个未初始化的 int
+int * pia2 = new int[10](); //10 个值初始化为 0 的 int
+int * p = new int[1](6); // 错误：
+```
+当然在新标准中，我们还可以提供一个元素初始化器的花括号列表。
+
+虽然我们用空括号对数组中元素进行值初始化，但不能在括号中给出初始化器，这意味着不能用 auto 分配数组。
+
+动态分配一个空数组是合法的
+```c++
+size_t n = get_size();
+int * p = new int[n];
+for(int * q = p;q != p+n;++q)
+// 处理数组
+;
+```
+```c++
+char arr[0]; //错误：不能定义长度为 0 的数组
+char * cp = new char[0]; //正确：但 cp 不能解引用
+```
+当我们用 new 分配一个大小为 0 的数组时，new 返回一个合法的非空指针。此指针保证与 new 返回的其他任何指针都不相同。对于零长度的数组来说，此指针就像尾后指针一样，我们可以像使用尾后迭代器一样使用这个指针。
+
+释放动态数组：
+```c++
+delete [] pa; // pa 必须指向一个动态分配的数组或为空
+```
+销毁 pa 指向的数组中的元素，并释放对应的内存。数组中的元素按逆序销毁，即最后一个元素首先被销毁，然后是倒数第二个，依次类推。
+如果我们在 delete 一个指向数组的指针时忽略了方括号（或者在 delete 一个指向单一对象的指针时使用了方括号），其行为是未定义的。
+```c++
+typedef int arrT[42];
+int * p = new arrT;
+delete [] p;// 方括号是必须的
+```
+
+Warning:`如果我们在 delete 一个数组指针时忘记了方括号，或者在 delete 一个单一对象的指针时使用了方括号，编译器很可能不会给出警告。我们的程序可能在执行过程中在在没有任何警告的情况下行为异常。`
+
+#### allocator 类
+当分配一大块内存时，我们通常计划在这块内存上按需构造对象。在此情况下，我们希望将内存分配和对象构造分离。这意味着我们可以分配大块内存，但只在真正需要时才真正执行对象创建操作（同时付出一定开销）。
+一般情况下，将内存和对象构造组合在一起可能会导致不必要的浪费。例如:
+```c++
+string * const p =new string[n];
+string s;
+string * q=p;
+while (cin>>s && q!=p+n) {
+	* q++=s;
+}
+const size_t size =q-p;
+delete [] p;
+```
+new 表达式分配并初始化了 n 个 string 。但是，我们可能不需要 n 个 string，少量 string 可能就足够了。这样，我们就创建了一些永远也用不到的对象。
+
+[std::allocator](https://en.cppreference.com/w/cpp/memory/allocator)，它帮助我们将内存分配和对象构造分离开来。它提供了一种类型感知的内存分配方法，它分配的内存是原始的、未构造的。
+
+STL allocator 类及其算法：
+* allocator<T> a 定义了一个名为 a 的 allocator 对象，它可以为类型 T 的对象分配内存
+* a.allocate(n) 分配一段原始的、未构造的内存，保存 n 个类型为 T 的对象
+* a.deallocate(p,n) 释放从 T* 指针 p 中地址开始的内存，这块内存保存了 n 个类型为 T 的对象；p 必须是一个先前由 allocate 返回的指针，且 n 必须是 p 创建时所要求的大小。在调用 deallocate 之前，用户必须对每个在这块内存中创建的对象调用 destroy
+* a.construct(p,args) p 必须是一个类型为 T* 的指针，指向一块原始内存；arg 被传递给类型为 T 的构造函数，用来在 p 指向的内存中构造一个对象
+* a.destroy(p) p 为 T* 类型的指针，此算法对 p 所指向的对象执行析构函数
+
+```c++
+allocator<string> alloc;
+auto const p = alloc.allocate(n); //分配 n 个未初始化的 string
+auto q =p;
+alloc.construct(q++); //* q 为空字符串
+alloc.construct(q++,10,'c'); //*q 为 cccccccccc
+alloc.construct(q++,"hi"); //* q 为 hi
+```
+还未构造对象的情况下就使用原始内存是错误的：
+```c++
+cout<<* p<<endl; // 正确：使用string 的输出运算符
+cout<<* q<<endl; // 灾难：q 指向未构造的内存
+```
+
+Warning:`为了使用 allocate 返回的内存，我们必须用 construct 构造对象。使用未构造的内存，其行为是未定义的。`
+
+```c++
+while (q!=p) {
+	alloc.destroy(--q); //释放我们真正构造的 string
+}
+```
+Warning:`我们只能对真正构造了的元素进行 destroy 操作。`
+
+```c++
+alloc.deallocate(p,n); //释放内存
+```
+
+拷贝和填充未初始化内存的算法：
+* [std::uninitialized_copy](https://en.cppreference.com/w/cpp/memory/uninitialized_copy)
+* [std::uninitialized_copy_n](https://en.cppreference.com/w/cpp/memory/uninitialized_copy_n)
+* [std::uninitialized_fill](https://en.cppreference.com/w/cpp/memory/uninitialized_fill)
+* [std::uninitialized_fill_n](https://en.cppreference.com/w/cpp/memory/uninitialized_fill_n)
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
