@@ -128,6 +128,17 @@
 			* [栈适配器](#栈适配器)
 			* [deque](#deque)
 			* [priority_queue](#priority_queue)
+	* [泛型算法](#泛型算法)
+		* [概述](#概述)
+		* [初识泛型算法](#初识泛型算法)
+			* [只读算法](#只读算法)
+			* [写容器元素的算法](#写容器元素的算法)
+			* [重排容器元素的算法](#重排容器元素的算法)
+		* [定制操作](#定制操作)
+			* [向算法传递函数](#向算法传递函数)
+			* [lambda 表达式](#lambda-表达式)
+			* [lambda 捕获和返回](#lambda-捕获和返回)
+			* [参数绑定](#参数绑定)
 	* [关联容器](#关联容器)
 		* [关联容器概述](#关联容器概述)
 			* [关键字类型的要求](#关键字类型的要求)
@@ -2424,6 +2435,475 @@ Run:
 ```
 练习 9.52: 使用 stack 处理括号化的表达式。当你看到一个左括号，将其记录下来。当你在一个左括号之后看到一个右括号，从 stack 中 pop 对象，直到遇到左括号，将左括号也一起弹出栈。然后将一个值（括号内的运算结果）push 到栈中，表示一个括号化的（子）表达式已经处理完毕，被其运算结果所替代。
 [Cpp-Primer/ch09/ex9_52.cpp](https://github.com/Mooophy/Cpp-Primer/blob/master/ch09/ex9_52.cpp)
+
+## 泛型算法
+我们可以想象用户可能还希望做其他很多有用的操作：查找特定元素、替换或删除一个特定值、重排元素的顺序等。
+STL 并未给每个容器都定义成员函数来实现这些操作，而是定义了一组 泛型算法(generic algorithm):称他们为“算法”，是因为它们实现了一些经典算法的公共接口，如排序和搜索；称它们是“泛型的”，是因为它们可以用于不同类型的元素和多种容器类型。
+
+### 概述
+* [Algorithms library](https://en.cppreference.com/w/cpp/algorithm)
+
+大多数算法都定义在头文件 algorithm 中。 STL 还在头文件 numeric 中定义了一组泛型算法。
+一般情况下，这些算法并不直接操作容器，而是遍历由两个迭代器指定的一个元素范围来进行操作。通常情况下，算法遍历范围，对其中每个元素进行一些处理。
+
+迭代器范围：
+```c++
+int ia[]={27,210,12,47,109,83};
+// 从 ia[1] 开始，直至（但不包含） ia[4] 的范围内查找元素
+auto result = find(ia+1,ia+4,83);
+```
+
+迭代器令算法不依赖于容器,......，但算法依赖于元素类型的操作：
+大多数算法都使用了一个（或多个）元素类型上的操作。例如，find 用元素类型的 == 运算符完成每个元素与给定值的比较。其他算法可能要求元素类型支持 < 运算符。不过，大多数算法提供了一种方法，允许我们使用自定义的操作来代替默认的运算符。
+
+关键概念：
+`1. 泛型算法本身不会执行容器的操作，它们只会运行于迭代器之上，执行迭代器的操作。泛型算法运行于迭代器之上而不会执行容器操作的特性带来了一个令人惊讶但非常必要的编程假定：算法永远不会改变底层容器的大小。算法可能改变容器中保存的元素的值，也可能在容器内移动元素，但永远不会直接添加或删除元素。`
+`2. STL 定义了一类特殊的迭代器，称为插入器(inserter)。与普通迭代器只能遍历所绑定的容器相比，插入器能做更多的事情。当给这类迭代器赋值时，它们会在底层的容器上执行插入操作。因此，当一个算法操作一个这样的迭代器时，迭代器可以完成向容器添加元素的效果，但算法自身永远不会做这样的操作。`
+
+### 初识泛型算法
+理解算法的最基本的方法就是了解它们是否读取元素、改变元素或是重排元素顺序。
+
+#### 只读算法
+一些算法只会读取其输入范围内的元素，而从不改变元素。find 就是这样的一种算法，count 函数也是如此。
+
+另一个只读算法 [std::accumulate](https://en.cppreference.com/w/cpp/algorithm/accumulate)
+
+accumulate 函数接受三个参数，前两个指出了需要求和的元素的范围，第三个参数是和的初值。假定 vec 是一个整数序列，则：
+```c++
+int sum = accumulate(vec.cbegin(),vec.cend(),0);
+```
+
+Note:`accumulate 的第三个参数的类型决定了函数中使用哪个加法运算符以及返回值的类型。`
+
+```c++
+// v 是一个 string 序列
+string num = accumulate(v.cbegin(),v.cend(),string(""));
+```
+将空串当作一个字符串字面值传递给第三个参数是不可以的，会导致一个编译错误：
+```c++
+// 错误 ： const char * 上没有定义 + 运算符
+string num = accumulate(v.cbegin(),v.cend(),"");
+```
+
+Best practices:`对于只读取而不改变元素的算法，通常最好使用 cbegin（） 和 cend() 。但是，如果你计划使用算法返回的迭代器来改变元素的值，就需要使用 begin() 和 end() 的结果作为参数。`
+
+操作两个序列的算法
+另一个只读算法是 [std::equal](https://en.cppreference.com/w/cpp/algorithm/equal), 用于确定两个序列是否保存相同的值。他将第一个序列中的每个元素与第二个序列中的对应元素进行比较。此算法接受三个迭代器：前两个（与以往一样）表示第一个序列中的元素的范围，第三个表示第二个序列的首元素：
+```c++
+// roster2 中的元素数目应该至少与 roster1 一样多
+equal(roster1.cbegin(),roster1().cend(),roster2.cbegin());
+```
+由于 equal 利用迭代器完成操作，因此我们可以通过调用 equal 来比较两个不同类型的容器中的元素。而且，元素类型也不必一样，只要我们能用 == 来比较两个元素类型即可。
+
+但是，equal 基于一个非常重要的假设：它假定第二个序列至少与第一个序列一样长。此算法要处理第一个序列中的每个元素，它假定每个元素在第二个序列中都有一个与之对应的元素。
+
+Warning:`那些只接受一个单一迭代器来表示第二个序列的算法，都假定第二个序列至少与第一个序列一样长。`
+
+练习 10.4 ： 假定 v 是一个 vector<double> ，那么调用 accumulate(v.cbegin(),v.cend(),0) 是否会有错误？
+```c++
+// 没有错误
+std::vector<double> v{1.2,3.4,5.6};
+auto sum = accumulate(v.cbegin(),v.cend(),0);
+std::cout<<sum<<std::endl;
+```
+```highLight
+上面的运行结果是 9 , 而不是 10.2 哦
+```
+
+#### 写容器元素的算法
+一些算法将新值赋予序列中的元素。当我们使用这类算法时，必须注意确保序列原大小至少不小于我们要求算法写入的元素数目。记住，算法不会执行容器操作，因此它们自身不可能改变容器的大小。
+
+例如，算法 [std::fill](https://en.cppreference.com/w/cpp/algorithm/fill) 接受一对迭代器表示一个范围，还接受一个值作为第三个参数。fill 将给定的这个值赋予输入序列中的每个元素。
+```c++
+fill(vec.begin(),vec.end(),0);
+```
+
+算法不检查写操作：
+我们可以用 [std::fill_n](https://en.cppreference.com/w/cpp/algorithm/fill_n) 将一个新值赋予 vector 中的元素。
+```c++
+vector<int> vec;
+fill_n(vec.begin(),vec.size(),0);
+```
+函数 fill_n 假定写入指定个元素是安全的。
+一个初学者非常容易犯的错误是在一个空容器上调用 fill_n （或类似的写元素的算法）:
+```c++
+vector<int> vec;
+// 灾难： 修改  vec 中的 10 个 （不存在）元素
+fill_n(vec.begin(),10,0);
+```
+这一调用是一场灾难。这条语句的结果是未定义的。
+
+Warning:`向目的位置迭代器写入数据的算法假定目的位置足够大，能容纳要写入的元素。`
+
+介绍 back_inserter ：
+一种保证算法有足够元素空间来容纳输出数据的方法是使用 插入迭代器 (insert iterator)。插入迭代器是一种向容器中添加元素的迭代器。通常情况，当我们通过一个迭代器向容器元素赋值时，值被赋予迭代器指向的元素。而当我们通过一个插入迭代器赋值时，一个与赋值号右侧值相等的元素被添加到容器中。
+
+为了展示如何用算法向容器写入数据，我们现将使用 [std::back_inserter](https://en.cppreference.com/w/cpp/iterator/back_inserter) .
+
+back_inserter 接受一个指向容器的引用，返回一个与该容器绑定的插入迭代器。当我们通过此迭代器赋值时，赋值运算符会调用 push_back 将一个具有给定值的元素添加到容器中：
+```c++
+vector<int> vec;
+auto it = back_inserter(vec); // 通过它赋值会将元素添加到 vec 中
+* it = 42;
+```
+我们常常使用 back_inserter 来创建一个迭代器，作为算法的目的位置来使用。例如：
+```c++
+std::vector<int> vec;
+// 正确： back_inserter 创建一个插入迭代器，可用来向 vec 添加元素
+fill_n(back_inserter(vec),10,0); // 添加 10 个元素到 vec
+```
+
+拷贝算法：
+拷贝(copy)算法是另一个向目的位置迭代器指向的输出序列中的元素写入数据的算法。
+* [std::copy](https://en.cppreference.com/w/cpp/algorithm/copy)
+```c++
+int a1[]={0,1,2,3,4,5,6,7,8,9};
+int a2[sizeof(a1)/sizeof(* a1)];
+auto ret = copy(begin(a1),end(a1),a2);
+```
+多个算法都提供所谓的 “拷贝”版本。这些算法计算新元素的值，但不会将它们放置在输入序列的末尾，而是创建一个新序列保存这些结果。
+
+例如,[std::replace](https://en.cppreference.com/w/cpp/algorithm/replace) 算法读入一个序列，并将其中所有等于给定值的元素都改为另一个值。
+```c++
+replace(ilst.begin(),ilst.end(),0,42);
+```
+此调用将序列中所有的 0 都替换为 42。如果我们希望保留原序列不变，可以调用 [std::replace_copy](https://en.cppreference.com/w/cpp/algorithm/replace_copy), 此算法接受额外第三个迭代器参数，指出调整后序列的保存位置:
+```c++
+// 使用 back_inserter 按需要増长目标序列
+replace_copy(ilst.begin(),ilst.end(),
+back_inserter(ivec),0,42);
+```
+此调用后，ilst 并未改变，ivec 包含 ilst 的一份拷贝，不过原来在 ilst 中值为 0 的元素在 ivec 中都变为 42。
+
+#### 重排容器元素的算法
+某些算法会重排容器中元素的顺序，一个明显的例子是 [std::sort](https://en.cppreference.com/w/cpp/algorithm/sort) 。调用 sort 会重排输入序列的元素，使之有序，它是利用元素类型的 < 运算符来实现排序的。
+
+假定已有一个 vector ，保存了多个故事的文本。我们希望化简这个 vector，使得每个单词只出现一次，而不管单词在任意给定文档中到底出现了多少次。
+
+我们可以先排序，然后调用 [std::unique](https://en.cppreference.com/w/cpp/algorithm/unique) 使得不重复的元素出现在 vector 的开始部分。由于算法不能执行容器的操作，我们将使用 vector 的 erase 成员来完成真正的删除操作：
+```c++
+void elimdups(vector<string>& words)
+{
+	sort(words.begin(),words.end());
+	// unique 重排输入范围，使得每个单词只出现一次
+	// 排列在范围的前部，返回指向不重复区域之后一个位置的迭代器
+	auto end_unique = unique(words.begin(),words.end());
+	// 删除重复的单词
+	words.erase(end_unique,words.end());
+}
+```
+
+Note:`STL 算法对迭代器而不是容器进行操作。因此，算法不能（直接）添加或删除元素。`
+
+练习 10.10: 你认为算法不改变容器大小的原因是什么？
+```highLight
+@Mooophy: The aim of this design is to separate the algorithms and the operation provided by member function.
+STL 算法对迭代器而不是容器进行操作。因此，算法不能（直接）添加或删除元素。
+```
+
+### 定制操作
+很多算法都会比较输入序列中的元素。默认情况下，这类算法使用元素类型的 < 或 == 运算符完成比较。STL 还为这些算法定义了额外的版本，允许我们提供自己定义的操作来代替默认运算符。
+
+#### 向算法传递函数
+作为一个例子，假定希望在调用 elimdups 后答应 vector 的内容。此外还假定希望单词按其长度排序，大小相同的再按字典排序。为了按长度重排 vector ，我们将使用 sort 的另一个版本，它接受第三个参数，此参数是一个谓词 (predicate)。
+
+谓词：
+谓词是一个可调用的表达式，其返回结果是一个能用做条件的值。STL 算法所使用的谓词分为两类：一元谓词(unary predicate，意味着它们只接受单一参数)和二元谓词(binary predicate，意味着它们有两个参数)。接受谓词参数的算法对输入序列中的元素调用谓词。因此，元素类型必须能转换为谓词的参数类型。
+
+```c++
+bool isShorter(const string& s1,const string& s2)
+{
+	return s1.size() < s2.size();
+}
+// 按长度由短至长排序 words
+sort(words.begin(),words.end(),isShorter);
+```
+
+排序算法：
+在我们将 words 按大小重排的同时，还希望具有相同长度的元素按字典排序。为了保持相同长度的单词按字典序排列，可以使用 [std::stable_sort](https://en.cppreference.com/w/cpp/algorithm/stable_sort) 算法。这种稳定排序算法维持相等元素的原有顺序。
+
+```c++
+elimdups(words); //将 words 按字典序重排，并消除重复单词
+// 按照长度重新排序，长度相同的单词维持字典序
+stable_sort(words.begin(),words.end(),isShorter);
+```
+
+#### lambda 表达式
+根据算法接受一元谓词还是二元谓词，我们传递给算法的谓词必须严格接受一个或两个参数。
+
+介绍 lambda:
+我们可以向一个算法传递任何类别的可调用对象 (callable object)。对于一个对象或者一个表达式，如果可以对其使用调用运算符，则称为它为可调用的。即，如果 e 是一个可调用的表达式，则我们可以编写代码 e(args),其中 args 是一个逗号分隔的一个或多个参数的列表。
+
+到目前为止，我们使用过的仅有两种可调用对象是函数和函数指针。还有其他两种可调用对象：重载了函数调用运算符的类，以及 lambda 表达式 (lambda expresion)。
+
+一个 lambda 表达式表示一个可调用的代码单元。我们可以将其理解为一个未命名的内联函数。与任何函数类似，一个 lambda 具有一个返回类型、一个参数列表和一个函数体。但与函数不同， lambda 可能定义在函数内部。一个 lambda 表达式具有如下形式：
+```c++
+[capture list](parameter list) -> return type {function body}
+```
+其中 ， capture list 是一个 lambda 所在函数中定义的局部变量的列表（通常为空）;return type,parameter list 和 function body 与任何普通函数一样，分别表示返回类型、参数列表和函数体。但是，与普通函数不同， lambda 必须使用 尾置返回 来指定返回类型。
+
+```c++
+auto f = [] {return 42;};
+cout<< f() << endl;
+```
+
+Note:`如果 lambda 的函数包含任何单一 return 语句之外的内容，且未指定返回类型，则返回 void 。`
+
+向 lambda 传递参数：
+与一个普通函数调用类似，调用一个 lambda 时给定的实参被用来初始化 lambda 的形参。通常，实参和形参的类型必须匹配。但与普通函数不同， lambda 不能有默认参数。因此，一个 lambda 调用的实参数目永远和形参数目相等。一旦形参初始化完毕，就可以执行函数体了。
+```c++
+stable_sort(words.begin(),words.end(),
+[](const string& a,const string& b)
+{
+	return a.size() < b.size();
+});
+```
+
+使用捕获列表：
+```c++
+std::size_t sz=5;
+[sz](const string& a)
+{
+	return a.size() >= sz;
+}
+
+// 错误
+[](const string& a)
+{
+	return a.size() >= sz;
+}
+```
+
+Note:`一个 lambda 只有在其捕获列表中捕获一个它所在函数中的局部变量，才能在函数体中使用该变量。`
+
+[std::for_each](https://en.cppreference.com/w/cpp/algorithm/for_each) 算法：
+```c++
+for_each(words.begin(),words.end(),
+[](const string& s){cout<<s<<"";});
+```
+
+Note:`捕获列表只用于局部非 static 变量，lambda 可以直接使用局部 static 变量和在它所在函数之外声明的名字。`
+
+#### lambda 捕获和返回
+当定义一个 lambda 时，编译器生成一个与 lambda 对应的新的（未命名的）类类型。目前，可以这样理解，当向一个函数传递一个 lambda 时，同时定义了一个新类型和该类型的一个对象：传递的参数就是此编译器生成的类类型的未命名对象。
+
+默认情况下，从 lambda 生成的类都包含一个对应该 lambda 所捕获的变量的数据成员。类似任何普通类的数据成员， lambda 的数据成员也在 lambda 对象创建时被初始化。
+
+值捕获：
+到目前为止，我们的 lambda 采用值捕获的方式。与传值参数类似，采采用值捕获的前提是变量可以拷贝。与参数不同，被捕获的变量的值是在 lambda 创建时拷贝，而不是调用时拷贝：
+```c++
+void fcn1()
+{
+	size_t v1= 42;
+	auto f = [v1] {return v1;};
+	v1 =0;
+	auto j=f(); //j 为 42; f 保存了我们创建它时 v1 的拷贝
+}
+```
+
+引用捕获：
+```c++
+void fcn2()
+{
+	size_t v1= 42;
+	auto f = [&v1] {return v1;};
+	v1 =0;
+	auto j=f(); // j 为 0； f2 保存 v1 的引用，而非拷贝
+}
+```
+
+我们也可以从一个函数返回 lambda 。函数可以直接返回一个可调用对象，或者返回一个类对象，该类含有可调用对象的数据成员。如果函数返回一个 lambda ，则与函数不能返回一个局部变量的引用类似，此 lambda 也不能包含引用捕获。
+
+Warning:`当以引用方式捕获一个变量时，必须保证在 lambda 执行时变量是存在的。`
+
+建议：`尽量保持 lambda 的变量捕获简单化
+一般来说，我们应该尽量减少捕获的数据量，来避免潜在的捕获导致的问题。而且，如果可能的话，应该避免捕获指针或引用。`
+
+隐式捕获：
+除了显式列出我们希望使用的来自所在函数的变量之外，还可以让编译器根据 lambda 体中的代码来推断我们要使用哪些变量。为了指示编译器推断捕获列表，应在捕获列表中写一个 `&` 或 `=` 。
+* `&` 告诉编译器采用引用捕获方式
+* `=` 告诉编译器采用值捕获方式
+
+```c++
+wc = find_if(words.begin(),words.end(),
+[=](const string& s){return s.size() >= sz;});
+
+void biggies(vector<string>& words,
+vector<string>::size_type sz,
+ostream& os=cout,char c=' ')
+{
+	// os 隐式 引用捕获 ， c 显式 值捕获
+	for_each(words.begin(),words.end(),
+[&,c](const stirng& s){os<<s<<c;});
+
+// os 显式 引用捕获 ， c 隐式 值捕获
+for_each(words.begin(),words.end(),
+[=,&os](const string& s){os<<s<<c;});
+}
+```
+
+当混合使用隐式和显式捕获时，显式捕获的变量必须与隐式捕获不同的方式。即，如果隐式捕获是引用方式，则显式捕获命名变量必须采用值方式，因此不能在其名字前使用 & 。类似的，如果隐式捕获采用的是值方式，则显式捕获命名变量必须采用引用方式，即，在名字前使用 &。
+
+lambda 值捕获列表：
+* [] 空捕获列表。lambda 不能使用所在函数中的变量。一个 lambda 只有捕获后才能使用它们
+* [names] names 是一个逗号分隔的名字列表，这些名字都是 lambda 所在函数的局部变量。默认情况下，捕获列表中的变量都被拷贝。名字前如果使用了 &，则采用引用捕获方式
+* [&] 隐式捕获列表，采用引用捕获方式。 lambda 体中所使用的来自所在函数的实体都采用引用方式使用
+* [=] 隐式捕获列表，采用值捕获方式。 lambda 体将拷贝所使用的来自所在函数的实体的值
+* [&,identifier_list] identifier_list 是一个逗号分隔的列表。这些变量采用值捕获方式，而任何隐式捕获的变量都采取引用方式捕获。 identifier_list 中地名字前面不能使用 &
+* [=,identifier_list] identifier_list 中的变量都采用引用方式捕获，而任何隐式捕获的变量都采取值捕获方式。identifier_list 中的名字不能包括 this ,且只写名字之前必须使用 &
+
+可变 lambda:
+默认情况下，对于一个值被拷贝的变量，lambda 不会改变其值。如果我们希望能改变一个被捕获的变量的值，就必须在参数列表首加上关键字 mutable。因此，可变 lambda 能省略参数列表：
+```c++
+void fcn3()
+{
+	size_t v1=42;
+	auto f = [v1]() mutable { return ++v1;};
+	v1 = 0;
+	auto j = f(); // j 为 43
+}
+
+void fcn4()
+{
+	size_t v1 = 42;
+	auto f2 = [&v1] {return ++v1;};
+	v1 = 0;
+	auto j = f2(); //j 为 1
+}
+```
+
+指定 lambda 返回类型:
+到目前为止，我们所编写的 lambda 都只包含单一的 return 语句。因此，我们还未遇到必须指定返回类型的情况。默认情况下，如果一个 lambda 体包含 return 之外的任何语句，则编译器假定此 lambda 返回 void 。 与其他返回 void 的函数类似，被推断返回 void 的 lambda 不能返回值。
+
+下面给出了一个简单的例子，我们可以使用 STL [std::transform](https://en.cppreference.com/w/cpp/algorithm/transform) 算法和一个 lambda 来将一个序列中的每个负数替换为其绝对值：
+
+```c++
+transform(vi.begin(),vi.end(),vi.begin(),[](int i){
+	return i<0 ? -i : i;
+});
+```
+但是，如果我们将程序改写为看起来是等价的 if 语句，就会产生编译错误：
+```c++
+transform(vi.begin(),vi.end(),vi.begin(),[](int i){
+	if (i < 0) return -i;
+	else
+	return i;
+});
+```
+编译器推断这个版本的 lambda 返回类型为 void ，但它返回了一个 int 值。
+当我们需要为一个 lambda 定义返回类型时，必须使用尾置返回类型：
+```c++
+transform(vi.begin(),vi.end(),vi.begin(),
+[](int i) -> int {
+	if (i < 0) return -i;
+	else
+	return i;
+});
+```
+
+#### 参数绑定
+对于那种只在一两个地方使用的简单操作， lambda 表达式是最有用的。如果我们需要在很多地方使用相同的操作，通常应该定义一个函数，而不是多次编写相同的 lambda 表达式。类似的，如果一个操作需要很多语句才能完成，通常使用函数更好。
+
+如果 lambda 的捕获列表为空，通常可以用函数来代替它。
+但是，对于捕获局部变量的 lambda，用函数来替换它就不是那么容易了。例如，我们用在 find_if 调用中的 lambda 比较一个 string 和一个给定大小。我们可以很容易地编写一个完成同样工作的函数：
+```c++
+bool check_size(const string& s,string::size_type sz)
+{
+	return s.size() >= sz;
+}
+```
+但是，我们不能用这个函数作为 find_if 的一个参数。find_if 接受一个一元谓词，因此传递给 find_if 的可调用对象必须接受单一参数。biggies 传递给 find_if 的 lambda 使用捕获列表来保存 sz 。为了用 check_size 来代替此 lambda,必须解决如何向 sz 形参传递一个参数的问题。
+
+标准库 bind 函数
+* [std::bind](https://en.cppreference.com/w/cpp/utility/functional/bind)
+
+我们可以解决向 check_size 传递一个长度参数的问题，方法是使用一个新的名为 bind 的函数，它定义在头文件 functional 中。可以将 bind 函数看做一个通用的函数适配器，它接受一个可调用对象，生成一个新的可调用对象来 “适应” 原对象的参数列表。
+
+调用 bind 的一般形式为：
+```c++
+auto newCallable = bind(callable,arg_list);
+```
+其中，newCallable 本身是一个可调用对象，arg_list 是一个逗号分隔的参数列表，对应给定的 callable 的参数。即，当我们调用 newCallable 时， newCallable 会调用 callable ，并传递给他 arg_list 中的参数。
+arg_list 中的参数可能包含形如 \_n 的名字,其中 n 是一个整数。这些参数是“占位符”，表示 newCallable 的参数，它们占据了传递给 newCallable 的参数的 “位置”。数值 n 表示生成的可调用对象中参数的位置：\_1 为 newCallable 的第一个参数， \_2 为第二个参数，一次类推。
+
+绑定 check_size 的 sz 参数:
+```c++
+// check6 是一个可调用对象，接受一个 string 类型的参数
+// 并用此 string 和值 6 来调用 check_size
+auto check6 = bind(check_size,_1,6);
+```
+使用 bind ，我们可以将原来基于 lambda 的 find_if 调用：
+```c++
+auto wc = find_if(words.begin(),words.end(),
+[sz](const string& a))
+```
+替换为：
+```c++
+auto wc = find_if(words.begin(),words.end(),
+bind(check_size,_1,sz));
+```
+
+使用 placeholders 名字
+名字 \_n 都定义在一个名为 placeholders 的命名空间中，而这个命名空间本身定义在 std 命名空间中。
+为了使用 \_n 可以使用：
+```c++
+using namespace std::placeholders;
+```
+
+bind 的参数：
+如前文所述，我们可以用 bind 修正参数的值。更一般的，可以用 bind 绑定给定可调用对象中的参数或重新安排其顺序。例如，假定 f 是一个可调用对象，它有 5 个参数，则下面的 bind 调用：
+```c++
+auto g = bind(f,a,b,_2,c,_1);
+```
+
+实际上，这个 bind 调用会将
+```c++
+g(_1,_2);
+```
+映射为
+```c++
+f(a,b,_2,c,_1);
+```
+例如，调用 g(X,Y) 会调用
+```c++
+f(a,b,Y,c,X);
+```
+
+用 bind 重排参数顺序：
+我们可以用 bind 颠倒 isShorter 的含义：
+```c++
+// 按 单词长度由短至长排序
+sort(words.begin(),words.end(),isShorter);
+// 按单词长度由长至短排序
+sort(words.begin(),words.end(),bind(isShorter,_2,_1));
+```
+
+绑定引用参数：
+默认情况下，bind 的那些不是占位符的参数被拷贝到 bind 返回的可调用对象中。但是，与 lambda 类似，有时对有些绑定的参数我们希望以引用的方式传递，或是要绑定参数的类型无法拷贝。
+```c++
+// os 是一个局部变量，引用一个输出流
+// c 是一个局部变量，类型为 char
+for_each(words.begin(),words.end(),
+[&os,c](const string& s){os << s << c;});
+```
+
+可以很容易地编写一个函数，完成相同地工作：
+```c++
+ostream & print(ostream& os,const string& s,char c)
+{
+	return os<<s<<c;
+}
+```
+但是，不能直接用 bind 来代替对 os 地捕获：
+```c++
+// 错误： 不能拷贝 os
+for_each(words.begin(),words.end(),bind(print,os,_1,' '));
+```
+原因在于 bind 拷贝其参数，而我们不能拷贝一个 ostream 。如果我们希望传递给 bind 一个对象而又不拷贝它，就必须使用 STL [std::ref](https://en.cppreference.com/w/cpp/utility/functional/ref) 函数：
+```c++
+for_each(words.begin(),words.end(),bind(print,ref(os),_1,' '));
+```
+标准库中还有一个 cref 函数，生成一个保存 const 引用的类。与 bind 一样，函数 ref 和 cref 也定义在头文件 functional 中。
 
 ## 关联容器
 关联容器和顺序容器有着根本的不同：关联容器中的元素是按照关键字来保存和访问的。与之相对，顺序容器中的元素时按它们在容器中的位置来顺序保存和访问的。
