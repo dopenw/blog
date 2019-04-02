@@ -139,6 +139,10 @@
 			* [lambda 表达式](#lambda-表达式)
 			* [lambda 捕获和返回](#lambda-捕获和返回)
 			* [参数绑定](#参数绑定)
+		* [再探迭代器](#再探迭代器)
+			* [插入迭代器](#插入迭代器)
+			* [iostream 迭代器](#iostream-迭代器)
+			* [反向迭代器](#反向迭代器)
 	* [关联容器](#关联容器)
 		* [关联容器概述](#关联容器概述)
 			* [关键字类型的要求](#关键字类型的要求)
@@ -2824,7 +2828,7 @@ bool check_size(const string& s,string::size_type sz)
 auto newCallable = bind(callable,arg_list);
 ```
 其中，newCallable 本身是一个可调用对象，arg_list 是一个逗号分隔的参数列表，对应给定的 callable 的参数。即，当我们调用 newCallable 时， newCallable 会调用 callable ，并传递给他 arg_list 中的参数。
-arg_list 中的参数可能包含形如 \_n 的名字,其中 n 是一个整数。这些参数是“占位符”，表示 newCallable 的参数，它们占据了传递给 newCallable 的参数的 “位置”。数值 n 表示生成的可调用对象中参数的位置：\_1 为 newCallable 的第一个参数， \_2 为第二个参数，一次类推。
+arg_list 中的参数可能包含形如 \_n 的名字,其中 n 是一个整数。这些参数是“占位符”，表示 newCallable 的参数，它们占据了传递给 newCallable 的参数的 “位置”。数值 n 表示生成的可调用对象中参数的位置：\_1 为 newCallable 的第一个参数， \_2 为第二个参数，依次类推。
 
 绑定 check_size 的 sz 参数:
 ```c++
@@ -2904,6 +2908,193 @@ for_each(words.begin(),words.end(),bind(print,os,_1,' '));
 for_each(words.begin(),words.end(),bind(print,ref(os),_1,' '));
 ```
 标准库中还有一个 cref 函数，生成一个保存 const 引用的类。与 bind 一样，函数 ref 和 cref 也定义在头文件 functional 中。
+
+### 再探迭代器
+除了为每个容器定义的迭代器之外，STL 在头文件 iterator 中定义了额外几种容器。这些迭代器包括以下几种：
+* [插入迭代器 (insert iterator)](https://en.cppreference.com/w/cpp/iterator/insert_iterator)： 这些迭代器被绑定到一个容器上，可用来向容器插入元素。
+* [流迭代器 (stream iterator)](https://en.cppreference.com/w/cpp/iterator/istream_iterator): 这些迭代器被绑定到输入或输出流上，可用来遍历所关联的 IO 流。
+* [反向迭代器 (reverse iterator)](https://en.cppreference.com/w/cpp/iterator/reverse_iterator): 这些迭代器向后而不是向前移动。除了 forward_list 之外的 STL 容器都有反向迭代器。
+* [移动迭代器 (move iterator)](https://en.cppreference.com/w/cpp/iterator/move_iterator): 这些专用的迭代器不是拷贝其中的元素，而是移动它们。
+
+#### 插入迭代器
+插入器是一种迭代器适配器，它接受一个容器，生成一个迭代器，能实现向给定容器添加元素。当我们通过一个插入迭代器进行赋值时，该迭代器调用容器操作来向给定容器的指定位置插入一个元素。
+
+插入迭代器操作：
+* it = t 在 it 指定的当前位置插入值 t 。假定 c 是 it 绑定的的容器，依赖于插入迭代器的不同种类，此赋值会分别调用 c.push_back(t)、c.push_front(t) 或 c.insert(t,p), 其中 p 为传递给 inserter 的迭代器位置。
+* \*it,++it,it++ 这些操作虽然存在，但不会对 it 做任何事情。每个操作都返回 it
+插入器有三种类型，差异在于元素插入的位置：
+* back_inserter 创建一个使用 push_back 的迭代器。
+* front_inserter 创建一个使用 push_front 的迭代器。
+* inserter 创建一个使用 insert 的迭代器。此函数接受第二个参数，这个参数必须是一个指向给定容器的迭代器。元素将被插入到给定迭代器所表示的元素之前。
+
+Note:`只有在容器支持 push_front 的情况下，我们才可以使用 front_inserter。 类似的，只有在容器支持 push_back 的情况下，我们才能使用 back_inserter。`
+
+理解插入器的工作过程是很重要的：当调用 inserter(c,iter) 时，我们得到一个迭代器，接下来使用它时，会将元素插入到 iter 原来所指向的元素之前的位置。即，如果 it 是由 inserter 生成的迭代器，则下面这样的赋值语句：
+```c++
+* it = val;
+```
+等同于：
+```c++
+it = c.insert(it,val); //it 指向新加入的元素
+++it; //递增 it 使他指向原来的元素
+```
+
+front_inserter 生成的迭代器的行为与 inserter 生成的迭代器完全不一样。当我们使用 front_inserter 时，元素总是插入到容器第一个元素之前。即使我们传递给 inserter 的位置原来指向第一个元素，只要我们再此元素之前插入一个新元素，此元素就不再是容器的首元素了：
+```c++
+list<int> lst ={1,2,3,4};
+list<int> lst2,lst3; // 空 list
+//拷贝完成后，lst2 包含 4 3 2 1
+copy(lst.cbegin(),lst.cend(),front_inserter(lst2));
+// 拷贝完成后， lst3 包含 1 2 3 4
+copy(lst.cbegin(),lst.cend(),inserter(lst3,lst3.begin()));
+```
+
+#### iostream 迭代器
+虽然 iostream 类型不是容器，但 STL 定义了可以用于这些 IO 类型对象的迭代器。 istream_iterator 读取输入流，ostream_iterator 向一个输出流写数据。这些迭代器将它们对应的流当作一个特定类型的元素序列来处理。通过使用流迭代器，我们可以用泛型算法从流对象读取数据以及向其写入数据。
+
+istream_iterator 操作：
+当创建一个流迭代器时，必须指定迭代器将要读写的对象类型。一个 istream_iterator 使用 >> 来读取流。因此，istream_iterator 要读取的类型必须定义了输入运算符。
+```c++
+istream_iterator<int> int_it(cin); //从 cin 读取 int
+istream_iterator<int> int_eof; // 尾后迭代器
+ifstream in("afile");
+istream_iterator<string> str_int(in); // 从 “afile” 读取字符串
+```
+
+下面是一个用 istream_iterator 从标准输入读取数据，存入一个 vector 的例子：
+```c++
+istream_iterator<int> int_iter(cin); //从 cin 读取 int
+istream_iterator<int> eof; //istream_iterator 尾后迭代器
+while (int_iter != eof) {
+	// 解引用迭代器，获得从流读取的前一个值
+	vec.push_back(*int_iter++);
+}
+```
+我们还可以写成这样，这体现了 istream_iterator 更有用的地方：
+```c++
+istream_iterator<int> in_ter(cin),eof; //从 cin 读取 int
+std::vector<int> vec(in_iter,eof); //从迭代器范围构造 vec
+```
+
+istream_iterator 操作：
+* istream_iterator<T> in(is); in 从输入流 is 读取类型为 T 的值
+* istream_iterator<T> end; 尾后迭代器
+* in1 == in2; in1 != in2;   ::  in1 和 in2 必须读取相同类型。如果它们都是尾后迭代器、或者绑定到相同的输入，则两者相等
+* \* 返回从流中读取的值
+* in->mem 与 (*in).mem 的含义相同
+* ++in,in++ 使用元素类型所定义的 >> 运算符从输入流中读取下一个值。
+
+使用算法操作流迭代器：
+由于算法使用迭代器操作来处理数据，而流迭代器又至少支持某些迭代器操作，因此我们至少可以用某些算法来操作流迭代器。后面会看到如何分辨哪些算法可以用于流迭代器。例子：
+```c++
+istream_iterator<int> in(cin),eof;
+cout << accumulate(in,eof,0) << endl;
+```
+istream_iterator 允许使用懒惰求值：
+当我们将一个 istream_iterator 绑定到一个流时，STL 并不保证迭代器立即从流读取数据。具体实现可以推迟从流中读取数据，直到我们使用迭代器时才真正读取。STL 中的实现所保证的是，在我们第一次解引用迭代器之前，从流中读取数据的操作已经完成了。对于大多数程序来说，立即读取还是推迟读取没什么差别。但是，如果我们创建了一个 istream_iterator,没有使用就销毁了，或者我们正在从两个不同的对象同步读取同一个流，那么何时读取可能就很重要了。
+
+ostream_iterator 操作：
+我们可以对任何具有输出运算符(<< 运算符)的类型定义 ostream_iterator。当创建一个 ostream_iterator 时，我们可以提供（可选的）第二参数，它是一个字符串，在输出每个元素后都会打印此字符串。此字符串必须是一个 c 风格字符串(即，一个字符串字面常量或者一个指向以空字符结尾的字符数组的指针)。必须将 ostream_iterator 绑定到一个指定的流，不允许空的表示尾后位置的 ostream_iterator。
+
+* ostream_iterator<T> out(os); out 将类型为 T 的值写到输出流 os 中
+* ostream_iterator<T> out(os,d); out 将类型为 T 的值写到输出流 os 中，每个值后面都输出一个 d 。d 指向一个空字符结尾的字符数组
+* out = val; 用 << 运算符将 val 写入到 out 所绑定的 ostream 中。val 的类型必须与 out 可写的类型兼容
+* \* out,++out,out++; 这些运算符是存在的，但不对 out 做任何事情。每个运算符都返回 out。
+
+我们可以用 ostream_iterator 来输出值的序列：
+```c++
+ostream_iterator<int> out_iter(cout," ");
+for(auto e:vec)
+{
+	* out_iter++ = e; // 赋值语句实际上将元素写到 cout
+}
+cout<<std::endl;
+```
+值得注意的是，我们可以写成这样：
+```c++
+ostream_iterator<int> out_iter(cout," ");
+for(auto e:vec)
+{
+	* out_iter = e; // 赋值语句将元素写到 cout
+}
+cout<<std::endl;
+```
+但是，推荐第一种形式。在这种写法中，流迭代器的使用与其他迭代器的使用保持一致。如果想将此循环改为操作其他迭代器类型，修改起来非常容易。而且，对于读者来说，此循环的行为也更为清晰。
+
+```c++
+copy(vec.begin(),vec.end(),out_iter);
+cout<<endl;
+```
+
+练习 10.30:使用流迭代器、sort和 copy 从标准输入读取一个整数序列，将其排序，并将结果写到标准输出：
+```c++
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include <iterator>
+
+using namespace std;
+
+int main(int argc, char const * argv[]) {
+  istream_iterator<int> inIter(cin),eof;
+  std::vector<int> v(inIter,eof);
+  sort(v.begin(),v.end());
+  ostream_iterator<int> outIter(cout," ");
+  copy(v.begin(),v.end(),outIter);
+  cout<<endl;
+  return 0;
+}
+```
+
+#### 反向迭代器
+反向迭代器就是在容器中从尾元素向首元素反向移动的迭代器。对于反向迭代器，递增(以及递减)操作的含义会颠倒过来。
+
+除了 forward_list 之外，其他容器都支持反向迭代器。我们可以通过调用 rbegin，rend,crbegin 和 crend 成员函数来获得反向迭代器。
+
+eg:
+```c++
+std::vector<int> vec={0,1,2,3,4,5,6,7,8,9};
+
+// 从尾元素到首元素的反向迭代器
+for(auto r_iter = vec.crbegin(); r_iter != vec.crend(); ++r_iter)
+cout<<* r_iter <<endl; // 打印 9,8,7,...0
+```
+
+我们还可以通过向 sort 传递一对反向迭代器来将 vector 整理为递减序：
+```c++
+sort(vec.begin(),vec.end()); //按 “正常序” 排序 vec
+// 按逆序排序: 从大到小
+sort(vec.rbegin(),bec.rend());
+```
+
+反向迭代器需要递减运算符：
+除了 forward_list外，标准容器上的其他迭代器都既支持递增运算又支持递减运算。但是，流迭代器不支持递减运算，因为不可能在一个流中反向移动。因此，不可能从一个 forward_list 或一个流迭代器创建反向迭代器。
+
+反向迭代器和其他迭代器的关系：
+
+如果我们希望打印最后一个单词，可以改用反向迭代器：
+```c++
+string line("FIRST,MIDDLE,LAST");
+// 在一个逗号分隔的列表中查找最后一个元素
+auto rcomma = find(line.crbegin(),line.crend(),',');
+```
+
+当我们试图打印找到的单词时，最有意思的部分来了。看起来下面的代码是显然的方法：
+```c++
+cout << string(line.crbegin(),rcomma) << endl;
+```
+这条语句会打印：
+```highLight
+TSAL
+```
+我们可以将 rcomma 转换回一个普通迭代器，能在 line 中正向移动。我们通过调用 reverse_iterator 的 base 成员函数来完成这一转换，此成员函数会返回其对应的普通迭代器。
+```c++
+// 正确： 得到一个正向迭代器，从逗号开始读取字符直到 line 末尾
+cout << string(rcomma.base(),line.cend()) << endl;
+```
+从技术上来讲，普通迭代器与反向迭代器的关系反映了左闭合区间的特性。关键点在于 `[line.crbegin(),rcomma)` 和 `[rcomma.base(),line.cend())` 指向 line 中相同的元素范围。为了实现这一点，rcomma 和 rcomma.base() 必须生成相邻位置而不是相同位置，crbegin() 和 cend() 也是如此。
+
+Note:`反向迭代器的目的是表示元素范围，而这些范围是不对称的，这导致了一个重要的结果：当我们从一个普通迭代器初始化一个反向迭代器，或是给一个反向迭代器赋值时，结果迭代器与原迭代器指向的并不是相同的元素。` 
 
 ## 关联容器
 关联容器和顺序容器有着根本的不同：关联容器中的元素是按照关键字来保存和访问的。与之相对，顺序容器中的元素时按它们在容器中的位置来顺序保存和访问的。
