@@ -178,6 +178,9 @@
 			* [三/五法则](#三五法则)
 			* [使用 = default](#使用-default)
 			* [阻止拷贝](#阻止拷贝)
+		* [拷贝控制和资源管理](#拷贝控制和资源管理)
+			* [行为像值的类](#行为像值的类)
+			* [定义行为像指针的类](#定义行为像指针的类)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -4556,6 +4559,119 @@ public:
 声明但不定义一个成员函数是合法的。试图访问一个未定义的成员将导致一个链接时错误。通过一个声明（但不定义）private 的拷贝构造函数，我们可以预先阻止任何拷贝该类型对象的企图：试图拷贝对象的用户代码将在编译阶段被标记为错误；成员函数或友元函数中的拷贝操作将会导致链接时错误。
 
 best practices:`希望阻止拷贝的类应该使用 =delete 来定义他们自己的拷贝构造函数和拷贝赋值运算符，而不应该将他们声明为 private 的。`
+
+### 拷贝控制和资源管理
+通常，管理类外资源的类必须定义拷贝控制成员。如我们之前看到的 HasPtr 所见，这种类需要通过析构函数来释放对象所分配的资源。一旦一个类需要析构函数，那么它几乎肯定也需要一个拷贝构造函数和一个拷贝赋值运算符。
+
+为了定义这些成员，我们首先必须确定此类型对象的拷贝语义。一般来说，有两种选择：可以定义拷贝操作，使类的行为看起来像一个值或者像一个指针。
+
+类的行为像一个值，意味着它应该也有自己的状态。当我们拷贝一个像值的对象时，副本和原对象是完全独立的。改变副本不会对原对象有任何影响，反之亦然。
+
+行为像指针的类则共享状态。当我们拷贝一个这种类的对象时，副本和原对象使用相同的底层数据。改变副本也会改变原对象，反之亦然。
+
+在我们使用过的标准库中，标准库容器和 string 类的行为像一个值。shared_ptr 类提供类似指针的行为。IO 类型和 unique_ptr 不允许拷贝或赋值，因此它们的行为既不像值也不想指针。
+
+为了说明这两种方式，我们会为练习中的 HasPtr 类定义拷贝控制成员。首先，我们将令类的行为像一个值；然后重新实现类，使它的行为像一个指针。
+
+#### 行为像值的类
+```c++
+class HasPtr{
+public:
+	HasPtr(const std::string &s = std::string):
+	ps(new std::string(s)),i(0){}
+	HasPtr(const HasPtr& p):
+	ps(new std::string(*p.ps)),i(p.i){}
+	HasPtr& operator = (const HasPtr&);
+	~HasPtr(){delete ps;}
+private:
+	std::string * ps;
+	int i;
+};
+
+HasPtr& HasPtr::operator=(const HasPtr& rhs)
+{
+	auto newp=new string(*rhs.ps); // 拷贝底层 string
+	delete ps; //释放旧内存
+	ps = newp;
+	i = rhs.i;
+	return * this;
+}
+```
+
+`关键概念：赋值运算符`
+`当你编写赋值运算符时，有两点需要记住：`
+* `如果将一个对象赋予它自身，赋值运算符必须能正确工作。`
+* `大多数赋值运算符组合了析构函数和拷贝构造函数的工作。`
+
+为了说服防范自赋值的操作的重要性，考虑如果赋值运算符如下编写将会发生什么事情：
+```c++
+// 这样编写赋值运算符是错误的！
+HasPtr& HasPtr::operator=(const HasPtr& rhs)
+{=
+	delete ps; //释放对象指向的 string
+	// 如果 rhs 和 * this 是同一对象，我们就将从已释放的内存中拷贝数据！
+	ps = new string(*rhs.ps); // 拷贝底层 string
+	i = rhs.i;
+	return * this;
+}
+```
+
+Warning:`对于一个赋值运算符来说，正确工作是非常重要的，即使是将一个对象赋予它自身，也要能正确工作。一个好的方法是在销毁左侧运算对象资源之前拷贝右侧运算对象。`
+
+#### 定义行为像指针的类
+对于行为类似指针的类，我们需要定义拷贝构造函数和拷贝赋值运算符，来拷贝指针成员本身而不是它指向的 string。我们的类仍然需要自己的析构函数来释放内存。但是，在本例中，只有当最后一个指向 string 的 HasPtr 销毁时，它才可以释放 string。
+
+令一个类展现类似指针的行为最好方法是使用 shared_ptr 来管理类中的资源。拷贝（或赋值）一个 shared_ptr 会拷贝（赋值） shared_ptr 所指向的指针。shared_ptr 类自己记录有多少用户共享它所指向的对象。当没有用户使用对象时，shared_ptr 类负责释放资源。
+
+但是，有时我们希望直接管理资源。在这种情况下，使用引用计数 (refefence count) 就很用了。为了说明引用计数如何工作，我们将重新定义 HasPtr，令其行为像指针一样，但我们不使用 shared_ptr ，而是设计自己的引用计数。
+
+唯一的难题是确定在哪里存放引用计数。解决此问题的一种方法是将计数器保存在动态内存中。
+
+```c++
+class HasPtr{
+public:
+  // 构造函数分配新的 string 和新的计数器，将计数器置为 1
+  HasPtr(const std::string &s = std::string()):
+  ps(new std::string(s)),i(0),use(new std::size_t(1))
+  {}
+
+// 拷贝构造函数拷贝所有三个数据成员，并递增计数器
+  HasPtr(const HasPtr& p):
+  ps(p.ps),i(p.i),use(p.use){++(* use);}
+
+  HasPtr& operator = (const HasPtr&);
+
+  ~HasPtr();
+
+private:
+  std::string * ps;
+  int i;
+  std::size_t * use;// 用来记录有多少个对象共享 * ps 的成员
+
+};
+
+HasPtr::~HasPtr()
+{
+  if(--(* use) ==0)
+  {
+    delete ps;
+    delete use;
+  }
+}
+
+HasPtr& HasPtr::operator=(const HasPtr& rhs)
+{
+  ++(* rhs.use); // 递增右侧运算对象的引用计数
+  if (--(* use)==0) { //然后递减本对象的引用计数
+    delete ps; // 如果没有其他用户
+    delete use; // 释放本对象分配的成员
+  }
+  ps=rhs.ps; // 将数据从 rhs 拷贝到本对象
+  i=rhs.i;
+  use=rhs.use;
+  return * this; // 返回本对象
+}
+```
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
