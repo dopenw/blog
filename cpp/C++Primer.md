@@ -182,6 +182,10 @@
 			* [行为像值的类](#行为像值的类)
 			* [定义行为像指针的类](#定义行为像指针的类)
 		* [交换操作](#交换操作)
+		* [拷贝控制示例](#拷贝控制示例)
+		* [动态内存管理类](#动态内存管理类)
+		* [对象移动](#对象移动)
+			* [右值引用](#右值引用)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -4325,6 +4329,68 @@ string nines = string(100,'9'); // 拷贝初始化
 
 拷贝构造函数被用来初始化非引用类类型参数，这一特性揭示了为什么拷贝构造函数自己的参数必须是引用类型。如果其参数不是引用类型，则调用永远也不会成功-为了调用拷贝构造函数，我们必须拷贝他的实参，但为了拷贝实参，我们又需要调用拷贝构造函数，如此无限循环。
 
+参数和返回值示例：
+```c++
+#include <iostream>
+
+class Tmp
+{
+  public:
+    Tmp()
+    {
+        std::cout << "constructor" << std::endl;
+    }
+    Tmp(const Tmp &rhs)
+    {
+        std::cout << "copy constructor" << std::endl;
+    }
+};
+
+void foo(Tmp x)
+{
+    std::cout << "foo" << std::endl;
+}
+
+Tmp foo1()
+{
+    std::cout << "foo1" << std::endl;
+    Tmp a;
+    return a;
+}
+
+int main(int argc, char const *argv[])
+{
+    std::cout << std::endl
+              << "test 1" << std::endl;
+    Tmp a;
+    foo(a);
+    std::cout << std::endl
+              << "test 2" << std::endl;
+    foo(Tmp());
+    std::cout << std::endl
+              << "test 3" << std::endl;
+    foo1();
+    return 0;
+}
+```
+
+Run it:
+```highLight
+
+test 1
+constructor
+copy constructor
+foo
+
+test 2
+constructor
+foo
+
+test 3
+foo1
+constructor
+```
+
 拷贝初始化的限制：
 如前所述，如果我们使用的初始化值要求通过一个 explicit 的构造函数来进行类型转换，那么使用拷贝初始化还是直接初始化就不是无关紧要的了：
 ```c++
@@ -4945,6 +5011,216 @@ Folder &Folder::operator=(const Folder &rhs)
 [Exercise 13.38:](https://github.com/Mooophy/Cpp-Primer/blob/master/ch13/README.md#exercise-1338)
 
 
+### 动态内存管理类
+我们将实现标准库 vector 类的一个简化版本。我们所做的一个简化是不使用模板，我们的类只用于 string。因此，它被命名为 StrVec。
+
+StrVec 的设计：
+回忆一下， vector 类将其元素保存在连续内存中。为了获得可接受的性能， vector 预先分配足够的内存来保存可能需要的更多元素。vector 的每个添加元素的成员函数会检查是否有空间容纳更多的元素。如果有，成员函数会在下一个可用位置构造一个对象。如果没有可用空间，vector 就会重新分配空间：它获得新的空间，将已有元素移动到新空间中，释放旧空间，并添加新元素。
+
+我们在 StrVec 类中使用类似的策略。我们将使用一个 allocator 来获得原始内存。由于 allocator 分配的内存是未构造的，我们将在需要添加新元素时用 allocator 的 construct 成员在原始内存中创建对象。类似的，当我们需要删除一个元素时，我们将使用 destroy 来销毁元素。
+
+每个 StrVec 有三个指针成员指向其元素所使用的内存：
+* elements, 指向分配的内存中的首元素
+* first_free， 指向最后一个实际元素之后的位置
+* cap， 指向分配的内存末尾之后的位置
+
+![](../images/C++Primer_201904172144_1.png)
+
+除了这些指针之外，StrVec 还有一个名为 alloc 的静态成员，其类型为 allocator<string>。alloc 成员会分配 StrVec 使用的内存。我们的类还有 4 个工具函数：
+* alloc_n_copy 会分配内存，并拷贝一个给定范围中的元素
+* free 会销毁构造的元素并释放内存
+* chk_n_alloc 保证 StrVec 至少有容纳一个新元素的空间。如果没有空间添加新元素，chk_n_alloc 会调用 reallocate 来分配更多内存。
+* reallocate 在内存用完时为 StrVec 分配新内存。
+
+```c++
+#include <vector>
+#include <iostream>
+#include <memory>
+
+class StrVec {
+public:
+StrVec() :
+        elements(nullptr),
+        first_free(nullptr),
+        cap(nullptr)
+{
+}
+
+StrVec(const StrVec&);
+StrVec& operator =(const StrVec&);
+~StrVec();
+
+void push_back(const std::string&);
+size_t size() const {
+  return first_free - elements;
+}
+size_t capacity() const {
+        return cap - elements;
+}
+std::string * begin() const {
+        return elements;
+}
+std::string * end() const {
+        return first_free;
+}
+
+// ...
+private:
+static std::allocator<std::string> alloc;   // 分配元素
+// 被添加元素的函数所使用
+void chk_n_alloc()
+{
+        if(size() == capacity())
+                reallocate();
+}
+
+// 工具函数，被拷贝构造函数，赋值运算符和析构函数所使用
+std::pair<std::string *,std::string * > alloc_n_copy(
+        const std::string *,const std::string * );
+void free();   // 销毁元素并释放内存
+void reallocate();   // 获得更多内存并拷贝已有元素
+std::string * elements;   // 指向数组首元素的指针
+std::string * first_free;   // 指向数组第一个空闲元素的指针
+std::string * cap;   // 指向数组尾后位置的指针
+};
+
+
+void StrVec::push_back(const std::string& s)
+{
+        chk_n_alloc(); // 确保有空间容纳新元素
+        // 在 first_free 指向的元素中构造 s 的副本
+        alloc.construct(first_free++,s);
+}
+
+std::pair<std::string *,std::string * >
+StrVec::alloc_n_copy(const std::string * b,const std::string * e)
+{
+        // 分配空间保存给定范围中的元素
+        auto data = alloc.allocate(e-b);
+        // 初始化并返回一个 pair ，该 pair 由 data 和
+        // uninitialized_copy 的返回值构成
+        return {data,uninitialized_copy(b,e,data)};
+}
+
+void StrVec::free()
+{
+        // 不能传递给 deallocate 一个空指针，如果 elements 为 0，函数什么也不做
+        if (elements) {
+                // 逆序销毁旧元素
+                for(auto p = first_free; p!=elements;)
+                        alloc.destroy(--p);
+                alloc.deallocate(elements,cap-elements);
+        }
+}
+
+StrVec::StrVec(const StrVec& s)
+{
+        auto newData = alloc_n_copy(s.begin(),s.end());
+        elements = newData.first;
+        first_free = cap = newData.second;
+}
+
+StrVec::~StrVec()
+{
+        free();
+}
+
+StrVec& StrVec::operator=(const StrVec& rhs)
+{
+        auto data = alloc_n_copy(rhs.begin(),rhs.end());
+        free();
+        elements = data.first;
+        first_free = cap =data.second;
+        return * this;
+}
+
+// 在重新分配内存的过程中移动而不是拷贝元素
+
+void StrVec::reallocate()
+{
+        // 我们将分配当前大小两倍的内存空间
+        auto newCapacity = size() ? 2*size() : 1;
+        // 分配新内存
+        auto newData = alloc.allocate(newCapacity);
+				// 将数据从旧内存移动到新内存
+        auto dest = newData; // 指向新数组中下一个空闲位置
+        auto elem = elements; // 指向旧数组中下一个元素
+        for(std::size_t i=0; i!=size(); ++i)
+                alloc.construct(dest++,std::move(*elem++));
+        free(); // 一旦我们移动完元素就释放旧内存空间
+        // 更新我们的数据结构，执行新元素
+        elements=newData;
+        first_free = dest;
+        cap = elements + newCapacity;
+}
+```
+
+移动构造函数和 std::move ：
+通过使用新标准库引入的两种机制，我们就可以避免 string 的拷贝。首先，有一些标准库类，包括 string ，都定义了所谓的 "移动构造函数"。关于 string 的移动构造函数如何工作的细节，以及有关实现的任何其他细节，目前都尚未公开。但是，我们知道，移动构造函数通常是将资源从给定对象 “移动” 而不是拷贝到正在创建的对象。而且我们知道标准库保证 “移后源” (moved-from) string 仍然保持一个有效的、可析构的状态。对于 string ，我们可以想象每个 string 都有一个指向 char 数组的指针。可以假定 string 的移动构造函数进行了指针的拷贝，而不是为字符分配内存空间然后拷贝字符。
+
+我们使用的第二个机制是一个名为 [std::move](https://en.cppreference.com/w/cpp/utility/move) 的标准库函数，它定义在 utility 头文件中。目前，关于 move 我们需要了解两个关键点。首先，当 reallocate 在新内存中构造 string 时，它调用 move 来表示希望使用 string 的移动构造函数。当我们使用 move 时，直接调用 std::move 而不是 move;
+
+### 对象移动
+新标准的一个最主要的特性是可以移动而非拷贝对象的能力。很多情况下都会发生对象拷贝。在某些情况下，对象拷贝后就立即被销毁了。在这些情况下，移动而非拷贝对象将大幅提高性能。
+
+如我们已经看到的，我们的 StrVec 类是这种不必要拷贝的一个很好的例子。在重新分配内存的过程中，从旧内存将元素拷贝到新内存是不必要的，更好的方式是移动元素。使用移动而不是拷贝的另一个原因源于 IO 类或 unique_ptr 这样的类。这些类都包含不能被共享的资源（如指针或 IO 缓冲）。因此，这些类型的对象不能拷贝但可以移动。
+
+在旧 c++ 标准中，没有直接的方法移动对象。因此，即使不必拷贝对象的情况下，我们也不得不拷贝。如果对象较大，或者是对象本身要求分配内存空间（如 string），进行不必要的拷贝代价非常高。类似的，在旧版本标准库中，容器中所保存的类必须是可拷贝的。但在新标准中，我们可以用容器保存不可拷贝的类型，只要它们能被移动即可。
+
+Note:`标准库容器、string和 shared_ptr 类即支持移动也支持拷贝。IO 类和 unique_ptr 类可以移动但不能拷贝。`
+
+#### 右值引用
+
+为了支持移动操作，新标准引入了一种新的引用类型--右值引用(rvalue reference)。所谓右值引用就是必须绑定到右值的引用。我们通过 `&&` 而不是 `&` 来获得右值引用。如我们将要看到的，右值引用有一个重要的性质-只能绑定到一个将要销毁的对象。因此，我们可以自由地将一个右值引用的资源“移动”到另一个对象中。
+
+回忆一下，左值和右值是表达式的属性。一些表达式生成或要求左值，而另外一些则生成或要求右值。一般而言，一个左值表达式表示的是一个对象的身份，而一个右值表达式表示的是对象的值。
+
+类似任何引用，一个右值引用也不过是某个对象的另一个名字而已。如我们所知，对于常规引用（为了与右值引用区分开来，我们可称为左值引用(lvalue refefence),我们不能将其绑定到要求转换的表达式、字面常量或是返回右值的表达式）。右值引用有着完全相反的绑定特性：我们可以将一个右值引用绑定到这类表达式上，但不能将一个右值引用直接绑定到一个左值上：
+```c++
+int i = 42;
+int &r = i; // okay
+int &&r = i; //错误:不能将一个右值引用绑定到一个左值上
+int &r2 = i * 42; // 错误： i * 42 是一个右值
+const int & r3 = i * 42; // 正确：我们可以将一个 const 的引用绑定到一个右值上
+int &&rr2 = i * 42; // 正确：将 rr2 绑定到乘法结果上
+```
+
+返回左值引用的函数，连同赋值、下标、解引用和前置递增/递减运算符，都是返回左值表达式的例子。我们可以将一个左值引用绑定到这类表达式的结果上。
+
+返回非引用类型的函数，连同算术、关系、位以及后置递增/递减运算符，都生成右值。我们不能将一个左值引用绑定到这类表达式上，但我们可以将一个 const 的左值引用或者一个右值引用绑定到这类表达式上。
+
+左值持久；右值短暂
+考察左值和右值表达式的列表，两者相互区别之处就很明显了；左值有持久的状态，而右值要么是字面常量，要么是在表达式求值过程中创建的临时对象。
+
+由于右值引用只能绑定到临时对象，我们得知：
+* 所引用的对象将要求被销毁
+* 该对象没有其他用户
+这个特性意味着：使用右值引用的代码可以自由地接管所引用的对象的资源。
+
+Note:`右值引用指向将要被销毁的对象。因此，我们可以从绑定到右值引用的对象“窃取”状态。`
+
+变量是左值：
+变量可以看作只有一个运算对象而没有运算符的表达式，虽然我们很少这样看待变量。类似其他任何表达式，变量表达式也有 左值/右值属性。变量表达式都是左值。带来的结果就是，我们不能将一个右值引用绑定到一个右值引用类型的变量上，这又有令人惊讶：
+```c++
+int &&rr1 = 42; // 正确：字面常量是右值
+int &&rr2 = rr1; // 错误：表达式 rr1 是左值
+```
+
+其实有了右值表示临时对象这一观察结果，变量是左值这一特性并不令人惊讶。毕竟，变量是持久的，直至离开作用域才被销毁。
+
+Note:`变量是左值，因此我们不能将一个右值引用直接绑定到一个变量上，即使这个变量是右值引用类型也不行。`
+
+标准库 move 函数:
+虽然不能将一个右值引用直接绑定到一个左值上，但我们可以显式地将一个左值转换为对应的右值引用类型。我们还可以通过调用 std::move 函数来获得绑定到左值上的右值引用：
+```c++
+int &&rr3 = std::move(rr1); // ok
+```
+
+move 调用告诉编译器：我们有一个左值，但我们希望像一个右值一样处理它。我们必须认识到，调用 move 就意味着承诺：除了对 rr1 赋值或销毁它外，我们将不再使用它。在调用 move 之后，我们不能对移后源对象的值做任何假设。
+
+Note:`我们可以销毁一个移后源对象，也可以赋予它新值，但不能使用一个移后源对象的值。`
+
+Warning:`使用 move 的代码应该使用 std::move 而不是 move 。这样做可以避免潜在的名字冲突。`
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
