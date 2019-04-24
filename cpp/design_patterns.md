@@ -7,6 +7,8 @@
 * [设计模式](#设计模式)
 	* [创建型模式](#创建型模式)
 		* [Factory(工厂) 模式](#factory工厂-模式)
+			* [变种-工厂方法](#变种-工厂方法)
+			* [变种-简单工厂](#变种-简单工厂)
 		* [Abstract factory(抽象工厂) 模式](#abstract-factory抽象工厂-模式)
 		* [Singleton(单例) 模式](#singleton单例-模式)
 		* [Builder(生成器) 模式](#builder生成器-模式)
@@ -33,6 +35,7 @@
 		* [Strategy(策略) 模式](#strategy策略-模式)
 		* [Template method(模板方法) 模式](#template-method模板方法-模式)
 		* [Visitor(访问者) 模式](#visitor访问者-模式)
+	* [经验法则](#经验法则)
 
 <!-- /code_chunk_output -->
 
@@ -222,6 +225,44 @@ Moe: slap head
 Curly: suffer abuse
 ```
 [示例代码链接](https://sourcemaking.com/design_patterns/factory_method/cpp/1)
+
+#### 变种-工厂方法
+[工廠「方法」而非工廠「類」](https://zh.wikipedia.org/wiki/%E5%B7%A5%E5%8E%82%E6%96%B9%E6%B3%95)
+```java
+class Complex {
+     public static Complex fromCartesianFactory(double real, double imaginary) {
+         return new Complex(real, imaginary);
+     }
+     public static Complex fromPolarFactory(double modulus, double angle) {
+         return new Complex(modulus * cos(angle), modulus * sin(angle));
+     }
+     private Complex(double a, double b) {
+         //...
+     }
+}
+
+Complex product = Complex.fromPolarFactory(1, pi);
+```
+
+#### 变种-简单工厂
+[简单工厂](https://zh.wikipedia.org/wiki/%E5%B7%A5%E5%8E%82%E6%96%B9%E6%B3%95#%E7%AE%80%E5%8D%95%E5%B7%A5%E5%8E%82)
+```java
+public class ImageReaderFactory {
+    public static ImageReader imageReaderFactoryMethod(InputStream is) {
+        ImageReader product = null;
+
+        int imageType = determineImageType(is);
+        switch (imageType) {
+            case ImageReaderFactory.GIF:
+                product = new GifReader(is);
+            case ImageReaderFactory.JPEG:
+                product = new JpegReader(is);
+            //...
+        }
+        return product;
+    }
+}
+```
 
 ### Abstract factory(抽象工厂) 模式
 抽象工厂模式提供了一种方式，可以将一组具有同一主题的单独的工厂封装起来。
@@ -467,6 +508,87 @@ p1:3
 localtion:0x7f9514000b10
 ```
 
+还可以这样：
+```c++
+//Here is an updated C++11 implementation of the
+//Singleton design pattern that is lazy-evaluated,
+//correctly-destroyed, and thread-safe.
+
+#include <iostream>
+
+class Singleton
+{
+    public:
+        static Singleton& getInstance()
+        {
+            static Singleton    instance; // Guaranteed to be destroyed.
+                                  // Instantiated on first use.
+            return instance;
+        }
+    private:
+        Singleton() {}                    // Constructor? (the {} brackets) are needed here.
+
+        // C++ 03
+        // ========
+        // Don't forget to declare these two. You want to make sure they
+        // are unacceptable otherwise you may accidentally get copies of
+        // your singleton appearing.
+
+      //  Singleton(Singleton const&);              // Don't Implement
+      //  void operator=(Singleton const&); // Don't implement
+
+        // C++ 11
+        // =======
+        // We can use the better technique of deleting the methods
+        // we don't want.
+    public:
+        Singleton(Singleton const&)               = delete;
+        void operator=(Singleton const&)  = delete;
+
+        // Note: Scott Meyers mentions in his Effective Modern
+        //       C++ book, that deleted functions should generally
+        //       be public as it results in better error messages
+        //       due to the compilers behavior to check accessibility
+        //       before deleted status
+};
+
+int main(int argc, char const *argv[]) {
+        std::mutex mutexLock;
+        auto f1 = std::async(std::launch::async, [&]
+        {
+          Singleton * p = &Singleton::getInstance();
+          std::lock_guard<std::mutex> l(mutexLock);
+                std::cout << "f1.location:"<< p << '\n';
+        });
+        auto f2 = std::async(std::launch::async, [&]
+        {
+          Singleton * p = &Singleton::getInstance();
+          std::lock_guard<std::mutex> l(mutexLock);
+                std::cout << "f2.location:"<< p << '\n';
+        });
+        auto f3 = std::async(std::launch::async, [&]
+        {
+          Singleton * p = &Singleton::getInstance();
+          std::lock_guard<std::mutex> l(mutexLock);
+                std::cout << "f3.location:"<< p << '\n';
+        });
+
+        f1.get();
+        f2.get();
+        f3.get();
+        return 0;
+}
+```
+
+Run it:
+```highlight
+f1.location:0x4182f2
+f2.location:0x4182f2
+f3.location:0x4182f2
+```
+
+[C++ Singleton design pattern](https://stackoverflow.com/questions/1008019/c-singleton-design-pattern)
+
 ### Builder(生成器) 模式
 生成器模式，他可以将复杂的建造过程抽象出来，使这个抽象过程的不同实现方法可以构造出不同表现（属性）的对象。
 
@@ -615,42 +737,118 @@ Distributed work package for :Vms
 [source link](https://sourcemaking.com/design_patterns/object_pool)
 ![](../images/design_patterns_201712081616_2.png)
 
-python 代码示例：
-```python
-class ReusablePool:
-    """
-    Manage Reusable objects for use by Client objects.
-    """
+代码示例：
+```c++
+#include <string>
+#include <iostream>
+#include <list>
+#include <sstream>
 
-    def __init__(self, size):
-        self._reusables = [Reusable() for _ in range(size)]
+template<typename T>
+std::string decorate(T val)
+{
+        std::stringstream ss;
+        ss<<" ["<<val<< "] ";
+        return ss.str();
+}
 
-    def acquire(self):
-        return self._reusables.pop()
+class Resource
+{
+int value;
+public:
+Resource() : value(0)
+{
 
-    def release(self, reusable):
-        self._reusables.append(reusable)
+}
+void reset()
+{
+        value =0;
+}
+int getValue() const
+{
+        return value;
+}
+void setValue(int number)
+{
+        value = number;
+}
+};
 
+// Note,that this class is a singleton
 
-class Reusable:
-    """
-    Collaborate with other objects for a limited amount of time, then
-    they are no longer needed for that collaboration.
-    """
+class ObjectPool
+{
+private:
+std::list<Resource *> resources;
+ObjectPool() {
+}
+public:
+static ObjectPool& getInstance()
+{
+        static ObjectPool instance;
+        return instance;
+}
 
-    pass
+Resource * getResource()
+{
+        if(resources.empty())
+        {
+                std::cout << "Creating new." << '\n';
+                return new Resource;
+        }
+        else
+        {
+                std::cout << "Reusing existing." << '\n';
+                Resource * resource = resources.front();
+                resources.pop_front();
+                return resource;
+        }
+}
 
+void returnResource(Resource* object)
+{
+        object->reset();
+        resources.push_back(object);
+}
+};
 
-def main():
-    reusable_pool = ReusablePool(10)
-    reusable = reusable_pool.acquire()
-    reusable_pool.release(reusable)
+int main(int argc, char const *argv[]) {
+        Resource * one;
+        Resource * two;
+        one = ObjectPool::getInstance().getResource();
+        one->setValue(10);
+        std::cout << "one = "<< one->getValue()
+                  <<decorate(one) << '\n';
+        two= ObjectPool::getInstance().getResource();
+        two->setValue(20);
+        std::cout << "two = "<<two->getValue()
+                  << decorate(two)<< '\n';
+        ObjectPool::getInstance().returnResource(one);
+        ObjectPool::getInstance().returnResource(two);
 
-
-if __name__ == "__main__":
-    main()
+        one = ObjectPool::getInstance().getResource();
+        std::cout << "one = "<< one->getValue()
+                  <<decorate(one) << '\n';
+        two = ObjectPool::getInstance().getResource();
+        std::cout << "two = "<<two->getValue()
+                  << decorate(two)<< '\n';
+        return 0;
+}
 ```
-[示例代码链接](https://sourcemaking.com/design_patterns/object_pool/python/1)
+Run:
+```highlight
+Creating new.
+one = 10 [0xe61280]
+Creating new.
+
+two = 20 [0xe612a0]
+Reusing existing.
+one = 0 [0xe61280]
+Reusing existing.
+two = 0 [0xe612a0]
+```
+
+[示例代码链接](https://sourcemaking.com/design_patterns/object_pool/cpp/1)
 
 ### Prototype(原型) 模式
 原型模式是创建型模式的一种，其特点在于通过「复制」一个已经存在的实例来返回新的实例,而不是新建实例。被复制的实例就是我们所称的「原型」，这个原型是可定制的。
@@ -849,115 +1047,86 @@ LegacyRectangle:  oldDraw.  (120,200) => (180,240)
 
 将对象的接口从其实现中分离出来；将一个抽象与实现解耦，以便两者可以独立的变化。
 
-桥接模式时软件设计模式中最复杂的模式之一，他把事物对象和其具体行为、具体特征分离开来，使他们各自独立变化。事物对象仅时一个抽象的概念。如“圆形”、“三角形”归于抽象的“形状”之下，而“画圆”、“画三角形”归于实现行为的“画图”类之下，然后由“形状”调用“画图”。
+桥接模式是软件设计模式中最复杂的模式之一，他把事物对象和其具体行为、具体特征分离开来，使他们各自独立变化。事物对象仅是一个抽象的概念。如“圆形”、“三角形”归于抽象的“形状”之下，而“画圆”、“画三角形”归于实现行为的“画图”类之下，然后由“形状”调用“画图”。
 
 [桥接模式 wikipedia](https://zh.wikipedia.org/zh-cn/%E6%A9%8B%E6%8E%A5%E6%A8%A1%E5%BC%8F)
 
-[Bridge Design Pattern](https://sourcemaking.com/design_patterns/bridge)
-
-Structure:
-
-![](../images/design_patterns_201801031925_2.png)
-
 ```c++
-#include <iomanip>
 #include <iostream>
-#include <string.h>
 
 using namespace std;
 
-class TimeImp {
+/* Implementor*/
+class DrawingAPI {
 public:
-  TimeImp(int hr, int min) {
-    hr_ = hr;
-    min_ = min;
-  }
-  virtual void tell() {
-    cout << "time is " << setw(2) << setfill(' ') << hr_ << min_ << endl;
-  }
-
-protected:
-  int hr_, min_;
+virtual void drawCircle(double x, double y, double radius) = 0;
+virtual ~DrawingAPI() {
+}
 };
 
-class CivilianTimeImp : public TimeImp {
+/* Concrete ImplementorA*/
+class DrawingAPI1 : public DrawingAPI {
 public:
-  CivilianTimeImp(int hr, int min, int pm) : TimeImp(hr, min) {
-    if (pm)
-      strcpy(whichM_, " PM");
-    else
-      strcpy(whichM_, " AM");
-  }
-
-  virtual void tell() {
-    std::cout << "time is " << hr_ << ":" << min_ << whichM_ << '\n';
-  }
-
-protected:
-  char whichM_[4];
+void drawCircle(double x, double y, double radius) {
+        cout << "API1.circle at " << x << ':' << y << ' ' << radius << endl;
+}
 };
 
-class ZuluTimeImp : public TimeImp {
+/* Concrete ImplementorB*/
+class DrawingAPI2 : public DrawingAPI {
 public:
-  ZuluTimeImp(int hr, int min, int zone) : TimeImp(hr, min) {
-    if (zone == 5)
-      strcpy(zone_, " eastern standard time");
-    else if (zone == 6)
-      strcpy(zone_, " central standard time");
-  }
-
-  virtual void tell() {
-    std::cout << "time is " << setw(2) << setfill(' ') << hr_ << min_ << zone_
-              << '\n';
-  }
-
-protected:
-  char zone_[30];
+void drawCircle(double x, double y, double radius) {
+        cout << "API2.circle at " << x << ':' << y << ' ' <<  radius << endl;
+}
 };
 
-class Time {
+/* Abstraction*/
+class Shape {
 public:
-  Time() {}
-  Time(int hr, int min) { imp_ = new TimeImp(hr, min); }
-
-  virtual void tell() { imp_->tell(); }
-
-protected:
-  TimeImp *imp_;
+virtual ~Shape() {
+}
+virtual void draw() = 0;
+virtual void resizeByPercentage(double pct) = 0;
 };
 
-class CivilianTime : public Time {
+/* Refined Abstraction*/
+class CircleShape : public Shape {
 public:
-  CivilianTime(int hr, int min, int pm) {
-    imp_ = new CivilianTimeImp(hr, min, pm);
-  }
+CircleShape(double x, double y,double radius, DrawingAPI * drawingAPI) :
+        m_x(x), m_y(y), m_radius(radius), m_drawingAPI(drawingAPI)
+{
+}
+void draw() {
+        m_drawingAPI->drawCircle(m_x, m_y, m_radius);
+}
+void resizeByPercentage(double pct) {
+        m_radius = m_radius * pct;
+}
+private:
+double m_x, m_y, m_radius;
+DrawingAPI * m_drawingAPI;
 };
 
-class ZuluTime : public Time {
-public:
-  ZuluTime(int hr, int min, int zone) { imp_ = new ZuluTimeImp(hr, min, zone); }
-};
-
-int main(int argc, char const *argv[]) {
-  Time * times[3];
-  times[0] = new Time(14, 30);
-  times[1] = new CivilianTime(2, 30, 1);
-  times[2] = new ZuluTime(14, 30, 6);
-  for (size_t i = 0; i < 3; i++) {
-    times[i]->tell();
-  }
-  return 0;
+int main(void) {
+        DrawingAPI1 dap1;
+        DrawingAPI2 dap2;
+        CircleShape circle1(1,2,3,&dap1);
+        CircleShape circle2(5,7,11,&dap2);
+        circle1.resizeByPercentage(2.5);
+        circle2.resizeByPercentage(2.5);
+        circle1.draw();
+        circle2.draw();
+        return 0;
 }
 ```
 
-Run:
-```terminal
-time is 1430
-time is 2:30 PM
-time is 1430 central standard time
+Run it:
+```highlight
+API1.circle at 1:2 7.5
+API2.circle at 5:7 27.5
 ```
 
-[示例代码链接 ](https://sourcemaking.com/design_patterns/bridge/cpp/1)
+[Bridge Design Pattern](https://sourcemaking.com/design_patterns/bridge)
 
 ### Composite(组合) 模式
 
@@ -1340,8 +1509,8 @@ public:
 
 class You {
 public:
-	void start(String[] args) {
-		Computer facade = new Computer();
+	void start() {
+		Computer facade；
 		facade.startComputer();
 	}
 }
@@ -1518,13 +1687,11 @@ Active Flyweights: go stop select undo
 
 为其他对象提供一个代理以控制对这个对象的访问
 
+* 著名的代理模式例子为引用计数（英语：reference counting）指针对象。
+
 [代理模式 wikipedia](https://zh.wikipedia.org/zh-cn/%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F)
 
 [Proxy Design Pattern](https://sourcemaking.com/design_patterns/proxy)
-
-Structure:
-
-![](../images/design_patterns_201801032311_4.png)
 
 [Proxy in C++: Before and after](https://sourcemaking.com/design_patterns/proxy/cpp/1)
 
@@ -1608,6 +1775,10 @@ Remaining balance is 100
 
 [代码示例链接 1](https://sourcemaking.com/design_patterns/proxy/cpp/3)
 
+Structure:
+
+![](../images/design_patterns_201801032311_4.png)
+
 ```c++
 // "->" and "." operator give different results
 
@@ -1687,7 +1858,7 @@ the brown fox jumped over the dog
 为解除请求的发送者和接收者之间耦合，而使多个对象都有机会处理这个请求。将这些对象连成一条链，并沿着这条链传递该请求，直到有一个对象处理它。
 
 
-责任链模式包含了一些命令对象和一系列的处理对象。每一个处理对象决定它能处理哪些命令，它也知道如何将它不能处理的命令对象，它也知道如何将它不能处理的命令对象传递给该链中的下一个处理对象。该模式还描述了往处理链的末尾添加新的处理对象的方法。
+责任链模式包含了一些命令对象和一系列的处理对象。每一个处理对象决定它能处理哪些命令，它也知道如何将它不能处理的命令对象传递给该链中的下一个处理对象。该模式还描述了往处理链的末尾添加新的处理对象的方法。
 
 [责任链模式 wikipedia](https://zh.wikipedia.org/zh-cn/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F)
 
@@ -1697,7 +1868,10 @@ the brown fox jumped over the dog
 责任链模式避免了通过给予多个对象处理请求的机会来将请求的发送者耦合到接收者。例如ATM使用责任链的过程：
 ![](../images/design_patterns_201712232017_2.png)
 
-[link](https://sourcemaking.com/design_patterns/chain_of_responsibility)
+[Chain of Responsibility](https://sourcemaking.com/design_patterns/chain_of_responsibility)
+
+Structure:
+![](../images/design_patterns_201904231613_1.png)
 
 ```highlight
 1. Put a "next" pointer in the base class
@@ -1784,7 +1958,7 @@ int main(int argc, char const *argv[]) {
 
 Run:
 ```terminal
-H1 handled 0val
+H1 handled 0
 H1 passed 1 H2 passed 1 H3 handled 1
 H1 passed 2 H2 passed 2 H3 handled 2
 H1 handled 3
@@ -2097,6 +2271,7 @@ using namespace std;
 class StackIter;
 
 class Stack {
+  // care,max size is 10
   int items[10];
   int sp;
 
@@ -2169,6 +2344,7 @@ s1 == s5 is 0
 using namespace std;
 
 class Stack {
+  // care,max size is 10
   int items[10];
   int sp;
 
@@ -2234,11 +2410,14 @@ s1 == s5 is 0
 
 [Mediator Design Pattern](https://sourcemaking.com/design_patterns/mediator)
 
-[Mediator in C++: Before and after](https://sourcemaking.com/design_patterns/mediator/cpp/2)
+Example:
+![](../images/design_patterns_201904241112_1.png)
 
 Structure:
 
 ![](../images/design_patterns_201801032311_8.png)
+
+![](../images/design_patterns_201904241146_1.png)
 
 FileSelectionDialog :: widgetChanged（）封装了对话框的所有集体行为（它充当通信的中心）。用户可以选择与模拟：过滤器编辑字段，目录列表，文件列表或选择编辑字段“交互”。
 
@@ -2567,6 +2746,9 @@ class NullObject(AbstractObject):
 [Observer Design Pattern](https://sourcemaking.com/design_patterns/observer)
 
 [Observer in C++: Before and after](https://sourcemaking.com/design_patterns/observer/cpp/1)
+
+Example:
+![](../images/design_patterns_201904241728_1.png)
 
 ![](../images/design_patterns_201712292315_1.png)
 
@@ -2939,6 +3121,9 @@ Exit(0) Left(1) Right(2) Center(3): 0
 
 [Template Method Design Pattern](https://sourcemaking.com/design_patterns/template_method)
 
+Example:
+![](../images/design_patterns_201904241728_2.png)
+
 结构：
 
 ![](../images/design_patterns_201712312307_1.png)
@@ -3109,6 +3294,11 @@ do Down on TheOther
 [代码示例链接](https://sourcemaking.com/design_patterns/visitor/cpp/2)
 
 [Visitor in C++: Recovering lost type information](https://sourcemaking.com/design_patterns/visitor/cpp/3)
+
+## 经验法则
+* 责任链，命令，中介和观察者，解决了如何解耦发送者和接收者，但有不同的权衡。责任链通过潜在接收者链传递发送者请求。命令通常指定与子类的发送方 - 接收方连接。中介者让发件人和收件人间接互相引用。Observer 定义了一个非常分离的接口，允许在运行时配置多个接收器。
+* 中介者和观察者是竞争模式。它们之间的区别在于 Observer 通过引入 “observer” 和 “subject” 对象来分发通信，而 Mediator 对象封装了其他对象之间的通信。我们发现制作可重复使用的观察者和 subject 比制作可重复使用的中介者更容易。
+* 另一方面，Mediator 可以利用 Observer 动态注册方法并与其它对象进行通信。
 
 [上一级](base.md)
 [上一篇](createOwnIterator.md)
