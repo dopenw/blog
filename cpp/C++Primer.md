@@ -187,6 +187,7 @@
 		* [对象移动](#对象移动)
 			* [右值引用](#右值引用)
 			* [移动构造函数和移动赋值运算符](#移动构造函数和移动赋值运算符)
+			* [右值引用和成员函数](#右值引用和成员函数)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -5568,6 +5569,215 @@ void StrVec::reallocate()
 `通过在类代码中小心地使用 move ，可以大幅提升性能。而如果随意在普通用户代码（与类实现代码相对）中使用移动操作，很可能导致莫名其妙的、难以查找的错误，而难以提升应用程序性能。`
 
 Best practices:`在移动操作这些类实现代码之外的地方，只有当你确信需要进行移动操作且移动操作时安全的，才可以使用 std::move 。`
+
+#### 右值引用和成员函数
+除了构造函数和赋值运算符之外，如果一个成员函数同时提供拷贝和移动版本，它也能从中受益。
+
+例如，定义了 push_back 的标准库容器提供两个版本：一个版本有一个右值引用参数，而另一个版本有一个 const 左值引用。假定 x 是元素类型，那么这些容器就会定义以下两个 push_back 版本：
+```c++
+void push_back(const X&); // 拷贝：绑定到任意类型的 X
+void push_back(X&&); //移动：只能绑定到类型 X 的可修改的右值
+```
+
+Note:`区分移动和拷贝的重载函数通常有一个版本接受一个 const T&，而另一个版本接受一个 T&&。`
+
+作为一个更具体的例子，我们将 StrVec 类定义另一个版本的 push_back:
+```c++
+class StrVec{
+public:
+	void push_back(const std::string&);
+	void push_back(std::string&& );
+	// 其他成员的定义，如前
+};
+
+void StrVec::push_back(const std::string& s)
+{
+	chk_n_alloc();
+	alloc.construct(first_free++,s);
+}
+
+void StrVec::push_back(std::string&& s)
+{
+	chk_n_alloc();
+	alloc.construct(first_free++,std::move(s));
+}
+```
+当我们调用 push_back 时，实参类型决定了新元素是拷贝还是移动到容器中：
+```c++
+StrVec vec;
+std::string s = "some string or another";
+vec.push_back(s); //调用 push_back(const std::string &)
+vec.push_back("done"); //调用 push_back(std::string &&)
+```
+
+右值和左值引用成员函数
+
+通常，我们在一个对象上调用成员函数，而不管该对象是一个左值还是一个右值。例如：
+```c++
+string s1 = "a value",s2 = "another";
+auto n =(s1+s2).find('a');
+```
+
+此例中，我们在一个 string 右值上调用 find 成员,该 string 右值是通过连接两个 string 而得到的。有时，右值的使用方式可能令人惊讶：
+```c++
+s1 + s2 = "wow!";
+```
+此处我们对两个 string 的连接结果 - 一个右值，进行了赋值。
+
+在旧标准中，我们没有办法阻止这种使用方式。为了维持向后兼容性，新标准库仍然允许向右值赋值。但是，我们可能希望在自己的类中阻止这种用法。在此情况下，我们希望强制左侧运算对象（即，this 指向的对象）是一个左值。
+
+我们指出 this 的左值/右值属性的方式与定义 const 成员函数相同，即，在参数列表后放置一个引用限定符(reference qualifier)：
+
+```c++
+class Foo{
+public:
+	Foo & operator = (const Foo&) &; // 只能向可修改的左值赋值
+	// Foo 的其他参数
+};
+
+Foo & Foo::operator = (const Foo &rhs) &
+{
+	// 执行将 rhs 赋予本对象所需的工作
+	return * this;
+}
+```
+
+```c++
+#include <iostream>
+
+class Foo {
+private:
+
+public:
+  Foo& operator = (const Foo& rhs) &
+  {
+    std::cout << "Foo& operator = (const Foo& rhs) &" << '\n';
+    return * this;
+  }
+};
+
+class Foo1 {
+private:
+
+public:
+  Foo1& operator = (const Foo1& rhs) &&
+  {
+    std::cout << "Foo1& operator = (const Foo& rhs) &" << '\n';
+    return * this;
+  }
+};
+
+
+int main(int argc, char const *argv[]) {
+  Foo a,b;
+  b=a;
+  Foo1 c,d;
+  c=d;
+  return 0;
+}
+```
+
+Compile:
+```highLight
+referenceQualifier.cpp: In function ‘int main(int, const char**)’:
+referenceQualifier.cpp:30:5: error: passing ‘Foo1’ as ‘this’ argument discards qualifiers [-fpermissive]
+   c=d;
+     ^
+referenceQualifier.cpp:18:9: note:   in call to ‘Foo1& Foo1::operator=(const Foo1&) &&’
+   Foo1& operator = (const Foo1& rhs) &&
+
+         ^~~~~~~~
+```
+
+引用限定符可以是 & 或 &&，分别指出 this 可以指向一个左值或右值。类似 const 限定符，引用限定符只能用于(非 static) 成员函数，且必须同时出现在函数的声明和定义中。
+
+对于 & 限定的函数，我们只能将它用于左值；对于 && 限定的函数只能用于右值：
+```c++
+Foo &retFoo(); //返回一个引用；retFoo 调用是一个左值
+Foo retVal(); //返回一个值；retVal 调用是一个右值
+Foo i,j; //i 和 j 是左值
+i = j; //正确： i 是左值
+retFoo() = j; // 正确： retFoo() 返回一个左值
+retVal = j; // 错误： retVal() 返回一个右值
+i = retVal(); //正确：我们可以将一个右值作为赋值操作的右侧运算对象
+```
+
+一个函数可以同时用 const 和引用限定。再次情况下，应用限定符必须跟随在 const 限定符之后：
+```c++
+class Foo{
+public:
+	Foo someMem() & const ; // 错误： const 限定符必须在前
+	Foo anotherMem() const & ; // 正确
+};
+```
+
+重载和引用函数：
+就像一个成员函数可以根据是否有 const 来区分其重载版本一样，引用限定符也可以区分重载版本。而且，我们可以综合引用限定符和 const 来区分一个成员函数的重载版本。例如，我们将为 Foo 定义一个名为 data 的 vector 成员和一个名为 sorted 的成员函数， sorted 返回一个 Foo 对象的副本，其中 vector 已被排序：
+```c++
+class Foo{
+public:
+	Foo sorted() &&; // 可用于可改变的右值
+	Foo sorted() const & ; // 可用于任何类型的 Foo
+	// Foo 的其他成员的定义
+private:
+	vector<int> data;
+};
+
+// 本对象为右值，因此可以原址排序
+Foo Foo::sorted() &&
+{
+	sort(data.begin(),data.end());
+	return * this;
+}
+
+// 本对象是 const 或是一个左值，哪种情况我们都不能对其进行原址排序
+Foo Foo::sorted() const &{
+	Foo ret(* this); // 拷贝一个副本
+	sort(ret.data.begin(),ret.data.end()); //排序副本
+	return ret;
+}
+```
+当我们对一个右值执行 sorted 时，它可以安全地直接对 data 成员进行排序。对象是一个右值，意味着没有其他用户，因此我们可以改变对象。当对一个 const 右值或一个左值执行 sorted 时，我们不能改变对象，因此就需要在排序前拷贝 data 。
+
+编译器会根据调用 sorted 的对象的左值/右值属性来确定使用哪个 sorted 版本：
+```c++
+retVal().sorted();// retVal() 是一个右值，调用 Foo::sorted() &&
+retFoo().sorted(); // retFoo() 是一个左值，调用 Foo::sorted() const &
+```
+
+当我们定义 const 成员函数时，可以定义两个版本，唯一的差别是一个版本有 const 限定而另一个没有。引用限定的函数则不一样。如果我们定义两个或两个以上具有相同具有相同名字和相同参数列表的成员函数，就必须对所有函数都加上引用限定符，或者所有都不加：
+```c++
+class Foo{
+public:
+	Foo sorted() &&;
+	Foo sorted() const ; //错误： 必须加上引用限定符
+	// comp 是函数类型的类型别名
+	// 此函数类型可以用来比较 int 值
+	using Comp = bool(const int& ,const int&);
+	Foo sorted(Comp * ); //正确：不同的参数列表
+	Foo sorted(Comp * ); //正确：两个版本都没有引用限定符
+};
+```
+
+本例中声明了一个没有参数的 const 版本的 sorted,此声明是错误的。因为 Foo 类中还有一个无参的 sorted 版本，它有一个引用限定符，因此 const 版本也必须有引用限定符。另一方面，接受一个比较操作指针的 sorted 是没有问题的，因为两个函数都没有限定符。
+
+Note:`如果一个成员函数有引用限定符，则具有相同参数列表的所有版本都必须有引用限定符。`
+
+练习 13.56:如果 sorted 定义如下，会发生什么：
+```c++
+Foo sorted() const &
+{
+	Foo ret(* this);
+	return ret.sorted();
+}
+```
+会递归调用 `Foo sorted() const &` 直到程序异常；
+
+练习 13.57: 如果定义如下，会发生什么：
+```c++
+Foo Foo::sorted() const & {return Foo(*this).sorted();}
+```
+正确，会调用 move 版本的 sorted;
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
