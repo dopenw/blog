@@ -192,6 +192,9 @@
 		* [OOP : 概述](#oop-概述)
 		* [定义基类和派生类](#定义基类和派生类)
 			* [定义派生类](#定义派生类)
+			* [类型转换与继承](#类型转换与继承)
+		* [虚函数](#虚函数)
+		* [抽象基类](#抽象基类)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -6042,6 +6045,397 @@ class Last final : Base {...};
 class Bad : NoDerived {...}; // 错误
 class Bad2 : Last {...}; // 错误
 ```
+
+#### 类型转换与继承
+Warning:`理解基类和派生类之间的类型转换是理解 C++ 语言面向对象编程的关键所在。`
+
+可以将基类的指针或引用绑定到派生类对象上有一层极为重要的含义：当使用基类的引用（或指针）时，实际上我们并不清楚该引用（或指针）所绑定对象的真实类型。该对象可能是基类的对象，也可能是派生类的对象。
+
+Note:`和内置指针一样，智能指针类也支持派生类向基类的类型转换，这意味着我们可以将一个派生类对象的指针存储在一个基类的智能指针类。`
+
+静态类型与动态类型：
+当我们使用存在继承关系的类型时，必须将一个变量或其他表达式的静态类型(static type) 与该表达式表示对象的动态类型(dynamic type) 区分开来。
+* 表达式的静态类型在编译时总是已知的，它是变量声明时的类型或表达式生成的类型。
+* 动态类型则是变量或表达式表示的内存中的对象的类型。动态类型直到运行时才可知。
+
+如果表达式既不是引用也不是指针，则它的动态类型永远与静态类型一致。例如， Quote 类型的变量永远是一个 Quote 对象，我们无论如何都不能改变该变量对应的对象的类型。
+
+```c++
+#include <iostream>
+
+class Base{
+public:
+  virtual void fun()
+  {
+    std::cout << "fun()" << '\n';
+  }
+  void fun1()
+  {
+    std::cout << "Base::fun1()" << '\n';
+  }
+};
+
+class Derived :public Base
+{
+public:
+  void fun1()
+  {
+    std::cout << "Derived::fun1()" << '\n';
+  }
+};
+
+void print(Base val)
+{
+  val.fun1();
+}
+
+int main(int argc, char const * argv[]) {
+  Derived d;
+  d.fun1();
+  Base b;
+  print(b);
+  print(d);
+  return 0;
+}
+```
+Run:
+```highLight
+Derived::fun1()
+Base::fun1()
+Base::fun1()
+```
+
+Note:`基类的指针或引用的静态类型可能与动态类型不一致。`
+
+不存在从基类向派生类的隐式类型转换 ......
+
+因为一个基类的对象可能是派生类对象的一部分，也可能不是，所以不存在从基类向派生类的自动类型转换：
+```c++
+Quote base;
+Bulk_quote * bulkP = & base; // 错误：不能将基类转换成派生类
+Bulk_quote& bulkRef = base; // 错误：不能将基类转换成派生类
+```
+如果上述赋值是合法的，则我们有可能会使用 bulkP 或 bulkRef 访问 base 中不存在的成员。
+
+除此之外还有一种情况显得有点特别，即使一个基类指针或引用绑定在一个派生类对象上，我们也不能执行从基类向派生类的转换：
+```c++
+Bulk_quote bulk;
+Quote * itemP = & bulk; // 正确： 动态类型是 Bulk_quote
+Bulk_quote * bulkP = itemP; // 错误：不能将基类转换成派生类
+```
+编译器在编译时无法确定某个特定的转换在运行时是否安全，这是因为编译器只能通过检查指针或引用的静态类型来推断该转换是否合法。如果在基类中含有一个或多个虚函数，我们可以使用 dynamic_cast 请求一个类型转换，该转换的安全检查将在运行时执行。同样，如果我们已知某个基类向派生类的转换是安全的，则我们可以使用 static_cast 来强制覆盖掉编译器的检查工作。
+
+```c++
+#include <iostream>
+
+class Base{
+public:
+  virtual void fun()
+  {
+    std::cout << "Base::fun()" << '\n';
+  }
+  void fun1()
+  {
+    std::cout << "Base::fun1()" << '\n';
+  }
+};
+
+class Derived :public Base
+{
+public:
+  virtual void fun()
+  {
+    std::cout << "Derived::fun()" << '\n';
+  }
+  void fun1()
+  {
+    std::cout << "Derived::fun1()" << '\n';
+  }
+};
+
+int main(int argc, char const * argv[]) {
+  Base b;
+  static_cast<Derived * >(&b)->fun1();
+  static_cast<Derived * >(&b)->fun(); // 注意，oops ,这里调用的将会是 Base::fun()
+  return 0;
+}
+```
+
+Run :
+```highLight
+Derived::fun1()
+Base::fun()
+```
+
+...... 在对象之间不存在类型转换：
+派生类向基类的自动类型转换只是对指针或引用类型有效，在派生类类型和基类类型之间不存在这样的转换。很多时候，我们确实希望将派生类对象转换为它的基类类型，但是这种转换的实际发生过程往往与我们期望的有所差别。
+
+请注意，当我们初始化或赋值一个类类型的对象时，实际上是调用某个函数。
+
+因为这些成员接受引用作为参数，所以派生类向基类的转换允许我们给基类的拷贝/移动操作传递一个派生类的对象。这些操作不是虚函数。当我们给基类的构造函数传递一个派生类对象时，实际运行的构造函数是基类中定义的那个，显然该构造函数只能处理基类自己的成员。类似的，如果我们将一个派生类对象赋值给一个基类对象，则实际运行的赋值运算符也是基类定义的那个，该运算符同样只能处理基类自己的成员。
+
+```c++
+Bulk_quote bulk;
+Quote item(bulk); // 使用 Quote::Quote(const Quote&) 构造函数
+item = bulk; // 调用 Quote::operator=(const Quote&)
+```
+因为在上述过程中会忽略 Bulk_quote 部分，所以我们可以说 bulk 的 Bulk_quote 部分被切掉了。
+
+Warning:`当我们用一个派生类对象为一个基类对象初始化或赋值时，只有该派生类对象中的基类部分会被拷贝、移动或赋值，它的派生类部分将被忽略掉。`
+
+关键概念：存在继承关系的类型之间的转换规则
+要想理解在具有继承关系的类之间发生的类型转换，有三点非常重要：
+* 从派生类向基类的类型转换只对指针或引用类型有效
+* 基类向派生类不存在隐式类型转换。
+* 和任何其他成员一样，派生类向基类的类型转换也可能会由于访问受限而变得不可行。后续将会详细介绍可访问性的问题。
+
+尽管自动类型转换只对指针或引用类型有效，但是继承体系中的大多数类仍然定义了拷贝控制成员。因此，我们通常能够将一个派生类对象拷贝、移动或赋值给一个基类对象。不过需要注意的是，这种操作只处理派生类对象的基类部分。
+
+### 虚函数
+如前所述，在 c++ 语言中，当我们使用基类的引用或指针调用一个虚成员函数时会执行动态绑定。因为我们直到运行时才能知道到底调用了哪个版本的虚函数，所以所有虚函数都必须有定义。通常情况下，如果我们不使用某个函数，则无须为该函数提供定义。但是我们必须为每一个虚函数都提供定义，而不管它是否被用到了，这是因为连编译器也无法确定到底会使用哪个虚函数。
+
+对虚函数的调用可能在运行时才被解析：
+当某个虚函数通过指针或引用调用时，编译器产生的代码直到运行时才能确定应该调用哪个版本的函数。被调用的函数是与绑定到指针或引用上的对象的动态类型相匹配的那一个。
+
+必须要搞清楚的一点是，动态绑定只有当我们通过指针或引用调用虚函数时才发生。
+```c++
+Quote base("0-201-82470-1",50);
+Bulk_quote derived("0-201-82470-1",50,5,.19);
+base = derived;
+base.net_price(20); // 调用 Quote::net_price
+```
+
+当我们通过一个具有普通类型（非引用非指针）的表达式调用虚函数时，在编译时就会将调用的版本确定下来。
+
+关键概念：c++ 的多态性
+OOP 的核心思想时多态性(polymorphism)。多态性这个词源自希腊语，其含义是 “多种形式”。我们把具有继承关系的多个类型称为多态类型，因为我们能使用这些类型的“多种形式”而无须在意它们的差异。引用或指针的静态类型与动态类型不同这一事实正是 c++ 语言支持多态性的根本所在。
+
+对非虚函数的调用在编译时进行绑定。类似的，通过对象进行的函数（虚函数或非虚函数）调用也在编译时绑定。对象的类型是确定不变的，我们无论如何都不可能令对象的动态类型与静态类型不一致。因此，通过对象进行的函数调用将在编译时绑定到该对象所属类中的函数版本上。
+
+Note:`当且仅当对通过指针或引用调用虚函数时，才会在运行时解析该调用，也只有在这种情况下对象的动态类型才有可能与静态类型不同。`
+
+```c++
+#include <iostream>
+
+class Base{
+public:
+  virtual void fun()
+  {
+    std::cout << "Base::fun()" << '\n';
+  }
+  void fun1()
+  {
+    std::cout << "Base::fun1()" << '\n';
+  }
+};
+
+class Derived :public Base
+{
+public:
+  virtual void fun()
+  {
+    std::cout << "Derived::fun()" << '\n';
+  }
+  void fun1()
+  {
+    std::cout << "Derived::fun1()" << '\n';
+  }
+};
+
+int main(int argc, char const * argv[]) {
+  Base * b = new Derived;
+  b->fun1();
+  return 0;
+}
+```
+
+Run :
+```c++
+Base::fun1()
+```
+
+派生类中的虚函数：
+当我们在派生类中覆盖了某个虚函数时，可以再一次使用 virtual 关键字指出该函数的性质。然而这么做并非必须，因为一旦某个函数被声明成虚函数，则在所有派生类中它都是虚函数。
+
+一个派生类的函数如果覆盖了某个继承而来的虚函数，则它的形参类型必须与它覆盖的基类函数完全一致。
+
+同样，派生类中虚函数的返回类型也必须与基类函数匹配。该规则存在一个例外，当类的虚函数返回类型是类本身的指针或引用时，上述规则无效。也就是说，如果 D 由 B 派生得到，则基类的虚函数可以返回 B * 而派生类的对应函数可以返回 D * ，只不过这样的返回类型要求从 D 到 B 的类型转换是可访问的。
+
+Note:`基类中的虚函数在派生类中隐含地也是一个虚函数。当派生类覆盖了某个虚函数时，该函数在基类中的形参必须与派生类中的形参严格匹配。`
+
+final 和 override 说明符：
+派生类如果定义了一个函数与基类中虚函数的名字相同但形参列表不同，这仍然是合法的行为。编译器将认为新定义的这个函数与基类中原有的函数是相互独立的。这是，派生类函数并没有覆盖掉基类中的版本。就实际的编程习惯而言，这种声明往往意味着发生了错误，因为我们可能原本希望派生类能覆盖掉基类中的虚函数，但是一不小心把形参列表弄错了。
+
+要想调试并发现这样的错误显然非常困难。在 c++11 新标准中我们可以使用 override 关键字来说明派生类中的虚函数。这么做的好处是在使得程序员的意图更为清晰的同时让编译器可以为我们发现一些错误，后者在编程实践中显得更加重要。如果我们使用 override 标记了某个函数，但该函数并没有覆盖已存在的虚函数，此时编译器将报错。
+
+```c++
+struct B{
+	virtual void f1(int) const;
+	virtual void f2();
+	void f3();
+};
+
+struct D1: B {
+	void f1(int) const override ; //正确
+	void f2(int) override; //错误 ： B 没有形如 f2(int) 的函数
+	void f3() override; // 错误： f3 不是虚函数
+	void f4() override: // 错误： B 没有名为 f4 的函数
+};
+```
+
+我们还能把某个函数指定为 final ,如果我们已经把函数定义成 final 了，则之后任何尝试覆盖该函数的操作都将引发错误：
+```c++
+struct D2: B {
+	void f1(int) const final; // 不允许后续的其他类覆盖 f1(int)
+};
+
+struct D3: D2{
+	void f2(); // 正确：覆盖从间接基类 B 继承而来的 f2
+	void f1(int) const ; // 错误： D2 已经将 f2 声明成 final
+};
+```
+
+虚函数与默认实参
+和其他函数一样，虚函数也可以拥有默认实参。如果某次函数调用使用了默认实参，则该实参值由本次调用的静态类型决定。
+
+还句话说，如果我们通过基类的引用或指针调用函数，则使用基类中定义的默认实参，即使实际运行的是派生类中的函数版本也是如此。此时传入派生类函数的将是基类函数定义的默认实参。如果派生类函数依赖不同的实参，则程序结果将与我们的预期不符。
+
+```c++
+#include <iostream>
+
+struct B{
+	virtual void f1(int def=0) const
+  {
+    std::cout << "B:: f1 def = "<< def << '\n';
+  }
+};
+
+struct D: B {
+	void f1(int def =1) const override
+  {
+        std::cout << "D:: f1 def = "<< def << '\n';
+  }
+};
+
+
+int main(int argc, char const *argv[]) {
+  D d;
+  B b;
+  b.f1();
+  d.f1();
+  B * p = &d;
+  p->f1();
+  return 0;
+}
+```
+
+Run:
+```highLight
+B:: f1 def = 0
+D:: f1 def = 1
+D:: f1 def = 0
+```
+
+best practices:`如果虚函数使用默认实参，则基类和派生类中定义的默认实参最好一致。`
+
+回避虚函数的机制：
+在某些情况下，我们希望对虚函数的调用不要使用动态绑定，而是强迫其执行虚函数的某个特定版本。使用作用域运算符可以实现这一目的，例如下面的代码：
+```c++
+// 强行调用基类中定义的函数版本而不管 baseP 的动态类型是什么
+double undiscounted = baseP->Quote::net_price(42);
+```
+该代码强行调用 Quote 的 net_price 函数，而不管 baseP 实际指向的对象类型到底是什么。该调用在编译时完成解析。
+
+Note:`通常情况下，只有成员函数（或友元）中代码才需要使用作用域运算符来回避虚函数的机制。`
+
+什么时候我们需要回避虚函数的默认机制呢？通常是当一个派生类的虚函数调用它覆盖的基类的虚函数版本时。在此情况下，基类的版本通常完成继承层次中所有类型都要做的共同任务，而派生类中定义的版本需要执行一些与派生类本身密切相关的操作。
+
+Warning:`如果一个派生类虚函数需要调用它的基类版本，但是没有使用作用域运算符，则在运行时该调用将被解析为对派生类版本自身的调用，从而导致无限递归。`
+
+### 抽象基类
+假设我们希望扩展书店程序并令其支持几种不同的折扣策略。
+
+在定义 Disc_quote 类之前，首先要明确它的 net_price 函数完成什么工作。显然我们的 Disc_quote 类与任何特定的折扣策略都无关，因此 Disc_quote 类中的 net_price 函数是没有实际含义的。
+
+纯虚函数：
+我们可以将 net_price 定义成纯虚函数(pure virtual) 函数从而令程序实现我们的设计意图，这样做可以清晰明了地告诉用户当前这个 net_price 函数是没有实际意义的。和普通的虚函数不一样，一个纯虚函数无须定义。
+
+```c++
+// 用于保存折扣值和购买量的类，派生类使用这些数据可以实现不同的价格策略
+class Disc_quote : public Quote{
+public:
+	Disc_quote(const std::string& book,double price,
+	std::size_t qty,double disc):
+	Quote(book,price),
+	quantity(qty),discount(disc)
+	{}
+	double net_price(std::size_t) const =0; // 纯虚函数
+protected:
+	std::size_t quantity = 0; // 折扣适用的购买量
+	double discount = 0.0; // 表示折扣的小数值
+};
+```
+
+值的注意的是，我们也可以为纯虚函数提供定义，不过函数体必须定义在类的外部。也就是说，我们不能在类的内部为一个 =0 的函数提供函数体。
+
+```c++
+#include <iostream>
+
+class PureVirtual{
+public:
+  virtual void f() =0;
+};
+
+void PureVirtual::f()
+{
+  std::cout << "PureVirtual::f()" << '\n';
+}
+
+int main(int argc, char const * argv[]) {
+  PureVirtual tmp;
+  return 0;
+}
+```
+Compile:
+```highLight
+test.cpp: In function ‘int main(int, const char**)’:
+test.cpp:14:15: error: cannot declare variable ‘tmp’ to be of abstract type ‘PureVirtual’
+   14 |   PureVirtual tmp;
+      |               ^~~
+test.cpp:3:7: note:   because the following virtual functions are pure within ‘PureVirtual’:
+
+    3 | class PureVirtual{
+      |       ^~~~~~~~~~~
+test.cpp:8:6: note:     ‘virtual void PureVirtual::f()’
+    8 | void PureVirtual::f()
+      |      ^~~~~~~~~~~
+```
+
+含有纯虚函数的类是抽象基类：
+含有（或者未经覆盖直接继承）纯虚函数的类是抽象基类(abstract base class)。抽象基类负责定义接口，而后续的其他类可以覆盖该接口。我们不能（直接）创建一个抽象基类的对象。因为 Disc_quote 将 net_price 定义成了纯虚函数，所以我们不能定义 Disc_quote 的对象。我们可以定义 Disc_quote 的派生类对象，前提是这些类覆盖了 net_price 函数。
+
+```c++
+Disc_quote discounted; // 错误
+Bulk_quote bulk ; // 正确
+```
+
+派生类构造函数只初始化它的直接基类：
+```c++
+class Bulk_quote: public Disc_quote{
+public:
+	Bulk_quote() = default;
+	Bulk_quote(const std::string& book,double price,
+	std::size_t qty,double disc):
+	Disc_quote(book,price,qty,disc)
+	{}
+	double net_price(std::size_t) const override;
+};
+```
+
+关键概念：重构
+在 Quote 的继承体系中增加 Disc_quote 类是重构 (refactoring) 的一个典型示例。重构负责重新设计类的体系以便将操作和/或数据从一个类移动到另一个类中。对于面向对象的应用程序来说，重构是一种很普遍的现象。
+
+值得注意的是，即使我们改变了整个继承体系，哪些使用了 Bulk_quote 或 Quote 的代码也无须进行任何改动。不过一旦类被重构（或以其他方式被改变），就意味着我们必须重新编译含有这些类的代码了。
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
