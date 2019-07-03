@@ -19,6 +19,6 @@ COMPUTE-> Compute Engine -> VM instances
 * [用Google Cloud Platform搭建服务教程](http://godjose.com/2017/06/14/new-article/)
 
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](find_a_job.md)
 [下一篇](google_search_tips.md)

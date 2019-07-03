@@ -102,6 +102,6 @@ systemctl enable v2ray # 设置为开机启动
 * [白话文教程/VMess](https://toutyrater.github.io/basic/vmess.html)
 
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](ss_privoxy.md)
 [下一篇](xiaomiMini.md)

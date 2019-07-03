@@ -31,5 +31,5 @@
 ![DocZhToEn_201804231356_6](../images/DocZhToEn_201804231356_6.png)
 
 Google Doc 支持多种输出格式，转换效果也比 office 的好
-[上一级](base.md)
+[上一级](README.md)
 [下一篇](VisualStudioInstallVisualAssist.md)

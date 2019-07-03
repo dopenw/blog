@@ -71,5 +71,5 @@ bus    dev    firmware  hypervisor  module
 ```
 
 注：参考 《深入理解计算机系统 第二版》 8.2.4 章节
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](tree.md)

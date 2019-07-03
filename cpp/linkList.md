@@ -398,6 +398,6 @@ int main(int argc, char const *argv[]) {
 
 [链表 wikipedia](https://zh.wikipedia.org/wiki/%E9%93%BE%E8%A1%A8)
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](inner_class.md)
 [下一篇](log4cplus.md)

@@ -270,6 +270,6 @@ key: d,huffman: 111
 注：
 * 参考 《算法导论 3rd》 第 16 章
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](CAndC++MemoryDistribution.md)
 [下一篇](ThePowerOfVariableName.md)

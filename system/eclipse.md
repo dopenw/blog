@@ -34,6 +34,6 @@ cmake -G "Eclipse CDT4 - Unix Makefiles" $projectDir -DCMAKE_BUILD_TYPE:STRING=D
 * [Build with CMake in Eclipse](http://johnnado.com/use-cmake-with-eclipse/)
 
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](dynamicProgramming.md)
 [下一篇](enterpriseArchitectClassView.md)

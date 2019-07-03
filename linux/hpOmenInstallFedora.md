@@ -62,6 +62,6 @@ kernel: ACPI Error: Method execution failed \_SB.PCI0.SPI2.FPNT._CRS, AE_AML_INV
 * [Configuring the Installation System at the Boot Menu](https://docs.fedoraproject.org/f28/install-guide/advanced/Boot_Options.html#sect-boot-options-installer)
 * [Installing Kali Linux on Hp Omen 15](https://unix.stackexchange.com/questions/440884/installing-kali-linux-on-hp-omen-15)
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](gnomeUSBError.md)
 [下一篇](install-netease-cloud-music.md)

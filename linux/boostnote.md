@@ -35,5 +35,5 @@ rpm -ivh boostnote.rpm
 [Please give instructions to make .rpm package for fedora](https://github.com/BoostIO/Boostnote/issues/304)
 [How to Convert From RPM to DEB and DEB to RPM Package Using Alien](https://www.tecmint.com/convert-from-rpm-to-deb-and-deb-to-rpm-package-using-alien/)
 
-[上一级](base.md)
+[上一级](README.md)
 [下一篇](buildOpengapps.md)

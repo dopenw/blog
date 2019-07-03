@@ -104,6 +104,6 @@ log4cplus.appender.FATAL_MSGS.filters.1.AcceptOnMatch=true
 log4cplus.appender.FATAL_MSGS.filters.2=log4cplus::spi::DenyAllFilter
 ```
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](linkList.md)
 [下一篇](multiThread.md)

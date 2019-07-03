@@ -61,5 +61,5 @@ public:
 [source link](https://leetcode.com/problems/3sum/discuss/)
 
 
-[上一级](base.md)
+[上一级](README.md)
 [下一篇](3sum_closest.md)

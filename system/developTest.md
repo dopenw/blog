@@ -75,6 +75,6 @@
 
 注： 读 《代码大全 2rd》 第 22 章 开发者测试，学习笔记
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](c++VSjava.md)
 [下一篇](dynamicProgramming.md)

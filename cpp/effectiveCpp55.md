@@ -971,6 +971,6 @@ PriorityCustomer& PriorityCustomer::operator=(const PriorityCustomer& rhs)
 * 你不该令 copy assignment 操作符调用 copy 构造函数；同样不该令 copy 构造函数调用 copy assignment 操作符。
 * 不要尝试以某个 copying 函数实现另一个 copying 函数。应该将共同机能放进第三个函数中，并由两个 copying 函数共同调用。
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](do_while_false.md)
 [下一篇](function_arg_stack.md)

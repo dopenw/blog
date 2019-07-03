@@ -240,6 +240,6 @@ BCBA
 注:
 * 参考 《算法导论 3rd》 第 15 章节
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](developTest.md)
 [下一篇](eclipse.md)

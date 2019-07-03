@@ -9,6 +9,6 @@
 后发现是nux源和rpmfusion-free-release源有冲突，卸载rpmfusion-free-release
 
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](install-netease-cloud-music.md)
 [下一篇](muduo.md)

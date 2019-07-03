@@ -46,7 +46,7 @@ bool list_dir(std::vector<string> &blog_file, std::string list_path) {
   for (int i = 0; i < n; i++) {
     if (strcmp(namelist[i]->d_name, ".") == 0 ||
         strcmp(namelist[i]->d_name, "..") == 0 ||
-        strcmp(namelist[i]->d_name, "base.md") == 0) {
+        strcmp(namelist[i]->d_name, "README.md") == 0) {
       free(namelist[i]);
       continue;
     }
@@ -138,7 +138,7 @@ void open_blog_clear_tail_links(
         continue;
       }
     }
-    if (tmp_line == "[上一级](base.md)")
+    if (tmp_line == "[上一级](README.md)")
       break;
 
     outfile << tmp_line << std::endl;
@@ -152,7 +152,7 @@ int blog_add_pre_next_links(
     const std::vector<pair<string, string>> vec_map_blog) {
   if (exists_file_y_n(blog_file)) {
     ofstream outfile(blog_file, std::ios::app);
-    outfile << "[上一级](base.md)" << endl;
+    outfile << "[上一级](README.md)" << endl;
 
     auto pos = find_if(vec_map_blog.begin(), vec_map_blog.end(),
                        [=](pair<string, string> file_title) {
@@ -225,7 +225,7 @@ int main(int argc, char const *argv[]) {
       }
 
       vec.clear();
-      write_base_markdown("base.md", vec_map_blog, global[path_count]);
+      write_base_markdown("README.md", vec_map_blog, global[path_count]);
       vec_map_blog.clear();
 
       if (chdir(blog_root_path.c_str()) < 0)

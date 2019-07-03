@@ -1184,5 +1184,5 @@ struct hostent *getipnodebyaddr(const void *addr, size_t len,int af, int *error_
 
 注：虽然网络信息可以做成通过 DNS 能够访问到，但是很少有人这么做。
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](8_basic_udp_socket.md)

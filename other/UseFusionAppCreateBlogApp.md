@@ -57,7 +57,7 @@ bubble bubble-disabled,container,clearfix,reponav-wrapper lh-default,Header js-d
 
 加载网页：
 ```sh
-加载网页("https://github.com/dopenw/blog/blob/master/system/base.md")
+加载网页("https://github.com/dopenw/blog/blob/master/system/README.md")
 ```
 
 退出程序：
@@ -80,5 +80,5 @@ bubble bubble-disabled,container,clearfix,reponav-wrapper lh-default,Header js-d
 ![](../images/UseFusionAppCreateBlogApp_201803301401_1.png)
 
 
-[上一级](base.md)
+[上一级](README.md)
 [下一篇](atom.md)

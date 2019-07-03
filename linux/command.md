@@ -4,6 +4,6 @@
 3. ps -ef | grep '..process..' | grep -v grep |awk '{print $2}'| xargs '..command..' 对符合条件的所有进程进行批量操作
 
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](chroot.md)
 [下一篇](createGitServer.md)

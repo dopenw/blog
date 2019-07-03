@@ -583,6 +583,6 @@ error: invalid storage class for function ‘sigio_func’
 答：
 最初的套接字API并没有listen函数。相反，socket函数的第四个参数含有套接字选项，而SO_ACCEPTCON常值就是用来指定监听套接字的。加了listen函数后，这个选项还是保留着，不过现在只是有内核来设置
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](6_select_poll_function.md)
 [下一篇](8_basic_udp_socket.md)

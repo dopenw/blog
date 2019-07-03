@@ -94,6 +94,6 @@ string countAndSay(int n) {
 [source link](https://leetcode.com/problems/count-and-say/discuss/)
 
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](climbing_stairs.md)
 [下一篇](divide_two_integers.md)

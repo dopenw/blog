@@ -10,6 +10,6 @@ if [ $(echo $?) -eq 0 ];then
 	./$out_name
 fi
 ```
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](fedoraInstallCinnamonDesktop.md)
 [下一篇](gnomeUSBError.md)

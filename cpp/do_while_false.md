@@ -76,6 +76,6 @@ else
 这样会导致else语句孤立而出现编译错误。加了do{...}while(0),这就使得宏展开后，仍然保留初始的语义，从而保证程序的正确性。
 
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](develop_care_detail.md)
 [下一篇](effectiveCpp55.md)

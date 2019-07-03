@@ -55,6 +55,6 @@ public:
 [source link](https://leetcode.com/problems/permutations-ii/discuss/)
 
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](Permutations.md)
 [下一篇](Rotate_List.md)

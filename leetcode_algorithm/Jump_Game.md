@@ -72,6 +72,6 @@ public:
 ```
 
 [Solution link:four method](https://leetcode.com/problems/jump-game/solution/)
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](Group_Anagrams.md)
 [下一篇](Merge_Intervals.md)

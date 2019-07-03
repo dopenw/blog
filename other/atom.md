@@ -186,6 +186,6 @@ apm install atom-beautify ask-stack atom-clock atom-html-preview goto-definition
 [Installing Atom](https://flight-manual.atom.io/getting-started/sections/installing-atom/)
 
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](UseFusionAppCreateBlogApp.md)
 [下一篇](config_hadoop_httpfs.md)

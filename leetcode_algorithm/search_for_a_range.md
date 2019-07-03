@@ -82,6 +82,6 @@ int lower_bound(vector<int>& nums, int target) {
 [source link](https://leetcode.com/problems/search-for-a-range/discuss/)
 
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](same_tree.md)
 [下一篇](sqrt.md)

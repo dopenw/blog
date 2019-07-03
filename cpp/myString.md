@@ -79,6 +79,6 @@ MyString &MyString::operator=(const MyString &data) {
 
 参见：剑指offer 第二版 第二章
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](mutable.md)
 [下一篇](regex.md)

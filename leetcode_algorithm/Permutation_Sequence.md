@@ -116,6 +116,6 @@ string getPermutation(int n, int k) {
 ```
 
 [souce link](https://leetcode.com/problems/permutation-sequence/discuss/)
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](Multiply_Strings.md)
 [下一篇](Permutations.md)

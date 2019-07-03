@@ -40,6 +40,6 @@ ibus-setup
 ```
 
 ![](../images/fedoraInstallCinnamonDesktop_201802042026_2.png)
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](fedoraCreateCustomDesktopShortcut.md)
 [下一篇](gen_cpp_bin.md)

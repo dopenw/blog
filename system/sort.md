@@ -317,6 +317,6 @@ BUCKET_SORT(A)
 | 是不是稳定的排序 | 时间复杂度           | 空间复杂度 |
 |------------------|----------------------|------------|
 | 是             | O(n) 	|    			 O(k)      |
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](mulThreadAndMulProcesses.md)
 [下一篇](sqlite.md)

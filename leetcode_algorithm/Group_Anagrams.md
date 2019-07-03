@@ -88,6 +88,6 @@ class Solution {
 [solution link](https://leetcode.com/problems/group-anagrams/solution/)
 
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](Combination_Sum_II.md)
 [下一篇](Jump_Game.md)

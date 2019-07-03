@@ -300,6 +300,6 @@ return app.exec();
 显示效果：
 ![](../images/2_creat_dialog_201711201632_1.png)
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](1_hello_qt.md)
 [下一篇](14_multiThread.md)

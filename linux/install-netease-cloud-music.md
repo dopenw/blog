@@ -21,6 +21,6 @@ rpm -ivh --nodeps --force netease-cloud-music.rpm
 * [重打包网易云音乐1.1? ](https://github.com/FZUG/repo/issues/288)
 
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](hpOmenInstallFedora.md)
 [下一篇](linux.md)

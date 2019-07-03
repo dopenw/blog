@@ -163,5 +163,5 @@ config dnsmasq
 	option nohosts '1'
 	option local '127.0.0.1#5353'
 ```
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](v2ray.md)

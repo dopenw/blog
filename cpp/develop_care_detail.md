@@ -19,6 +19,6 @@ for (size_t column = length -1; column >= 0; column--) {}
 ```
 注意这样的代码可能会造成死循环
 
-[上一级](base.md)
+[上一级](README.md)
 [上一篇](design_patterns.md)
 [下一篇](do_while_false.md)
