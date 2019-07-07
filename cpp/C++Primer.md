@@ -197,6 +197,7 @@
 			* [关系运算符](#关系运算符-1)
 		* [赋值运算符](#赋值运算符-1)
 		* [下标运算符](#下标运算符)
+		* [递增和递减运算符](#递增和递减运算符-1)
 	* [面向对象编程](#面向对象编程)
 		* [OOP : 概述](#oop-概述)
 		* [定义基类和派生类](#定义基类和派生类)
@@ -6066,6 +6067,86 @@ private:
 	std::string * elements;
 };
 ```
+
+### 递增和递减运算符
+在迭代器类中通常会实现递增运算符和递减运算符，这两种运算符使得类可以在元素的序列中前后移动。
+
+Best practices:`定义递增和递减运算符的类应该同时定义前置版本和后置版本。这些运算符通常应该被定义成类的成员。`
+
+**定义前置递增/递减运算符**
+```c++
+class StrBlobPtr{
+public:
+	StrBlobPtr& operator++(); // 前置运算符
+	StrBlobPtr& operator--();
+	// 其他成员与之前的版本一致
+};
+```
+
+Best practices:`为了与内置版本一致，前置运算符应该返回递增或递减后对象的引用。`
+
+```c++
+// 前置版本：返回递增或递减后对象的引用
+StrBlobPtr& StrBlobPtr::operator++()
+{
+	// 如果 curr 已经指向了容器的尾后位置，则无法递增它
+	check(curr,"increment past end of StrBlobPtr");
+	++ curr;
+	return * this;
+}
+
+StrBlobPtr& StrBlobPtr::operator--()
+{
+	// 如果 curr 是 0 ，则继续减它将产生一个无效下标
+	--curr;
+	check(curr,"decrement past begin of StrBlobPtr");
+	return * this;
+}
+```
+
+**区分前置和后置运算符**
+为了区分前置和后置运算符，后置版本接受一个额外的（不被使用）int 类型的形参。当我们使用后置运算符时，编译器为这个形参提供一个值为 0 的实参。尽管从语法来说后置函数可以使用这个额外的形参，但是在实际过程中通常不会这么做。这个形参的唯一作用就是区分前置版本和后置版本的函数，而不是真的要在实现后置版本时参与运算。
+
+```c++
+class StrBlobPtr{
+public:
+	StrBlobPtr operator++(int); // 后置运算符
+	StrBlobPtr operator--(int);
+	// 其他成员与之前的版本一致
+};
+```
+
+Best practices:`为了与内置版本一致，后置运算符应该返回对象的原值（递增或递减之前的值），返回的形式是一个值而非引用。`
+
+对于后置版本来说，在递增对象之前需要首先记录对象的状态：
+```c++
+StrBlobPtr StrBlobPtr::operator++(int)
+{
+	// 此处无须检查有效性，调用前置递增运算时才需要检查
+	StrBlobPtr ret = * this; // 记录当前的值
+	++* this; // 向前移动一个元素，前置 ++ 需要检查递增的有效性
+	return ret; // 返回之前记录的状态
+}
+
+StrBlobPtr StrBlobPtr::operator--(int)
+{
+	// 此处无须检查有效性，调用前置递减运算时才需要检查
+	StrBlobPtr ret = * this; // 记录当前的值
+	--* this; // 向后移动一个元素，前置 -- 需要检查递增的有效性
+	return ret; // 返回之前记录的状态
+}
+```
+Note:`因为我们不会用到 int 形参，所以无须为其命名。`
+
+**显式地调用后置运算符**
+如果我们想要通过函数调用的方式调用后置版本，则必须为它地整型参数传递一个值：
+```c++
+StrBlobPtr p(a1); // p指向 a1 中的 vector
+p.operator++(0); //调用后置版本的 operator ++
+p.operator++(); // 调用前置版本的 operator ++
+```
+尽管传入的值通常会被运算符函数忽略，但却必不可少，因为编译器只有通过它才能知道应该使用后置版本。
+
 
 ## 面向对象编程
 面向对象程序设计基于三个基本概念：数据抽象、继承和动态绑定。
