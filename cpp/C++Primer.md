@@ -200,6 +200,8 @@
 		* [递增和递减运算符](#递增和递减运算符-1)
 		* [成员访问运算符](#成员访问运算符)
 	* [面向对象编程](#面向对象编程)
+		* [函数调用运算符](#函数调用运算符)
+			* [lambda 是函数对象](#lambda-是函数对象)
 		* [OOP : 概述](#oop-概述)
 		* [定义基类和派生类](#定义基类和派生类)
 			* [定义派生类](#定义派生类)
@@ -6187,6 +6189,112 @@ Note:`重载的箭头运算符必须返回类的指针或者自定义了箭头�
 面向对象程序设计基于三个基本概念：数据抽象、继承和动态绑定。
 
 继承和动态绑定对程序的编写有两方面的影响：一是我们可以更容易地定义与其他类相似但不完全相同的新类；二是在使用这些彼此相似的类编写程序时，我们可以在一定程度上忽略掉它们的区别。
+
+### 函数调用运算符
+如果类重载了函数调用运算符，则我们可以像使用函数一样使用该类的对象。因为这样的类同时也能存储状态，所以与普通函数相比它们更加灵活。
+```c++
+struct absInt{
+	int operator() (int val) const
+	{
+		return val < 0 ? -val:val;
+	}
+};
+```
+我们使用的过程看起来非常像调用函数的过程：
+```c++
+int i = -42;
+absInt absObj; // 含有函数调用运算符的对象
+int ui = absObj(i); // 将 i 传递给 absObj.operator()
+```
+
+Note:`函数调用运算符必须是成员函数。一个类可以定义多个不同版本的调用运算符，相互之间应该在参数数量或类型上有区别。`
+
+如果类定义了调用运算符，则该类的对象称作**函数对象**(function object)。因为可以调用这种对象，所以我们说这些对象的“行为像函数一样”。
+
+**含有状态的函数对象类**
+和其他类一样，函数对象类除了 operator() 之外也可以包含其他成员。函数对象类通常含有一些数据成员，这些成员被用于定义调用运算符中的操作。
+
+eg:
+```c++
+class PrintString{
+public:
+	PrintString(ostream& o = cout,char c = ''):
+	os(o),sep(c)
+	{
+
+	}
+	void operator()(const string& s) const
+	{
+		os << s << sep;
+	}
+private:
+	ostream &os; // 用于写入的目的流
+	char sep; // 用于将不同输出隔开的字符
+};
+```
+
+```c++
+PrintString printer;
+printer(s);
+PrintString errors(cerr,'\n');
+errors(s);
+```
+
+函数对象常常作为泛型算法的实参。eg:
+```c++
+for_each(vs.begin(),vs.end(),PrintString(cerr,'\n'));
+```
+
+#### lambda 是函数对象
+当我们编写一个 lambda 后，编译器将该表达式翻译成一个未命名类的未命名对象。在 lambda 表达式产生的类中含有一个重载的函数调用运算符,eg:
+```c++
+//根据单词的长度对其进行排序，对于长度相同的单词按照字母表顺序排序
+stable_sort(words.begin(),words.end(),
+[](const string& a,const string& b)
+{return a.size() < b.size();});
+```
+其行为类似于下面这个类的一个未命名对象
+```c++
+class ShorterString{
+public:
+	bool operator()(const string& a,const string& b) const
+	{
+		return s1.size() < s2.size();
+	}
+};
+```
+默认情况下 lambda 不能改变它捕获的变量。因此在默认情况下，由 lambda 产生的类当中的函数调用运算符是一个 const 成员函数。如果 lambda 被声明为可变的，则调用运算符就不是 const 的了。
+
+```c++
+stable_sort(words.begin(),words.end(),ShorterString());
+```
+
+**表示 lambda 及相应捕获行为的类**
+如我们所知，当一个 lambda 表达式通过引用捕获变量时，将由成语负责确保 lambda 执行时引用所引的对象确实存在。因此，编译器可以直接使用该引用而无须在 lambda 产生的类中将其存储为数据成员。
+
+相反，通过值捕获的变量被拷贝到 lambda 中。因此，这种 lambda 产生的类必须为每个值捕获的变量建立对应的数据成员，同时创建构造函数，令其使用捕获的变量的值来初始化数据成员。
+
+eg:
+```c++
+auto wc = find_if(words.begin(),words.end(),
+[sz](const string& a)
+{return a.size() >= sz;});
+```
+该 lambda 表达式产生的类将形如：
+```c++
+class SizeComp{
+	SizeComp(size_t n):sz(n) {}
+	bool operator() (const string& a) const
+	{
+		return s.size() >= sz;
+	}
+private:
+	size_t sz;
+};
+```
+```c++
+auto wc = find_if(words.begin(),words.end(),SizeComp(sz));
+```
 
 ### OOP : 概述
 面向对象程序设计（object-oriented programming） 的核心思想是数据抽象、继承和动态绑定。通过使用数据抽象，我们可以将类的接口与实现分离；使用继承，可以定义相似的类型并对其相似关系建模；使用动态绑定，可以在一定程度上忽略相似类型的区别，而以统一的方式使用它们的对象。
