@@ -199,9 +199,11 @@
 		* [下标运算符](#下标运算符)
 		* [递增和递减运算符](#递增和递减运算符-1)
 		* [成员访问运算符](#成员访问运算符)
-	* [面向对象编程](#面向对象编程)
 		* [函数调用运算符](#函数调用运算符)
 			* [lambda 是函数对象](#lambda-是函数对象)
+			* [标准库定义的函数对象](#标准库定义的函数对象)
+			* [可调用对象与 function](#可调用对象与-function)
+	* [面向对象编程](#面向对象编程)
 		* [OOP : 概述](#oop-概述)
 		* [定义基类和派生类](#定义基类和派生类)
 			* [定义派生类](#定义派生类)
@@ -6185,11 +6187,6 @@ cout << (* p).size() << endl; // 等价于 p->size();
 
 Note:`重载的箭头运算符必须返回类的指针或者自定义了箭头运算符的某个类的对象。`
 
-## 面向对象编程
-面向对象程序设计基于三个基本概念：数据抽象、继承和动态绑定。
-
-继承和动态绑定对程序的编写有两方面的影响：一是我们可以更容易地定义与其他类相似但不完全相同的新类；二是在使用这些彼此相似的类编写程序时，我们可以在一定程度上忽略掉它们的区别。
-
 ### 函数调用运算符
 如果类重载了函数调用运算符，则我们可以像使用函数一样使用该类的对象。因为这样的类同时也能存储状态，所以与普通函数相比它们更加灵活。
 ```c++
@@ -6295,6 +6292,182 @@ private:
 ```c++
 auto wc = find_if(words.begin(),words.end(),SizeComp(sz));
 ```
+
+#### 标准库定义的函数对象
+标准库定义了一组表示算术运算符、关系运算符和逻辑运算符的类，每个类分别定义了一个执行命令操作的调用运算符。
+
+eg:
+```c++
+plus<int> intAdd;
+negate<int> intNegate; // 可对 int 值取反的函数对象
+int sum = intAdd(10,20);
+sum = intNegate(intAdd(10,20));
+sum = intAdd(10,intNegate(10)); // sum = 0
+```
+
+**标准库函数对象**
+* 算术
+	* [plus](https://en.cppreference.com/w/cpp/utility/functional/plus)
+	* [minus](https://en.cppreference.com/w/cpp/utility/functional/minus)
+	* [multiplies](https://en.cppreference.com/w/cpp/utility/functional/multiplies)
+	* [divides](https://en.cppreference.com/w/cpp/utility/functional/divides)
+	* [modulus](https://en.cppreference.com/w/cpp/utility/functional/modulus)
+	* [negate](https://en.cppreference.com/w/cpp/utility/functional/negate)
+* 关系
+	* [equal_to](https://en.cppreference.com/w/cpp/utility/functional/equal_to)
+	* [not_equal_to](https://en.cppreference.com/w/cpp/utility/functional/not_equal_to)
+	* [greater](https://en.cppreference.com/w/cpp/utility/functional/greater)
+	* [greater_equal](https://en.cppreference.com/w/cpp/utility/functional/greater_equal)
+	* [less](https://en.cppreference.com/w/cpp/utility/functional/less)
+	* [less_equal](https://en.cppreference.com/w/cpp/utility/functional/less_equal)
+* 逻辑
+	* [logical_and](https://en.cppreference.com/w/cpp/utility/functional/logical_and)
+	* [logical_or](https://en.cppreference.com/w/cpp/utility/functional/logical_or)
+	* [logical_not](https://en.cppreference.com/w/cpp/utility/functional/logical_not)
+
+```c++
+sort(svec.begin(),svec.end(),greater<string>());
+```
+
+需要特别注意的是，标准库规定其函数对象对于指针同样适用。我们之前曾经介绍过比较两个无关指针将产生未定义的行为，然而我们可能会希望通过比较指针的内存地址来 sort 指针的 vector 。直接这么做将产生未定义的行为，因此我们可以使用一个标准库函数对象来实现该目的；
+
+```c++
+std::vector<string *> nameTable;
+// 错误： nameTable 中的指针彼此之间没有关系，所以 < 将产生未定义的行为
+sort(nameTable.begin(),nameTable.end(),
+[](string * a,string * b){return a < b;});
+
+// 正确： 标准库规定指针的 less 是定义良好的
+sort(nameTable.begin(),nameTable.end(),less<string * >());
+```
+关联容器使用 less<key_type> 对元素排序，因此我们可以定义一个指针的 set 或者在 map 中使用指针作为关键值而无须直接声明 less 。
+
+#### 可调用对象与 function
+c++ 语言中有几种可调用对象：
+* 函数
+* 函数指针
+* lambda 表达式
+* bind 创建的对象
+* 重载了函数调用运算符的类
+
+和其他对象一样，可调用的对象也有类型。例如，每个 lambda 有它自己唯一的（未命名）类类型；函数及函数指针的类型则由返回值类型和实参类型决定，等等。
+
+然而，两个不同类型的可调用对象却可能共享同一种调用方式(call signature)。调用形式指明了调用返回的类型以及传递给调用的实参类型。一种调用形式对应一个函数类型，例如：
+```c++
+int(int,int);
+```
+
+**不同类型可能具有相同的调用形式**
+对于几个可调用对象调用共享同一种调用形式的情况，有时我们会希望把它们看成具有相同的类型。例如：
+```c++
+// 普通函数
+int add(int i,int j)
+{
+	return i+j;
+}
+
+//lambda ，其产生一个未命名的函数对象类
+auto mod = [](int i,int j) {return i % j;};
+
+// 函数对象类
+struct divide {
+	int operator()(int denominator,int divisor)
+	{
+		return denominator / divisor;
+	}
+};
+```
+它们共享同一种调用方式：
+```c++
+int(int,int);
+```
+
+我们可能希望使用这些可调用对象构建一个简单的桌面计算器。
+
+```c++
+// 构建从运算符到函数指针的映射关系，其中函数接受两个 int 、 返回一个 int
+map<string,int(* )(int,int)> binops;
+```
+我们可以按照下面的形式将 add 的指针添加到 binops 中：
+```c++
+binops.insert({"+",add});
+```
+但是我们不能将 mod 或 divide 存入 binops:
+```c++
+binops.insert({"%",mod}); // error
+```
+
+**标准库 function 类型
+我们可以使用一个名为 [function](https://en.cppreference.com/w/cpp/utility/functional/function) 的新标准库类型解决上述问题。
+function 的操作：
+* function<T> f; f 是一个用来存储可调用对象的空 function
+* function<T> f(nullptr); 显式地构造一个空 function
+* function<T> f(obj); 在 f 中存储可调用对象 obj 地副本
+* f 当f 作为条件：当 f 含有一个可调用对象时为真；否则为假
+* f(args) 调用 f 中地对象，参数是 args
+定义 function<T> 的成员的类型
+* result_type 该 function 类型的可调用对象返回的类型
+* argument_type 当 T 有一个或两个实参时定义的类型
+* first_argument_type
+* second_argument_type
+
+```c++
+function<int(int,int)> f1 = add; // 函数指针
+function<int(int,int)> f2 = divide(); // 函数对象类的对象
+function<int(int,int)> f3 = [](int i,int j)
+{
+	return i*j;
+};
+std::cout << f1(4,2) << '\n'; // 6
+std::cout << f2(4,2) << '\n'; // 2
+std::cout << f3(4,2) << '\n'; // 8
+```
+
+使用这个 function 类型我们可以重新定义 map:
+```c++
+map<string,function<int(int,int)>> binops = {
+	{"+",add},
+	{"-",std::minus<int>()},
+	{"/",divide()},
+	{"* ",[](int i,int j){return i*j;}},
+	{"%",mod}
+};
+```
+
+```c++
+binops["+"](10,5);
+binops["-"](10,5);
+binops["/"](10,5);
+binops["*"](10,5);
+binops["%"](10,5);
+```
+
+**重载的函数与function**
+我们不能(直接)将重载函数的名字存入 function 类型的对象中：
+```c++
+int add(int i,int j) {return i+j;}
+Sales_data add(const Sales_data&,const Sales_data&);
+map<string,function<int(int,int)>> binops;
+binops.insert({"+",add}); // 错误： 哪个 add?
+```
+
+解决上述二义性问题的一条途径是存储函数指针而非函数的名字：
+```c++
+int (* fp)(int,int) = add;
+binops.insert({"+",fp}); // 正确：fp 指向一个正确的 add 版本
+```
+还可以使用 lambda 来消除二义性：
+```c++
+// 正确：使用 lambda 来指定我们希望使用的 add 版本
+binops.insert({"+",[](int a,int b){return add(a,b);}});
+```
+
+Note:`新版本标准库中的 function 类与旧版本中的 unary_function 和 binary_function 没有关联，后两个类已经被更通用的 bind 函数替代了。`
+
+## 面向对象编程
+面向对象程序设计基于三个基本概念：数据抽象、继承和动态绑定。
+
+继承和动态绑定对程序的编写有两方面的影响：一是我们可以更容易地定义与其他类相似但不完全相同的新类；二是在使用这些彼此相似的类编写程序时，我们可以在一定程度上忽略掉它们的区别。
 
 ### OOP : 概述
 面向对象程序设计（object-oriented programming） 的核心思想是数据抽象、继承和动态绑定。通过使用数据抽象，我们可以将类的接口与实现分离；使用继承，可以定义相似的类型并对其相似关系建模；使用动态绑定，可以在一定程度上忽略相似类型的区别，而以统一的方式使用它们的对象。
