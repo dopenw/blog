@@ -221,6 +221,7 @@
 	* [模板和泛型编程](#模板和泛型编程)
 		* [定义模板](#定义模板)
 			* [函数模板](#函数模板)
+		* [类模板](#类模板)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -7899,6 +7900,270 @@ cout << compare(data1,data2) <<endl; // error，Sales_data 未定义 <
 
 Warning:`保证传递给模板的实参支持模板所要求的操作，以及这些操作在模板中能正确工作，是调用者的责任。`
 
+
+### 类模板
+类模板(class template) 是用来生成类的蓝图的。与函数模板的不同之处是，编译器不能为类模板推断模板参数类型。为了使用类模板，我们必须在模板名后的尖括号中提供额外信息-用来代替模板参数的模板实参列表。
+
+**定义类模板**
+作为一个例子，我们将实现 StrBlob 的模板版本 (Blob)。
+
+```c++
+template <typename T> class Blob{
+public:
+	typedef T value_type;
+	typedef typename std::vector<T>::size_type size_type;
+
+	Blob();
+	Blob(std::initializer_list<T> il);
+
+	size_type size() const {return data->size();}
+	bool empty() const {return data->empty();}
+	void push_back(const T& t) {data->push_back(t);}
+	void push_back(const T&& t) {data->push_back(std::move(t));}
+	void pop_back();
+
+	T& back();
+	T& operator[](size_type i);
+private:
+	std::shared_ptr<std::vector<T>> data;
+
+	// 若 data[i] 无效，则抛出 msg
+	void check(size_type i,const std::string& msg) const;
+};
+```
+
+**实例化类模板**
+当使用一个类模板时，我们必须提供额外信息。我们现在知道这些额外信息是显式模板实参(explicit template argument) 列表，它们被绑定到模板参数。编译器使用这些模板实参来实例化出特定的类。
+例如：
+```c++
+Blob<int> ia;
+Blob<int> ia2 = {0,1,2,3,4};
+```
+
+Note:`一个类模板的每个实例都形成一个独立的类。类型 Blob<string> 与任何其他 Blob 类型都没有关联，也不会对任何其他 Blob 类型的成员有特殊访问权限。`
+
+**类模板的成员函数**
+与其他任何类相同，我们既可以在类模板内部，也可以在类模板外部为其定义成员函数，且定义在类模板内的成员函数被隐式声明为内联函数。
+
+类模板的成员函数本身是一个普通函数。但是，类模板的每个实例都有其自己版本的成员函数。因此，类模板的成员函数具有和模板相同的模板参数。因而，定义在类模板之外的成员函数就必须以关键字 template 开始，后接类模板参数列表。
+
+对于 StrBlob 的一个给定的成员函数：
+```c++
+ret-type StrBlob::member-name(parm-list)
+```
+对应的 Blob 的成员应该是这样的：
+```c++
+template <typename T>
+ret-type Blob<T>::member-name(parm-list)
+```
+
+**Check 和元素访问成员**
+```c++
+template <typename T>
+void Blob<T>::check(size_type i,const std::string& msg) const
+{
+	if(i>= data->size())
+		throw std::out_of_range(msg);
+}
+
+template <typename T>
+T& Blob<T>::back()
+{
+	check(0,"back on empty Blob");
+	return data->back();
+}
+
+template <typename T>
+T& Blob<T>::operator[](size_type i)
+{
+	// 如果 i 太大， check 会抛出异常，阻止访问一个不存在的元素
+	check(i,"Subscript out of range");
+	return (* data)[i];
+}
+
+template <typename T>
+void Blob<T>::pop_back()
+{
+	check(0,"pop_back on empty Blob");
+	data->pop_back();
+}
+```
+
+**Blob 构造函数**
+```c++
+template<typename T>
+Blob<T>::Blob():data(std::make_shared<std::vector<T>>()) {}
+
+template<typename T>
+Blob<T>::Blob(std::initialization<T> il):
+data(std::make_shared<std::vector<int>>(il)) {}
+```
+
+**类模板成员函数的实例化**
+默认情况下，一个类模板成员函数只有当程序用到它时才进行实例化。例如：
+```c++
+// 实例化 Bolb<int> 和接受 initializer_list<int> 的构造函数
+
+Blob<int> squares = {0,1,2,3,4,5,6,7,8,9};
+// 实例化 Blob<int>::size)() const
+for(size_t i=0;i != squares.size();++i)
+squares[i] = i*i; // 实例化 Blob<int>::operator[](size_t)
+```
+
+如果一个成员函数没有被使用，则它不会被实例化。成员函数只有在被用到时才进行实例化，这一特性使得即使某种类型不能完全符合模板操作的要求，我们仍然能用该类型实例化类。
+
+Note:`默认情况下，对于一个实例化了的类模板，其成员只有在使用时才被实例化。`
+
+**在类代码内简化模板类名的使用**
+当我们使用一个类模板类型时必须提供模板实参，但这一规则有个例外。在类模板自己的作用域中，我们可以直接使用模板名而不提供实参。
+```c++
+// 若试图访问一个不存在的元素，BlobPtr 抛出一个异常
+template<typename T> class BlobPtr{
+public:
+	BlobPtr():curr(0) {}
+	BlobPtr(Blob<T>& a,size_t sz =0):
+	wptr(a.data),curr(sz) {}
+
+	T& operator* () const
+	{
+		auto p = check(curr,"dereference past end");
+		return (* p)[curr]; // (* p) 为本对象指向的 vector
+	}
+
+	BlobPtr& operator++(); // 前置
+	BlobPtr& operator--();
+	// 等价于
+	// BlobPtr<T>& operator++(); // 前置
+	// BlobPtr<T>& operator--();
+};
+```
+
+**在类模板外使用类模板名**
+当我们在类模板外定义其成员时，必须记住，我们并不在类的作用域中，直到遇到类名才表示进入类的作用域：
+```c++
+template<typename T>
+BlobPtr<T> BlobPtr<T>::operator++(int)
+{
+	// 此处无须检查；调用前置递增时会进行检查
+	BlobPtr ret = * this; // 等价于 BlobPtr<T> ret = * this;
+	++ * this; //推进一个元素；前置 ++ 检查递增是否合法
+	return ret;
+}
+```
+
+Note:`在一个类模板的作用域内，我们可以直接使用模板名而不必指定模板实参。`
+
+**类模板和友元**
+当一个类包含一个友元声明时，类与友元各自是否是模板是相互无关的。如果一个类模板包含一个非模板友元，则友元被授权可以访问所有模板实例。如果友元自身是模板，类可以授权给所有模板实例，也可以只授权给特定实例。
+
+**一对一友好关系**
+类模板与另一个（类或函数）模板间友好关系的最常见的形式是建立对应实例及其友元间的友好关系。
+
+```c++
+// 前置声明，在 Blob 中声明友元所需要的
+template<typename> class BlobPtr;
+template<typename> class Blob; // 运算符 == 中的参数所需要的
+template<typename T>
+bool operator==(const Blob<T>&,const Blob<T>&);
+
+template <typename T> class Blob
+{
+	// 每个 Blob 实例将访问权限授予用相同类型实例化的 BlobPtr 和相等运算符
+	friend class BlobPtr<T>;
+	friend bool operator==<T>
+	(const Blob<T>&,const Blob<T>&);
+	// ...
+};
+```
+
+友元的声明用 Blob 的模板形参作为它们自己的模板实参。因此，友好关系被限定在用相同类型实例化的 Blob 与 BlobPtr 相等运算符之间：
+
+```c++
+Blob<char> ca ; // BlobPtr<char> 和 operator==<char> 都是本对象的友元
+Blob<int> ia ; // BlobPtr<int> 和 operator==<int> 都是本对象的友元
+```
+BlobPtr<char> 的成员可以访问 ca （或任何其他 Blob<char> 对象）的非 Public 部分，但 ca 对 ia (或任何其他 Blob<int> 对象)或 Blob 的任何其他实例都没有特殊访问权限。
+
+**通用和特定的模板友好关系**
+一个类也可以将另一个模板的每个实例都声明为自己的友元，或者限定特定的实例为友元：
+```c++
+// 前置声明，在将模板的一个特定实例声明为友元时要用到
+template <typename T> class pal;
+
+class C { // C 是一个普通的非模板类
+	friend class Pal<C>; // 用类 C 实例化的 Pal 是 C 的一个友元
+	// Pal2 的所有实例都是 C 的友元；这种情况无须前置声明
+	template <typename T> friend class Pal2;
+};
+
+template <typename T>
+class C2{ // C2 本身是一个类模板
+	// C2 的每个实例将相同实例化的 Pal 声明为友元
+	friend class Pal<T>; // Pal 的模板声明必须在作用域之内
+	// Pal2 的所有实例都是 C2 的每个实例的友元，不需要前置声明
+	template <typename X> friend class Pal2;
+	// Pal3 是一个非模板类，它是 C2 所有实例的友元
+	friend class Pal3; // 不需要 Pal3 的前置声明
+};
+```
+为了让所有实例成为友元，友元声明中必须使用与类模板本身不同的模板参数。
+
+**令模板自己的类型参数成为友元**
+在新标准中，我们可以将模板类型参数声明为友元：
+```c++
+template <typename Type>
+class Bar{
+	friend Type; // 将访问权限授予用来实例化 Bar 的类型
+	// ...
+};
+```
+
+值得注意的是，虽然友元通常来说应该是一个类或是一个函数，但我们完全可以用一个内置类型来实例化 Bar。这种与内置类型的友好关系是允许的，以便我们能用内置类型来实例化 Bar 这样的类。
+
+**模板类型别名**
+类模板的一个实例定义了一个类类型，与任何其他类类型一样，我们可以定义一个 typedef 来引用实例化的类：
+```c++
+typedef Blob<string> StrBlob;
+```
+但由于模板不是一个类型，我们不能定义一个 typedef 引用一个模板。即，无法定义 typedef 引用 Blob<T>。
+
+但是，新标准允许我们为类模板定义一个类型别名：
+```c++
+template <typename T> using twin = pair<T,T>;
+twin<string> authors; // authors 是一个 pair<string,string>
+```
+
+当我们定义一个模板类型别名时，可以固定一个或多个模板参数：
+```c++
+template <typename T> using partNo = pair<T,unsigned> ;
+partNo<string> books; // books 是一个 pair<string,unsigned>
+```
+
+**类模板的 static 成员**
+
+```c++
+template <typename T>
+class Foo{
+public:
+	static std::size_t count() {return ctr;}
+	// 其他接口成员
+private:
+	static std::size_t ctr;
+	// 其他实现成员
+};
+
+template <typename T>
+size_t Foo<T>::ctr = 0; //定义并初始化 ctr;
+```
+
+使用示例：
+```c++
+Foo<int> fi; // 实例化 Foo<int> 类和 static 数据成员 ctr;
+auto ct = Foo<int>::count(); // 实例化 Foo<int>::count
+ct = fi.count(); //使用 Foo<int>::count
+ct = Foo::count(); // 错误：使用哪个模板实例的 count?
+```
+类似任何其他成员函数，一个 static 成员函数只有在使用时才会实例化。
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
