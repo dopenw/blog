@@ -221,7 +221,8 @@
 	* [模板和泛型编程](#模板和泛型编程)
 		* [定义模板](#定义模板)
 			* [函数模板](#函数模板)
-		* [类模板](#类模板)
+			* [类模板](#类模板)
+			* [模板参数](#模板参数)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -7901,7 +7902,7 @@ cout << compare(data1,data2) <<endl; // error，Sales_data 未定义 <
 Warning:`保证传递给模板的实参支持模板所要求的操作，以及这些操作在模板中能正确工作，是调用者的责任。`
 
 
-### 类模板
+#### 类模板
 类模板(class template) 是用来生成类的蓝图的。与函数模板的不同之处是，编译器不能为类模板推断模板参数类型。为了使用类模板，我们必须在模板名后的尖括号中提供额外信息-用来代替模板参数的模板实参列表。
 
 **定义类模板**
@@ -8164,6 +8165,98 @@ ct = fi.count(); //使用 Foo<int>::count
 ct = Foo::count(); // 错误：使用哪个模板实例的 count?
 ```
 类似任何其他成员函数，一个 static 成员函数只有在使用时才会实例化。
+#### 模板参数
+**模板参数与作用域**
+模板参数遵循普通的作用域规则。一个模板参数名的可用范围是在其声明之后，至模板声明或定义结束之前。与任何其他名字一样，模板参数会隐藏外层作用域中声明的相同名字。但是，与大多数其他上下文不同，在模板之内不能重用模板参数名：
+```c++
+typedef double A;
+template <typename A,typename B> void f(A a,B b)
+{
+	A tmp = a; // tmp 的类型为模板参数 A 的类型，而非 double
+	double B; // 错误： 重声明模板参数 B
+}
+```
+由于参数名不能重用，所以一个模板参数名在一个特定模板参数列表中只能出现一次：
+```c++
+// 错误： 非法重用模板参数名 V
+template <typename V,typename V> // ...
+```
+
+**模板声明**
+模板声明必须包含模板参数：
+```c++
+// 声明但不定义
+template <typename T> int compare(const T&,const T&);
+template <typename T> class Blob;
+```
+与函数参数相同，声明中的模板参数的名字不必与定义相同：
+```c++
+// 3 个 calc 都指向相同的函数模板
+template <typename T> T clac(const T&,const T&);
+template <typename U> T clac(const U&,const U&);
+
+template <typename Type>
+Type calc(const Type& a,const Type& b);
+```
+当然，一个给定的每个声明和定义必须有相同数量和种类的参数。
+
+Best practices:
+`一个特定文件所需要的所有模板的声明通常一起放置在文件的开始位置，出现于任何使用这些模板的代码之前。`
+
+**使用类的类型成员**
+默认情况下，C++语言假定通过作用域运算符访问的名字不是类型。因此，如果我们希望使用一个模板类型参数的类型成员，就必须显式告诉编译器该名字是一个类型。我们通过使用关键字 `typename` 来实现这一点：
+```c++
+template <typename T>
+typename T::value_type top(const T& c)
+{
+	if (!c.empty())
+		return c.back();
+	else
+		return typename T::value_type();
+}
+```
+
+Note:`当我们希望通知编译器一个名字表示类型时，必须使用关键字 typename,而不能使用 class。`
+
+**默认模板实参**
+在新标准中，我们可以为函数和类模板提供默认实参。而更早的 C++ 标准只允许为类模板提供默认实参。
+
+例如：
+```c++
+// compare 有一个默认实参 less<T> 和一个默认函数实参 F()
+template <typename T,typename F = less<T>>
+int compare(const T& v1,const T& v2,F f=F())
+{
+	if (f(v1,v2)) return -1;
+	if (f(v2,v1)) return 1;
+	return 0;
+}
+```
+当用户调用这个版本的 compare 时，可以提供自己的比较操作，但这并不是必需的：
+```c++
+bool i = compare(0,42); // 使用 less ，i 为 -1
+// 结果依赖于 item1 和 item2 中的 isbn
+Sales_data item1(cin),item2(cin);
+bool j = compare(item1,item2,compareIsbn);
+```
+与默认实参一样，对于一个模板参数，只有当它右侧的所有参数都有默认实参时，才可以有默认实参。
+
+**模板默认实参与类模板**
+无论何时使用一个类模板，我们都必须在模板名之后接上尖括号。尖括号指出类必须从一个模板实例化而来。特别是，如果一个类模板为其所有模板参数都提供了默认实参，且我们希望使用这些默认实参，就必须在模板名之后跟一个空尖括号对。
+
+```c++
+template <class T = int> class Numbers
+{
+public:
+	Numbers(T v = 0):val(v) {}
+	// ...
+private:
+	T val;
+}
+
+Numbers<long double> lots_of_precision;
+Numbers<> average_precision; // 空 <> 表示我们希望使用默认类型
+```
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
