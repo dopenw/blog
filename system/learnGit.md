@@ -26,6 +26,12 @@
 		* [关于修改历史记录的注意事项](#关于修改历史记录的注意事项)
 		* [使用 git reset](#使用-git-reset)
 			* [revert a commit already pushed to a remote repository](#revert-a-commit-already-pushed-to-a-remote-repository)
+	* [git submodule](#git-submodule)
+		* [add submodule](#add-submodule)
+		* [remove git submodule](#remove-git-submodule)
+		* [Git submodule URL not including username?](#git-submodule-url-not-including-username)
+		* [遇到的一些问题](#遇到的一些问题)
+	* [Link](#link)
 
 <!-- /code_chunk_output -->
 
@@ -411,7 +417,41 @@ git push origin -f
 [Git reset --hard and a remote repository
 ](https://stackoverflow.com/questions/1377845/git-reset-hard-and-a-remote-repository)
 
+## git submodule
 
+### add submodule
+```git
+git submodule add $git_rep
+```
+Using submodule
+```git
+git submodule init
+git submodule update
+```
+
+### remove git submodule
+```git
+1. git submodule deinit -f -- $submodule_dir    
+2. rm -rf .git/modules/$submodule_dir
+3. git rm -f $submodule_dir
+4. git commit
+```
+
+### Git submodule URL not including username?
+1. Modify your .gitmodules and remove the username from the url:
+```git
+[submodule foo]
+  path = sub/foo
+  url = https://example.com/git/foo.git
+```
+2. `git submodule sync`
+
+### 遇到的一些问题
+* [Unable to find current origin/master revision in submodule path](https://stackoverflow.com/questions/40987847/unable-to-find-current-origin-master-revision-in-submodule-path)
+
+## Link
+* [How do I remove a submodule?](https://stackoverflow.com/questions/1260748/how-do-i-remove-a-submodule)
+* [Git Submodules: Adding, Using, Removing, Updating](https://chrisjean.com/git-submodules-adding-using-removing-and-updating/)
 
 [上一级](README.md)
 [上一篇](graph.md)
