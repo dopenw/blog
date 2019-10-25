@@ -232,6 +232,8 @@
 			* [尾置返回类型与类型转换](#尾置返回类型与类型转换)
 			* [函数指针和实参推断](#函数指针和实参推断)
 			* [模板实参推断和引用](#模板实参推断和引用)
+			* [理解 std::move](#理解-stdmove)
+			* [转发](#转发)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -8787,6 +8789,51 @@ typename remove_reference<T>::type && move(T&& t)
 
 **从一个左值 static_cast 到一个右值引用是允许的**
 通常情况下，static_cast 只能用于其他合法的类型转换。但是，这里又有一条针对右值引用的特许规则：虽然不能隐式地将一个左值转换为右值引用，但我们可以用 static_cast 显式地将一个左值转换为右值引用。
+
+#### 转发
+某些函数需要将一个或多个实参连同类型不变地转发给其他函数。在此情况下，我们需要保持被转发实参地所有性质，包括实参是否是 const 的以及实参是左值还是右值。
+
+**定义能保持类型信息的函数参数**
+为了通过翻转函数传递一个引用，我们需要重写函数，使其参数能保持给定实参的“左值性”。更进一布，可以想到我们也希望保持参数的 const 属性。
+
+通过将一个函数参数定义为一个指向模板类型参数的右值引用，我们可以保持对应的实参的所有类型信息。如下所示：
+```c++
+template <typename F,typename T1,typename T2>
+void flip2(F f,T1 && t1, T2 && t2)
+{
+	f(t2,t1);
+}
+```
+
+Note:`如果一个函数参数是指向模板类型参数的右值引用（如 T&&）,它对应的实参的 const 属性和左值/右值属性将得到保持。`
+
+这个版本的 flip2 解决了一半的问题。它对于接受一个左值引用的函数工作得很好，但不能用于接受右值引用参数的函数。例如：
+```c++
+void g(int &&i,int& j)
+{
+	std::cout << i <<" " << j <<'\n';
+}
+```
+但是：
+```c++
+flip2(g,i,42); // 错误： 不能从一个左值实例化 int&&
+```
+
+**在调用中使用 std::forward 保持类型信息**
+我们可以使用 [std::forward](https://en.cppreference.com/w/cpp/utility/forward) 的新标准库设施来传递 flip2 的参数，它能保持原始实参的类型。但与 move 不同，forward 必须通过显式模板实参来调用。forward 返回该显式实参类型的右值引用。即 forward<T> 的返回类型是 T&&。
+
+Note:`当用于一个指向模板参数类型的右值引用函数参数 (T&&) 时，forward 会保持实参类型的所有细节。`
+
+使用 forward ，我们可以再次重写翻转函数：
+```c++
+template <typename F,typename T1,typename T2>
+void flip2(F f,T1 && t1, T2 && t2)
+{
+	f(std::forward<T2>(t2),std::forward<T1>(t1));
+}
+```
+
+Note:`与 std::move 相同，对 std::forward 不适用 using 声明是一个好主意。`
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
