@@ -234,6 +234,7 @@
 			* [模板实参推断和引用](#模板实参推断和引用)
 			* [理解 std::move](#理解-stdmove)
 			* [转发](#转发)
+		* [重载与模板](#重载与模板)
 	* [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -8833,7 +8834,184 @@ void flip2(F f,T1 && t1, T2 && t2)
 }
 ```
 
-Note:`与 std::move 相同，对 std::forward 不适用 using 声明是一个好主意。`
+Note:`与 std::move 相同，对 std::forward 不使用 using 声明是一个好主意。`
+
+### 重载与模板
+函数模板可以被另一个模板或一个普通非模板函数重载。与往常一样，名字相同的函数必须具有不同数量或类型的参数。
+
+如果涉及函数模板，则函数匹配规则会在以下几个方面受到影响：
+* 对于一个调用，其候选函数包括所有模板实参推断成功的函数模板实例。
+* 候选的函数模板总是可行的，因为模板实参推断会排除任何不可行的模板。
+* 与往常一样，可行函数（模板与非模板）按类型转换（如果对此调用需要的话）来排序。当然可以用于函数模板调用的函数类型转换是非常有限的。
+* 与往常一样，如果恰有一个函数提供比任何其他函数都更好的匹配，则选择此函数。但是，如果有多个函数提供同样好的匹配，则：
+	* 如果同样好的函数中只有一个是非模板函数，则选择此函数。
+	* 如果同样好的函数中没有非模板函数，而有多个函数模板，且其中一个模板比其他模板更特例化，则选择此模板。
+	* 否则，此调用有歧义。
+
+Warning:`正确定义一组重载的函数模板需要对类型间的关系及模板函数允许的有限的实参类型转换有深刻的理解。`
+
+**编写重载模板**
+```c++
+template <typename T> string debug_rep(const T& t)
+{
+	ostringstream ret;
+	ret << t;
+	return ret.str();
+}
+
+template <typename T> string debug_rep(T *p)
+{
+	ostringstream ret;
+	ret << "pointer: "<< p ;
+	if(p)
+		ret << " " << debug_rep(* p);
+	else
+		ret << "null pointer";
+	return ret.str();
+}
+```
+
+我们可以这样使用这些函数：
+```c++
+string s("hi");
+cout << debug_rep(s) << endl; // 使用 debug_rep(const T& t)
+```
+
+如果我们用一个指针调用 debug_rep:
+```c++
+cout << debug_rep(&s) << endl;
+```
+两个函数都生成可行的实例：
+* debug_rep(const string* &)
+* debug_rep(string * );
+
+第二个版本 debug_rep 的实例是此调用的精确匹配。第一个版本的实例需要进行普通指针到 const 指针的转换。
+
+**多个可行模板**
+作为另外一个例子，考虑下面的调用：
+```c++
+const string * sp=&s;
+cout << debug_rep(sp) << endl;
+```
+此例中的两个模板都是可行的，而且两个都是精确匹配：
+* debug_rep(const string* &);
+* debug_rep(const string*);
+
+在此情况下，正常的函数匹配规则无法区分这两个函数。我们可能觉得这两个函数是有其歧义的。但是，根据重载函数模板的特殊规则，此调用将被解析为 debug_rep(T * )，即，更特例化的版本。
+
+Note:`当有多个重载模板对一个调用提供同样好的匹配时，应选择最特例化的版本。`
+
+**非模板和模板重载**
+```c++
+string debug_rep(const string& s)
+{
+	return '"' + s + '"';
+}
+```
+现在，当我们这样：
+```c++
+string s("hi");
+cout << debug_rep(s) << endl;
+```
+有两个同样好的可行函数：
+* debug_rep<string> (const string&);
+* debug_rep(const string&);
+
+当存在多个同样好的函数模板时，编译器选择最特例化的版本，出于同样的原因，一个非模板函数比一个函数模板更好。
+
+Note:`对于一个调用，如果一个非函数模板与一个函数模板提供同样好的匹配，则选择非模板版本。`
+
+**重载模板和类型转换**
+还有一种情况我们到目前为止尚未讨论： c 风格字符串指针和字符串字面常量。考虑这个调用：
+```c++
+std::cout << debug_rep("hi world!") << '\n'; // 调用 debug_rep(T *)
+```
+本例中所有三个 debug_rep 版本都是可行的。但与之前一样，T * 版本更加特例化，编译器会选择它。
+
+如果我们希望将字符指针按 string 处理，可以定义另外两个非模板重载版本。
+```c++
+string debug_rep(char * p)
+{
+	return debug_rep(string(p));
+}
+string debug_rep(const char * p)
+{
+	return debug_rep(string(p));
+}
+```
+
+**缺少声明可能导致程序行为异常**
+值得注意的是，为了使 char * 版本的 debug_rep 正确工作，在定义此版本时， debug_rep(const string&) 的声明必须在作用域中。否则，就可能调用错误的 debug_rep 版本。
+
+```c++
+template <typename T> string debug_rep(const T& t);
+template <typename T> string debug_rep(T * p);
+// 为了使 debug_rep(char *) 的定义正确工作，下面的声明必须在作用域中  
+
+string debug_rep(const string&);
+string debug_rep(char * p)
+{
+	// 如果接受一个 const string & 的版本声明不在作用域中，
+	// 返回语句将调用 debug_rep(const T&) 的 T 实例化为 string 版本
+	return debug_rep(string(p));
+}
+```
+
+通常，如果使用了一个忘记声明的函数，代码将编译失败。但对于重载函数模板的函数而言，则不是这样。如果编译器可以从模板实例化出与调用匹配的版本，则缺少的声明就不重要了。在本例中，如果忘记了声明接受 string 参数的 debug_rep 版本，编译器会默默地实例化接受 const T& 的模板版本。
+
+Tip:`在定义任何函数之前，记得声明所有重载的函数版本。这样就不必担心编译器由于未遇到你希望调用的函数而实例化一个并非你所需的版本。`
+
+练习 16.50:
+```c++
+#include "iostream"
+
+template <typename T> void f(T)
+{
+  std::cout << "void f(T)" << '\n';
+}
+
+template <typename T> void f(const T *)
+{
+  std::cout << "void f(const T * )" << '\n';
+}
+
+template <typename T> void g(T)
+{
+  std::cout << "void g(T)" << '\n';
+}
+
+template <typename T> void g(T *)
+{
+  std::cout << "void g(T * )" << '\n';
+}
+
+int main(int argc, char const * argv[]) {
+  int i=42,* p = &i;
+  const int ci=0,* p2=&ci;
+  g(42);
+  g(p);
+  g(ci);
+  g(p2);
+  std::cout << "----------------" << '\n';
+  f(42);
+  f(p); // care
+  f(ci);
+  f(p2);
+  return 0;
+}
+```
+Run:
+```sh
+void g(T)
+void g(T *)
+void g(T)
+void g(T *)
+----------------
+void f(T)
+void f(T)
+void f(T)
+void f(const T *)
+```
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
