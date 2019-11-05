@@ -238,6 +238,7 @@
     - [可变参数模板](#可变参数模板)
       - [编写可变参数函数模板](#编写可变参数函数模板)
       - [包扩展](#包扩展)
+      - [转发参数包](#转发参数包)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -9131,7 +9132,38 @@ otherData,"otherData",item));
 
 Note:`扩展中的模式会独立地应用于包中地每个元素。`
 
+#### 转发参数包
+在新标准下，我们可以组合使用可变参数模板与 `forward` 机制来编写函数，实现将其实参不变地传递给其他函数。
 
+如我们所见，保持类型信息是一个两阶段的过程。首先，为了保持实参中的类型信息，必须将 emplace_back 的函数定义为模板类型参数的右值引用：
+```c++
+class StrVec{
+public:
+  template <typename ... Args>
+  void emplace_back(Args&& ...);
+};
+```
+其次，当 emplace 将这些实参传递给 construct 时，我们必须使用 forward 来保持实参的原始类型：
+```c++
+template <typename ... Args>
+inline void StrVec::emplace_back(Args&& ... args)
+{
+  chk_n_alloc(); // 如果需要的话重新分配 StrVec 内存空间
+  alloc.construct(first_free++,std::forward<arArgs>(args) ...);
+}
+```
+
+**建议：转发和可变参数模板**
+可变参数函数通常将它们的参数转发给其他函数。这种函数通常具有与我们的 emplace_back 函数一样的形式：
+```c++
+// fun 有零个或多个参数，每个参数都是一个模板参数类型的右值引用
+template <typename ... Args>
+void fun(Args&& ... args) // 将 Args 扩展为一个右值引用的列表
+{
+  // work 的实参既扩展 Args 又扩展 args
+  work(std::forward<Args>(args) ...);
+}
+```
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
