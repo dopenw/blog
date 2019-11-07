@@ -239,6 +239,7 @@
       - [编写可变参数函数模板](#编写可变参数函数模板)
       - [包扩展](#包扩展)
       - [转发参数包](#转发参数包)
+    - [模板特例化](#模板特例化)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -9163,6 +9164,173 @@ void fun(Args&& ... args) // 将 Args 扩展为一个右值引用的列表
   // work 的实参既扩展 Args 又扩展 args
   work(std::forward<Args>(args) ...);
 }
+```
+
+### 模板特例化
+编写单一模板，使之对任何可能的模板实参都是最合适的，都能实例化，这并不总是能办到。在某些情况下，通用模板的定义对特定类型是不合适的：`通用定义可能编译失败或做得不正确。其他时候，我们也可以利用某些特定知识来编写更高效的代码，而不是从通用模板实例化。`当我们不能（或不希望）使用模板版本时，可以定义类或函数模板的一个特例化版本。
+
+
+下面将展示函数模板的通用定义不适合一个特定类型（即字符指针）的情况。
+```c++
+// 可以比较任意两个类型
+template <typename T>
+int compare(const T&,const T&);
+
+// 第二个版本处理字符串字面常量
+template<size_t N,size_t M>
+int compare(const char (&)[N],const char (&)[M]);
+```
+
+```c++
+const char * p1="hi", * p2="mom";
+compare(p1,p2); // 调用第一个模板
+compare("hi","mom"); // 调用有两个非类型参数的版本
+```
+我们无法将一个指针转换为一个数组的引用，因此当参数是 p1 和 p2 时，第二个版本的 compare 是不可行的。
+
+为了处理字符指针（而不是数组），可以为第一个版本的 compare 定义一个模板特例化(template specialization)版本。一个特例化版本就是模板的一个独立的定义，在其中一个或多个模板参数被指定为特定的类型。
+
+**定义函数模板特例化**
+当我们特例化一个函数模板时，必须为原模板中的每个模板参数都提供实参。为了指出我们正在实例化一个模板，应使用关键字 template 后跟一个空尖括号 (<>)。空尖括号指出我们将为原模板的所有模板参数提供实参：
+```c++
+// compare 的特殊版本，处理字符数组的指针
+template<>
+int compare(const char * const& p1,const char * const& p2)
+{
+  return strcmp(p1,p2);
+}
+// const char * const&  ，即一个指向 const char 的 const 指针的引用。
+```
+
+**函数重载与模板特例化**
+当定义函数模板的特例化版本时，我们本质上接管了编译器的工作。即，我们为原模板的一个特殊实例提供了定义。重要的是要弄清：`一个特例化版本本质上是一个实例，而非函数名的一个重载版本。`
+
+Note:`特例化的本质是实例化一个模板，而非重载它。因此，特例化不影响函数匹配。`
+
+关键概念：普通作用域规则应用与特例化
+为了特例化一个模板，原模板的声明必须在作用域中。而且，在任何使用模板实例的代码之前，特例化版本的声明也必须在作用域中。
+
+对于普通类和函数，丢失声明的情况（通常）很容易发现-编译器将不能继续处理我们的代码。但是，如果丢失了一个特例化版本的声明，编译器通常可以用原模板生成代码。由于在丢失特例化版本时编译器通常会实例化原模板，很容易产生模板及其特例化版本声明顺序导致的错误，而这种错误又很难查找。
+
+如果一个程序使用一个特例化版本，而同时原模板的一个实例具有相同的模板实参集合，就会产生错误。但是，这种错误编译器又无法发现。
+
+Best practices:`模板及其特例化版本应该声明在同一个头文件中。所有同名模板的声明应该放在前面，然后是这些模板的特例化版本。`
+
+**类模板特例化**
+作为一个例子，我们将为 std hash 模板定义一个特例化版本。为了让我们自己的数据类型也能使用这种默认组织方式，必须定义 hash 模板的一个特例化版本。一个特例化 hash 类必须定义：
+* 一个重载的调用运算符，它接受一个容器关键字类型的对象，返回一个 size_t;
+* 两个类型成员，result_type 和 argument_type ，分别调用运算符的返回类型和参数类型。
+* 默认构造函数和拷贝赋值运算符（可以隐式定义）。
+
+我们可以向命名空间添加成员。为了达到这一目的，首先必须打开命名空间：
+```c++
+// 打开 std 命名空间，以便特例化 std::hash
+namespace std{
+
+} // 关闭 std 命名空间；注意：右花括号之后没有分号
+```
+
+下面定义了一个能处理 Sales_data 的特例化版本：
+```c++
+namespace std {
+  template<>
+  struct hash<Sales_data>
+  {
+    // 用来散列一个无须容器的类型必须要定义下列类型
+    typedef size_t result_type;
+    typedef Sales_data argument_type;
+    size_t operator()(const Sales_data& s) const ;
+    // 我们的类使用合成的拷贝控制成员和默认构造函数
+  }；
+
+  size_t
+  hash<Sales_data>::operator()(const Sales_data& s) const
+  {
+    return hash<string>()(s.bookNo) ^
+    hash<unsigned>()(s.units_sold) ^
+    hash<double>()(s.revenue);
+  }
+}
+```
+
+假定我们的特例化版本在作用域中，当将 Sales_data 作为容器的关键字类型时，编译器就会自动使用此特例化版本：
+
+```c++
+unordered_multimap<Sales_data> sDest;
+```
+由于 hash<Sales_data> 使用 Sales_data 的私有成员，我们必须将它声明为 Sales_data 的友元：
+```c++
+template <typename T> class std::hash; // 友元声明所需要的
+class Sales_data
+{
+  friend class std::hash<Sales_data>;
+  // 其他成员定义，如前
+};
+```
+
+Note: `为了让 Sales_data 的用户能使用 hash 的特例化版本，我们应该在 Sales_data 的头文件中定义该特例化版本。`
+
+**类模板部分特例化**
+
+与函数模板不同，类模板的特例化不必为所有模板参数提供实参。我们可以只指定一部分而非所有模板参数，或是参数的一部分而非全部特性。一个类模板的**部分特例化**(partial specialization)本身是一个模板，使用它时用户还必须为那些在特例化版本中未指定的模板参数提供实参。
+
+Note：`我们只能部分特例化类模板，而不能部分特例化函数模板。`
+
+例如 std remove_reference 类型。该模板是通过一系列的特例化版本来完成其功能的：
+```c++
+// 原始的、最通用的版本
+template <typename T> struct remove_reference{
+  typedef T type;
+};
+
+// 部分特例化版本，将用于左值引用和右值引用
+template <typename T> struct remove_reference<T&> // 左值引用
+{typedef T type};
+
+template <typename T> struct remove_reference<T&&> // 右值引用
+{typedef T type};
+```
+
+```c++
+int i;
+// decltype(42) 为 int ,使用原始模板
+remove_reference<decltype(42)>::type a;
+
+// decltype(i) 为 int&,使用第一个 (T&) 部分特例化版本
+remove_reference<decltype(i)>::type b;
+
+// decltype(std::move(i)) 为 int&&,使用第二个 (T&&) 部分特例化版本
+remove_reference<decltype(std::move(i))>::type c;
+```
+
+**特例化成员而不是类**
+我们可以只特例化特定成员函数而不特例化整个模板。例如：
+```c++
+template <typename T>
+struct Foo{
+  Foo(const T& =T()):mem(t){}
+  void Bar() {
+    // ...
+  }
+
+  T mem;
+
+   // Foo 其他成员
+};
+
+template <> // 我们正在特例化一个模板
+void Foo<int>::Bar() // 我们正在特例化 Foo<int> 的成员 Bar
+{
+  // 进行应用于 int 的特例化处理
+}
+```
+
+本例中我们只特例化 Foo<int> 类的一个成员，其他成员将由 Foo 模板提供：
+```c++
+Foo<string> fs;
+fs.Bar();
+Foo<int> fi;
+fi.Bar(); // 使用我们特例化版本的 Foo<int>::Bar()
 ```
 
 ## Link
