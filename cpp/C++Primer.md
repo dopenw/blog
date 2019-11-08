@@ -240,6 +240,7 @@
       - [包扩展](#包扩展)
       - [转发参数包](#转发参数包)
     - [模板特例化](#模板特例化)
+    - [小结](#小结-1)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -9332,6 +9333,48 @@ fs.Bar();
 Foo<int> fi;
 fi.Bar(); // 使用我们特例化版本的 Foo<int>::Bar()
 ```
+
+练习 16.63 - 64:
+```c++
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+template <typename T>
+int cnt(std::vector<T> v,T val)
+{
+  return std::count(v.begin(),v.end(),val);
+}
+
+template<>
+int cnt(std::vector<const char * > v,const char * p)
+{
+  std::cout << "use const char * version" << '\n';
+  return std::count(v.begin(),v.end(),p);
+}
+
+
+int main(int argc, char const * argv[]) {
+  std::vector<int> v{5,5,6,4,3,5};
+  std::cout << "Cnt is "<< cnt(v,5) << '\n';
+  const char * p1 ="hi";
+  const char * p2 ="tom";
+  std::vector<const char*> v1{p1,p2};
+  std::cout << "Cnt is "<< cnt(v1,p1) << '\n';
+  return 0;
+}
+```
+
+### 小结
+模板是 c++ 语言与众不同的特性，也是标准库的基础。一个模板就是一个编译器用来生成特定类类型或函数的蓝图。生成特定类或函数的过程称为实例化。我们只编写一次模板，就可以将其用于多种类型和值，编译器会为每种类型和值进行模板实例化。
+
+我们即可以定义函数模板，也可以定义类模板。标准库算法都是函数模板，标准库都是类模板。
+
+显式模板实参允许我们固定一个或多个模板参数的类型或值。对于指定了显式模板实参的模板参数，可以应用正常的类型转换。
+
+一个模板特例化就是一个用户提供的模板实例，它将一个或多个模板参数绑定到特定类型或值上。当我们不能（或不希望）将模板定义用于某些特定类型时，特例化非常有用。
+
+最新 C++ 标准库的一个主要部分是可变参数模板。一个可变参数模板可以接受数目和类型可变的参数。可变参数模板允许我们编写像容器 emplace 成员和标准库 make_shared 函数这样的函数，实现将实参传递给对象的构造函数。
 
 ## Link
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
