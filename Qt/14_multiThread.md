@@ -347,4 +347,4 @@ QObject 是可重入的，但必要记住它的三个约束条件：
 * [Porting source code of the book C++ GUI Programming with Qt 4 from Qt4 to Qt5](https://github.com/mutse/qt5-book-code)
 
 [上一级](README.md)
-[上一篇](2_creat_dialog.md)
+[上一篇](3_createMainWindow.md)
