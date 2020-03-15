@@ -103,5 +103,5 @@ systemctl enable v2ray # 设置为开机启动
 
 
 [上一级](README.md)
-[上一篇](ss_privoxy.md)
+[上一篇](ubuntuInstallSSAndV2rayPlugin.md)
 [下一篇](xiaomiMini.md)

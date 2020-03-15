@@ -14,6 +14,7 @@
 * ### [shadowsocks optimize](shadowsocksOptimize.md)
 * ### [跳过 openGapps 设置向导](skip_opengapps_init.md)
 * ### [ss+privoxy实现全局代理](ss_privoxy.md)
+* ### [Install ss-libev and config v2ray-plugin on ubuntu](ubuntuInstallSSAndV2rayPlugin.md)
 * ### [v2ray](v2ray.md)
 * ### [小米路由器 1 mini 搞机篇](xiaomiMini.md)
                            step by steop

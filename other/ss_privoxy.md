@@ -35,4 +35,4 @@ export no_proxy=localhost
 
 [上一级](README.md)
 [上一篇](skip_opengapps_init.md)
-[下一篇](v2ray.md)
+[下一篇](ubuntuInstallSSAndV2rayPlugin.md)

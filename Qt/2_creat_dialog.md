@@ -3,10 +3,13 @@
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [2.创建对话框](#2创建对话框)
-	* [子类化QDialog](#子类化qdialog)
-	* [深入介绍信号和槽](#深入介绍信号和槽)
-	* [快速设计对话框](#快速设计对话框)
+- [2.创建对话框](#2创建对话框)
+  - [子类化QDialog](#子类化qdialog)
+  - [深入介绍信号和槽](#深入介绍信号和槽)
+  - [快速设计对话框](#快速设计对话框)
+  - [改变形状的对话框](#改变形状的对话框)
+  - [动态对话框](#动态对话框)
+  - [内置的窗口部件类和对话框类](#内置的窗口部件类和对话框类)
 
 <!-- /code_chunk_output -->
 
@@ -299,6 +302,53 @@ return app.exec();
 ```
 显示效果：
 ![](../images/2_creat_dialog_201711201632_1.png)
+
+## 改变形状的对话框
+最常见的可改变形状的对话框有两种：
+* 扩展对话框([extension dialog](https://doc.qt.io/qt-5/qtwidgets-dialogs-extension-example.html))
+* 多页对话框(multi-page dialog)
+
+## 动态对话框
+动态对话框 (dynamic dialog) 就是在程序运行时使用从 QT 设计师的 .ui 文件创建而来的那些对话框。动态对话框不需要通过 uic 把 .ui 文件转换成 c++ 代码，相反，它是在程序运行的时候使用 QUiLoader 类载入该文件的，就像这样：
+
+```c++
+QUiLoader uiLoader;
+QFile file("sortdialog.ui");
+QWidget * sortDialog = uiLoader.load(&file);
+
+if (sortDialog) {
+	...
+}
+```
+
+可以使用 [QObject::findChild\<T\>()](https://doc.qt.io/qt-5/qobject.html#findChild) 来访问这个窗体的各个子窗口部件：
+```c++
+QComboBox * primaryColumnCombo =
+sortDialog->findChild<QComboBox *>("primaryColumnCombo"); // "primaryColumnCombo" 是 对象名
+
+if (primaryColumnCombo) {
+	...
+}
+```
+
+QUiLoader 类放在一个独立的库中。为了在 Qt 应用程序中使用 QUiLoader,必须在这个应用程序的 .pro 文件中加入这一行内容：
+```highLight
+CONFIG += uitools
+```
+
+动态对话框使不重新编译应用程序而改变窗体布局的做法成为可能。
+
+## 内置的窗口部件类和对话框类
+
+Qt 提供了一整套内置的窗口部件和常用对话框，这可以满足绝大多数情况。
+
+![](../images/2_creat_dialog_202003151503_1.png)
+![](../images/2_creat_dialog_202003151503_2.png)
+![](../images/2_creat_dialog_202003151503_3.png)
+![](../images/2_creat_dialog_202003151503_4.png)
+![](../images/2_creat_dialog_202003151503_5.png)
+![](../images/2_creat_dialog_202003151503_6.png)
+
 
 [上一级](README.md)
 [上一篇](1_hello_qt.md)
