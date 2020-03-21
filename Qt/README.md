@@ -3,5 +3,6 @@
 * ### [1.QT入门](1_hello_qt.md)
 * ### [2.创建对话框](2_creat_dialog.md)
 * ### [3. 创建主窗口](3_createMainWindow.md)
+* ### [4. 实现应用程序的功能](4_SpreadSheet.md)
 * ### [14.多线程](14_multiThread.md)
                            step by steop
