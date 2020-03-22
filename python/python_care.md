@@ -68,3 +68,4 @@ pyperclip.paste()
 ```
 [上一级](README.md)
 [上一篇](noRootUserInstallPackage.md)
+[下一篇](translateTool.md)
