@@ -788,4 +788,4 @@ QVariant Cell::evalFactor(const QString &str, int &pos) const
 
 [上一级](README.md)
 [上一篇](3_createMainWindow.md)
-[下一篇](14_multiThread.md)
+[下一篇](5_createCustomWidget.md)
