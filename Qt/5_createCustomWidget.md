@@ -12,6 +12,9 @@
     - [IconEditor.h](#iconeditorh)
     - [IconEditor.cpp](#iconeditorcpp)
   - [在 Qt 设计师中集成自定义窗口部件](#在-qt-设计师中集成自定义窗口部件)
+  - [双缓冲](#双缓冲)
+    - [Plotter.h](#plotterh)
+    - [Plotter.cpp](#plottercpp)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -420,14 +423,14 @@ class IconEditorPlugin : public QObject,
 public:
     IconEditorPlugin(QObject * parent = 0);
 
-    QString name() const;
-    QString includeFile() const;
-    QString group() const;
-    QIcon icon() const;
-    QString toolTip() const;
-    QString whatsThis() const;
-    bool isContainer() const;
-    QWidget * createWidget(QWidget * parent);
+    QString name() const override;
+    QString includeFile() const override;
+    QString group() const override;
+    QIcon icon() const override;
+    QString toolTip() const override;
+    QString whatsThis() const override;
+    bool isContainer() const override;
+    QWidget * createWidget(QWidget * parent) override;
 };
 
 #endif
@@ -519,8 +522,589 @@ OTHER_FIFLES += iconEditor.json
 
 当键入 make 或者 nmake 来构建该插件时，它就会自动把自己安装到 Qt 设计师的 plugins/designer 目录中。插件一旦构建完毕，在 Qt 设计师中就可以像其他内置的 Qt 窗口部件一样来使用 IconEditor 窗口部件。
 
+## 双缓冲
+双缓冲(double buffering) 是一种图形用户界面编程技术，它包括把一个窗口部件渲染到一个脱屏像素映射(off-screen pixmap) 中以及把这个像素映射复制到显示器上。在 Qt 的早期版本中，这种技术通常用于消除屏幕的闪烁以及为用户提供一个漂亮的用户界面。
+
+在 Qt4 中，QWidget 会自动处理这些情况，所以我们很少需要考虑窗口部件的闪烁问题。尽管如此，但如果窗口部件的绘制非常复杂并且需要连续不断地重复绘制时，明确指定使用双缓冲则是非常有用的事情。于时就可以把这个窗口部件固定不变地存储成一个像素映射，这样就总可以为下一次绘制事件做好准备，并且一旦收到绘制事件，就可以把这个像素映射复制到窗口部件上。当我们想做一些小的修改时，比如一个橡皮筋选择框的绘制，此时并不需要对整个窗口部件进行重复绘制和计算，从而就显得特别有用。
+
+eg：Plotter 自定义窗口部件。这个窗口部件使用了双缓冲技术，并且示范了 键盘事件处理、手动布局和坐标系统等。
+
+![](../images/5_createCustomWidget_202003231303_1.png)
+
+对于需要具有一个图形处理或者图形测绘窗口部件的真正应用程序来说，最好还是使用那些可以获取的第三方窗口部件，而不是像这里所做的那样，去创建一个自定义窗口部件：
+1. [GraphPak](http://www.ics.com) 收费
+2. [KD Chart](https://www.kdab.com/) 收费
+3. [Qwt](https://qwt.sourceforge.io/) 开源
+
+Plotter 窗口部件可以按照给定的矢量坐标绘制一条或者多条曲线。用户可以在图像中拖拽一条橡皮筋选择框，并且 Plotter 将会对由这个橡皮筋选择框选定的区域进行放大。Qt 为绘制橡皮筋选择框提供了类([QRubberBand](https://doc.qt.io/qt-5/qrubberband.html))，但这里通过我们自己来绘制它，以提供更好的视觉控制效果，并且籍此说明双缓冲技术。
+
+Plotter 窗口部件可以保存任意条曲线的数据。它会维护这一个 PlotSettings 堆栈对象，而这每一个堆栈对象都对应一个特定的缩放级别。
+
+用到的一些类：
+* [QPointF](https://doc.qt.io/qt-5/qpointf.html) The QPointF class defines a point in the plane using floating point precision
+* [QPoint](https://doc.qt.io/qt-5/qpoint.html) The QPoint class defines a point in the plane using integer precision
+* [QToolButton](https://doc.qt.io/qt-5/qtoolbutton.html) The QToolButton class provides a quick-access button to commands or options, usually used inside a QToolBar
+* [QPixmap](https://doc.qt.io/qt-5/qpixmap.html) The QPixmap class is an off-screen image representation that can be used as a paint device.
+* [QStylePainter](https://doc.qt.io/qt-5/qstylepainter.html) The QStylePainter class is a convenience class for drawing QStyle elements inside a widget
+* [QStyle](https://doc.qt.io/qt-5/qstyle.html) The QStyle class is an abstract base class that encapsulates the look and feel of a GUI
+* [QPolygonF](https://doc.qt.io/qt-5/qpolygonf.html) The QPolygonF class provides a vector of points using floating point precision
+
+Qt 提供了两种用于控制光标形状的机制：
+* 当鼠标悬停在某个特殊的窗口部件上时，QWidget::setCursor() 可以设置它所使用的光标形状。如果没有为窗口部件专门设置光标，那么就会使用它的父窗口部件中的光标。顶层窗口部件的默认光标时箭头光标。
+* 对于整个应用程序中所使用的光标形状，可以通过 QApplication::setOverrideCursor()进行设置，它会把不同窗口部件中的光标形状全部覆盖掉，直到调用 restoreOverrideCursor()。
+
+
+### Plotter.h
+```c++
+#ifndef PLOTTER_H
+#define PLOTTER_H
+
+#include <QMap>
+#include <QPixmap>
+#include <QVector>
+#include <QWidget>
+
+QT_BEGIN_NAMESPACE
+class QToolButton;
+class PlotSettings;
+QT_END_NAMESPACE
+
+class Plotter : public QWidget
+{
+    Q_OBJECT
+
+public:
+    Plotter(QWidget * parent = 0);
+
+    void setPlotSettings(const PlotSettings &settings);
+
+    // 我们把曲线的顶点存储为 QVector<QPointF>
+    void setCurveData(int id, const QVector<QPointF> &data);
+    void clearCurve(int id);
+    QSize minimumSizeHint() const override;
+    QSize sizeHint() const override;
+
+public slots:
+    void zoomIn();
+    void zoomOut();
+
+protected:
+    void paintEvent(QPaintEvent * event);
+    void resizeEvent(QResizeEvent * event);
+    void mousePressEvent(QMouseEvent * event);
+    void mouseMoveEvent(QMouseEvent * event);
+    void mouseReleaseEvent(QMouseEvent * event);
+    void keyPressEvent(QKeyEvent * event);
+    void wheelEvent(QWheelEvent * event);
+
+private:
+    void updateRubberBandRegion();
+    void refreshPixmap();
+    void drawGrid(QPainter * painter);
+    void drawCurves(QPainter * painter);
+
+    // Margin 边白常量
+    enum { Margin = 50 };
+
+    QToolButton * zoomInButton;
+    QToolButton * zoomOutButton;
+    QMap<int, QVector<QPointF> > curveMap;
+
+    // 保存不同的缩放级设置值
+    QVector<PlotSettings> zoomStack;
+    // 在这个 zoomStack 中保存 PlotSettings 的当前索引值
+    int curZoom;
+    bool rubberBandIsShown;
+    QRect rubberBandRect;
+
+    // 这个变量对整个窗口部件的绘制数据进行了复制保存
+    //，这和屏幕上显示的图形时相同的。绘图区总是现在脱屏像素映射上绘制图形。
+    // 然后，才把这一像素复制到窗口部件中。
+    QPixmap pixmap;
+};
+
+// 给定了 x 轴和 y 轴的范围，以及在这些轴上刻度标记符的数量。
+class PlotSettings
+{
+public:
+    PlotSettings();
+
+    void scroll(int dx, int dy);
+    void adjust();
+    double spanX() const { return maxX - minX; }
+    double spanY() const { return maxY - minY; }
+
+    double minX;
+    double maxX;
+    int numXTicks;
+    double minY;
+    double maxY;
+    int numYTicks;
+
+private:
+    static void adjustAxis(double &min, double &max, int &numTicks);
+};
+
+#endif
+```
+
+### Plotter.cpp
+```c++
+#include <QtWidgets>
+#include <cmath>
+
+#include "Plotter.h"
+
+Plotter::Plotter(QWidget *parent)
+    : QWidget(parent)
+{
+    // 设置一种默认颜色
+    setBackgroundRole(QPalette::Dark);
+    // 设置自动填充背景
+    // If enabled, this property will cause Qt to fill the background of
+    // the widget before invoking the paint event
+    setAutoFillBackground(true);
+    // 告诉负责这个窗口布局的任意布局管理器，这个窗口部件可以放大，也可以缩小。
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    //调用可以让窗口部件通过单击或者通过按下 Tab 按键而输入焦点。
+    // 当 Plotter 获得焦点时，它将会接收由按键产生的事件。
+    // Plotter 窗口部件可以处理一些按键：“+” 用来放大图形，“-” 用来缩小图形，
+    // 以及还可以使用四个方向键来上、下、左、右地滚动图形。
+    setFocusPolicy(Qt::StrongFocus);
+    rubberBandIsShown = false;
+
+    // 由于没有使用任何布局，所以必须通过对 QToolButton 的构造函数传递
+    // 一个 this 指针来明确指定这些按钮所在的父对象。
+    zoomInButton = new QToolButton(this);
+    zoomInButton->setIcon(QIcon(":/images/zoomin.png"));
+    // 可以把它们的大小设置成大小提示所给定的大小。
+    zoomInButton->adjustSize();
+    connect(zoomInButton, SIGNAL(clicked()), this, SLOT(zoomIn()));
+
+    zoomOutButton = new QToolButton(this);
+    zoomOutButton->setIcon(QIcon(":/images/zoomout.png"));
+    zoomOutButton->adjustSize();
+    connect(zoomOutButton, SIGNAL(clicked()), this, SLOT(zoomOut()));
+
+    setPlotSettings(PlotSettings());
+}
+
+
+// 用于指定显示绘图区所用到的 PlotSettings
+void Plotter::setPlotSettings(const PlotSettings &settings)
+{
+    zoomStack.clear();
+    zoomStack.append(settings);
+    curZoom = 0;
+    zoomInButton->hide();
+    zoomOutButton->hide();
+    refreshPixmap();
+}
+
+// 图形放大后，可以使用这个 zoomOut() 槽进行缩小
+void Plotter::zoomOut()
+{
+    if (curZoom > 0) {
+        --curZoom;
+        zoomOutButton->setEnabled(curZoom > 0);
+        zoomInButton->setEnabled(true);
+        zoomInButton->show();
+        refreshPixmap();
+    }
+}
+
+// 如果用户在此之前已经放大过图形并且又缩小了图形，那么用于下一缩放级数的 PlotSettings
+// 将会放在这个缩放堆栈中，因而就可以放大图形
+void Plotter::zoomIn()
+{
+    if (curZoom < zoomStack.count() - 1) {
+        ++curZoom;
+        zoomInButton->setEnabled(curZoom < zoomStack.count() - 1);
+        zoomOutButton->setEnabled(true);
+        zoomOutButton->show();
+        refreshPixmap();
+    }
+}
+
+// 设置了用于给定曲线 ID 中的数据
+void Plotter::setCurveData(int id, const QVector<QPointF> &data)
+{
+    curveMap[id] = data;
+    refreshPixmap();
+}
+
+// 从 curveMap 中移除一条给定的曲线
+void Plotter::clearCurve(int id)
+{
+    curveMap.remove(id);
+    refreshPixmap();
+}
+
+// 指定一个窗口部件理想的最小大小。
+// 布局绝不会把一个窗口部件的大小修改为比它最小大小提示还要小的大小
+QSize Plotter::minimumSizeHint() const
+{
+    // 返回的这个值，可以在 4 条边上留出一些空白区域，也可以为图形本身留出一些空间。
+    // 如果小于这个大小，那么该绘图区就会显得太小了
+    //，也就没有什么用处了
+    return QSize(6 * Margin, 4 * Margin);
+}
+
+// 指定一个窗口部件的理想大小
+QSize Plotter::sizeHint() const
+{
+    return QSize(12 * Margin, 8 * Margin);
+}
+
+void Plotter::paintEvent(QPaintEvent * /* event */)
+{
+    QStylePainter painter(this);
+    // 在这里，图形区的所有绘制任务都在之前的 refreshPixmap() 中完成了
+    //，所以只需简单的通过把该像素映射复制到窗口部件的 (0,0) 位置处来完成整个图形的绘制工作。
+    painter.drawPixmap(0, 0, pixmap);
+
+    if (rubberBandIsShown) {
+        // 把橡皮筋选择框绘制在图形区的顶部
+
+        // palette().light() 可以与 drak 形成很好的反差
+        painter.setPen(palette().light().color());
+
+        // 使用 QRect::normalized() 可以确保这个橡皮筋选择框的宽度和高度都是正值
+        // adjust() 可以把矩形的大小减去一个像素，以允许它具有 1 像素的轮廓
+        painter.drawRect(rubberBandRect.normalized()
+                                       .adjusted(0, 0, -1, -1));
+    }
+
+    if (hasFocus()) {
+        // 拥有焦点
+        QStyleOptionFocusRect option;
+        option.initFrom(this);
+        option.backgroundColor = palette().dark().color();
+        // 绘制焦点选择框
+        painter.drawPrimitive(QStyle::PE_FrameFocusRect, option);
+    }
+}
+
+// “重定义大小”事件
+// 在 Plotter 的构造函数中，没有为按钮设置任何位置。
+// 但这并不是什么问题，因为在窗口部件第一次显示之前，Qt 总是会自动产生一个重定义大小事件。
+void Plotter::resizeEvent(QResizeEvent * /* event */)
+{
+    int x = width() - (zoomInButton->width()
+                       + zoomOutButton->width() + 10);
+    zoomInButton->move(x, 5);
+    zoomOutButton->move(x + zoomInButton->width() + 5, 5);
+    refreshPixmap();
+}
+
+void Plotter::mousePressEvent(QMouseEvent *event)
+{
+    QRect rect(Margin, Margin,
+               width() - 2 * Margin, height() - 2 * Margin);
+
+    if (event->button() == Qt::LeftButton) {
+        if (rect.contains(event->pos())) {
+            rubberBandIsShown = true;
+            rubberBandRect.setTopLeft(event->pos());
+            rubberBandRect.setBottomRight(event->pos());
+            // 对橡皮筋选择框所覆盖的（最小）区域进行强制重绘
+            updateRubberBandRegion();
+            // 把鼠标光标修改成十字光标
+            setCursor(Qt::CrossCursor);
+        }
+    }
+}
+
+void Plotter::mouseMoveEvent(QMouseEvent *event)
+{
+    if (rubberBandIsShown) {
+        updateRubberBandRegion();
+        rubberBandRect.setBottomRight(event->pos());
+        updateRubberBandRegion();
+    }
+}
+
+// 如果用户向上或者向左移动鼠标，那么 rubberBandRect 名义上的右下角看起来
+// 就好像跑到左上角的上面或者左面。如果发生这种情况，那么这个 QRect 就会具有
+// 一个负的宽度或者高度值。因此在 paintEvent() 使用 QRect::normalized()
+// ，从而可以对它的左上角和右下角坐标进行调整，以确保能够获得非负的宽度或者高度值。
+
+
+void Plotter::mouseReleaseEvent(QMouseEvent *event)
+{
+    if ((event->button() == Qt::LeftButton) && rubberBandIsShown) {
+        // 擦除这个橡皮筋选择框
+        rubberBandIsShown = false;
+        updateRubberBandRegion();
+        unsetCursor();
+
+        QRect rect = rubberBandRect.normalized();
+
+        // 或许是用户错误地点击了窗口部件，或者仅仅是为了让窗口部件获得焦点，所以什么也不做。
+        if (rect.width() < 4 || rect.height() < 4)
+            return;
+        rect.translate(-Margin, -Margin);
+
+        // 处理窗口部件坐标系和绘图区坐标系
+        PlotSettings prevSettings = zoomStack[curZoom];
+        PlotSettings settings;
+        double dx = prevSettings.spanX() / (width() - 2 * Margin);
+        double dy = prevSettings.spanY() / (height() - 2 * Margin);
+        settings.minX = prevSettings.minX + dx * rect.left();
+        settings.maxX = prevSettings.minX + dx * rect.right();
+        settings.minY = prevSettings.maxY - dy * rect.bottom();
+        settings.maxY = prevSettings.maxY - dy * rect.top();
+
+        // 圆整这些数据，并且为每根坐标轴找出一个合适的刻度标记符个数
+        settings.adjust();
+
+        zoomStack.resize(curZoom + 1);
+        zoomStack.append(settings);
+        // 放大
+        zoomIn();
+    }
+}
+
+// 当用户按下一个键并且 Plotter 窗口部件拥有焦点时，就会调用 keyPressEvent() 函数。
+void Plotter::keyPressEvent(QKeyEvent *event)
+{
+    switch (event->key()) {
+    case Qt::Key_Plus:
+        zoomIn();
+        break;
+    case Qt::Key_Minus:
+        zoomOut();
+        break;
+    case Qt::Key_Left:
+        zoomStack[curZoom].scroll(-1, 0);
+        refreshPixmap();
+        break;
+    case Qt::Key_Right:
+        zoomStack[curZoom].scroll(+1, 0);
+        refreshPixmap();
+        break;
+    case Qt::Key_Down:
+        zoomStack[curZoom].scroll(0, -1);
+        refreshPixmap();
+        break;
+    case Qt::Key_Up:
+        zoomStack[curZoom].scroll(0, +1);
+        refreshPixmap();
+        break;
+    default:
+        QWidget::keyPressEvent(event);
+    }
+}
+
+// 当转动滚轮（wheel）时，就会产生滚轮事件。绝大多数鼠标只提供一个垂直滚轮
+// ，但是也有一些鼠标还提供了另外一个水平滚轮。对这两种滚轮 Qt 都可以支持。
+// 滚轮事件会到达那些拥有焦点的窗口部件。
+void Plotter::wheelEvent(QWheelEvent *event)
+{
+    // delta() 函数可以返回一个距离，它等于滚轮旋转角度的 8 倍数。
+    // 鼠标通常以 15 度作为步长。
+    int numDegrees = event->delta() / 8;
+    int numTicks = numDegrees / 15;
+
+    if (event->orientation() == Qt::Horizontal) {
+        zoomStack[curZoom].scroll(numTicks, 0);
+    } else {
+        zoomStack[curZoom].scroll(0, numTicks);
+    }
+    refreshPixmap();
+}
+
+// 用来擦除或者重新绘制橡皮筋选择框
+void Plotter::updateRubberBandRegion()
+{
+    QRect rect = rubberBandRect.normalized();
+
+    // 为橡皮筋选择框所覆盖的 4 个矩形区域调用一个绘制事件
+    update(rect.left(), rect.top(), rect.width(), 1);
+    update(rect.left(), rect.top(), 1, rect.height());
+    update(rect.left(), rect.bottom(), rect.width(), 1);
+    update(rect.right(), rect.top(), 1, rect.height());
+}
+
+// 为了更新显示， refreshPixmap() 调用是很有必要的。
+//通常情况下，本可以调用 update() ，但是这里的做法将会稍微有些不同
+// ，因为我们想让 QPixmap 在任意时刻都处于最新状态。在重新生成像素映射之后
+// ， refreshPixmap() 会调用 update(),会把像素映射复制到窗口部件中。
+void Plotter::refreshPixmap()
+{
+    // 把像素映射的大小调整为与窗口部件的大小一样
+    pixmap = QPixmap(size());
+    // 设置填充颜色
+    pixmap.fill(Qt::black); // fill(const QPaintDevice*, const QPoint&) is deprecated
+    //, ignored on Qt 5.0.2，使用后出现绘制雪花点的效果，oops
+
+    // 创建一个 QPainter 在这个像素映射上进行绘制。
+    QPainter painter(&pixmap);
+    // 设置 painter 所使用的画笔、背景色和字体，这些都与 Plotter 窗口部件中的一样
+    painter.initFrom(this);
+    // 绘制
+    drawGrid(&painter);
+    drawCurves(&painter);
+    // 为整个窗口部件预约一个绘制事件
+    update();
+}
+
+// 绘制曲线和坐标轴后面的网格。绘制网格的区域时通过 rect 给定的。
+// 如果窗口部件不够大，不能容纳下这个图形，就会立即返回
+void Plotter::drawGrid(QPainter *painter)
+{
+    QRect rect(Margin, Margin,
+               width() - 2 * Margin, height() - 2 * Margin);
+    if (!rect.isValid())
+        return;
+
+    PlotSettings settings = zoomStack[curZoom];
+    QPen quiteDark = palette().dark().color().light();
+    QPen light = palette().light().color();
+
+    // 绘制了网格的垂直线和沿 x 轴方向上的标记符
+    for (int i = 0; i <= settings.numXTicks; ++i) {
+        int x = rect.left() + (i * (rect.width() - 1)
+                                 / settings.numXTicks);
+        double label = settings.minX + (i * settings.spanX()
+                                          / settings.numXTicks);
+        painter->setPen(quiteDark);
+        painter->drawLine(x, rect.top(), x, rect.bottom());
+        painter->setPen(light);
+        painter->drawLine(x, rect.bottom(), x, rect.bottom() + 5);
+
+        // 对于 drawText() 的调用遵循下面的语法：
+        // painter->drawText(x,y,width,height,alignment,text);
+        // 另外一种具有更好适应性的方法或许应当是使用 QFontMetrics ，其中包含了文本边界框的计算。
+        painter->drawText(x - 50, rect.bottom() + 5, 100, 20,
+                          Qt::AlignHCenter | Qt::AlignTop,
+                          QString::number(label));
+    }
+
+    // 绘制网格的水平线和沿 y 轴方向上的标记符
+    for (int j = 0; j <= settings.numYTicks; ++j) {
+        int y = rect.bottom() - (j * (rect.height() - 1)
+                                   / settings.numYTicks);
+        double label = settings.minY + (j * settings.spanY()
+                                          / settings.numYTicks);
+        painter->setPen(quiteDark);
+        painter->drawLine(rect.left(), y, rect.right(), y);
+        painter->setPen(light);
+        painter->drawLine(rect.left() - 5, y, rect.left(), y);
+        painter->drawText(rect.left() - Margin, y - 10, Margin - 5, 20,
+                          Qt::AlignRight | Qt::AlignVCenter,
+                          QString::number(label));
+    }
+    painter->drawRect(rect.adjusted(0, 0, -1, -1));
+}
+
+// 在网格上绘制这些曲线
+void Plotter::drawCurves(QPainter *painter)
+{
+    static const QColor colorForIds[6] = {
+        Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow
+    };
+    PlotSettings settings = zoomStack[curZoom];
+    QRect rect(Margin, Margin,
+               width() - 2 * Margin, height() - 2 * Margin);
+    if (!rect.isValid())
+        return;
+
+    // 它为包含这些曲线（边白和包围绘图区的框架除外）的矩形设置 QPainter 剪辑区。
+    // 然后 QPainter 将会忽略在这个区域之外的像素绘制操作。
+    painter->setClipRect(rect.adjusted(+1, +1, -1, -1));
+
+    QMapIterator<int, QVector<QPointF> > i(curveMap);
+    while (i.hasNext()) {
+        i.next();
+
+        int id = i.key();
+        QVector<QPointF> data = i.value();
+        QPolygonF polyline(data.count());
+
+        // 把每个 QPointF 都从绘图区坐标系转换到窗口部件坐标系
+        //，并且把它们保存到 polyline 变量中
+        for (int j = 0; j < data.count(); ++j) {
+            double dx = data[j].x() - settings.minX;
+            double dy = data[j].y() - settings.minY;
+            double x = rect.left() + (dx * (rect.width() - 1)
+                                         / settings.spanX());
+            double y = rect.bottom() - (dy * (rect.height() - 1)
+                                           / settings.spanY());
+            polyline[j] = QPointF(x, y);
+        }
+        painter->setPen(colorForIds[uint(id) % 6]);
+        painter->drawPolyline(polyline);
+    }
+}
+
+PlotSettings::PlotSettings()
+{
+    minX = 0.0;
+    maxX = 10.0;
+    numXTicks = 5;
+
+    minY = 0.0;
+    maxY = 10.0;
+    numYTicks = 5;
+}
+
+void PlotSettings::scroll(int dx, int dy)
+{
+    double stepX = spanX() / numXTicks;
+    minX += dx * stepX;
+    maxX += dx * stepX;
+
+    double stepY = spanY() / numYTicks;
+    minY += dy * stepY;
+    maxY += dy * stepY;
+}
+
+// 圆整成 “合适的”数值，并且用于决定每一个坐标轴上应当使用的标记符个数。
+void PlotSettings::adjust()
+{
+    adjustAxis(minX, maxX, numXTicks);
+    adjustAxis(minY, maxY, numYTicks);
+}
+
+// 把它的 min 和 max 参数转换成 “合适的”数值，
+// 并且在给定的  [min,max] 内计算出合适的标记符个数(numTicks)
+void PlotSettings::adjustAxis(double &min, double &max, int &numTicks)
+{
+    const int MinTicks = 4;
+    // 先计算总步长
+    double grossStep = (max - min) / MinTicks;
+    // 找到一个小于或等于这个总步长并且形式为 10^n 的对应值。
+    // 例如：如果总步长为 236,则计算 log(236) = 2.37291... 。
+    // 然后对它取整得到整数 2 ，这样就可以得到 10 ^ 2 =100，
+    // 也就是具有形式为 10 ^ n 的一个候选步长值
+    double step = std::pow(10.0, std::floor(std::log10(grossStep)));
+
+    // 一旦获得了第一个步长候选值，就可以使用它计算两外两种形式的候选值： 2 x 10^n 和 5 x 10^n 。
+    if (5 * step < grossStep) {
+        step = step * 5;
+    } else if (2 * step < grossStep) {
+        step = step * 2;
+    }
+
+    // 利用这个步长值，就可以很容易推算出 numTicks、min 和 max 的值。
+    numTicks = int(std::ceil(max / step) - std::floor(min / step));
+    if (numTicks < MinTicks)
+        numTicks = MinTicks;
+    min = std::floor(min / step) * step;
+    max = std::ceil(max / step) * step;
+
+    // 这种算法在有些情况下给出的并不是最佳结果。
+    // 发表在 "Graphics Gems"(Morgan Kaufmann,1990)  上的
+    // Paul S.Heckbert 的文章 "Nice Number for Graph Labels "中
+    // ，描述了一个复杂的算法。
+  }
+```
+
+
 ## Link
 * [qt5-book-code/chap05/](https://github.com/mutse/qt5-book-code/tree/master/chap05)
+
 [上一级](README.md)
 [上一篇](4_SpreadSheet.md)
 [下一篇](14_multiThread.md)
