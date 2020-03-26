@@ -1107,4 +1107,4 @@ void PlotSettings::adjustAxis(double &min, double &max, int &numTicks)
 
 [上一级](README.md)
 [上一篇](4_SpreadSheet.md)
-[下一篇](14_multiThread.md)
+[下一篇](6_layoutManage.md)
