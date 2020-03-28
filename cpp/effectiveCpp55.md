@@ -4,24 +4,27 @@
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [Effective c++ 改善程序与设计的55个具体做法](#effective-c-改善程序与设计的55个具体做法)
-	* [让自己习惯 c++](#让自己习惯-c)
-		* [条款 01：视 C++ 为一个语言联邦](#条款-01视-c-为一个语言联邦)
-		* [条款 02：尽量以 const,enum,inline 替换 #define](#条款-02尽量以-constenuminline-替换-define)
-		* [条款 03：尽可能使用 const](#条款-03尽可能使用-const)
-			* [const 成员函数](#const-成员函数)
-			* [在 const 和 non-const 成员函数中避免重复](#在-const-和-non-const-成员函数中避免重复)
-		* [条款 04：确定对象被使用前已先被初始化](#条款-04确定对象被使用前已先被初始化)
-			* [请以 local static 对象替换 non-local static 对象](#请以-local-static-对象替换-non-local-static-对象)
-	* [构造/析构/赋值运算](#构造析构赋值运算)
-		* [条款 05： 了解 c++ 默默编写并调用的哪些函数](#条款-05-了解-c-默默编写并调用的哪些函数)
-		* [条款 06： 若不想使用编译器自动生成的函数，就该明确拒绝](#条款-06-若不想使用编译器自动生成的函数就该明确拒绝)
-		* [条款 07：为多态基类声明 virtual 析构函数](#条款-07为多态基类声明-virtual-析构函数)
-		* [条款 08：别让异常逃离析构函数](#条款-08别让异常逃离析构函数)
-		* [条款 09：绝不在构造和析构过程中调用 virtual 函数](#条款-09绝不在构造和析构过程中调用-virtual-函数)
-		* [条款 10：令 operator= 返回一个 reference to * this](#条款-10令-operator-返回一个-reference-to-this)
-		* [条款 11：在 operator= 中处理“自我赋值”](#条款-11在-operator-中处理自我赋值)
-		* [条款 12：复制对象时务忘其每一个成分](#条款-12复制对象时务忘其每一个成分)
+- [Effective c++ 改善程序与设计的55个具体做法](#effective-c-改善程序与设计的55个具体做法)
+  - [让自己习惯 c++](#让自己习惯-c)
+    - [条款 01：视 C++ 为一个语言联邦](#条款-01视-c-为一个语言联邦)
+    - [条款 02：尽量以 const,enum,inline 替换 #define](#条款-02尽量以-constenuminline-替换-define)
+    - [条款 03：尽可能使用 const](#条款-03尽可能使用-const)
+      - [const 成员函数](#const-成员函数)
+      - [在 const 和 non-const 成员函数中避免重复](#在-const-和-non-const-成员函数中避免重复)
+    - [条款 04：确定对象被使用前已先被初始化](#条款-04确定对象被使用前已先被初始化)
+      - [请以 local static 对象替换 non-local static 对象](#请以-local-static-对象替换-non-local-static-对象)
+  - [构造/析构/赋值运算](#构造析构赋值运算)
+    - [条款 05： 了解 c++ 默默编写并调用的哪些函数](#条款-05-了解-c-默默编写并调用的哪些函数)
+    - [条款 06： 若不想使用编译器自动生成的函数，就该明确拒绝](#条款-06-若不想使用编译器自动生成的函数就该明确拒绝)
+    - [条款 07：为多态基类声明 virtual 析构函数](#条款-07为多态基类声明-virtual-析构函数)
+    - [条款 08：别让异常逃离析构函数](#条款-08别让异常逃离析构函数)
+    - [条款 09：绝不在构造和析构过程中调用 virtual 函数](#条款-09绝不在构造和析构过程中调用-virtual-函数)
+    - [条款 10：令 operator= 返回一个 reference to * this](#条款-10令-operator-返回一个-reference-to-this)
+    - [条款 11：在 operator= 中处理“自我赋值”](#条款-11在-operator-中处理自我赋值)
+    - [条款 12：复制对象时务忘其每一个成分](#条款-12复制对象时务忘其每一个成分)
+  - [资源管理](#资源管理)
+    - [条款 13： 以对象管理资源](#条款-13-以对象管理资源)
+    - [条款 14： 在资源管理类中小心 copying 行为](#条款-14-在资源管理类中小心-copying-行为)
 
 <!-- /code_chunk_output -->
 
@@ -649,7 +652,7 @@ ctor
                  ^
 # 链接错误
 /usr/bin/ld: /tmp/ccE9rBeB.o: in function `Transaction::Transaction()`:
-... :(.text+0x20): undefined reference to `Transaction::logTransaction() const`
+... :(.text+0x20): undefined reference to `Transaction::logTransaction() const \`
 collect2: error: ld returned 1 exit status
 ```
 
@@ -970,6 +973,165 @@ PriorityCustomer& PriorityCustomer::operator=(const PriorityCustomer& rhs)
 * copying 函数应该确保复制“对象内的所有成员变量”及“所有 base class 成分”。
 * 你不该令 copy assignment 操作符调用 copy 构造函数；同样不该令 copy 构造函数调用 copy assignment 操作符。
 * 不要尝试以某个 copying 函数实现另一个 copying 函数。应该将共同机能放进第三个函数中，并由两个 copying 函数共同调用。
+
+## 资源管理
+
+所谓资源就是，一旦用了它，将来必须还给系统。如果不这样，糟糕的事情就会发生。C++ 程序最常使用的资源就是动态分配内存。其他常见的资源还包括 文件描述器(file descriptors)、 互斥锁(mutex locks) 、图形界面中的字型和笔刷、数据库连接、以及网络 sockets 。不论那一种资源，重要的是，当你不再使用它时，必须将它还给系统。
+
+尝试在任何运用情况下都确保以上所言，是件困难的事，但当你考虑到异常、函数内多重回传路径、程序维护员改动软件却没能充分理解随之而来的冲击，态势就很明显了：资源管理的特殊手段还不很充分够用。
+
+本章一开始是一个直接而易懂且基于对像(object-based) 的资源管理办法，建立在 c++ 对构造函数、析构函数、copying 函数的基础上。经验显示，经过训练后严守这些做法，可以几乎消除资源管理问题。
+
+### 条款 13： 以对象管理资源
+
+```c++
+class Investment {...}; // “投资类型” 继承体系中的 root class
+```
+进一步假设，这个程序库系通过一个工厂函数供应我们某特定的 Investment 对象：
+```c++
+Investment * createInvestment();
+// 返回指针，指向 Investment 集成体系内动态分配的对象。调用者有责任删除它。
+// 这里为了简化，刻意不写参数。
+```
+
+```c++
+void f()
+{
+	Investment * pInv = createInvestment();
+
+	...
+
+	delete pInv;
+}
+```
+这看起来妥当，但若干情况下 f 可能无法删除它得自 createInvestment 的投资对象(...)。无论 delete 如何被略过去，我们泄漏的不只是内含投资对象的那块内存，还包括那些投资对象所保存的任何资源。
+
+当然了，谨慎的编写程序可以防止这一类错误，但你必须想想，代码可能会在时间渐渐过去后被修改。单纯依赖“f总是会执行其 delete 语句”是行不通的。
+
+为确保 createInvestment 返回的资源总是被释放，我们需要将资源放进对象内，当控制流离开 f ，该对象的析构函数会自动释放那些资源。实际上这正是隐身于本条款背后的半边想法：把资源放进对象内，我们便可依赖 c++ 的 “析构函数自动调用机制”确保资源被释放。（稍后讨论另半边想法。）
+
+许多资源被动态分配于 heap 内而后被用于单一区块或者函数内。它们应该在控制流离开那个区块或函数时被释放。 [auto_ptr](https://en.cppreference.com/w/cpp/memory/auto_ptr) 正是针对这种形式而设计的特制产品。
+
+eg:
+```c++
+void f()
+{
+	std::auto_ptr<Investment> pInv(createInvestment());
+
+	...
+}
+```
+
+这个简单的例子示范“以对象管理资源”的两个关键想法：
+* 获得资源后立刻放进管理对象内。
+* 管理对象运用析构函数确保资源被释放。
+
+由于 auto_ptr 被销毁时会自动删除它所指之物，所以一定要注意别让多个 auto_ptr 同时指向同一对象。如果真是那样，对象会被删除一次以上，而那会使你的程序搭上驶向“未定义行为”的快速列车上。为了预防这个问题，auto_ptrs 有一个不寻常的特性：若通过 copy 构造函数或 copy assignment 操作符复制它们，它们就会变成 null ,而复制所得的指针将取得资源的唯一拥有权！
+
+这一诡异的复制行为，副加上其底层条件： “受 auto_ptrs 管理的资源必须绝对没有一个以上的 auto_ptr 同时指向它”，意味着 auto_ptrs 并非管理动态分配资源的神兵利器。举个例子，STL 容器要求其元素发挥 “正常的”复制行为，因此这些容器容不得 auto_ptr。
+
+auto_ptr 的替代方案是 "引用计数型智慧指针 (reference-counting smart pointer ,RCSP)"。所谓 RCSP 也是个智能指针，持续追踪共有多少对象指向某笔资源，并在无人指向它时自动删除该资源。 RCSPs 提供的行为类似垃圾回收，不同的是 RCSPs 无法打破环状引用，例如两个其是已经没被使用的对象彼此互指，因而好像还处在 “被使用” 状态。
+
+[shared_ptr](https://en.cppreference.com/w/cpp/memory/shared_ptr) 就是个 RCSP.
+
+```c++
+void f()
+{
+	std::shared_ptr<Investment> pInv(createInvestment());
+	...
+}
+```
+
+这段代码看起来几乎和使用 auto_ptr 的那个版本相同，但 shared_ptr 的复制行为正常多了。
+
+由于 shared_ptr 的复制行为 “一如预期”，它们可被用于 STL 容器以及其他 “auto_ptr 之非正统复制行为并不适用” 的语境上。
+
+auto_ptr 和 shared_ptr 两者都在其析构函数内做 delete 而不是 delete[] 动作。那意味着在动态分配而得到的 array 身上使用 auto_ptr 或 shared_ptr 是个馊主意。尽管如此，可叹的是，那么做仍能够通过编译：
+```c++
+// 馊主意，oops
+std::auto_ptr<std::string> aps(new std::string[10]);
+
+std::shared_ptr<int> spi(new int[1024]);
+```
+如果你还是认为拥有针对数组而设计，类似 auto_ptr 和 shared_ptr 那样的 classes 较好，看看 boost 吧， [boost::scoped_array](https://www.boost.org/doc/libs/1_61_0/libs/smart_ptr/scoped_array.htm)
+和 [boost::shared_array](https://www.boost.org/doc/libs/1_61_0/libs/smart_ptr/shared_array.htm)
+
+本条款也建议：如果你打算手工释放资源，容易发生错误。罐装式的资源管理类如 auto_ptr 和 shared_ptr 往往是比较能够轻松遵循本条款忠告，但有时候你所使用的资源是目前这些预制式 classes 无法妥善管理的。既然如此就需要精巧制作你自己的资源管理类。那并不是非常困难，但的确设计若干你需要考虑的细节。
+
+请记住：
+* 为防止资源泄漏，请使用 RAII 对象，它们在构造函数中获得资源并在析构函数中释放资源。
+* 两个常被使用的 RAII classes 分别是 shared_ptr 和 auto_ptr(在 c++ 11 中被标记为弃用)。前者通常是较佳的选择，因为其 copy 行为比较直观。若选择 auto_ptr ，复制动作会使它（被复制物） 指向 null。
+
+### 条款 14： 在资源管理类中小心 copying 行为
+
+假如建立一个自己的资源管理类 Lock:
+```c++
+class Lock{
+public:
+	explicit Lock(Mutex* pm):mutexPtr(pm)
+	{
+		lock(mutexPtr);
+	}
+	~Lock()
+	{
+		unlock(mutexPtr);
+	}
+private:
+	Mutex * mutexPtr；
+};
+```
+
+客户对 Lock 的用法符合 RAII 方式：
+```c++
+Mutex m;
+...
+
+{
+	Lock m1(&m);
+	...
+}
+```
+这很好，但如果 Lock 对象被复制，会发生什么事？
+
+```c++
+Lock ml1(&m); // 锁定 m
+Lock ml2(ml1); // oops
+```
+
+这是一个一般化问题的特定例子，那个一般问题是每一位 RAII class 作者一定需要面对的： “当一个 RAII 对象被复制，会发生什么事？” 大多数你会选择以下两种可能：
+
+* 禁止复制。如果复制动作对 RAII class 并不合理，你便应该禁止之。eg：
+```c++
+class Lock:private Uncopyable
+{
+	...
+};
+```
+* 对底层资源祭出 “引用计数法”
+比如这样：
+```c++
+class Lock{
+public:
+	// 以某个 Mutex 初始化 shared_ptr 并以 unlock 函数为删除器
+	explicit Lock(Mutex * pm):mutexPtr(pm,unlock)
+	{
+		lock(mutexPtr.get());
+	}
+private:
+	std::shared_ptr<Mutex> mutexPtr;
+};
+```
+
+* 复制底部资源（复制资源管理对象时，进行的是 “深度拷贝”。就像字符串深度拷贝那样）
+* 转移底部资源的拥有权。某些罕见场合下你可能希望确保永远只有一个 RAII 对象指向一个未加工资源，即使 RAII 对象被复制依然如此。此时资源的拥有权会从被复制物转移到目标物。这是 auto_ptr 奉行的复制的意义。
+
+请记住：
+* 复制 RAII 对象必须一并复制它所管理的资源，所以资源的 copying 行为决定 RAII 对象的 copying 行为。
+* 普遍而常见的 RAII class copying 行为是：抑制 copying、施行引用计数法。不过其他行为也可能被实现。
+
+
+
+
 
 [上一级](README.md)
 [上一篇](do_while_false.md)
