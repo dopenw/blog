@@ -25,6 +25,9 @@
   - [资源管理](#资源管理)
     - [条款 13： 以对象管理资源](#条款-13-以对象管理资源)
     - [条款 14： 在资源管理类中小心 copying 行为](#条款-14-在资源管理类中小心-copying-行为)
+    - [条款 15 ：在资源管理类中提供对原始资源的访问](#条款-15-在资源管理类中提供对原始资源的访问)
+    - [条款 16： 成对使用 new 和 delete 时要采取相同形式](#条款-16-成对使用-new-和-delete-时要采取相同形式)
+    - [条款 17：以独立语句将 newed 对象置入智能指针](#条款-17以独立语句将-newed-对象置入智能指针)
 
 <!-- /code_chunk_output -->
 
@@ -1129,6 +1132,197 @@ private:
 * 复制 RAII 对象必须一并复制它所管理的资源，所以资源的 copying 行为决定 RAII 对象的 copying 行为。
 * 普遍而常见的 RAII class copying 行为是：抑制 copying、施行引用计数法。不过其他行为也可能被实现。
 
+### 条款 15 ：在资源管理类中提供对原始资源的访问
+
+```c++
+std::shared_ptr<Investment> pInv(createInvestment());
+```
+假设你希望以某个函数处理 Investment 对象，像这样：
+```c++
+int daysHeld(const Investment* p); //返回投资天数
+```
+
+这时候你需要一个函数可以将 RAII class 对象转换为其所内含之原始资源。有两个做法可以达成目标：
+* 显式转换
+* 隐式转换
+
+std::shared_ptr 和 auto_ptr 都提供一个 get 成员函数，用来执行显示转换，也就是它返回智能指针内部的原始指针：
+```c++
+int days = daysHeld(pInv.get());
+```
+就像（几乎）所有智能指针一样，shared_ptr 和 auto_ptr 也重载了指针取值(pointer defeferencing) 操作符 (operator-> 和 operator*) ,它们允许隐式转换至底部原始指针。
+
+由于有时候还是必须取得 RAII 对象内的原始资源，某些 RAII class 设计者于是联想到 "将油脂涂在滑轨上"，做法是提供一个隐式转换函数。考虑下面：
+```c++
+FontHandle getFont(); // 这是个 c API
+
+void releaseFont(FontHandle fh);
+
+class Font{
+public:
+  explicit Font(FontHandle fh):f(fh)
+  {
+
+  }
+  ~Font()
+  {
+    releaseFont(f);
+  }
+
+private:
+  FontHandle f; // 原始字体资源
+};
+```
+
+假设有大量的与字体相关的 c API ，它们处理的是 FontHandle,那么 “将 Font 对象转换为 FontHandle”会是一种很频繁的需求。Font class 可为此提供一个显式转换函数：
+```c++
+class Font{
+public:
+  ...
+  FontHandle get() const
+  {
+    return f;
+  }
+
+  ...
+};
+```
+
+不幸的是这使得客户每当想要使用 API 时就必须调用 get:
+```c++
+void changeFontSize(FontHandle f,int newSize); // C API
+
+Font f(getFont());
+int newFontSize =0;
+...
+changeFontSize(f.get(),newFontSize);
+```
+
+某些程序员可能会认为，如此这般地到处要求显式转换，足以使人们倒尽胃口，不再愿意使用这个 class ，从而增加了泄漏字体地可能性，而 Font class 的主要设计目的就是为了防止资源泄漏。
+
+另一种方法是令 Font 提供隐式转换函数，转型为 FontHandle:
+```c++
+class Font{
+public:
+  ...
+  operator FontHandle() const //  隐式转换函数
+  {
+    return f;
+  }
+};
+```
+这使得客户调用 C API 时比较轻松且自然：
+```c++
+Font f(getFont());
+int newFontSize =0;
+...
+changeFontSize(f,newFontSize);
+```
+
+但这个隐式转换会增加错误发生机会。假如各户可能会在需要 Font 时意外创建一个 FontHandle:
+```c++
+Font f1(getFont());
+...
+FontHandle f2 = f1; // oops!原意是要拷贝一个 Font 对象
+//，却反而将 f1 隐式转换为其底部的 FontHandle 然后再复制它。
+```
+
+这几乎不会有好下场。
+
+是否该提供一个显式转换函数将 RAII class 隐式转换为其底部的资源，或是应该提供隐式转换，答案主要取决于 RAII class 被设计执行的特定工作，以及它被使用的情况。通常显式转换函数是比较受欢迎的路子，因为它将“非故意之类型转换”的可能性最小化了。然而有时候，隐式转换所带来的“自然用法”也会引发天平倾斜。
+
+请记住：
+* APIs 往往要求访问原始资源，所以每一个 RAII class 应该提供一个 “取得其所管理之资源” 的办法。
+* 对原始资源的访问可能经由显式转换或隐式转换。一般而言显式转换比较安全，但隐式转换对客户比较方便。
+
+### 条款 16： 成对使用 new 和 delete 时要采取相同形式
+
+以下动作有什么错？
+```c++
+std::string * stringArray = new std::string[100];
+
+...
+
+delete stringArray;
+```
+
+delete 的最大问题在于：即将被删除的内存之内究竟存有多少个对象？
+
+实际上这个问题可以更简单些：即将被删除的那个指针，所指的是单一对象或者对象数组？这是个比不可缺的问题，因为单一对象的内存布局一般而言不同于数组的内存布局。
+
+```c++
+std::string * sp1 = new std::string;
+std::string * sp2 = new std::string[100];
+
+...
+delete sp1;
+delete [] sp2;
+```
+
+游戏规则很简单：如果你调用 new 时使用 [],你必须在对应调用 delete 时也使用 []。如果你调用 new 时没有使用 [],那么也不该在对应调用 delete 时使用 [].
+
+这个规则对于希望使用 typedef 的人也很重要，比如这个：
+```c++
+typedef std::string AddressLines[4];
+
+std::string * pa1 = new AddressLines;
+```
+
+那就必须匹配“数组形式”的 delete:
+```c++
+delete pa1; // oops,行为未定义
+delete [] pa1; // good
+```
+为避免诸如此类问题，最好尽量不要对数组形式做 typedef 动作。这很容易达成，因为 c++ STL 含有 string,vector等 template，可将数组的需求降至几乎为0。例如可以：
+```c++
+typedef std::vector<string> AddressLines;
+```
+请记住：
+* 如果你调用 new 时使用 [],必须在对应调用 delete 时也使用 []。如果你调用 new 时没有使用 [],一定不要在相应的 delete 表达式中使用 []
+
+### 条款 17：以独立语句将 newed 对象置入智能指针
+
+```c++
+int priority(); // 处理优先级
+void processWidget(std::shared_ptr<Widget> pw,int priority); // 在动态分配所得的 Widget 上进行某些带优先级的处理
+```
+现在考虑调用 processWidget
+```c++
+processWidget(new Widget,priority()); // 等等，这不能通过编译。
+```
+如果写成这样就可以通过编译：
+```c++
+processWidget(std::shared_ptr<Widget>(new Widget),priority());
+```
+令人惊讶的是，虽然我们在此使用“对象管理式资源”，上述调用取可能泄漏资源。
+
+编译器产出一个 processWidget 调用码之前，必须首先核算即将被传递的各个实参。上述第二个参数只是一个单纯的对 priority 函数的调用，但第一个实参 shared_ptr<Widget>(new Widget) 有两部分组成：
+* 执行 "new Widget" 表达式
+* 调用 shared_ptr 构造函数
+
+于时在调用 processWidget 之前，编译器必须创建代码，做以下三件事：
+* 调用 priority
+* 执行 "new Widget" 表达式
+* 调用 shared_ptr 构造函数
+
+c++ 编译器以什么样的次序完成这些事情呢？弹性很大。这和其他语言如 Jave 和 c# 不同，那两种语言总是以特定次序完成函数参数的核算。可以确定的是 “ new Widget” 一定执行于 shared_ptr 构造函数被调用之前，因为这个表达式的结果还要传递作为 shared_ptr 构造函数的一个实参，但对 priority 的调用可以排在第一或第二或第三执行。如果编译器选择以第二顺位执行它（说不定可因此生成更高效的代码，谁知道！），最终获得这样的操作序列：
+* 执行 "new Widget" 表达式
+* 调用 priority
+* 调用 shared_ptr 构造函数
+现在请你想想，万一对 priority 调用导致异常，会发生什么事情？（oops，将会发生内存泄漏）
+
+避免这类问题的方法很简单：
+```c++
+// 在单独语句内以智能指针存储 newed 所得对象。
+std::shared_ptr<Widget> pw(new Widget);
+
+// 这个调用绝不至于造成泄漏
+processWidget(pw,priority());
+```
+以上代码之所以行得通，因为编译器对于 “跨越语句的各项操作” 没有重新排列的自由（只有在语句内它才拥有那个自由度）。
+
+请记住：
+* 以独立语句将 newed 对象存储于智能指针内。如果不这样做，一旦异常被抛出，有可能导致难以察觉的资源泄漏。
 
 
 
