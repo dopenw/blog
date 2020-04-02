@@ -1087,4 +1087,4 @@ QString Editor::strippedName(const QString &fullFileName)
 
 [上一级](README.md)
 [上一篇](5_createCustomWidget.md)
-[下一篇](14_multiThread.md)
+[下一篇](7_event.md)

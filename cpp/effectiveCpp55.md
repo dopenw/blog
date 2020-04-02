@@ -1300,7 +1300,7 @@ processWidget(std::shared_ptr<Widget>(new Widget),priority());
 * 执行 "new Widget" 表达式
 * 调用 shared_ptr 构造函数
 
-于时在调用 processWidget 之前，编译器必须创建代码，做以下三件事：
+于是在调用 processWidget 之前，编译器必须创建代码，做以下三件事：
 * 调用 priority
 * 执行 "new Widget" 表达式
 * 调用 shared_ptr 构造函数
@@ -1309,6 +1309,7 @@ c++ 编译器以什么样的次序完成这些事情呢？弹性很大。这和�
 * 执行 "new Widget" 表达式
 * 调用 priority
 * 调用 shared_ptr 构造函数
+
 现在请你想想，万一对 priority 调用导致异常，会发生什么事情？（oops，将会发生内存泄漏）
 
 避免这类问题的方法很简单：

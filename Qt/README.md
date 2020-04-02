@@ -6,5 +6,6 @@
 * ### [4. 实现应用程序的功能](4_SpreadSheet.md)
 * ### [5. 创建自定义窗口部件](5_createCustomWidget.md)
 * ### [6. 布局管理](6_layoutManage.md)
+* ### [7. 事件处理](7_event.md)
 * ### [14.多线程](14_multiThread.md)
                            step by steop
