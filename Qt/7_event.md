@@ -8,6 +8,8 @@
   - [重新实现事件处理器](#重新实现事件处理器)
     - [Ticker.h](#tickerh)
     - [Ticker.cpp](#tickercpp)
+  - [安装事件过滤器](#安装事件过滤器)
+  - [处理密集时的响应保持](#处理密集时的响应保持)
 
 <!-- /code_chunk_output -->
 
@@ -217,6 +219,162 @@ QTimer 提供了非常方便的接口，可用于单触发定时器。
   QTimer::singleShot(200, this, SLOT(updateCaption()));
 ```
 
+## 安装事件过滤器
+
+Qt 的事件模式一个非常强大的功能是：QObject 实例在看到它自己的事件之前，可以通过设置另外一个 QObject 实例先监控这些事件。
+
+假定有几个 QLineEdit 组成的 CustomerInfoDialog 窗口部件，并且我们想要使用 space 按键把光标移动到下一个 QLineEdit 中。一种更为直接的解决方案是子类化 QLineEdit 并且重新实现 keyPressEvent() ：
+```c++
+void MyLineEdit::keyPressEvent(QKeyEvent *event)
+{
+  if (event->key() == Qt::Key_Space) {
+    focusNextChild();
+  } else {
+    QLineEdit::keyPressEvent(event);
+  }
+}
+```
+这个方法有一个主要的缺点：如果在窗体中使用了好几种不同类型的窗口部件，我们也必须对他们逐一子类化，以便让他们能够实现相同的行为。一个更好的解决方案是让 CustomerInfoDialog 监视它的子窗口部件中键的按下事件并且在监视代码中实现所需的行为。这种方法可以通过事件过滤器来实现。创建一个事件过滤器：
+1. 通过对目标对象调用installEventFilter() 来注册监视对象。
+2. 在监视对象的 evenFilter() 函数中处理目标对象的事件
+
+eg:
+```c++
+CustomerInfoDialog::CustomerInfoDialog(QWidget *parent)
+: QDialog(parent)
+{
+  ...
+  firstNameEdit->installEventFilter(this);
+  lastNameEdit->installEventFilter(this);
+  cityEdit->installEventFilter(this);
+  phoneNumberEdit->installEventFilter(this);
+}
+```
+
+这个事件过滤器一旦注册，发送给 firstNameEdit、lastNameEdit、cityEdit 和 phoneNumberEdit 窗口部件的事件就会在它们达到目的地之前先发送给 CustomerInfoDialog 的 evenFilter() 函数。
+
+```c++
+bool CustomerInfoDialog::eventFilter(QObject *target, QEvent *event)
+{
+  if (target == firstNameEdit || target == lastNameEdit
+    || target == cityEdit || target == phoneNumberEdit) {
+      if (event->type() == QEvent::KeyPress) {
+        QKeyEvent * keyEvent = static_cast<QKeyEvent * >(event);
+        if (keyEvent->key() == Qt::Key_Space) {
+          focusNextChild();
+          return true;
+        }
+      }
+    }
+    // 这个目标窗口部件也可能是某个基类（比如 QDialog）正在监控的窗口部件。
+    //（在 Qt4.3中，对于 QDialog 来说这不是什么问题。
+    // 然而，其他的一些 Qt 窗口部件类，比如 QScrollArea
+    // ,会因为各种各样的原因对他们自己的子窗口部件进行监控。）
+  return QDialog::eventFilter(target, event);
+}
+```
+
+Qt 提供了 5 个级别的事件处理和事件过滤方法：
+1. 重新实现特殊的事件处理器(eg:mousePressEvent()...)
+2. 重新实现 QObject::event().
+当重新实现 event() 时，必须对那些没有明确处理的情况调用其基类的 event() 函数。
+3. 在 QObject 中安装事件过滤器
+对象一旦使用 installEventFilter() 注册过，对于目标对象的所有事件都会首先发送给这个监视对象的 evenFilter() 函数。如果在同一个对象上安装了多个事件处理器，那么就会按照安装顺序逆序，从最近安装的到最先安装的，依次激活这些事件处理器。
+4. 在 QApplication 对象中安装事件过滤器
+一旦在 qApp （唯一的 QApplication 对象）中注册了事件过滤器，那么应用程序中每个对象的每个事件都会在发送到其他事件过滤器之前，先发送给这个 evenFilter() 函数。这种处理方式对于调试是非常有用的。
+5. 子类化 QApplication 并且重新实现 notify()
+Qt 调用 QApplication::notify() 来发送一个事件。重新实现这个函数是在事件过滤器得到所有事件之前获得它们的唯一方式。事件过滤器通常更有用，因为可以同时有多个事件过滤器，而 notify() 函数却只能有一个。
+很多事件类型，包括鼠标事件和按键事件，都可以对他们进行传递。如果在事件到达它的目标对象之前没有得到处理，或者也没有被它自己的目标对象处理，那么就会重复整个事件的过程，但这一次会把目标对象的父对象当作新的目标对象。这样一致继续下去，从父对象再到父对象的父对象，直到这个事件完全得到处理或者到达了最顶层的对象为止。
+
+
+## 处理密集时的响应保持
+当调用 QApplication::exec() 时，就启动了 Qt 的事件循环。在开始的时候，Qt 会发出一些事件命令来显示和绘制窗口部件。在这之后，事件循环就开始运行，它不断检查是否有事件发生并且把这些事件发送给应用程序中的 QObject。
+
+当处理一个事件时，也可能会同时产生一些其他的事件并且会将其追加到Qt 的事件列表中。如果在处理一个特定事件上耗费的时间过多，那么用户界面就会变得无法响应。eg：应用完成一个耗时较长的文件保存。
+
+在此情况下，一种解决方法就是使用多线程。
+一种更为简单的解决方法是在文件保存的代码中频繁调用 QApplication::processEvent()。 这个函数告诉 Qt 处理所有那些还没有被处理的各类事件，然后再将控制权返还给调用者。实际上，QApplication::exec() 就是一个不停调用 processEvent() 函数的 while 循环。
+
+```c++
+bool Spreadsheet::writeFile(const QString &fileName)
+{
+  QFile file(fileName);
+  ...
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  for (int row = 0; row < RowCount; ++row) {
+    for (int column = 0; column < ColumnCount; ++column) {
+      QString str = formula(row, column);
+      if (!str.isEmpty())
+      out << quint16(row) << quint16(column) << str;
+    }
+    qApp->processEvents();
+  }
+  QApplication::restoreOverrideCursor();
+  return true;
+}
+```
+
+使用这个方法存在一个潜在的问题，即用户也许在应用程序还在保存文件的时候就关闭了主窗口，或者甚至在保存文件的时候又一次单击了 File->Save ，这样就可能会产生不可预料的后果。对于这个问题，最简单的解决办法：
+```c++
+qApp->processEvent();
+// 替换为
+qApp->processEvent(QEventLoop::ExcludeUserInputEvents); // 忽略鼠标事件和键盘事件
+```
+
+通常情况下，当需要发生一个长时间运行的操作时，我们希望能够显示一个 [QProgressDialog](https://doc.qt.io/qt-5/qprogressdialog.html) 。 QProgressDialog 有一个进度条，它告诉用户应用程序中的这个操作目前的进度信息。QProgressDialog 还提供了一个 Cancel 按钮，它允许用户取消操作。
+
+```c++
+bool Spreadsheet::writeFile(const QString &fileName)
+{
+  QFile file(fileName);
+  ...
+
+  // 我们没有 对 QProgressDialog 调用 show(),
+  // 这是因为进度对话框会自动调用它
+  // 如果这个操作可以很快完成，QProgressDialog 就会检测到这个情况并且不再显示出来。
+
+  QProgressDialog progress(this);
+  progress.setLabelText(tr("Saving %1").arg(fileName));
+  progress.setRange(0, RowCount);
+  progress.setModal(true);
+
+  for (int row = 0; row < RowCount; ++row) {
+    progress.setValue(row);
+    // 处理任意的重绘事件或者用户任意的鼠标单击或者按键事件（例如，要允许用户可以单击 Cancel）
+    qApp->processEvents();
+
+    if (progress.wasCanceled()) {
+      file.remove();
+      return false;
+    }
+
+    for (int column = 0; column < ColumnCount; ++column) {
+      QString str = formula(row, column);
+      if (!str.isEmpty())
+      out << quint16(row) << quint16(column) << str;
+    }
+  }
+  return true;
+}
+```
+
+除使用多线程和 QProgressDialog 之外，还有一种处理长时间运行操作的完全不同的方法：不是在用户请求的时候执行处理，而是一直推迟到应用程序空闲下来的时候才处理。如果该处理可以被安全中断后继续，那么就可以使用这种方法了，因为我们并不能事先知道应用程序要多长时间后才能闲置下来。
+
+在 Qt 中，通过使用一个 0 毫秒的定时器就可以实现这种方法。只要没有其他尚待处理的事件，就可以触发这个定时器。
+```c++
+void Spreadsheet::timerEvent(QTimerEvent *event)
+{
+  if (event->timerId() == myTimerId) {
+    // 如果 hasPendingEvents() 的返回值是 true ,就停止处理并且把控制权交还给 Qt
+    while (step < MaxStep && !qApp->hasPendingEvents()) {
+      performStep(step);
+      ++step;
+    }
+  } else {
+    QTableWidget::timerEvent(event);
+  }
+}
+```
 
 [上一级](README.md)
 [上一篇](6_layoutManage.md)
