@@ -10,6 +10,7 @@
     - [Ticker.cpp](#tickercpp)
   - [安装事件过滤器](#安装事件过滤器)
   - [处理密集时的响应保持](#处理密集时的响应保持)
+  - [Link](#link)
 
 <!-- /code_chunk_output -->
 
@@ -376,6 +377,9 @@ void Spreadsheet::timerEvent(QTimerEvent *event)
 }
 ```
 
+## Link
+* [qt5-book-code/chap07/](https://github.com/mutse/qt5-book-code/tree/master/chap07)
+
 [上一级](README.md)
 [上一篇](6_layoutManage.md)
-[下一篇](14_multiThread.md)
+[下一篇](8_painter.md)
