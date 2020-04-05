@@ -28,6 +28,8 @@
     - [条款 15 ：在资源管理类中提供对原始资源的访问](#条款-15-在资源管理类中提供对原始资源的访问)
     - [条款 16： 成对使用 new 和 delete 时要采取相同形式](#条款-16-成对使用-new-和-delete-时要采取相同形式)
     - [条款 17：以独立语句将 newed 对象置入智能指针](#条款-17以独立语句将-newed-对象置入智能指针)
+  - [设计与声明](#设计与声明)
+    - [条款 18 ： 让接口容易被正确使用，不易被误用](#条款-18-让接口容易被正确使用不易被误用)
 
 <!-- /code_chunk_output -->
 
@@ -1325,8 +1327,128 @@ processWidget(pw,priority());
 请记住：
 * 以独立语句将 newed 对象存储于智能指针内。如果不这样做，一旦异常被抛出，有可能导致难以察觉的资源泄漏。
 
+## 设计与声明
 
+所谓软件设计，是“令软件做出你希望它做的事情”的步骤和方法，通常以颇为一般性的构想开始，最终演变成十足的细节，以允许特殊接口(interfaces) 的开发。这些接口而后必须转化为 c++ 的声明式。本章将对良好 c++ 接口的设计和声明发起攻势。以或许最重要、适合任何接口设计的一个准则作为开端：“让接口容易被正确使用，不容易被误用”。这个准则设立了一个舞台，让其他更专精的准则对付一个大范围的题目，包括正确性、高效性、封装性、维护性、延展性，以及协议的一致性。
 
+以下准备的材料并不覆盖你需要知道的优良接口设计的每一件事，但它强调某些最重要的考虑，对某些最频繁出现的错误提出警告，为 class 、 function 和 template 设计者经常遭遇的问题提供解答。
+
+### 条款 18 ： 让接口容易被正确使用，不易被误用
+
+c++ 在接口之海漂浮。 function 接口、 class 接口 、 template 接口 ... 每一种接口都是客户与你的代码互动的手段。理想上，如果客户企图使用某个接口而却没有获得他所预期的行为，这个代码不该通过编译；如果代码通过了编译，它的作为就该是客户所想要的。
+
+欲开发一个“容易被正确使用，不易被误用”的接口，首先必须考虑客户会做出什么样的错误。假设你为一个用来表现日期的 class 设计构造函数：
+```c++
+class Date{
+public:
+  Date(int month,int day,int year);
+  ...
+};
+```
+乍见之下这个接口通情达理（至少在美国如此），但他的客户很容易犯下至少两个错误。
+```c++
+// 1. 以错误的次序传递参数
+Date d(30,3,1995); // oops，应该是 "3,30" 而不是 "30,3"
+// 2. 它们可能传递一个无效的月份或天数
+Date d(2,30,1995); // oops,应该是 "3,30" 而不是 "2,30"
+```
+许多客户端错误可以因为导入新类型而获得预防。真的，在防范“不值得拥有的代码”上，类型系统（type system） 是你主要的同盟国。既然这样，就让我们导入简单的外覆类型(wrapper types) 来区别天数、月份和年份，然后于 Date 构造函数中使用这些类型：
+```c++
+struct Day{
+  explicit Day(int d):val(d) {}
+  int val;
+};
+struct Month{
+  explicit Month(int m):val(m) {}
+  int val;
+};
+struct Year{
+  explicit Year(int y):val(y) {}
+  int val;
+};
+
+class Date{
+public:
+  Date(const Month& m,const Day& d,const Year& y);
+  ...
+};
+Date d(30,3,1995); // 错误！不正确的类型
+Date d(Day(30),Month(3),Year(1995)); // 错误！不正确的类型
+Date d(Month(3),Day(30),Year(1995)); // Ok
+```
+令 Day,Month和 Year 成为成熟且经充分锻炼的 classes 并封装其内数据，比简单使用上述的 struct 好。但即使 struct 也已经足够示范：明智而审慎地导入新类型对预防“接口被误用”有神奇疗效。
+
+一旦正确的类型就定位，限制其值有时候是通情达理的。例如一年只有 12 个有效月份，所以 Month 应该反映这一事实。办法之一是利用 enum 表现月份，但 enum 不具备我们希望拥有的类型安全性，例如 enum 可被拿来当一个 int 使用。比较安全的解法是预先定义所有有效的 Month:
+```c++
+class Month{
+public:
+  static Month Jan() {return Month(1);}
+  static Month Feb() {return Month(2);}
+  ...
+  static Month Dec() {return Month(12);}
+  ...
+private:
+  explicit Month(int m); // 阻止生成新的月份。
+  ...                     // 这是月份专属数据
+};
+
+Date d(Month::Mar(),Day(30),Year(1995));
+```
+
+预防客户错误的另一个办法是，限制类型内什么事可以做，什么事不可以做。常见的限制是加上 const 。例如条款3曾经说明为什么 “以 const 修饰 operator * 的返回类型”可阻止客户因“用户自定义类型”而犯错：
+```c++
+if (a * b = c) ... // oops,原意其实是要做一次比较动作！
+```
+下面是另一个一般性准则“让 type 容易被正确使用，不容易被误用”的表现形式：“除非有好理由，否则应该尽量令你的 type 的行为和内置 type 一致”。客户已经知道像 int 这样的 type 有些什么行为，所以你应该努力让你的 type 在合样合理的前提下也有相同的表现。
+
+避免无端与内置类型不兼容，真正的理由是为了提供行为一致的接口。很少有其他性质比得上“一致性”更能导致“接口容易被正确使用”，也很少有其他性质比得上“不一致”更加剧接口的恶化。STL 容器的接口十分一致（虽然不是完美地一致），这使它们非常容易被使用。
+任何接口如果要求客户必须记得做某些事情，就是有着“不正确使用”的倾向，因为客户可能会忘记做那件事。例如条款13 导入了一个 factory 函数，他返回一个指针值向 Investment 继承体系内的一个动态分配对象：
+```c++
+Investment * createInvestment();
+```
+为避免资源泄漏， createInvestment 返回的指针最终必须被删除，但那至少开启了两个客户错误机会：没有删除指针，或删除同一指针超过一次。
+
+许多时候，较佳接口的设计原则是先发制人，eg：
+```c++
+std::shared_ptr<Investment> createInvestment();
+```
+实际上，返回 std::shared_ptr<Investment> 让接口设计者得以阻止一大群客户犯下资源泄漏的错误。
+
+假设 class 设计者期许那些 “从 createInvestment 取得 Investment * 指针”的客户将该指针传递给一个名为 getRidOfInvestment 函数，而不是直接在它身上动刀（使用 delete ）。这样一个接口又开启通往另一个客户错误的大门，该错误是“企图使用错误的资源析构机制”（也就是那 delete 替换 getRidOfInvestment）.
+
+createInvestment 的设计者可以针对此问题先发制人：返回一个“将 getRidOfInvestment 绑定为删除器” 的 shared_ptr.
+
+可以这样：
+```c++
+std::shared_ptr<Investment> pInv(static_cast<Investment * >(0),getRidOfInvestment);
+```
+
+因此，如果我们要实现 createInvestment 使它返回 shared_ptr 并夹带 getRidOfInvestment 函数作为删除器，代码看起来像这样：
+```c++
+std::shared_ptr<Investment> createInvestment()
+{
+  std::shared_ptr<Investment> retVal(static_cast<Investment * >(0),
+          getRidOfInvestment);
+  retVal = ...; // 令 retVal 指向正确对象
+  return retVal;
+}
+```
+
+std::shared_ptr 有一个特别好的性质是：它会自动使用它的“每个指针专属的删除器”，因而消除另一个潜在的客户错误：所谓的 "cross-DLL problem".这个问题发生于“对象在动态连接程序库（DLL）中被new 创建，却在另一个  DLL 内被 delete销毁”。在许多平台上，这一类 “跨 DLL 之 new/delete 成对运用”会导致运行期错误。而 shared_ptr 没有这个问题，因为它缺省的删除器来自 “shared_ptr 诞生所在的那个 DLL”的delete。eg：
+```c++
+std::shared_ptr<Investment> createInvestment()
+{
+  // Stock 派生自 Investment
+  return std::shared_ptr<Investment>(new Stock);
+}
+```
+返回的那个 std::shared_ptr 可被传递给任何其他DLL,无需在意 "cross-DLL problem"。
+
+请记住：
+* 好的接口很容易被正确使用，不容易被误用。你应该在你的所有接口中努力达成这些性质。
+* “促进正确使用” 的办法包括接口的一致性，以及与内置类型的行为兼容。
+* “阻止误用”的办法包括建立新类型、限制类型上的操作，束缚对象值，以及消除客户的资源管理责任。
+* std::shared_ptr 支持自定义删除器。这可防范 DLL 问题，可被用来自动解除互斥锁等等。
 
 [上一级](README.md)
 [上一篇](do_while_false.md)
