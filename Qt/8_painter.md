@@ -9,6 +9,7 @@
   - [坐标系统转换](#坐标系统转换)
     - [OvenTimer.h](#oventimerh)
     - [OvenTimer.cpp](#oventimercpp)
+  - [用 QImage 高质量绘图](#用-qimage-高质量绘图)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -410,6 +411,59 @@ void OvenTimer::draw(QPainter *painter)
 ```
 实现烤箱定时器的另外一个办法是自己计算(x,y) 的位置，使用 sin() ,cos() 函数找到圆上的位置。但之后仍然需要利用移动和旋转并以一定的角度来绘制文本。
 
+
+## 用 QImage 高质量绘图
+绘图时，我们可能要面对速度和准确率折中的问题。例如，在 X11 和 Mac OS X 系统中，要在 QWidget 或 QPixmap 上绘图，需要依赖于平台自带的绘图引擎。在 X11 上，这保证了与 X 服务器的通信限制在一个最小集；仅仅发送绘图命令，而不是图像数据。这一方法的主要缺点是 Qt 受限与平台的内在支持：
+* 在 X11 上，类似反走样以及对分数坐标的支持只有当 X 服务器上存在 X 渲染扩展时才有效。
+* 在 Mac OS X 上，内置的走样绘图引擎使用与 X11 和 windows 不同的算法绘制多边形，绘制结果也稍有不同。
+
+当准确率比效率更为重要的时候，我们可以画到一个 [QImage](https://doc.qt.io/qt-5/qimage.html) 上，然后把结果复制到屏幕上。这样可以总是使用 Qt 自己内置的绘图引擎，在所有平台上得到同样的结果。唯一的限制就是 QImage 在被创建时会用到 QImage::Format_RGB32 或者 QImage::Format_ARGB32_Premultiplied 参数。
+
+预乘 ARGB32 格式与常规的 ARGB32 格式差不多是一样的，不同之处在于 红、绿和蓝通道自左乘 alpha(透明)通道。这意味着，RGB 通道的值，一般是从 0x00 到 0xFF ，变换为从 0x00 到透明通道的值。例如，50% 透明的蓝色用 ARGB32表示为 0x7F0000FF ,但预乘 ARGB32表示为 0x7F00007F。同样的 75% 透明的黑绿用 ARGB32表示为 0x3F008000 ,但预乘 ARGB32表示为 0x3F002000。
+
+即设我们想应用反走样绘制一个窗口部件，并且想在没有 X 渲染扩展的 X11 系统上获得很好的结果。原始的 paintEvent() 处理器，反走样依赖于 X 渲染的代码类似于：
+```c++
+void MyWidget::paintEvent(QPaintEvent *event)
+{
+  QPainter painter(this);
+  painter.setRenderHint(QPainter::Antialiasing, true);
+  draw(&painter);
+}
+```
+使用 Qt 的平台无关的绘图引擎重写窗口部件的 paintEvent() 函数：
+```c++
+// 这种方法在所有平台上产生同样高质量的结果，对于字体渲染，依赖于安装的字体库
+void MyWidget::paintEvent(QPaintEvent *event)
+{
+  // 我们以预乘 ARGB32 格式创建一个跟窗口部件大小一致的 QImage
+  // ,以及一个 QPainter 引用此图像。
+  QImage image(size(), QImage::Format_ARGB32_Premultiplied);
+  QPainter imagePainter(&image);
+  // 初始化画笔背景和字体
+  imagePainter.initFrom(this);
+  imagePainter.setRenderHint(QPainter::Antialiasing, true);
+  imagePainter.eraseRect(rect());
+  draw(&imagePainter);
+  imagePainter.end();
+  QPainter widgetPainter(this);
+  // 把图像复制到窗口部件上
+  widgetPainter.drawImage(0, 0, image);
+}
+```
+
+Qt 的图像引擎的一个特别强大的特性是它支持复合模式。这规范了源和目的像素如何在绘制时复合在一起。该模式可以用于所有绘制操作，包括画笔，画刷，渐变以及图像绘制。
+
+默认的复合模式是 QImage::CompositionMode_sourceOver，这意味着源像素（正在绘制的像素）被混合在目的像素（已存在的像素）上，这样，源图像的透明部分给我们以透明效果。下图列举了应用不同模式在（玻璃钢化时的）风嘴印图像（目的图像）上绘制一个半透明的蝴蝶（源图像）的效果。
+![](../images/8_painter_202004051057_1.png)
+
+使用 QPainter::setCompositionMode() 可以设置各种复合模式。例如，下面就是如何设置蝴蝶和风嘴印图像 XOR 复合模式的代码：
+```c++
+  QImage resultImage = checkerPatternImage;
+  QPainter painter(&resultImage);
+  painter.setCompositionMode(QPainter::CompositionMode_Xor);
+  painter.drawImage(0, 0, butterflyImage);
+```
+值得注意的是，QImage::CompositionMode_Xor 操作也会影响到透明通道。这意味着，如果白色(0xFFFFFFFF)对自己做 XOR 复合，会得到透明色(0x00000000),而不是黑色(0xFF000000)。
 
 ## Link
 * [qt5-book-code/chap08/](https://github.com/mutse/qt5-book-code/tree/master/chap08)
