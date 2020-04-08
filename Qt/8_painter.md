@@ -10,6 +10,8 @@
     - [OvenTimer.h](#oventimerh)
     - [OvenTimer.cpp](#oventimercpp)
   - [用 QImage 高质量绘图](#用-qimage-高质量绘图)
+  - [基于项的图形视图](#基于项的图形视图)
+    - [图标编辑器](#图标编辑器)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -465,6 +467,762 @@ Qt 的图像引擎的一个特别强大的特性是它支持复合模式。这�
   painter.drawImage(0, 0, butterflyImage);
 ```
 值得注意的是，QImage::CompositionMode_Xor 操作也会影响到透明通道。这意味着，如果白色(0xFFFFFFFF)对自己做 XOR 复合，会得到透明色(0x00000000),而不是黑色(0xFF000000)。
+
+## 基于项的图形视图
+
+对于用户自定义的窗口部件和绘制一个或者几个项来说，使用 QPainter 是理想的。在绘图中，如果需要处理从几个到几万的项时，而且要求用户能够单击、拖动和选取项，Qt 的视图类提供了这一问题的解决方案。
+
+[Graphics View Examples](https://doc.qt.io/qt-5/examples-graphicsview.html)
+
+Qt 的视图体系包括一个由  [QGraphicsScene](https://doc.qt.io/qt-5/qgraphicsscene.html) 充当的场景和一些
+[QGraphicsItem](https://doc.qt.io/qt-5/qgraphicsitem.html) 的子类充当场景中的项。场景（以及它的项）在视图中显示，这样用户就可以看到了，它由 [QGraphicsView ](https://doc.qt.io/qt-5/qgraphicsview.html) 类充当。同一场景可以在多个视图中显示 - 例如，便于部分的显示一个大的场景，或者以不同的变换来显示场景。eg：
+
+![](../images/8_painter_202004061057_1.png)
+
+Qt 提供了几个预定义的 QGraphicsItem 子类，包括
+* [QGraphicsLineItem](https://doc.qt.io/qt-5/qgraphicslineitem.html)
+* [QGraphicsPixmapItem](https://doc.qt.io/qt-5/qgraphicspixmapitem.html)
+* [QGraphicsSimpleTextItem](https://doc.qt.io/qt-5/qgraphicssimpletextitem.html)（用于纯文本）
+* [QGraphicsTextItem](https://doc.qt.io/qt-5/qgraphicstextitem.html)(用于多文本)
+* ...
+
+![](../images/8_painter_202004061057_2.png)
+
+QGraphicsScene 是一个图形项的集合。一个场景有三层：背景层(background layer)、顶层(item layer)、前景层(foreground layer)。背景层和前景层通常由 QBrush 指定，但也可能需要重新实现 drawBackground() 和 drawForeground()。如果想要一个图片作为背景，可以简单地创建该图片作为 QBrush 纹理。前景画刷可以设置成半透明的白色，给人一种褪色的效果，或者设置成交叉模式，提供一种格子覆盖的效果。
+
+场景可以告诉我们哪些项是重叠的，哪些是被选取的，以及哪些是在一个特定的点处，或者在一个特定的区域内。场景中的项或者是最高层的项（场景就是其父对象），或者是子项（它们的父对象是另外的项）。任何应用于项的变换都会自动地应用于子对象。
+
+视图体系提供了两种分组项地方法。一种方法是简单地使一个项成为另一个项的子项。另外一种方法是使用 [QGraphicsItemGroup](https://doc.qt.io/qt-5/qgraphicsitemgroup.html) 。
+
+QGraphicsView 是一窗口部件，这个窗口部件可以显示场景，在需要的情况下提供滚动条，以及影响场景绘制方式的变换能力。这有利于支持缩放和旋转，帮助浏览场景。
+
+默认情况下，QGraphicsView 使用 Qt 内置的二维图形引擎绘图，但这可以改变，在其创建完后调用 setViewport() 可改为使用 OpenGL 窗口部件。
+
+这个体系使用三种不同的坐标系统 - 视口坐标、场景坐标、项坐标 - 而且还包含从一个坐标系统映射到另一个坐标的函数。视口坐标是 QGraphicsView 的坐标。场景坐标是逻辑坐标，用来布置场景中的项。项坐标针对某一项，并且以 (0,0) 点为中心。当在场景中移动项时，项坐标保持不变。在示例应用中，我们常常只关心场景坐标（用于布置上层的项），以及项坐标（用于布置子项和绘制项）。依照本身的坐标系统绘制项意味着我们不用去关心项在场景中的位置或者关心需要应用的变换。
+
+视图类用起来很简单，而且具有很强大的功能；eg：
+1. 一个简单的图标编辑器，我们将看到怎样创建项，以及怎样处理用户交互。
+2. 一个有注解的地图程序，介绍了如何处理大量的地图对象，以及如何以不同的缩放比例高效地绘制它们。
+
+### 图标编辑器
+
+![](../images/8_painter_202004061057_3.png)
+
+该应用程序可以让用户创建节点和 Link。节点就是项，是可以在内部显示文本的圆角矩形，而 Link 是连接两个节点的线。被选中的节点用比不同线粗的虚线边缘表示。
+
+Link.h:
+```c++
+#ifndef LINK_H
+#define LINK_H
+
+#include <QGraphicsLineItem>
+
+QT_BEGIN_NAMESPACE
+class Node;
+QT_END_NAMESPACE
+
+// QGraphicsLineItem 不是 QObject 的子类，
+// 但如果需要在 Link 类中添加信号和槽，
+// 可以使用 QObject 做多重继承
+class Link : public QGraphicsLineItem
+{
+public:
+    Link(Node * fromNode, Node * toNode);
+    ~Link();
+
+    Node * fromNode() const;
+    Node * toNode() const;
+
+    void setColor(const QColor &color);
+    QColor color() const;
+
+    void trackNodes();
+
+private:
+    Node * myFromNode;
+    Node * myToNode;
+};
+
+#endif
+
+```
+
+Link.cpp:
+```c++
+#include <QtWidgets>
+
+#include "Link.h"
+#include "Node.h"
+
+Link::Link(Node *fromNode, Node *toNode)
+{
+    myFromNode = fromNode;
+    myToNode = toNode;
+
+    // 每个节点保存一个 Link 的集合，而且可以保存任意数量的 Link 。
+    myFromNode->addLink(this);
+    myToNode->addLink(this);
+
+    // 图形项有几个标识：但在这种情况下，只需要 Link 可以被选中，从而用户可以选中并删除它。
+    setFlags(QGraphicsItem::ItemIsSelectable);
+
+    // 每个项都有一个 (x,y) 坐标，以及一个 z 值，指定他在场景中的前后位置。因为我们打算
+    // 从一个节点的中心向另一个节点的中心画线，所以给直线一个负的z值，这样它就会被绘制到
+    // 所连接的节点的下面。这样，Link 就是它所连接的节点与最近边框之间的线。
+    setZValue(-1);
+
+    setColor(Qt::darkRed);
+    trackNodes();
+}
+
+Link::~Link()
+{
+    myFromNode->removeLink(this);
+    myToNode->removeLink(this);
+}
+
+Node *Link::fromNode() const
+{
+    return myFromNode;
+}
+
+Node *Link::toNode() const
+{
+    return myToNode;
+}
+
+void Link::setColor(const QColor &color)
+{
+    setPen(QPen(color, 1.0));
+}
+
+QColor Link::color() const
+{
+    return pen().color();
+}
+
+// 在用户拖动一个连接点到一个不同的位置时，用来更新线的端点
+void Link::trackNodes()
+{
+    // QGraphicsItem::pos() 函数返回项相对于场景的位置（针对上层项），或者相对于父项的位置（针对子项）。
+    setLine(QLineF(myFromNode->pos(), myToNode->pos()));
+}
+
+```
+
+
+Node.h:
+```c++
+#ifndef NODE_H
+#define NODE_H
+
+#include <QApplication>
+#include <QColor>
+#include <QGraphicsItem>
+#include <QSet>
+
+QT_BEGIN_NAMESPACE
+class Link;
+QT_END_NAMESPACE
+
+class Node : public QGraphicsItem
+{
+    // 用来给类添加一个  tr() 函数，尽管它不是 QObject 的子类。
+    Q_DECLARE_TR_FUNCTIONS(Node)
+
+public:
+    Node();
+    ~Node();
+
+    void setText(const QString &text);
+    QString text() const;
+    void setTextColor(const QColor &color);
+    QColor textColor() const;
+    // 节点边缘
+    void setOutlineColor(const QColor &color);
+    QColor outlineColor() const;
+    void setBackgroundColor(const QColor &color);
+    QColor backgroundColor() const;
+
+    void addLink(Link * link);
+    void removeLink(Link * link);
+
+    // 自己实现绘图
+    // 视图体系用外接矩形来决定一个项是否需要被绘制。这使得 QGraphicsView 可以很迅速地显示任意大的场景
+    //，尽管此时只有一小部分是可见的。
+    // shape() 用来决定一个点是否在项内，或者是否两个项是重合的。
+    QRectF boundingRect() const override;
+    QPainterPath shape() const override;
+    void paint(QPainter * painter,
+               const QStyleOptionGraphicsItem * option, QWidget * widget) override;
+
+protected:
+    // 允许双击节点修改文字
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * event) override;
+    // 如果节点被移动了，必须确保与其连接的 Link 做相应的更新。每当项的属性（包括其位置）改变时被调用。
+    QVariant itemChange(GraphicsItemChange change,
+                        const QVariant &value) override;
+
+private:
+    // 返回由节点绘制的矩形
+    QRectF outlineRect() const;
+    // 返回一个基于矩形宽度和高度的合适的圆度系数
+    int roundness(double size) const;
+
+    QSet<Link * > myLinks;
+    QString myText;
+    QColor myTextColor;
+    QColor myBackgroundColor;
+    QColor myOutlineColor;
+};
+
+#endif
+```
+
+Node.cpp:
+```c++
+#include <QtWidgets>
+
+#include "Link.h"
+#include "Node.h"
+
+Node::Node()
+{
+    myTextColor = Qt::darkGreen;
+    myOutlineColor = Qt::darkBlue;
+    myBackgroundColor = Qt::white;
+
+    setFlags(ItemIsMovable | ItemIsSelectable);
+}
+
+Node::~Node()
+{
+    foreach (Link *link, myLinks)
+        delete link;
+}
+
+// 无论何时修改了项，都会影响到它的显示，所以必须调用 update() 来安排一个重绘。
+// 例如项的外接矩形可能会改变（因为新的文字可能比现在的文字短或者长），必须在做
+// 影响项的外接矩形的修改之前立即调用 prepareGeometryChange().
+void Node::setText(const QString &text)
+{
+    prepareGeometryChange();
+    myText = text;
+    update();
+}
+
+QString Node::text() const
+{
+    return myText;
+}
+
+void Node::setTextColor(const QColor &color)
+{
+    // 没有必要调用 prepareGeometryChange() ，
+    // 因为项的大小不会受颜色改变的影响。
+    myTextColor = color;
+    // 安排重绘，以便使用新的颜色绘制项
+    update();
+}
+
+QColor Node::textColor() const
+{
+    return myTextColor;
+}
+
+void Node::setOutlineColor(const QColor &color)
+{
+    myOutlineColor = color;
+    update();
+}
+
+QColor Node::outlineColor() const
+{
+    return myOutlineColor;
+}
+
+void Node::setBackgroundColor(const QColor &color)
+{
+    myBackgroundColor = color;
+    update();
+}
+
+QColor Node::backgroundColor() const
+{
+    return myBackgroundColor;
+}
+
+void Node::addLink(Link *link)
+{
+    myLinks.insert(link);
+}
+
+void Node::removeLink(Link *link)
+{
+    myLinks.remove(link);
+}
+
+// 会由 QGraphicsView 调用，以决定是否需要绘制项。
+// 我们使用边缘矩形，但留些额外的边白，因为如果需要绘制边缘，
+// 由这个函数返回的矩形必须留出至少半个画笔宽的距离。
+QRectF Node::boundingRect() const
+{
+    const int Margin = 1;
+    return outlineRect().adjusted(-Margin, -Margin, +Margin, +Margin);
+}
+
+// 由 QGraphicsView 调用，用来做精确的碰撞检测。通常，可以忽略它，由项基于外接矩形自行计算形状。
+// 这里重新实现了它，由其 返回一个 QPainterPath 对象，该对象代表了一个圆角矩形。
+// 因此，如果点击圆角矩形外、外接矩形内的区域则不会选中项。
+QPainterPath Node::shape() const
+{
+    QRectF rect = outlineRect();
+
+    QPainterPath path;
+    path.addRoundRect(rect, roundness(rect.width()),
+                      roundness(rect.height()));
+    return path;
+}
+
+// QStyleOptionGraphicsItem 类型是一个不寻常的类，因为它提供了几个公有成员变量。
+// 这包括当前的布局方向、字体规格、调色板、矩形、状态、变换矩阵和细节级别。
+void Node::paint(QPainter *painter,
+                 const QStyleOptionGraphicsItem *option,
+                 QWidget * /* widget */)
+{
+    QPen pen(myOutlineColor);
+    // 是否被选中
+    if (option->state & QStyle::State_Selected) {
+        pen.setStyle(Qt::DotLine);
+        pen.setWidth(2);
+    }
+    painter->setPen(pen);
+    painter->setBrush(myBackgroundColor);
+
+    QRectF rect = outlineRect();
+    painter->drawRoundRect(rect, roundness(rect.width()),
+                           roundness(rect.height()));
+
+    painter->setPen(myTextColor);
+    painter->drawText(rect, Qt::AlignCenter, myText);
+}
+
+void Node::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+    QString text = QInputDialog::getText(event->widget(),
+                           tr("Edit Text"), tr("Enter new text:"),
+                           QLineEdit::Normal, myText);
+    if (!text.isEmpty())
+        setText(text);
+}
+
+// 一旦用户拖动一个节点，就会调用 itemChange()
+QVariant Node::itemChange(GraphicsItemChange change,
+                          const QVariant &value)
+{
+    if (change == ItemPositionHasChanged) {
+        foreach (Link *link, myLinks)
+            link->trackNodes();
+    }
+    return QGraphicsItem::itemChange(change, value);
+}
+
+QRectF Node::outlineRect() const
+{
+    // 该矩形由 8 像素的边距
+    const int Padding = 8;
+    QFontMetricsF metrics = static_cast<QFontMetricsF>(qApp->font());
+    QRectF rect = metrics.boundingRect(myText);
+    rect.adjust(-Padding, -Padding, +Padding, +Padding);
+    rect.translate(-rect.center());
+    return rect;
+}
+
+// 计算合适的圆角率,确保节点的转角是直径为 12 的 四分之一圆。
+// 圆角的范围必须在 0 （直角形） 到 99 （满圆形）之间。
+int Node::roundness(double size) const
+{
+    const int Diameter = 12;
+    return 100 * Diameter / int(size);
+}
+```
+
+DiagramWindow.h:
+```c++
+#ifndef DIAGRAMWINDOW_H
+#define DIAGRAMWINDOW_H
+
+#include <QMainWindow>
+#include <QPair>
+
+QT_BEGIN_NAMESPACE
+class QAction;
+class QGraphicsItem;
+class QGraphicsScene;
+class QGraphicsView;
+class Link;
+class Node;
+QT_END_NAMESPACE
+
+class DiagramWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    DiagramWindow();
+
+private slots:
+    void addNode();
+    void addLink();
+    void del();
+    void cut();
+    void copy();
+    void paste();
+    void bringToFront();
+    void sendToBack();
+    void properties();
+    void updateActions();
+
+private:
+    typedef QPair<Node * , Node * > NodePair;
+
+    void createActions();
+    void createMenus();
+    void createToolBars();
+    void setZValue(int z);
+    void setupNode(Node * node);
+    Node * selectedNode() const;
+    Link * selectedLink() const;
+    NodePair selectedNodePair() const;
+
+    QMenu * fileMenu;
+    QMenu * editMenu;
+    QToolBar * editToolBar;
+    QAction * exitAction;
+    QAction * addNodeAction;
+    QAction * addLinkAction;
+    QAction * deleteAction;
+    QAction * cutAction;
+    QAction * copyAction;
+    QAction * pasteAction;
+    QAction * bringToFrontAction;
+    QAction * sendToBackAction;
+    QAction * propertiesAction;
+
+    QGraphicsScene * scene;
+    QGraphicsView * view;
+
+    int minZ;
+    int maxZ;
+    int seqNumber;
+};
+
+#endif
+```
+
+DiagramWindow.cpp:
+```c++
+#include <QtWidgets>
+
+#include "diagramwindow.h"
+#include "Link.h"
+#include "Node.h"
+#include "Propertiesdialog.h"
+
+DiagramWindow::DiagramWindow()
+{
+    // 创建一个原点（0,0）宽为 600 ，高为 500 的场景
+    scene = new QGraphicsScene(0, 0, 600, 500);
+
+    view = new QGraphicsView;
+    view->setScene(scene);
+    // 可以通过圈选选中它们
+    view->setDragMode(QGraphicsView::RubberBandDrag);
+    view->setRenderHints(QPainter::Antialiasing
+                         | QPainter::TextAntialiasing);
+    view->setContextMenuPolicy(Qt::ActionsContextMenu);
+    setCentralWidget(view);
+
+    minZ = 0;
+    maxZ = 0;
+    seqNumber = 0;
+
+    createActions();
+    createMenus();
+    createToolBars();
+
+    connect(scene, SIGNAL(selectionChanged()),
+            this, SLOT(updateActions()));
+
+    setWindowTitle(tr("Diagram"));
+    updateActions();
+}
+
+void DiagramWindow::addNode()
+{
+    Node * node = new Node;
+    node->setText(tr("Node %1").arg(seqNumber + 1));
+    setupNode(node);
+}
+
+void DiagramWindow::addLink()
+{
+    NodePair nodes = selectedNodePair();
+    if (nodes == NodePair())
+        return;
+
+    Link * link = new Link(nodes.first, nodes.second);
+    scene->addItem(link);
+}
+
+void DiagramWindow::del()
+{
+    QList<QGraphicsItem * > items = scene->selectedItems();
+    QMutableListIterator<QGraphicsItem * > i(items);
+    while (i.hasNext()) {
+        Link * link = dynamic_cast<Link * >(i.next());
+        if (link) {
+            delete link;
+            i.remove();
+        }
+    }
+
+    qDeleteAll(items);
+}
+
+void DiagramWindow::cut()
+{
+    Node * node = selectedNode();
+    if (!node)
+        return;
+
+    copy();
+    delete node;
+}
+
+void DiagramWindow::copy()
+{
+    Node * node = selectedNode();
+    if (!node)
+        return;
+
+    QString str = QString("Node %1 %2 %3 %4")
+                  .arg(node->textColor().name())
+                  .arg(node->outlineColor().name())
+                  .arg(node->backgroundColor().name())
+                  .arg(node->text());
+    QApplication::clipboard()->setText(str);
+}
+
+void DiagramWindow::paste()
+{
+    QString str = QApplication::clipboard()->text();
+    QStringList parts = str.split(" ");
+
+    if (parts.count() >= 5 && parts.first() == "Node") {
+        Node * node = new Node;
+        node->setText(QStringList(parts.mid(4)).join(" "));
+        node->setTextColor(QColor(parts[1]));
+        node->setOutlineColor(QColor(parts[2]));
+        node->setBackgroundColor(QColor(parts[3]));
+        setupNode(node);
+    }
+}
+
+// 比任何其他节点都靠前
+void DiagramWindow::bringToFront()
+{
+    ++maxZ;
+    setZValue(maxZ);
+}
+
+// 比任何其他节点都靠后
+void DiagramWindow::sendToBack()
+{
+    --minZ;
+    setZValue(minZ);
+}
+
+void DiagramWindow::properties()
+{
+    Node * node = selectedNode();
+    Link * link = selectedLink();
+
+    if (node) {
+        PropertiesDialog dialog(node, this);
+        dialog.exec();
+    } else if (link) {
+        QColor color = QColorDialog::getColor(link->color(), this);
+        if (color.isValid())
+            link->setColor(color);
+    }
+}
+
+void DiagramWindow::updateActions()
+{
+    bool hasSelection = !scene->selectedItems().isEmpty();
+    bool isNode = (selectedNode() != 0);
+    bool isNodePair = (selectedNodePair() != NodePair());
+
+    cutAction->setEnabled(isNode);
+    copyAction->setEnabled(isNode);
+    addLinkAction->setEnabled(isNodePair);
+    deleteAction->setEnabled(hasSelection);
+    bringToFrontAction->setEnabled(isNode);
+    sendToBackAction->setEnabled(isNode);
+    propertiesAction->setEnabled(isNode);
+
+    foreach (QAction *action, view->actions())
+        view->removeAction(action);
+
+    foreach (QAction *action, editMenu->actions()) {
+        if (action->isEnabled())
+            view->addAction(action);
+    }
+}
+
+void DiagramWindow::createActions()
+{
+    exitAction = new QAction(tr("E&xit"), this);
+    exitAction->setShortcut(tr("Ctrl+Q"));
+    connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
+
+    addNodeAction = new QAction(tr("Add &Node"), this);
+    addNodeAction->setIcon(QIcon(":/images/node.png"));
+    addNodeAction->setShortcut(tr("Ctrl+N"));
+    connect(addNodeAction, SIGNAL(triggered()), this, SLOT(addNode()));
+
+    addLinkAction = new QAction(tr("Add &Link"), this);
+    addLinkAction->setIcon(QIcon(":/images/link.png"));
+    addLinkAction->setShortcut(tr("Ctrl+L"));
+    connect(addLinkAction, SIGNAL(triggered()), this, SLOT(addLink()));
+
+    deleteAction = new QAction(tr("&Delete"), this);
+    deleteAction->setIcon(QIcon(":/images/delete.png"));
+    deleteAction->setShortcut(tr("Del"));
+    connect(deleteAction, SIGNAL(triggered()), this, SLOT(del()));
+
+    cutAction = new QAction(tr("Cu&t"), this);
+    cutAction->setIcon(QIcon(":/images/cut.png"));
+    cutAction->setShortcut(tr("Ctrl+X"));
+    connect(cutAction, SIGNAL(triggered()), this, SLOT(cut()));
+
+    copyAction = new QAction(tr("&Copy"), this);
+    copyAction->setIcon(QIcon(":/images/copy.png"));
+    copyAction->setShortcut(tr("Ctrl+C"));
+    connect(copyAction, SIGNAL(triggered()), this, SLOT(copy()));
+
+    pasteAction = new QAction(tr("&Paste"), this);
+    pasteAction->setIcon(QIcon(":/images/paste.png"));
+    pasteAction->setShortcut(tr("Ctrl+V"));
+    connect(pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
+
+    bringToFrontAction = new QAction(tr("Bring to &Front"), this);
+    bringToFrontAction->setIcon(QIcon(":/images/bringtofront.png"));
+    connect(bringToFrontAction, SIGNAL(triggered()),
+            this, SLOT(bringToFront()));
+
+    sendToBackAction = new QAction(tr("&Send to Back"), this);
+    sendToBackAction->setIcon(QIcon(":/images/sendtoback.png"));
+    connect(sendToBackAction, SIGNAL(triggered()),
+            this, SLOT(sendToBack()));
+
+    propertiesAction = new QAction(tr("P&roperties..."), this);
+    connect(propertiesAction, SIGNAL(triggered()),
+            this, SLOT(properties()));
+}
+
+void DiagramWindow::createMenus()
+{
+    fileMenu = menuBar()->addMenu(tr("&File"));
+    fileMenu->addAction(exitAction);
+
+    editMenu = menuBar()->addMenu(tr("&Edit"));
+    editMenu->addAction(addNodeAction);
+    editMenu->addAction(addLinkAction);
+    editMenu->addAction(deleteAction);
+    editMenu->addSeparator();
+    editMenu->addAction(cutAction);
+    editMenu->addAction(copyAction);
+    editMenu->addAction(pasteAction);
+    editMenu->addSeparator();
+    editMenu->addAction(bringToFrontAction);
+    editMenu->addAction(sendToBackAction);
+    editMenu->addSeparator();
+    editMenu->addAction(propertiesAction);
+}
+
+void DiagramWindow::createToolBars()
+{
+    editToolBar = addToolBar(tr("Edit"));
+    editToolBar->addAction(addNodeAction);
+    editToolBar->addAction(addLinkAction);
+    editToolBar->addAction(deleteAction);
+    editToolBar->addSeparator();
+    editToolBar->addAction(cutAction);
+    editToolBar->addAction(copyAction);
+    editToolBar->addAction(pasteAction);
+    editToolBar->addSeparator();
+    editToolBar->addAction(bringToFrontAction);
+    editToolBar->addAction(sendToBackAction);
+}
+
+void DiagramWindow::setZValue(int z)
+{
+    Node * node = selectedNode();
+    if (node)
+        node->setZValue(z);
+}
+
+void DiagramWindow::setupNode(Node *node)
+{
+    node->setPos(QPoint(80 + (100 * (seqNumber % 5)),
+                        80 + (50 * ((seqNumber / 5) % 7))));
+    scene->addItem(node);
+    ++seqNumber;
+
+    scene->clearSelection();
+    node->setSelected(true);
+    // 确保了新节点比任何其他节点都靠前
+    bringToFront();
+}
+
+Node *DiagramWindow::selectedNode() const
+{
+    // 获取被选中的节点列表
+    QList<QGraphicsItem * > items = scene->selectedItems();
+    if (items.count() == 1) {
+        return dynamic_cast<Node * >(items.first());
+    } else {
+        return 0;
+    }
+}
+
+Link *DiagramWindow::selectedLink() const
+{
+    QList<QGraphicsItem * > items = scene->selectedItems();
+    if (items.count() == 1) {
+        return dynamic_cast<Link * >(items.first());
+    } else {
+        return 0;
+    }
+}
+
+DiagramWindow::NodePair DiagramWindow::selectedNodePair() const
+{
+    QList<QGraphicsItem * > items = scene->selectedItems();
+    if (items.count() == 2) {
+        Node * first = dynamic_cast<Node * >(items.first());
+        Node * second = dynamic_cast<Node * >(items.last());
+        if (first && second)
+            return NodePair(first, second);
+    }
+    return NodePair();
+}
+
+```
+
+
 
 ## Link
 * [qt5-book-code/chap08/](https://github.com/mutse/qt5-book-code/tree/master/chap08)
