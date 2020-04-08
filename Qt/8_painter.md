@@ -692,7 +692,7 @@ Node::Node()
     myOutlineColor = Qt::darkBlue;
     myBackgroundColor = Qt::white;
 
-    setFlags(ItemIsMovable | ItemIsSelectable);
+    setFlags(ItemIsMovable | ItemIsSelectable | ItemSendsGeometryChanges);
 }
 
 Node::~Node()
@@ -1226,6 +1226,7 @@ DiagramWindow::NodePair DiagramWindow::selectedNodePair() const
 
 ## Link
 * [qt5-book-code/chap08/](https://github.com/mutse/qt5-book-code/tree/master/chap08)
+* [itemChanged never called on QGraphicsItem](https://stackoverflow.com/questions/8187807/itemchanged-never-called-on-qgraphicsitem)
 
 [上一级](README.md)
 [上一篇](7_event.md)
