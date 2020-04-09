@@ -12,6 +12,7 @@
   - [用 QImage 高质量绘图](#用-qimage-高质量绘图)
   - [基于项的图形视图](#基于项的图形视图)
     - [图标编辑器](#图标编辑器)
+    - [CityScape](#cityscape)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -1221,6 +1222,464 @@ DiagramWindow::NodePair DiagramWindow::selectedNodePair() const
 }
 
 ```
+
+### CityScape
+
+Cityscape 显示了城市中的建筑物、街区和公园的虚拟地图，最为重要的那些建筑会用它们的名字加以标注。它可以让用户通过鼠标和键盘来移动和缩放地图。
+
+![](../images/8_painter_202004091707_1.png)
+
+CityScape.h:
+```c++
+#ifndef CITYSCAPE_H
+#define CITYSCAPE_H
+
+#include <QMainWindow>
+
+QT_BEGIN_NAMESPACE
+class QGraphicsScene;
+class CityView;
+QT_END_NAMESPACE
+
+class Cityscape : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    Cityscape();
+
+private:
+    void generateCityBlocks();
+
+    QGraphicsScene * scene;
+    // 从 QGraphicsView 类派生过来。
+    CityView * view;
+};
+
+#endif
+```
+
+Cityscape.cpp :
+```c++
+#include <QtWidgets>
+
+#include "Annotation.h"
+#include "CityBlock.h"
+#include "CityScape.h"
+#include "CityView.h"
+
+Cityscape::Cityscape()
+{
+    scene = new QGraphicsScene(-22.25, -22.25, 1980, 1980);
+    scene->setBackgroundBrush(QColor(255, 255, 238));
+    generateCityBlocks();
+
+    view = new CityView;
+    view->setScene(scene);
+    setCentralWidget(view);
+
+    setWindowTitle(tr("Cityscape"));
+}
+
+// 生成一副地图，这幅地图包含 2000 个街区和 200 个标注
+void Cityscape::generateCityBlocks()
+{
+    QSet<QString> names;
+    names << "Adams" << "Agnew" << "Arthur" << "Breckinridge"
+          << "Buchanan" << "Burr" << "Bush" << "Calhoun" << "Carter"
+          << "Cheney" << "Cleveland" << "Clinton" << "Colfax"
+          << "Coolidge" << "Curtis" << "Dallas" << "Dawes"
+          << "Eisenhower" << "Fairbanks" << "Fillmore" << "Ford"
+          << "Garfield" << "Garner" << "Gerry" << "Gore" << "Grant"
+          << "Hamlin" << "Harding" << "Harrison" << "Hayes"
+          << "Hendricks" << "Hobart" << "Hoover" << "Humphrey"
+          << "Jackson" << "Jefferson" << "Johnson" << "Kennedy"
+          << "King" << "Lincoln" << "Madison" << "Marshall"
+          << "McKinley" << "Mondale" << "Monroe" << "Morton"
+          << "Nixon" << "Pierce" << "Polk" << "Quayle" << "Reagan"
+          << "Rockefeller" << "Roosevelt" << "Sherman" << "Stevenson"
+          << "Taft" << "Taylor" << "Tompkins" << "Truman" << "Tyler"
+          << "Van Buren" << "Wallace" << "Washington" << "Wheeler"
+          << "Wilson";
+
+    QSetIterator<QString> i(names);
+    for (int y = 0; y < 44; ++y) {
+        for (int x = 0; x < 44; ++x) {
+            int percentile;
+            if (x > 20 && x < 24 && y > 20 && y < 24) {
+                percentile = std::rand() % (std::rand() % 2 != 0
+                                            ? 10 : 100);
+            } else if (x > 18 && x < 26 && y > 18 && y < 26) {
+                percentile = std::rand() % (rand() % 3 != 0
+                                            ? 10 : 100);
+            } else if (x > 15 && x < 29 && y > 15 && y < 29) {
+                percentile = std::rand() % (std::rand() % 5 != 0
+                                            ? 10 : 100);
+            } else {
+                percentile = std::rand() % 100;
+            }
+
+            CityBlock::Kind kind;
+            QString name;
+
+            if (percentile == 0) {
+                kind = CityBlock::Park;
+                name = tr("%1 Park");
+            } else if (percentile <= 2) {
+                kind = CityBlock::SmallBuilding;
+            } else if (percentile <= 4) {
+                kind = CityBlock::Hospital;
+                name = tr("%1 Hospital");
+            } else if (percentile == 5) {
+                kind = CityBlock::Hall;
+                name = tr("%1 Hall");
+            } else if (percentile <= 7) {
+                kind = CityBlock::Building;
+                name = tr("%1 Bldg");
+            } else if (percentile <= 9) {
+                kind = CityBlock::Tower;
+                name = tr("%1 Tower");
+            } else if (percentile <= 15) {
+                kind = CityBlock::LShapedBlock;
+            } else if (percentile <= 30) {
+                kind = CityBlock::LShapedBlockPlusSmallBlock;
+            } else if (percentile <= 70) {
+                kind = CityBlock::TwoBlocks;
+            } else {
+                kind = CityBlock::BlockPlusTwoSmallBlocks;
+            }
+
+            CityBlock * block = new CityBlock(kind);
+            block->setPos(QPointF(x * 44.5, y * 44.5));
+            scene->addItem(block);
+
+            if (!name.isEmpty()) {
+                if (!i.hasNext())
+                    i.toFront();
+
+                bool major = (std::rand() % 10 == 0);
+                Annotation * annotation =
+                        new Annotation(name.arg(i.next()), major);
+                annotation->setPos(block->pos());
+                scene->addItem(annotation);
+            }
+        }
+    }
+}
+```
+
+CityBlock.h:
+```c++
+#ifndef CITYBLOCK_H
+#define CITYBLOCK_H
+
+#include <QColor>
+#include <QGraphicsItem>
+#include <QPainterPath>
+
+QT_BEGIN_NAMESPACE
+class QGradient;
+QT_END_NAMESPACE
+
+class CityBlock : public QGraphicsItem
+{
+public:
+    enum Kind { Park, SmallBuilding, Hospital, Hall, Building, Tower,
+                LShapedBlock, LShapedBlockPlusSmallBlock, TwoBlocks,
+                BlockPlusTwoSmallBlocks };
+
+    CityBlock(Kind kind);
+
+    QRectF boundingRect() const override;
+    void paint(QPainter * painter,
+               const QStyleOptionGraphicsItem * option, QWidget * widget) override;
+
+private:
+    int kind;
+    QColor color;
+    QPainterPath shape;
+};
+
+#endif
+```
+一个城市的街区会有类型、颜色和形状属性。因为城市街区是不可选的，所以不用担心像前面的例子中 Node类那样去重新实现 shape() 函数。
+
+CityBlock.cpp:
+```c++
+#include <QtWidgets>
+#include <cmath>
+
+#include "CityBlock.h"
+
+CityBlock::CityBlock(Kind kind)
+{
+    this->kind = kind;
+
+    // 设置一种随机颜色，并根据需要显示的街区的类型生成一个合适的 QPainterPath.
+    int green = 96 + (std::rand() % 64);
+    int red = 16 + green + (std::rand() % 64);
+    int blue = 16 + (std::rand() % green);
+    color = QColor(red, green, blue);
+
+    if (kind == Park) {
+        color = QColor(192 + (std::rand() % 32), 255,
+                       192 + (std::rand() % 16));
+        shape.addRect(boundingRect());
+    } else if (kind == SmallBuilding) {
+        QRectF block(-7.5, -7.5, 15, 15);
+        block.moveBottomLeft(QPointF((std::rand() % 6) - 3,
+                                     (std::rand() % 6) - 3));
+        shape.addRect(block);
+    } else if (kind == Hospital) {
+        int a = (std::rand() % 6) + 10;
+        int b = (std::rand() % 6) + 10;
+        QPolygonF block;
+        block << QPointF(-5, -a) << QPointF(-5, -5) << QPointF(-10, -5)
+              << QPointF(-10, 5) << QPointF(-5, 5)  << QPointF(-5, 10)
+              << QPointF(5, 10)  << QPointF(5, 5)   << QPointF(b, 5)
+              << QPointF(b, -5)  << QPointF(5, -5)  << QPointF(5, -a);
+        shape.addPolygon(block);
+    } else if (kind == Hall) {
+        int padding1 = (std::rand() % 8) + 2;
+        int padding2 = (std::rand() % 8) + 2;
+        shape.addEllipse(boundingRect().adjusted(+padding1, +padding1,
+                                                 -padding2, -padding2));
+    } else if (kind == Building) {
+        shape.addRect(boundingRect());
+    } else if (kind == Tower) {
+        int padding1 = (std::rand() % 8) + 2;
+        int padding2 = (std::rand() % 8) + 2;
+        shape.addRect(boundingRect().adjusted(+padding1, +padding1,
+                                              -padding2, -padding2));
+    } else if (kind == LShapedBlock
+               || kind == LShapedBlockPlusSmallBlock) {
+        int a = (std::rand() % 6) + 10;
+        int b = (std::rand() % 6) + 10;
+        int s = qMin(a, b) / 2;
+        QPolygonF block;
+        block << QPointF(-a, -a) << QPointF(-a, +a) << QPointF(-s, +a)
+              << QPointF(-s, -s) << QPointF(+b, -s) << QPointF(+b, -a);
+        shape.addPolygon(block);
+        if (kind == LShapedBlockPlusSmallBlock) {
+            int inset = (std::rand() % 4) + 4;
+            shape.addRect(QRectF(-s + inset, -s + inset, a, b));
+        }
+    } else if (kind == TwoBlocks) {
+        int w1 = (std::rand() % 10) + 8;
+        int h1 = (std::rand() % 28) + 8;
+        int w2 = (std::rand() % 10) + 8;
+        int h2 = (std::rand() % 24) + 8;
+        shape.addRect(QRectF(-16, -16, w1, h1));
+        shape.addRect(QRectF(-16 + w1 + 4, -16 + (std::rand() % 4),
+                             w2, h2));
+    } else if (kind == BlockPlusTwoSmallBlocks) {
+        int w1 = (std::rand() % 10) + 8;
+        int h1 = (std::rand() % 28) + 8;
+        int w2 = (std::rand() % 10) + 8;
+        int h2 = (std::rand() % 10) + 8;
+        int w3 = (std::rand() % 6) + 8;
+        int h3 = (std::rand() % 6) + 8;
+        int y = (std::rand() % 4) - 16;
+        shape.addRect(QRectF(-16, -16, w1, h1));
+        shape.addRect(QRectF(-16 + w1 + 4, y, w2, h2));
+        shape.addRect(QRectF(-16 + w1 + 4,
+                             y + h2 + 4 + (std::rand() % 4), w3, h3));
+    }
+}
+
+// 每个街区都会占用一个 40 x 40 的正方形方格，其中心点是 (0,0);
+QRectF CityBlock::boundingRect() const
+{
+    return QRectF(-20, -20, 40, 40);
+}
+
+void CityBlock::paint(QPainter *painter,
+                      const QStyleOptionGraphicsItem *option,
+                      QWidget * /* widget */)
+{
+    // option->levelOfDetail ，1.0 表示以原始大小显示场景，0.5 意味着以原始大小的一半显示场景，
+    // 2.5 表示该显示的大小是原始尺寸的 2.5 倍。
+    // 使用“详细程度”信息可以让我们在那些放得太大以至于不能显示细节的场景中使用更快的绘图算法。
+    // 如果缩放因子比 4.0 小，则使用纯色填充图形
+    if (option->levelOfDetail < 4.0) {
+        painter->fillPath(shape, color);
+    } else {
+        // 使用 QLinearGradient 填充图形，以产生一种奇妙的观照效果。
+        QLinearGradient gradient(QPoint(-20, -20), QPoint(+20, +20));
+        int coeff = 105 + int(std::log(option->levelOfDetail - 4.0));
+        gradient.setColorAt(0.0, color.lighter(coeff));
+        gradient.setColorAt(1.0, color.darker(coeff));
+        painter->fillPath(shape, gradient);
+    }
+}
+```
+
+CityBlock 类很好用，但事实上，当场景缩放时造成项也被缩放，这样就给显示文字的那些项带来了问题。一般情况下，我们不希望文字随着场景缩放。视图体系为这一问题提供了通用的解决方式，即使用 ItemIgnoresTransformations 标识。Annotation 类就使用此标识：
+
+Annotation.h:
+```c++
+#ifndef ANNOTATION_H
+#define ANNOTATION_H
+
+#include <QGraphicsItem>
+
+class Annotation : public QGraphicsItem
+{
+public:
+    Annotation(const QString &text, bool major = false);
+
+    void setText(const QString &text);
+    QString text() const;
+
+    QRectF boundingRect() const override;
+    void paint(QPainter * painter,
+               const QStyleOptionGraphicsItem * option, QWidget * widget) override;
+
+private:
+    QFont font;
+    QString str;
+    // 该注解是主注解还是辅注解，这将影响到字体的大小
+    bool major;
+    double threshold;
+    int y;
+};
+
+#endif
+```
+Annotation.cpp:
+```c++
+#include <QtWidgets>
+#include <cmath>
+
+#include "Annotation.h"
+
+Annotation::Annotation(const QString &text, bool major)
+{
+    font = qApp->font();
+    font.setBold(true);
+    if (major) {
+        // 设置成较大而且加粗的字体
+        font.setPointSize(font.pointSize() + 2);
+        font.setStretch(QFont::SemiExpanded);
+    }
+
+    if (major) {
+        threshold = 0.01 * (40 + (std::rand() % 40));
+    } else {
+        threshold = 0.01 * (100 + (std::rand() % 100));
+    }
+
+    str = text;
+    this->major = major;
+    y = 20 - (std::rand() % 40);
+
+    // 设置 z 的值为 1000，以确保注解显示在最上面，而且使用 ItemIgnoresTransformations
+    // 标识来确保无论场景如何缩放，注解的大小都可以保持不变。
+
+    setZValue(1000);
+    setFlag(ItemIgnoresTransformations, true);
+}
+
+void Annotation::setText(const QString &text)
+{
+    // 文字可能比以前更长或者更短了
+    prepareGeometryChange();
+    str = text;
+    update();
+}
+
+QString Annotation::text() const
+{
+    return str;
+}
+
+QRectF Annotation::boundingRect() const
+{
+    // 根据字体计算出文字的外接矩形
+    QFontMetricsF metrics(font);
+    QRectF rect = metrics.boundingRect(str);
+    rect.moveCenter(QPointF(0, y));
+    // 外接矩形左边和右边的额外像素使文字相对于边框还有一些空间
+    rect.adjust(-4, 0, +4, 0);
+    return rect;
+}
+
+void Annotation::paint(QPainter *painter,
+                       const QStyleOptionGraphicsItem *option,
+                       QWidget * /* widget */)
+{
+    // 如果场景缩小的尺寸超过了注解的阈值，就不再绘制注解。
+    // 如果场景被放得足够大，就事先绘制一个半透明的白色矩形，这有助于在黑色的块上显示文字。
+    if (option->levelOfDetail <= threshold)
+        return;
+
+    painter->setFont(font);
+
+    QRectF rect = boundingRect();
+
+    int alpha = int(30 * std::log(option->levelOfDetail));
+    if (alpha >= 32)
+        painter->fillRect(rect, QColor(255, 255, 255, qMin(alpha, 63)));
+
+    // 我们绘制文字两次，一次用白色，一次用蓝色。白色的文字在水平和竖直方向上平移一个像素来创建一个阴影效果
+    // ，使文字更容易读出来。
+    painter->setPen(Qt::white);
+    painter->drawText(rect.translated(+1, +1), str,
+                      QTextOption(Qt::AlignCenter));
+    painter->setPen(Qt::blue);
+    painter->drawText(rect, str, QTextOption(Qt::AlignCenter));
+}
+```
+
+CityView 类用于提供用户使用鼠标缩放的功能：
+
+CityView.h:
+```c++
+#ifndef CITYVIEW_H
+#define CITYVIEW_H
+
+#include <QGraphicsView>
+
+class CityView : public QGraphicsView
+{
+    Q_OBJECT
+
+public:
+    CityView(QWidget * parent = 0);
+
+protected:
+    void wheelEvent(QWheelEvent * event) override;
+};
+
+#endif
+```
+
+CityView.cpp:
+```c++
+#include <QtWidgets>
+#include <cmath>
+
+#include "CityView.h"
+
+CityView::CityView(QWidget *parent)
+    : QGraphicsView(parent)
+{
+    // 支持通过鼠标拖动来滚动屏幕
+    setDragMode(ScrollHandDrag);
+}
+
+void CityView::wheelEvent(QWheelEvent *event)
+{
+    // 按照滚轴步长的 1.125 倍上下移动场景
+    double numDegrees = -event->delta() / 8.0;
+    double numSteps = numDegrees / 15.0;
+    double factor = std::pow(1.125, numSteps);
+    scale(factor, factor);
+}
+```
+
+这样就完成了两个图形视图的例子。Qt 的图形视图体系内容很多，因此还有很多这里没有篇幅去介绍的。比如支持拖动和释放操作，图形项可以有提示和自定义光标。动画效果可以通过几种方式实现 - 例如，在希望显示动画的项上使用 [QGraphicsItemAnimation](https://doc.qt.io/qt-5/qgraphicsitemanimation.html),使用 [QTimeLine](https://doc.qt.io/qt-5/qtimeline.html) 播放动画。也可以通过继承 QObject(应用多重继承)创建图形项的子类，重新实现 QObject::timeEvent() 显示动画。
+
 
 
 
