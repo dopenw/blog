@@ -13,6 +13,7 @@
   - [基于项的图形视图](#基于项的图形视图)
     - [图标编辑器](#图标编辑器)
     - [CityScape](#cityscape)
+  - [打印](#打印)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -1680,8 +1681,39 @@ void CityView::wheelEvent(QWheelEvent *event)
 
 这样就完成了两个图形视图的例子。Qt 的图形视图体系内容很多，因此还有很多这里没有篇幅去介绍的。比如支持拖动和释放操作，图形项可以有提示和自定义光标。动画效果可以通过几种方式实现 - 例如，在希望显示动画的项上使用 [QGraphicsItemAnimation](https://doc.qt.io/qt-5/qgraphicsitemanimation.html),使用 [QTimeLine](https://doc.qt.io/qt-5/qtimeline.html) 播放动画。也可以通过继承 QObject(应用多重继承)创建图形项的子类，重新实现 QObject::timeEvent() 显示动画。
 
+## 打印
+Qt 中的打印与在 QWidget、QPixmap 或者 QImage 上的绘制非常相似。它包括以下步骤：
+1. 创建一个当作绘制设备的 [QPrinter](https://doc.qt.io/qt-5/qprinter.html)
+2. 弹出一个 [QPrintDialog](https://doc.qt.io/qt-5/qprintdialog.html) 对话框，以允许用户选择打印机并且设置一些选项
+3. 创建一个在 QPrinter 上操作的 QPainter.
+4. 使用 QPainter 绘制一页。
+5. 调用 QPainter::newPage() 来进行下一页的绘制。
+6. 重复步骤 4 和步骤5,直到所有页都被打印为止。
 
+在 Windows 和 Mac OS X 上，QPrinter 会使用系统的打印机驱动程序。在 UNIX 上，它会产生 PostScript 并且把它发送给 lp 或者 lpr 命令【或者是由 QPrinter::setPrintProgram() 设置的其他程序】。QPrinter 也可以通过调用 setOutputFormat(QPrinter::PdfFormat)来生成PDF文件。
 
+一个只有单页打印的简单实例，用于打印一个 QImage ：
+```c++
+void PrintWindow::printImage(const QImage &image)
+{
+  QPrintDialog printDialog(&printer, this);
+  if (printDialog.exec()) {
+    QPainter painter(&printer);
+    QRect rect = painter.viewport();
+    QSize size = image.size();
+    size.scale(rect.size(), Qt::KeepAspectRatio);
+    painter.setViewport(rect.x(), rect.y(),
+    size.width(), size.height());
+    painter.setWindow(image.rect());
+    painter.drawImage(0, 0, image);
+  }
+}
+```
+打印不超过一页的项是非常简单的，但是很多应用程序通常都需要打印多页。对于这些情况，需要一次绘制一页并且调用 newPage() 来前进到下一页。这将会导致一个问题，也就是如何决定可以在一页上打印多少信息。在 Qt 中，由两种方式处理多页文档：
+* 可以把数据转换为 HTML ,并且使用 Qt 的富文本引擎 [QTextDocument](https://doc.qt.io/qt-5/qtextdocument.html) 进行显示
+* 可以执行绘制并且手动分页
+
+在书中讲述了这两种方法的使用，这里暂时略过这两个实例。
 
 ## Link
 * [qt5-book-code/chap08/](https://github.com/mutse/qt5-book-code/tree/master/chap08)
