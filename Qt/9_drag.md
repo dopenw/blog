@@ -452,4 +452,4 @@ void MyTextEditor::mouseReleaseEvent(QMouseEvent *event)
 
 [上一级](README.md)
 [上一篇](8_painter.md)
-[下一篇](14_multiThread.md)
+[下一篇](10_itemViewClass.md)

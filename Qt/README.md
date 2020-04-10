@@ -9,5 +9,6 @@
 * ### [7. 事件处理](7_event.md)
 * ### [8. 二维图形](8_painter.md)
 * ### [9. 拖放](9_drag.md)
+* ### [10. 项视图类](10_itemViewClass.md)
 * ### [14.多线程](14_multiThread.md)
                            step by steop
