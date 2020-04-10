@@ -1721,4 +1721,4 @@ void PrintWindow::printImage(const QImage &image)
 
 [上一级](README.md)
 [上一篇](7_event.md)
-[下一篇](14_multiThread.md)
+[下一篇](9_drag.md)
