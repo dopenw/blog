@@ -5,6 +5,13 @@
 
 - [10. 项视图类](#10-项视图类)
   - [使用项视图的简便类](#使用项视图的简便类)
+    - [FlowChartSymbolPicker](#flowchartsymbolpicker)
+    - [CoordinateSetter](#coordinatesetter)
+    - [SettingsViewer](#settingsviewer)
+  - [使用预定义模型](#使用预定义模型)
+    - [TeamLeadersDialog](#teamleadersdialog)
+    - [DirectoryViewer](#directoryviewer)
+    - [ColorNameDialog](#colornamedialog)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -37,6 +44,7 @@
 
 这一节将说明如何使用这些方便的项视图的子类来显示项。
 
+### FlowChartSymbolPicker
 eg1:一个只读的 QListWidget,流程图符号选择器应用程序，每个项都由一个图标、一段文本和一个唯一的 ID 组成：
 
 ![](../images/10_itemViewClass_202004101733_3.png)
@@ -149,6 +157,7 @@ QIcon FlowChartSymbolPicker::iconForSymbol(const QString &symbolName)
 
 默认情况下，QListWidget 是只读的。如果想让用户编辑这些项，则可以使用 QAbstractItemView::setEditTriggers() 设置这个视图的编辑触发器。例如，QAbstractItemView::AnyKeyPressed 这个设置值的意思是：用户只要一开始输入就进入项的编辑状态。类似地，也可以提供一个 Edit 按钮（还可以提供 Add 和 Delete 按钮），同时使用信号-槽连接，这样就可以使用程序来控制编辑操作了。
 
+### CoordinateSetter
 eg2: 使用一个对话框，它显示的是用户可以编辑的一对(x,y) 坐标。
 
 ![](../images/10_itemViewClass_202004101733_4.png)
@@ -270,6 +279,7 @@ void CoordinateSetter::addRow()
 }
 ```
 
+### SettingsViewer
 eg3:使用 QTreeWidget 显示 Qt 应用程序设置。QTreeWidget 默认是只读的。
 
 ![](../images/10_itemViewClass_202004101733_5.png)
@@ -430,6 +440,373 @@ void SettingsViewer::addChildSettings(QSettings &settings,
 ```
 
 在这一节中所显示的项视图窗口部件允许我们使用和以前的 Qt 版本中类似的方式进行编程：读取要被设置到一个项视图窗口部件中的所有数据、使用项对象呈现数据元素并且回写数据源（如果这些项是可编辑的话）。在后面的几节中，我们将不再局限于这种简单的方式，并且会充分利用 Qt 模型/视图架构的所有好处。
+
+## 使用预定义模型
+
+Qt 提供了几种可以在视图类中使用的预定义模型：
+
+|        预定义模型        |           功能          |
+|:------------------------:|:-----------------------:|
+|     [QStringListModel](https://doc.qt.io/qt-5/qstringlistmodel.html)     |    存储一个字符串列表   |
+|    [QStandardItemModel](https://doc.qt.io/qt-5/qstandarditemmodel.html)    |  存储任意的分层次的数据 |
+|         [QDirModel](https://doc.qt.io/qt-5/qdirmodel.html)        |     封装本地文件系统    |
+|      [QSqlQueryModel](https://doc.qt.io/qt-5/qsqlquerymodel.html)      |   封装一个 SQL 结果集   |
+|      [QSqlTableModel](https://doc.qt.io/qt-5/qsqltablemodel.html)      |     封装一个 SQL 表     |
+| [QSqlRelationalTableModel](https://doc.qt.io/qt-5/qsqlrelationaltablemodel.html) | 利用外键封装一个 SQL 表 |
+|   [QSortFilterProxyModel](https://doc.qt.io/qt-5/qsortfilterproxymodel.html)  | 排序和/或筛选另一个模型 |
+
+这一节将看到如何使用 QStringListModel 、QDirModel 和 QSortFilterProxyModel 。 SQL 模型将会在第13章讲到。
+
+
+### TeamLeadersDialog
+eg：一个简单的对话框，用户可以使用它添加、删除和编辑一个 QStringList ，其中每个字符串都代表一个团队领导。
+
+![](../images/10_itemViewClass_202004111642_1.png)
+
+TeamLeadersDialog.h:
+```c++
+#ifndef TEAMLEADERSDIALOG_H
+#define TEAMLEADERSDIALOG_H
+
+#include <QDialog>
+
+QT_BEGIN_NAMESPACE
+class QDialogButtonBox;
+class QListView;
+class QStringListModel;
+QT_END_NAMESPACE
+
+class TeamLeadersDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    TeamLeadersDialog(const QStringList &leaders, QWidget * parent = 0);
+
+    QStringList leaders() const;
+
+private slots:
+    void insert();
+    void del();
+
+private:
+    QListView * listView;
+    QDialogButtonBox * buttonBox;
+    QStringListModel * model;
+};
+
+#endif
+```
+
+TeamLeadersDialog.cpp:
+```c++
+#include <QtWidgets>
+
+#include "TeamLeadersDialog.h"
+
+TeamLeadersDialog::TeamLeadersDialog(const QStringList &leaders,
+                                     QWidget *parent)
+    : QDialog(parent)
+{
+    // 创建 QStringListModel
+    model = new QStringListModel(this);
+    model->setStringList(leaders);
+
+    // 创建 QListView,并使用刚才创建的模型
+    listView = new QListView;
+    listView->setModel(model);
+
+    // 允许用户简单地通过开始输入或者双击进入编辑字符串的状态
+    // 默认情况下，QListView 中没有任何触发器，这样就使这个视图只读。
+    listView->setEditTriggers(QAbstractItemView::AnyKeyPressed
+                              | QAbstractItemView::DoubleClicked);
+
+    buttonBox = new QDialogButtonBox();
+    QPushButton * insertButton = buttonBox->addButton(tr("&Insert"),
+            QDialogButtonBox::ActionRole);
+    QPushButton * deleteButton = buttonBox->addButton(tr("&Delete"),
+            QDialogButtonBox::ActionRole);
+    buttonBox->addButton(QDialogButtonBox::Ok);
+    buttonBox->addButton(QDialogButtonBox::Cancel);
+
+    connect(insertButton, SIGNAL(clicked()), this, SLOT(insert()));
+    connect(deleteButton, SIGNAL(clicked()), this, SLOT(del()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+
+    QVBoxLayout * mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(listView);
+    mainLayout->addWidget(buttonBox);
+    setLayout(mainLayout);
+
+    setWindowTitle(tr("Team Leaders"));
+}
+
+QStringList TeamLeadersDialog::leaders() const
+{
+    return model->stringList();
+}
+
+void TeamLeadersDialog::insert()
+{
+    int row = listView->currentIndex().row();
+    // 这个插入是在模型中完成的，并且模型会自动更新列表视图。
+    model->insertRows(row, 1);
+
+    // 模型中的每一项数据项都对应一个 “模型索引”，它是由一个 QModelIndex 对象表示的。
+    // 索引有三个组成部分：行、列和它所属的模型的指针。
+    // 在一个一维的列表视图中，列总是 0 。
+    QModelIndex index = model->index(row);
+    // 设置刚刚插入的空白行为列表视图的当前索引
+    listView->setCurrentIndex(index);
+    listView->edit(index);
+}
+
+void TeamLeadersDialog::del()
+{
+    // 因为我们只是想删除当前行，所以可以使用当前索引位置调用 removeRows()
+    // 并且把要删除的行数设置为 1 .
+    // 就像刚才的插入操作一样，我们需要依赖于模型才能够相应地更新这个视图。
+
+    model->removeRows(listView->currentIndex().row(), 1);
+}
+```
+
+### DirectoryViewer
+eg2：一个实例，使用了 QDirModel 类，它封装了计算机的文件系统并且可以显示（或者隐藏）不同的文件属性。可以为这个模型设置应用过滤器，这样就可以根据自己的需要显示不同类型的文件系统条目，并且使用不同的方式对这些条目进行排序。
+
+![](../images/10_itemViewClass_202004111642_2.png)
+
+DirectoryViewer.h:
+```c++
+#ifndef DIRECTORYVIEWER_H
+#define DIRECTORYVIEWER_H
+
+#include <QDialog>
+
+QT_BEGIN_NAMESPACE
+class QDialogButtonBox;
+class QDirModel;
+class QTreeView;
+QT_END_NAMESPACE
+
+class DirectoryViewer : public QDialog
+{
+    Q_OBJECT
+
+public:
+    DirectoryViewer(QWidget * parent = 0);
+
+private slots:
+    void createDirectory();
+    void remove();
+
+private:
+    QTreeView * treeView;
+    QDirModel * model;
+    QDialogButtonBox * buttonBox;
+};
+
+#endif
+```
+
+DirectoryViewer.cpp:
+```c++
+#include <QtWidgets>
+
+#include "DirectoryViewer.h"
+
+DirectoryViewer::DirectoryViewer(QWidget *parent)
+    : QDialog(parent)
+{
+    model = new QDirModel;
+    // 设置可编辑
+    model->setReadOnly(false);
+    // 设置不同的初始排序属性
+    model->setSorting(QDir::DirsFirst | QDir::IgnoreCase | QDir::Name);
+
+    treeView = new QTreeView;
+    treeView->setModel(model);
+    // 这个 QTreeView 的头可以用来提供用户控制的排序功能
+    treeView->header()->setStretchLastSection(true);
+    treeView->header()->setSortIndicator(0, Qt::AscendingOrder);
+    treeView->header()->setSortIndicatorShown(true);
+    // 让用户能够按它们所点击的列进行排序
+    treeView->header()->setSectionsClickable(true); //setClickable(true);
+
+    QModelIndex index = model->index(QDir::currentPath());
+    // 如果需要就打开它的父对象一直到根节点
+    treeView->expand(index);
+    // 滚动到当前项
+    treeView->scrollTo(index);
+    // 确保第一列足够宽，可以显示它的所有条目，而不是使用省略号
+    treeView->resizeColumnToContents(0);
+
+    buttonBox = new QDialogButtonBox(Qt::Horizontal);
+    QPushButton * mkdirButton = buttonBox->addButton(
+            tr("&Create Directory..."), QDialogButtonBox::ActionRole);
+    QPushButton * removeButton = buttonBox->addButton(tr("&Remove"),
+            QDialogButtonBox::ActionRole);
+    buttonBox->addButton(tr("&Quit"), QDialogButtonBox::AcceptRole);
+
+    connect(mkdirButton, SIGNAL(clicked()),
+            this, SLOT(createDirectory()));
+    connect(removeButton, SIGNAL(clicked()), this, SLOT(remove()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+
+    QVBoxLayout * mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(treeView);
+    mainLayout->addWidget(buttonBox);
+    setLayout(mainLayout);
+
+    setWindowTitle(tr("Directory Viewer"));
+}
+
+void DirectoryViewer::createDirectory()
+{
+    QModelIndex index = treeView->currentIndex();
+    if (!index.isValid())
+        return;
+
+    QString dirName = QInputDialog::getText(this,
+                              tr("Create Directory"),
+                              tr("Directory name"));
+    if (!dirName.isEmpty()) {
+        if (!model->mkdir(index, dirName).isValid())
+            QMessageBox::information(this, tr("Create Directory"),
+                    tr("Failed to create the directory"));
+    }
+}
+
+// 试图移除当前项所对应的文件或者目录。也可以使用 QDir 来完成这项操作，
+// 但是 QDirModel 提供了一些对 QModelIndex 起作用的方便函数。
+void DirectoryViewer::remove()
+{
+    QModelIndex index = treeView->currentIndex();
+    if (!index.isValid())
+        return;
+
+    bool ok;
+    if (model->fileInfo(index).isDir()) {
+        ok = model->rmdir(index);
+    } else {
+        ok = model->remove(index);
+    }
+    if (!ok)
+        QMessageBox::information(this, tr("Remove"),
+                tr("Failed to remove %1").arg(model->fileName(index)));
+}
+```
+
+### ColorNameDialog
+
+一个实例用于显示如何使用 QSortFilterProxyModel。和其他预定义模型不同，这个模型封装了一个已经存在了的模型并且对在底层模型和视图之间的传递的数据进行操作。在我们的实例中，底层模型是一个由 Qt 所认识的颜色名称[通过调用 QColor::colorNames()得到]初始化的 QStringListModel。用户可以在 QLineEdit 中输入一个过滤器字符并且使用组合框指定这个字符串被如何解释（作为正则表达式、通配符模式或者固定字符串）。
+
+![](../images/10_itemViewClass_202004111644_1.png)
+
+
+ColorNameDialog.h:
+```c++
+#ifndef COLORNAMESDIALOG_H
+#define COLORNAMESDIALOG_H
+
+#include <QDialog>
+
+QT_BEGIN_NAMESPACE
+class QComboBox;
+class QLabel;
+class QLineEdit;
+class QListView;
+class QSortFilterProxyModel;
+class QStringListModel;
+QT_END_NAMESPACE
+
+class ColorNamesDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    ColorNamesDialog(QWidget * parent = 0);
+
+private slots:
+    void reapplyFilter();
+
+private:
+    QStringListModel * sourceModel;
+    QSortFilterProxyModel * proxyModel;
+    QListView * listView;
+    QLabel * filterLabel;
+    QLabel * syntaxLabel;
+    QLineEdit * filterLineEdit;
+    QComboBox * syntaxComboBox;
+};
+
+#endif
+```
+
+ColorNameDialog.cpp:
+```c++
+#include <QtWidgets>
+
+#include "ColorNamesDialog.h"
+
+ColorNamesDialog::ColorNamesDialog(QWidget *parent)
+    : QDialog(parent)
+{
+    sourceModel = new QStringListModel(this);
+    sourceModel->setStringList(QColor::colorNames());
+
+    proxyModel = new QSortFilterProxyModel(this);
+
+    // 传递底层模型并且告诉这个代理过滤器并且告诉这个代理过滤器
+    // 被应用在初始模型的第 0 列。
+    proxyModel->setSourceModel(sourceModel);
+    proxyModel->setFilterKeyColumn(0);
+
+    listView = new QListView;
+    listView->setModel(proxyModel);
+    listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    filterLabel = new QLabel(tr("&Filter:"));
+    filterLineEdit = new QLineEdit;
+    filterLabel->setBuddy(filterLineEdit);
+
+    syntaxLabel = new QLabel(tr("&Pattern syntax:"));
+    syntaxComboBox = new QComboBox;
+    // QComboBox::addItem() 函数接受一个类型为 QVariant 的可选“数据”参数。
+    // 我们使用它存储和每一项文本对应的 QRegExp::PatternSyntax 值。
+    syntaxComboBox->addItem(tr("Regular expression"), QRegExp::RegExp);
+    syntaxComboBox->addItem(tr("Wildcard"), QRegExp::Wildcard);
+    syntaxComboBox->addItem(tr("Fixed string"), QRegExp::FixedString);
+    syntaxLabel->setBuddy(syntaxComboBox);
+
+    connect(filterLineEdit, SIGNAL(textChanged(const QString &)),
+            this, SLOT(reapplyFilter()));
+    connect(syntaxComboBox, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(reapplyFilter()));
+
+    QGridLayout * mainLayout = new QGridLayout;
+    mainLayout->addWidget(listView, 0, 0, 1, 2);
+    mainLayout->addWidget(filterLabel, 1, 0);
+    mainLayout->addWidget(filterLineEdit, 1, 1);
+    mainLayout->addWidget(syntaxLabel, 2, 0);
+    mainLayout->addWidget(syntaxComboBox, 2, 1);
+    setLayout(mainLayout);
+
+    setWindowTitle(tr("Color Names"));
+}
+
+void ColorNamesDialog::reapplyFilter()
+{
+    QRegExp::PatternSyntax syntax =
+            QRegExp::PatternSyntax(syntaxComboBox->itemData(
+                    syntaxComboBox->currentIndex()).toInt());
+    QRegExp regExp(filterLineEdit->text(), Qt::CaseInsensitive, syntax);
+    // 会激活新的过滤器并且会自动更新视图
+    proxyModel->setFilterRegExp(regExp);
+}
+
+```
 
 
 ## Link
