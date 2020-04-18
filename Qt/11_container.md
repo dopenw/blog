@@ -7,6 +7,12 @@
 - [11. 容器类](#11-容器类)
   - [连续容器](#连续容器)
     - [隐含共享是如何工作的](#隐含共享是如何工作的)
+  - [关联容器](#关联容器)
+  - [通用算法](#通用算法)
+  - [字符串、字节数和 QVariant](#字符串-字节数和-qvariant)
+    - [QString](#qstring)
+    - [QByteArray](#qbytearray)
+    - [QVariant](#qvariant)
 
 <!-- /code_chunk_output -->
 
@@ -261,6 +267,326 @@ str1 = str2;
 
 由于引用计数中的竞争情况，数据共享在多线程程序中通常只是作为一个选项而没有给与关注。使用 Qt，这并不是一个问题。在内部，容器类使用汇编语言指令执行基本的引用计数。通过 [QSharedData](https://doc.qt.io/qt-5/qshareddata.html) 和 [QSharedDataPointer](https://doc.qt.io/qt-5/qshareddatapointer.html) 类，Qt 的用户也可以使用这项技术。
 
+## 关联容器
+
+Qt 提供了两个主要的关联容器类： [QMap<K,T>](https://doc.qt.io/qt-5/qmap.html) 和 QHash<K,T>。
+
+QMap<K,T> 是一个以升序键顺序存储键值对的数据结构。这种排列使它可以提供良好的查找和插入性能以及键序的迭代。
+
+```c++
+// 插入项
+QMap<QString, int> map;
+map.insert("eins", 1);
+map.insert("sieben", 7);
+map.insert("dreiundzwanzig", 23);
+
+// or
+map["eins"] = 1;
+map["sieben"] = 7;
+map["dreiundzwanzig"] = 23;
+```
+[] 操作符可以用于插入也可以用于检索。如果在非常量映射中使用 [] 为一个不存在的键检索值，则会用给定的键和空值创建一个新的项。为了避免意外地创建空值，可以使用 value() 函数替代 [] 操作符来获得项。
+
+```c++
+int val = map.value("dreiundzwanzig");
+```
+
+如果键不存在，则利用值类型的默认构造函数，将返回一个默认值，同时不会创建新的项。对于基本类型和指针类型，将返回 0 值。我们可以指定令一个默认值作为 value() 的第二个参数，eg：
+```c++
+int seconds = map.value("delay", 30);
+
+// 等价于
+int seconds = 30;
+if (map.contains("delay"))
+seconds = map.value("delay");
+```
+
+QMap<K,T> 有一对方便的函数 keys() 和 values() ，它们在处理小数据集时显得特别有用。它们分别返回映射键的 QList 和 映射值 QList。
+
+通过使用 insertMulti() 函数或者 [QMultiMap](https://doc.qt.io/qt-5/qmultimap.html) 方便的子类，可以让多个键值对有相同的键。
+
+```c++
+QMultiMap<int, QString> multiMap;
+multiMap.insert(1, "one");
+multiMap.insert(1, "eins");
+multiMap.insert(1, "uno");
+QList<QString> vals = multiMap.values(1);
+```
+
+[QHash<K,T>](https://doc.qt.io/qt-5/qhash.html) 是一个在哈希表中存储键值对的数据结构。它的接口几乎与 QMap<K,T> 相同，但是与 QMap 相比，他对 K 的模板类型有不同的要求，而且它提供了比 QMap 更快的查找功能。
+
+除了对存储在容器类的的所有值类型的一般要求，QHash<K,T> 中的 K 值类型还需要提供一个 operator== () ,并需要一个能够为键返回哈希值的 全局 qHash() 函数的支持。Qt 已经为 qHash() 函数提供了整形、指针型、QChar、QString以及 QByteArray。
+
+可以通过调用 reserve() 或者 squeeze() 来指定或者压缩希望存储到哈希表中的项的数目，以进行性能调整。通常的做法时利用我们预期的最大的项的数目来调用 reserve() ，然后插入数据，最后如果有多多出的项，则调用 squeeze() 以使内存的使用减到最小。
+
+同样可以使用 insertMulti() 或者 [QMultiHash](https://doc.qt.io/qt-5/qmultihash.html) ,也可以将多个值赋给同一个键。
+
+除了 QHash 之外，Qt 还提供了一个用来高速缓存与键相关联的对象的 [QCache<K,T>](https://doc.qt.io/qt-5/qcache.html) 类以及 [QSet<K>](https://doc.qt.io/qt-5/qset.html) 。 在内部，它们都依赖于 QHash。
+
+关联容器的 Java 风格的迭代器与连续容器在运作上有些差异。
+
+```c++
+QMap<QString, int> map;
+...
+int sum = 0;
+QMapIterator<QString, int> i(map);
+while (i.hasNext())
+  sum += i.next().value();
+
+QMapIterator<QString, int> i(map);
+while (i.hasNext()) {
+  i.next();
+  if (i.value() > largestValue) {
+    largestKey = i.key();
+    largestValue = i.value();
+  }
+}
+
+// Mutable 迭代器
+
+QMutableMapIterator<QString, int> i(map);
+while (i.hasNext()) {
+  i.next();
+  if (i.value() < 0.0)
+  i.setValue(-i.value());
+}
+```
+
+STL 风格的迭代器也提供了 key() 和 value() 函数。对于非常量迭代器类型，value() 返回一个允许在迭代时改动其数值的非常量参数。需要注意的是：尽管这些迭代器被称为 STL 风格，它们却与即于 std::pair<K,T> 的 std::map<K,T> 迭代器有很大差别。
+
+foreach 循环也可以用在关联容器中，但是它仅对键值对上的值分量有效。如果同时需要项中的键和值，可以这样：
+```c++
+QMultiMap<QString, int> map;
+...
+foreach (QString key, map.keys()) {
+  foreach (int value, map.values(key)) {
+    do_something(key, value);
+  }
+}
+```
+
+
+## 通用算法
+
+[\<QtAlgorithm\>](https://doc.qt.io/qt-5/qtalgorithms.html) 的头文件声明了在容器类上实现基本的一套全局模板函数。这些函数中的大部分都是在 STL 风格上的迭代器上工作的。
+
+STL 的 <algorithm> 提供了一套更为完整的通用算法。如果 STL 的实现代码在所有平台上都可以得到，那么在没有对应的 Qt 算法时，就没有理由不使用 STL 算法。
+
+这里不做过多的描述，详情请参考官方文档。
+
+最后，被所有其他的 Qt 首部所包括的 <QtGlobal> 的头文件，为我们提供了一些有用的定义，其中包括返回参数绝对值的 aAbs() 函数，以及 qMain() , qMax() 函数。
+
+## 字符串、字节数和 QVariant
+
+### QString
+c++ 本身提供了两种字符串：传统的 c 语言型的以 '\0' 结尾的字符数组和 std::string 类。与这两种字符串不同，[QString](https://doc.qt.io/qt-5/qstring.html) 支持 16 位 Unicode 值。Unicode 码以 ASCII 码和 Latin-1 码为子集，具有它们常用的数字值。但由于 QString 是 16 位的，它可以表示数千种其他字符以表达世界上绝大多数的语言。关于 Unicode 的更多细节，可以参考第 18 章。
+
+从概念上来说，可以将 QString 看成 [QChar](https://doc.qt.io/qt-5/qchar.html) .QString 可以嵌入 ‘\0’字符。length() 函数会返回包括被嵌入的 '\0' 字符的整个字符串的大小。
+
+```c++
+QString str = "User: ";
+str += userName + "\n";
+
+str = "User: ";
+str.append(userName);
+str.append("\n");
+
+// 这个函数支持与 c++ 库 sprintf() 函数相同的格式说明符
+str.sprintf("%s %.1f%%", "perfect competition", 100.0);
+```
+
+从其他字符串或者数组来建立一个字符串的另一种方法是使用 arg():
+```c++
+str = QString("%1 %2 (%3s-%4s)")
+.arg("permissive").arg("society").arg(1950).arg(1970);
+```
+arg() 的重载可以处理各种数据类型。对于控制字段长度、数值基数或者浮点精度等，一些重载有额外的参数。相较与 sprintf() 而言，arg() 通常是一个更好的解决方案，因为它是类型安全的，完全支持 Unicode 编码，并且允许译码器对 "%n"参数进行重新排序。
+
+通过使用 QString::number() 静态函数，可以将数字转换为字符串：
+```c++
+str = QString::number(59.6);
+
+//Or
+str.setNum(59.6);
+```
+
+还可以使用 toInt() toLongLong() toDouble() ，从字符串转换为数字。
+```c++
+bool ok;
+double d = str.toDouble(&ok);
+```
+
+这些函数接受一个任选的指向 bool 变量的指针，表示转换成功与否。如果转换没有完成，这些函数将返回 0。
+
+mid() 函数返回在给定位置开始且达到给定长度的子串。
+
+```c++
+QString str = "polluter pays principle";
+qDebug() << str.mid(9, 4); // "pay"
+```
+如果省略第二个参数，mid() 函数返回在给定位置开始到字符串末端结束的子串。
+
+[left(int n)](https://doc.qt.io/qt-5/qstring.html#left)
+
+[right(int n)](https://doc.qt.io/qt-5/qstring.html#right)
+
+如果想查明一个字符串是否包含一个特定的字符、子串或者正则表达式，可以使用 indexOf(),eg:
+```c++
+QString str = "the middle bit";
+int i = str.indexOf("middle");
+```
+这会将 i 设置为 4。在失败时，indexOf() 函数返回 -1，并且接收一个可以的开始位置和区分大小写的标记。
+
+如果仅仅想要检查字符串是否以某个字符串开始或者结束，则可以使用 startsWith() 和 endsWith() 函数。
+
+```c++
+if (url.startsWith("http:") && url.endsWith(".png"))
+...
+
+// 这个代码，a...
+if (url.left(5) == "http:" && url.right(4) == ".png")
+...
+```
+
+== 操作符比较是区分大小写的。如果想比较哪种用户可见的字符串， [localeAwareCompare()](https://doc.qt.io/qt-5/qstring.html#localeAwareCompare-1);如果并不区分大小写，则可以使用 toUpper() 或者 toLower() 函数。
+
+```c++
+if (fileName.toLower() == "readme.txt")
+...
+```
+
+如果想使用一个字符串代替另一个字符串中的一部分，可以使用 replace()
+```c++
+QString str = "a cloudy day";
+str.replace(2, 6, "sunny"); // "a sunny day"
+
+// 也可这样实现
+str.remove(2, 6);
+str.insert(2, "sunny");
+
+// 另一个重载版本
+str.replace("&", "&amp;");
+```
+
+我们经常需要删除一个字符串中空白处的空格（比如空格符、制表符、换行符等）。QString 有一个可以从字符串的两端删除空白处的空格的函数：
+```c++
+QString str = "   BOB \t THE \nDOG \n";
+qDebug() << str.trimmed();
+```
+
+![](../images/11_container_202004182114_1.png)
+
+用简单的空格符代替字符串内部每一连续空白处的空格：
+```c++
+QString str = "BOB \t THE \nDOG \n";
+qDebug() << str.simplified();
+```
+
+![](../images/11_container_202004182114_2.png)
+
+使用 [QString::split()](https://doc.qt.io/qt-5/qstring.html#split) 可以把一个字符串分成一些 QStringList 子串：
+```c++
+QString str = "polluter pays principle";
+QStringList words = str.split(" ");
+```
+split() 函数有一个可选的第二个参数，用来指定是否空的子串应该被保留（默认为保留）还是被删除。
+```c++
+QString str = "a,,b,c";
+
+QStringList list1 = str.split(',');
+// list1: [ "a", "", "b", "c" ]
+
+QStringList list2 = str.split(',', QString::SkipEmptyParts);
+// list2: [ "a", "b", "c" ]
+```
+
+使用 [join()](https://doc.qt.io/qt-5/qstringlist.html#join) ,QStringList 中的项可以连接起来形成一个单一的字符串。在每一对被连接的字符串之间都要插入 join() 参数。
+
+```c++
+words.sort();
+str = words.join("\n");
+```
+
+### QByteArray
+
+为了明确将 const char * 转换为 QString ，可以只使用 QString 强制转换，或者调用 fromAscii() 或 fromLatin1()。
+
+要将 QString 转换为 const char* ,可以使用 toAscii() or toLatin1() 函数，它们返回 QByteArray,而且利用 QByteArray::data() or QByteArray::constData() ，可以将 QByteArray 转换为 const char * .eg:
+```c++
+printf("User: %s\n", str.toAscii().data());
+
+// Qt provides the qPrintable() macro that performs the same as the sequencetoAscii().constData():
+
+printf("User: %s\n", qPrintable(str));
+```
+
+QByteArray 类有一个与 QString 很相似的应用程序编程接口。诸如 left() right() mid() toLower() toUpper() trimmed() simplified() 等函数，在 QByteArray 中的语义形式与在 QString 中的相同。QByteArray 对于存储原始的二进制数据即以 8 位编码的文本字符串非常有用。一般来说，我们推荐使用 QString 而不是 QByteArray 来存储文本，因为 QString 支持 Unicode 编码。
+
+为方便起见，QByteArray 自动保证 "最后一个项之后的项”总是'\0'，这使得利用 const char* 可以很容易地将 QByteArray 传递给一个函数。QByteArray 还支持嵌入的 '\0' 字符，已允许我们存储任意的二进制数据。
+
+### QVariant
+
+在某些情况下，我们需要在同一个变量中存储不同类型的数据。一种方法是像 QByteArray 或 QString 一样，对数据进行编码。这些方法很灵活，但是它抛弃了 c++ 的一些优点，尤其是类型的安全性和效率。 Qt 提供了一个更加灵巧的方法，也就是 [QVariant](https://doc.qt.io/qt-5/qvariant.html),来处理那些能够支持不同数据类型的变量。
+
+QVariant 类可以支持多种 Qt 类型的值，基本的 c++ 数字类型，qt 容器类。
+
+通过容器类的嵌套值，可以利用 QVariant 创建任意复杂的数据结构：
+```c++
+QMap<QString, QVariant> pearMap;
+pearMap["Standard"] = 1.95;
+pearMap["Organic"] = 2.25;
+QMap<QString, QVariant> fruitMap;
+fruitMap["Orange"] = 2.10;
+fruitMap["Pineapple"] = 3.85;
+fruitMap["Pear"] = pearMap;
+```
+
+当遍历一个支持 QVariant 的映射时，需要使用 [type()](https://doc.qt.io/qt-5/qvariant.html#type) 来检查变量保存所支持的类型，以便做出适当的反应。
+
+创建这样的数据结构是非常吸引人的，因为能够以任意方式组织数据。但是 QVariant 的便利性是以降低效率及可读性为代价的。通常，定义一个适当的 c++ 类来存储随时可能的数据，是值得的。
+
+Qt 的元对象系统使用 QVariant ,因此它也是 QtCore 模块的一部分。
+
+```c++
+QIcon icon("open.png");
+QVariant variant = icon;
+
+QIcon icon = variant.value<QIcon>();
+```
+value<T>（）函数也可以用在非图形用户界面数据类型和 QVariant 之间进行转换，但实际上对于非图形用户界面类型，通常使用 to...() 作为非图形用户界面数据类型的转换（eg:toString()）.
+
+如果自定义数据类型提供了默认的构造函数和拷贝构造函数的话，QVariant 也可以用来存储它们。为此，必须首先使用 [Q_DECLARE_METATYPE()](https://doc.qt.io/qt-5/qmetatype.html#Q_DECLARE_METATYPE) 宏注册数据类型，尤其是在类定义下的头文件中：
+```c++
+Q_DECLARE_METATYPE(BusinessCard)
+
+BusinessCard businessCard;
+QVariant variant = QVariant::fromValue(businessCard);
+...
+if (variant.canConvert<BusinessCard>()) {
+BusinessCard card = variant.value<BusinessCard>();
+...
+}
+```
+
+由于编译器的局限性，在 MSVC 6 中，这些模板成员函数并不可用。如果需要用到这个编译器，可以用 qVariantFromValue()  qVariantValue<T>() 和 qVariantCanConvert<T>() 全局函数代替。
+
+
+如果自定义数据类型采用 << 和 >> 操作符来完成从 QDataStream 的读写，就可以使用 [qRegisterMetaTypeStreamOperators<T>()](https://doc.qt.io/qt-5/qmetatype.html#qRegisterMetaTypeStreamOperators) 来注册这些自定义数据类型。这就可以利用 QSettings 在其他类型之中存储自定义数据类型的首选参数。
+
+```c++
+qRegisterMetaTypeStreamOperators<MyClass>("MyClass");
+
+// The stream operators should have the following signatures:
+QDataStream &operator<<(QDataStream &out, const MyClass &myObj);
+QDataStream &operator>>(QDataStream &in, MyClass &myObj);
+```
+
+Qt 还提供了  
+* [QPair<T1,T2>](https://doc.qt.io/qt-5/qpair.html) - 类似 std::pair<T1,T2>
+* [QBitArray](https://doc.qt.io/qt-5/qbitarray.html) - The QBitArray class provides an array of bits
+* [QVarLengthArray<T,Prealloc>](https://doc.qt.io/qt-5/qvarlengtharray.html) - 是 QVector<T> 的另一低级候选方案。因为其在堆栈中预分配内存空间且它不是隐含共享的，所以它的系统开销比 QVector<T> 更少，这使它更适合于紧凑的小循环。
+
+[更多关于 Qt 容器类的信息](https://doc.qt.io/qt-5/containers.html)
 
 
 
