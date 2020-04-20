@@ -28,4 +28,4 @@
 * [QT example executables won't run, missing QT5Cored.dll](https://stackoverflow.com/questions/28732602/qt-example-executables-wont-run-missing-qt5cored-dll)
 
 [上一级](README.md)
-[上一篇](14_multiThread.md)
+[上一篇](21_createPlugin.md)

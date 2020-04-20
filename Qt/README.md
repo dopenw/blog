@@ -12,5 +12,6 @@
 * ### [10. 项视图类](10_itemViewClass.md)
 * ### [11. 容器类](11_container.md)
 * ### [14.多线程](14_multiThread.md)
+* ### [21. 创建插件](21_createPlugin.md)
 * ### [解决 qt 程序的依赖项](deployqt.md)
                            step by steop
