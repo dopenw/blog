@@ -592,4 +592,4 @@ Qt 还提供了
 
 [上一级](README.md)
 [上一篇](10_itemViewClass.md)
-[下一篇](14_multiThread.md)
+[下一篇](12_inOut.md)
