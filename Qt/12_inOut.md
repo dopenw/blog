@@ -7,6 +7,7 @@
 - [12. 输入与输出](#12-输入与输出)
   - [读取和写入二进制数据](#读取和写入二进制数据)
   - [读取和写入文本](#读取和写入文本)
+  - [遍历目录](#遍历目录)
 
 <!-- /code_chunk_output -->
 
@@ -346,6 +347,63 @@ file.open(QIODevice::WriteOnly | QIODevice::Text);
 // When writing, the end-of-line terminators are translated to the local encoding,
 //  for example '\r\n' for Win32.
 ```
+
+## 遍历目录
+
+[QDir](https://doc.qt.io/qt-5/qdir.html)  类提供了一种与平台无关的遍历目录并获得有关文件信息的方法。eg：计算一个特定目录以及这个目录下任意深度的子目录中所有图片所占用的空间。
+
+```c++
+#include <QtWidgets>
+#include <iostream>
+
+qlonglong imageSpace(const QString &path)
+{
+    QDir dir(path);
+    qlonglong size = 0;
+
+    QStringList filters;
+    foreach (QByteArray format, QImageReader::supportedImageFormats())
+        filters += "*." + format;
+
+    foreach (QString file, dir.entryList(filters, QDir::Files))
+        size += QFileInfo(dir, file).size();
+
+    foreach (QString subDir, dir.entryList(QDir::Dirs
+                                           | QDir::NoDotAndDotDot))
+        size += imageSpace(path + QDir::separator() + subDir);
+
+    return size;
+}
+
+int main(int argc, char * argv[])
+{
+    QCoreApplication app(argc, argv);
+    QStringList args = QCoreApplication::arguments();
+
+    QString path = QDir::currentPath();
+    if (args.count() > 1)
+        path = args[1];
+
+    std::cout << "Space used by images in " << qPrintable(path)
+              << " and its subdirectories is "
+              << (imageSpace(path) / 1024) << " KB" << std::endl;
+
+    return 0;
+}
+```
+
+[QFileInfo](https://doc.qt.io/qt-5/qfileinfo.html) 类可以访问文件的属性，如文件的大小，权限、属主和时间戳等等。
+
+[QDir::separator()](https://doc.qt.io/qt-5/qdir.html#separator) 返回分隔符。除了在 Windows 操作系统上认可 "\" 之外，QDir 在所有平台上都把 "\" 认作是目录分隔符。在把路径呈现给用户的时候，可以调用 QDir::convertSepatators() ,这个静态函数把斜线转换为针对具体平台的正确的分隔符。
+
+QDir 类提供了其他一些与文件和目录相关的函数，如
+* [entryInfoList()](https://doc.qt.io/qt-5/qdir.html#entryInfoList) Returns a list of QFileInfo objects for all the files and directories in the directory, ordered according to the name and attribute filters previously
+* rename()
+* exists()
+* mkdir()
+* rmdir()
+
+QFile 类提供了一些方便的静态函数，包括 remove() 和 exists() 。同时， [QFileSystemWatcher](https://doc.qt.io/qt-5/qfilesystemwatcher.html) 可以通过发送 directoryChanged() 和 fileChanged() 信号，在目录或者文件发生任何改变时通知我们。
 
 
 [上一级](README.md)
