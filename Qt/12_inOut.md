@@ -8,6 +8,8 @@
   - [读取和写入二进制数据](#读取和写入二进制数据)
   - [读取和写入文本](#读取和写入文本)
   - [遍历目录](#遍历目录)
+  - [嵌入资源](#嵌入资源)
+  - [进程间通信](#进程间通信)
 
 <!-- /code_chunk_output -->
 
@@ -363,7 +365,12 @@ qlonglong imageSpace(const QString &path)
 
     QStringList filters;
     foreach (QByteArray format, QImageReader::supportedImageFormats())
-        filters += "*." + format;
+    {
+      filters += "\*." + format;
+      // 这里应该没有 "\" 转义符号，但在 atom 编辑器中如果不加转义符号
+      // ，后续的文本颜色将得不太正常，故多加了一个 "\"
+    }
+
 
     foreach (QString file, dir.entryList(filters, QDir::Files))
         size += QFileInfo(dir, file).size();
@@ -404,6 +411,234 @@ QDir 类提供了其他一些与文件和目录相关的函数，如
 * rmdir()
 
 QFile 类提供了一些方便的静态函数，包括 remove() 和 exists() 。同时， [QFileSystemWatcher](https://doc.qt.io/qt-5/qfilesystemwatcher.html) 可以通过发送 directoryChanged() 和 fileChanged() 信号，在目录或者文件发生任何改变时通知我们。
+
+
+## 嵌入资源
+
+到目前为止，本章已经讨论了如何在外部设备中存取数据，然而利用 Qt 还可以在应用程序的可执行文件中嵌入二进制数据或者文本。这可以通过使用 Qt 资源系统来实现。在其他章节中，将使用资源文件将图片嵌入到可执行文件中，当然也可以嵌入其他种类的文件。与文件系统中的普通文件一样，嵌入的文件也可以通过 QFile 读取。
+
+通过 Qt 资源编译器 [rcc](https://doc.qt.io/qt-5/rcc.html) ，可以将资源转换为 c++ 代码。还可以通过把下面一行代码加到 .pro 文件中来告诉 qmake 包括专门的规则以运行 rcc：
+```sh
+RESOURCES = myresourcefile.qrc
+# myresourcefile.qrc 文件是一个 XML 文件，它列出了所有嵌入到可执行文件中的文件。
+```
+假设我们正在编写一个保持联系细节信息的应用程序。考虑到用户使用的方便性，我们想在最后可执行文件中嵌入国际拨号代码。如果文件在应用程序所建目录的 datafiles 目录下，那么资源文件将会如下所示：
+```xml
+<RCC>
+<qresource>
+<file>datafiles/phone-codes.dat</file>
+</qresource>
+</RCC>
+```
+在应用程序中，资源是通过:/路径前缀识别的。在这个例子中，拨号代码文件的路径为:/datafiles/phone-code.dat ，它可以像其他任何文件一样通过 QFile 读取。
+在可执行文件中的嵌入数据具有不易丢失的优点，而且也有利于创建真正独立的可执行文件（如果也采用了静态链接的话）。它的两个缺点：
+* 如果需要改变嵌入数据，则整个可执行文件都要跟着替换
+* 由于必须容纳被嵌入的数据，可执行文件本身将变得比较大
+
+Qt 资源系统所具备并提供的特征远不止本例中所介绍的这些，它还包括对文件名别名的支持和本地化的支持。
+
+[The Qt Resource System](https://doc.qt.io/qt-5/resources.html)
+
+## 进程间通信
+
+[QProcess](https://doc.qt.io/qt-5/qprocess.html) 类允许我们执行外部程序并且和它们进行交互。这个类是异步工作的，且它在后台完成它的工作，这样用户界面就可以始终保持响应。当外部进程得到数据或者已经完成时，QProcess 就会发出信号通知我们。
+
+eg: ImageMagick 中的 convert 程序
+
+![](../images/12_inOut_202004251446_1.png)
+
+
+convertdialog.h
+```c++
+#ifndef CONVERTDIALOG_H
+#define CONVERTDIALOG_H
+
+#include <QDialog>
+#include <QProcess>
+
+#include "ui_convertdialog.h"
+
+// 这里私有继承 Ui::ConvertDialog 类，防止从外部窗口函数读取窗口控件
+class ConvertDialog : public QDialog, private Ui::ConvertDialog
+{
+    Q_OBJECT
+
+public:
+    ConvertDialog(QWidget * parent = 0);
+
+private slots:
+    void on_browseButton_clicked();
+    void convertImage();
+    void updateOutputTextEdit();
+    void processFinished(int exitCode, QProcess::ExitStatus exitStatus);
+    void processError(QProcess::ProcessError error);
+
+private:
+    QProcess process;
+    QString targetFile;
+};
+
+#endif
+```
+
+由于 Qt 设计师的自动关联机制，on_browseButton_clicked() 和 on_convertButton_clicked() 槽会被自动连接到 Browse 按钮的 clicked() 信号。
+
+setupUi() 调用不仅创建并布置所有的窗体部件，还为 on_objectName_signalName() 槽建立了信号-槽的连接。
+
+```c++
+#include <QtWidgets>
+
+#include "convertdialog.h"
+
+ConvertDialog::ConvertDialog(QWidget *parent)
+    : QDialog(parent)
+{
+    setupUi(this);
+
+    QPushButton * convertButton =
+            buttonBox->button(QDialogButtonBox::Ok);
+    convertButton->setText(tr("&Convert"));
+    convertButton->setEnabled(false);
+
+    connect(convertButton, SIGNAL(clicked()),
+            this, SLOT(convertImage()));
+    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+    connect(&process, SIGNAL(readyReadStandardError()),
+            this, SLOT(updateOutputTextEdit()));
+    connect(&process, SIGNAL(finished(int, QProcess::ExitStatus)),
+            this, SLOT(processFinished(int, QProcess::ExitStatus)));
+    connect(&process, SIGNAL(error(QProcess::ProcessError)),
+            this, SLOT(processError(QProcess::ProcessError)));
+}
+
+// 通过 setupUi() ,Browse 按钮的 clicked() 信号被自动连接到 on_browseButton_clicked() 槽。
+void ConvertDialog::on_browseButton_clicked()
+{
+    QString initialName = sourceFileEdit->text();
+    if (initialName.isEmpty())
+        initialName = QDir::homePath();
+    QString fileName =
+            QFileDialog::getOpenFileName(this, tr("Choose File"),
+                                         initialName);
+    fileName = QDir::toNativeSeparators(fileName);
+    if (!fileName.isEmpty()) {
+        sourceFileEdit->setText(fileName);
+        buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+    }
+}
+
+void ConvertDialog::convertImage()
+{
+    QString sourceFile = sourceFileEdit->text();
+    // 复制源文件的名称并且根据目标文件格式改变它的扩展名
+    targetFile = QFileInfo(sourceFile).path() + QDir::separator()
+                 + QFileInfo(sourceFile).baseName() + "."
+                 + targetFormatComboBox->currentText().toLower();
+
+    // 避免用户意外启动多重转换
+    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+    outputTextEdit->clear();
+
+    QStringList args;
+    if (enhanceCheckBox->isChecked())
+        args << "-enhance";
+    if (monochromeCheckBox->isChecked())
+        args << "-monochrome";
+    args << sourceFile << targetFile;
+
+    // 启动 “convert” 程序，传递所需的参数
+    process.start("convert", args);
+}
+
+// 只要外部进程向 cerr 写入，就会调用该方法
+void ConvertDialog::updateOutputTextEdit()
+{
+    QByteArray newData = process.readAllStandardError();
+    QString text = outputTextEdit->toPlainText()
+                   + QString::fromLocal8Bit(newData);
+    outputTextEdit->setPlainText(text);
+}
+
+void ConvertDialog::processFinished(int exitCode,
+                                    QProcess::ExitStatus exitStatus)
+{
+    if (exitStatus == QProcess::CrashExit) {
+        outputTextEdit->append(tr("Conversion program crashed"));
+    } else if (exitCode != 0) {
+        outputTextEdit->append(tr("Conversion failed"));
+    } else {
+        outputTextEdit->append(tr("File %1 created").arg(targetFile));
+    }
+    //激活 convert 按钮
+    buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+}
+
+// 如果进程不能开启，QProcess 就会发出 error() 而不是 finished()。
+// 我们将报告所有的错误并激活 convert 按钮。
+void ConvertDialog::processError(QProcess::ProcessError error)
+{
+    if (error == QProcess::FailedToStart) {
+        outputTextEdit->append(tr("Conversion program not found"));
+        buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+    }
+}
+
+```
+
+这个例子异步地执行了文件的转换。当程序在后台运行时，这可以让用户界面始终保持响应。但在某些情况下，在自己的应用程序进一步执行前，必须先完成外部进程。这时需要同步操作。
+
+利用用户首选的文本编辑器，支持纯文本编辑的应用程序，是一个需要用到同步状态的常见的例子。采用 QProcess 就可以直接实现。例如，假设在 QTextEdit 中有纯文本，并且提供用户可以点击的连接到 edit() 槽的 Edit 按钮。
+
+```c++
+void ExternalEditor::edit()
+{
+  QTemporaryFile outFile;
+  if (!outFile.open())
+  return;
+  QString fileName = outFile.fileName();
+  QTextStream out(&outFile);
+  out << textEdit->toPlainText();
+  //关闭文件，因为一些文本编辑器不能在已打开的文件中运行
+  outFile.close();
+  // QProcess::execute() 函数运行外部进程并当该外部进程完成时停止。
+  // editor 参数是具有编辑器可执行文件名的 QString(例如，"gvim")。
+  // 当用户关闭文本编辑器后，进程结束且 execute() 函数的调用也将返回
+  QProcess::execute(editor, QStringList() << options << fileName);
+  QFile inFile(fileName);
+  if (!inFile.open(QIODevice::ReadOnly))
+  return;
+  QTextStream in(&inFile);
+  textEdit->setPlainText(in.readAll());
+}
+```
+
+当 QProcess 同步使用时，并不需要信号-槽之间的连接。如果需要比 execute() 静态函数所提供的更好的控制，可以使用另一种方式 - [Synchronous Process API](https://doc.qt.io/qt-5/qprocess.html#synchronous-process-api)
+
+Calling these functions from the main thread (the thread that calls QApplication::exec()) may cause your user interface to freeze.
+
+```c++
+// The following example runs gzip to compress the string "Qt rocks!", without an event loop:
+  QProcess gzip;
+  gzip.start("gzip", QStringList() << "-c");
+  if (!gzip.waitForStarted())
+      return false;
+
+  gzip.write("Qt rocks!");
+  gzip.closeWriteChannel();
+
+  if (!gzip.waitForFinished())
+      return false;
+
+  QByteArray result = gzip.readAll();
+```
+
+Notes for Windows Users：
+
+Some Windows commands (for example, dir) are not provided by separate applications, but by the command interpreter itself. If you attempt to use QProcess to execute these commands directly, it won't work. One possible solution is to execute the command interpreter itself (cmd.exe on some Windows systems), and ask the interpreter to execute the desired command.
+
+在本节中，使用了 QProcess 让我们有权使用先前已经存在的功能。使用已有的应用程序可以节省开发时间，同时也使我们远离了那些与主应用程序目的不太相关的细节问题。使用先前已经存在的功能的另一种方法时连接到一个提供这些功能的数据库。但若没有一个合适的数据库时，采用 QProcess 包装一个控制台应用程序也是很有用的。
+
+QProcess 的另一个用处是：还可以启动其他的用户图形界面应用程序。然而，目标是建立在应用程序之间的关联，而不是简单地从一个应用程序中调用运行另一个，则最好采用 Qt 的网络类或其在 Windows 下的 ActiveQt 扩展程序，让应用程序之间能够更好地实现直接通信。而如果想启动用户喜欢地网页浏览器或者电子邮件客户端程序，仅仅只需要调用 [QDesktopServices::openUrl()](https://doc.qt.io/qt-5/qdesktopservices.html#openUrl)
 
 
 [上一级](README.md)
