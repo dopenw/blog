@@ -10,6 +10,7 @@
   - [遍历目录](#遍历目录)
   - [嵌入资源](#嵌入资源)
   - [进程间通信](#进程间通信)
+  - [Link](#link)
 
 <!-- /code_chunk_output -->
 
@@ -640,7 +641,9 @@ Some Windows commands (for example, dir) are not provided by separate applicatio
 
 QProcess 的另一个用处是：还可以启动其他的用户图形界面应用程序。然而，目标是建立在应用程序之间的关联，而不是简单地从一个应用程序中调用运行另一个，则最好采用 Qt 的网络类或其在 Windows 下的 ActiveQt 扩展程序，让应用程序之间能够更好地实现直接通信。而如果想启动用户喜欢地网页浏览器或者电子邮件客户端程序，仅仅只需要调用 [QDesktopServices::openUrl()](https://doc.qt.io/qt-5/qdesktopservices.html#openUrl)
 
+## Link
+* [qt5-book-code/chap12/](https://github.com/mutse/qt5-book-code/tree/master/chap12)
 
 [上一级](README.md)
 [上一篇](11_container.md)
-[下一篇](14_multiThread.md)
+[下一篇](13_database.md)
