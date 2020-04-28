@@ -12,8 +12,9 @@
 * ### [10. 项视图类](10_itemViewClass.md)
 * ### [11. 容器类](11_container.md)
 * ### [12. 输入与输出](12_inOut.md)
-* ### [数据库](13_database.md)
+* ### [13. 数据库](13_database.md)
 * ### [14.多线程](14_multiThread.md)
+* ### [16. XML](16_xml.md)
 * ### [21. 创建插件](21_createPlugin.md)
 * ### [解决 qt 程序的依赖项](deployqt.md)
                            step by steop
