@@ -5,6 +5,8 @@
 
 - [13. 数据库](#13-数据库)
   - [连接和查询](#连接和查询)
+  - [查看表](#查看表)
+  - [使用窗体编辑记录](#使用窗体编辑记录)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -87,8 +89,733 @@ QSqlQuery query("INSERT INTO cd (id, artistid, title, year) "
 ```
 在这之后，[numRowsAffected()](https://doc.qt.io/qt-5/qsqlquery.html#numRowsAffected) - Returns the number of rows affected by the result's SQL statement, or -1 if it cannot be determined. Note that for SELECT statements, the value is undefined; use size() instead. If the query is not active, -1 is returned.
 
-如果需要插入多条记录，或者想避免将数值转换成为字符串（并且正确地转义它们），可以使用 [prepare()](https://doc.qt.io/qt-5/qsqlquery.html#prepare) 来指定一个包含占位符地查询，然后赋值绑定想插入地数值。Qt 对所有地数据库都支持 Oracle 风格和 ODBC 风格地占位符语法，如果它们可用，就使用本地支持；如果不可用，就模拟它的功能。
+如果需要插入多条记录，或者想避免将数值转换成为字符串（并且正确地转义它们），可以使用 [prepare()](https://doc.qt.io/qt-5/qsqlquery.html#prepare) 来指定一个包含占位符的查询，然后赋值绑定想插入的数值。Qt 对所有的数据库都支持 Oracle 风格和 ODBC 风格的占位符语法，如果它们可用，就使用本地支持；如果不可用，就模拟它的功能。
 
+Oracle 风格：
+```c++
+QSqlQuery query;
+query.prepare("INSERT INTO cd (id, artistid, title, year) "
+      "VALUES (:id, :artistid, :title, :year)");
+query.bindValue(":id", 203);
+query.bindValue(":artistid", 102);
+query.bindValue(":title", "Living in America");
+query.bindValue(":year", 2002);
+query.exec();
+```
+
+ODBC 风格：
+
+```c++
+QSqlQuery query;
+query.prepare("INSERT INTO cd (id, artistid, title, year) "
+      "VALUES (?, ?, ?, ?)");
+query.addBindValue(203);
+query.addBindValue(102);
+query.addBindValue("Living in America");
+query.addBindValue(2002);
+query.exec();
+```
+
+```c++
+
+```
+
+占位符通常用于指定二进制数据或者包含非 ASCII 码或者非 Latin 字符的字符串。在底层，Qt 对支持 Unicode 的数据库使用 Unicode 编码，而对于不支持 Unicode的，Qt 会明确地把字符串转换为合适的编码方式。
+
+如果数据库中的 SQL 事务处理可用的话，Qt 就支持它。
+
+eg:
+```c++
+// 开始事务
+QSqlDatabase::database().transaction();
+QSqlQuery query;
+query.exec("SELECT id FROM artist WHERE name = 'Gluecifer'");
+if (query.next()) {
+  int artistId = query.value(0).toInt();
+  query.exec("INSERT INTO cd (id, artistid, title, year) "
+  "VALUES (201, " + QString::number(artistId)
+  + ", 'Riding the Tiger', 1997)");
+}
+// 结束事务
+QSqlDatabase::database().commit();
+// 如果需要回滚操作，可调用 roolback()
+```
+
+QSqlDatabase::database() 返回一个表示在 createConnection() 中创建的 QSqlDatabase 对象。如果事务不能启动，QSqlDatabase::transaction() 就返回 false。一些数据库不支持事务处理。对于这类数据库，transaction() 、 commit() 和 roolback() 几个函数什么也不做。可以使用 [hasFeatrue()](https://doc.qt.io/qt-5/qsqldriver.html#hasFeature) 对数据库相关的 [QSqlDriver](https://doc.qt.io/qt-5/qsqldriver.html) 进行测试，看看这个数据库是不是支持事务处理。
+
+```c++
+QSqlDriver *driver = QSqlDatabase::database().driver();
+if (driver->hasFeature(QSqlDriver::Transactions))
+  ...
+```
+
+还可以测试其他的一些数据库特征(可见下表)，包括数据库是否支持 BLOB 、 Unicode 以及经过处理的查询。
+|              Constant              | Value |                                                                                                       Description                                                                                                       |
+|:----------------------------------:|:-----:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|      QSqlDriver::Transactions      |   0   |                                                                                      Whether the driver supports SQL transactions.                                                                                      |
+|        QSqlDriver::QuerySize       |   1   | Whether the database is capable of reporting the size of a query. Note that some databases do not support returning the size (i.e. number of rows returned) of a query, in which case QSqlQuery::size() will return -1. |
+|          QSqlDriver::BLOB          |   2   |                                                                                 Whether the driver supports Binary Large Object fields.                                                                                 |
+|         QSqlDriver::Unicode        |   3   |                                                                         Whether the driver supports Unicode strings if the database server does.                                                                        |
+|     QSqlDriver::PreparedQueries    |   4   |                                                                                  Whether the driver supports prepared query execution.                                                                                  |
+|    QSqlDriver::NamedPlaceholders   |   5   |                                                                                Whether the driver supports the use of named placeholders.                                                                               |
+| QSqlDriver::PositionalPlaceholders |   6   |                                                                             Whether the driver supports the use of positional placeholders.                                                                             |
+|      QSqlDriver::LastInsertId      |   7   |                                                                          Whether the driver supports returning the Id of the last touched row.                                                                          |
+|     QSqlDriver::BatchOperations    |   8   |                                                                        Whether the driver supports batched operations, see QSqlQuery::execBatch()                                                                       |
+|      QSqlDriver::SimpleLocking     |   9   |                                                             Whether the driver disallows a write lock on a table while other queries have a read lock on it.                                                            |
+|   QSqlDriver::LowPrecisionNumbers  |   10  |                                                                         Whether the driver allows fetching numerical values with low precision.                                                                         |
+|   QSqlDriver::EventNotifications   |   11  |                                                                                Whether the driver supports database event notifications.                                                                                |
+|       QSqlDriver::FinishQuery      |   12  |                                                               Whether the driver can do any low-level resource cleanup when QSqlQuery::finish() is called.                                                              |
+|   QSqlDriver::MultipleResultSets   |   13  |                                                        Whether the driver can access multiple result sets returned from batched statements or stored procedures.                                                        |
+|       QSqlDriver::CancelQuery      |   14  |                                                                                  Whether the driver allows cancelling a running query.                                                                                  |
+
+
+使用 [QSqlDriver::handle()](https://doc.qt.io/qt-5/qsqldriver.html#handle) 和 [QSqlResult::handle()](https://doc.qt.io/qt-5/qsqlresult.html#handle) 函数，还可以读取低级数据库驱动句柄和查询结果集的低级句柄。但如果不清楚其使用目的与细节的话，这两个函数的使用非常容易出错。
+
+目前为止，在我们研究的实例中，都是假设应用程序使用的是单一的数据库连接。如果想创建多个连接，可以把数据库名作为第二个参数传递给 [addDatabase()](https://doc.qt.io/qt-5/qsqldatabase.html#addDatabase) 。eg
+```c++
+QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL", "OTHER");
+db.setHostName("saturn.mcmanamy.edu");
+db.setDatabaseName("starsdb");
+db.setUserName("hilbert");
+db.setPassword("ixtapa7");
+```
+然后，可以通过把数据库名传递给 [QSqlDatabase::database()](https://doc.qt.io/qt-5/qsqldatabase.html#database) 得到指向 QSqlDatabase 对象的指针：
+```c++
+QSqlDatabase db = QSqlDatabase::database("OTHER");
+```
+为了使用其他连接执行查询，我们把 QSqlDatabase 对象传递给 QSqlQuery 的构造函数：
+```c++
+QSqlQuery query(db);
+query.exec("SELECT id FROM artist WHERE name = 'Mando Diao'");
+```
+如果想一次执行多个事务处理，多重连接是很有用的，因为每一个连接只能处理一个有效的事务处理。当使用多个数据库连接时，还可以有一个命名的连接，而且如果没有具体指定的话，QSqlQuery 就会使用这个未命名的连接。
+
+除了 QSqlQuery 之外，Qt 还提供了 [QSqlTableModel](https://doc.qt.io/qt-5/qsqltablemodel.html) 类作为一个高级界面接口，让我们不必使用原始的 SQL 语句来执行大多数常用的 SQL 操作(SELECT、INSERT、UPDATE 和 DELETE）。这个类可以用来独立处理数据库而不涉及到任何的图形用户界面，它也可以用作 QListView 或 QTableView 的数据源。
+
+```c++
+QSqlTableModel model;
+model.setTable("cd");
+model.setFilter("year >= 1998");
+model.select();
+```
+等价于：
+```sql
+SELECT * FROM cd WHERE year >= 1998
+```
+利用 QSqlTableModel::record() 获得某一给定的记录，或者利用 value() 读取单独的字段，我们可以遍历这个结果集：
+```c++
+for (int i = 0; i < model.rowCount(); ++i) {
+  QSqlRecord record = model.record(i);
+  QString title = record.value("title").toString();
+  int year = record.value("year").toInt();
+  std::cerr << qPrintable(title) << ": " << year << std::endl;
+}
+```
+QSqlRecord::value() 函数即可以接收字段名也可以接收字段索引。在对大数据集进行操作时，建议利用索引来指定字段。eg：
+```c++
+int titleIndex = model.record().indexOf("title");
+int yearIndex = model.record().indexOf("year");
+for (int i = 0; i < model.rowCount(); ++i) {
+  QSqlRecord record = model.record(i);
+  QString title = record.value(titleIndex).toString();
+  int year = record.value(yearIndex).toInt();
+  std::cerr << qPrintable(title) << ": " << year << std::endl;
+}
+```
+
+为了在数据库表中插入记录，可调用 insertRow() 来创建一个新的空行（记录），然后使用 setData() 设置每一列（字段）的值：
+```c++
+QSqlTableModel model;
+model.setTable("cd");
+int row = 0;
+model.insertRows(row, 1);
+model.setData(model.index(row,0),113);
+model.setData(model.index(row,1),"Shanghai My Heart");
+model.setData(model.index(row,2),224);
+model.setData(model.index(row,3),2003);
+model.submitAll();
+```
+在调用 submitAll() 之后，记录可能会被移动到不同的行位置,这取决于表是如何排序的。如果插入失败，submitAll() 调用将返回 false。
+
+SQL 模型与标准模型之间最大的区别在于：对于 SQL 模型，必须调用 submitAll() 以将发生的更改写入数据库。
+
+更新记录：
+```c++
+QSqlTableModel model;
+// 定位到要修改的记录上
+model.setTable("cd");
+model.setFilter("id = 125");
+model.select();
+if (model.rowCount() == 1) {
+  QSqlRecord record = model.record(0);
+  record.setValue("title", "Melody A.M.");
+  record.setValue("year", record.value("year").toInt() + 1);
+  // 用修改后的记录复写原始的记录
+  model.setRecord(0, record);
+  model.submitAll();
+}
+```
+
+也可以使用 setData() 来执行更新.我们获得的模型索引都是针对给定的行与列的：
+```c++
+model.select();
+if (model.rowCount() == 1) {
+  model.setData(model.index(0, 1), "Melody A.M.");
+  model.setData(model.index(0, 3),
+  model.data(model.index(0, 3)).toInt() + 1);
+  model.submitAll();
+}
+```
+删除记录：
+```c++
+model.setTable("cd");
+model.setFilter("year < 1990");
+model.select();
+if (model.rowCount() > 0) {
+  // 删除所有与过滤器匹配的记录
+  model.removeRows(0, model.rowCount());
+  model.submitAll();
+}
+```
+
+QSqlQuery 和 QSqlTableModel 这两个类提供了 Qt 和 SQL 数据库之间的接口。利用这些类，可以创建显示用户数据以及让用户插入、更新和删除记录的表单。
+
+对于使用 SQL 类的应用程序，需要添加如下到 .pro 文件中：
+```highLight
+QT += sql
+```
+这将确保应用程序可以连接到 QtSql 库。
+
+## 查看表
+本节将展示如何使用在 QTableView 窗口部件显示 QSqlTableModel。
+
+如图所示的  Scooters 应用程序，给出了踏板车(scooter)的型号表。该实例基于单一的 scooter 表：
+```sql
+CREATE TABLE scooter (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(40) NOT NULL,
+    maxspeed INTEGER NOT NULL,
+    maxrange INTEGER NOT NULL,
+    weight INTEGER NOT NULL,
+    description VARCHAR(80) NOT NULL);
+```
+
+![](../images/13_database_202005021707_1.png)
+
+scooterwindow.h:
+```c++
+#ifndef SCOOTERWINDOW_H
+#define SCOOTERWINDOW_H
+
+#include <QWidget>
+
+QT_BEGIN_NAMESPACE
+class QSqlTableModel;
+class QTableView;
+QT_END_NAMESPACE
+
+enum {
+    Scooter_Id = 0,
+    Scooter_Name = 1,
+    Scooter_MaxSpeed = 2,
+    Scooter_MaxRange = 3,
+    Scooter_Weight = 4,
+    Scooter_Description = 5
+};
+
+class ScooterWindow : public QWidget
+{
+    Q_OBJECT
+
+public:
+    ScooterWindow();
+
+private:
+    QSqlTableModel * model;
+    QTableView * view;
+};
+
+#endif
+```
+
+scooterwindow.cpp:
+```c++
+#include <QtWidgets>
+#include <QtSql>
+
+#include "scooterwindow.h"
+
+ScooterWindow::ScooterWindow()
+{
+    model = new QSqlTableModel(this);
+    model->setTable("scooter");
+    // 指定排序
+    model->setSort(Scooter_Name, Qt::AscendingOrder);
+    model->setHeaderData(Scooter_Name, Qt::Horizontal, tr("Name"));
+    model->setHeaderData(Scooter_MaxSpeed, Qt::Horizontal, tr("MPH"));
+    model->setHeaderData(Scooter_MaxRange, Qt::Horizontal, tr("Miles"));
+    model->setHeaderData(Scooter_Weight, Qt::Horizontal, tr("Lbs"));
+    model->setHeaderData(Scooter_Description, Qt::Horizontal,
+                         tr("Description"));
+    // 利用 select() 将其以数据组装
+    model->select();
+
+    // 创建视图来显示
+    view = new QTableView;
+    view->setModel(model);
+    view->setSelectionMode(QAbstractItemView::SingleSelection);
+    view->setSelectionBehavior(QAbstractItemView::SelectRows);
+    // 隐藏 ID 列，因为对于用户来说，ID 并无意义
+    view->setColumnHidden(Scooter_Id, true);
+    view->resizeColumnsToContents();
+    // 设置只读
+    view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    QHeaderView * header = view->horizontalHeader();
+    header->setStretchLastSection(true);
+
+    QHBoxLayout * mainLayout = new QHBoxLayout;
+    mainLayout->addWidget(view);
+    setLayout(mainLayout);
+
+    setWindowTitle(tr("Scooters"));
+}
+```
+
+显示只读表的另一种方式是使用 QSqlTableModel 的基类 - [QSqlQueryModel](https://doc.qt.io/qt-5/qsqlquerymodel.html)。该类提供了 setQuery() 函数，因此它可以设置复杂的  SQL 查询以提供含一个或多个表的专门视图 - 例如，使用 SQL 表连接算法（join）。
+
+```c++
+   QSqlQueryModel *model = new QSqlQueryModel;
+   model->setQuery("SELECT name, salary FROM employee");
+   model->setHeaderData(0, Qt::Horizontal, tr("Name"));
+   model->setHeaderData(1, Qt::Horizontal, tr("Salary"));
+
+   QTableView *view = new QTableView;
+   view->setModel(model);
+   view->show();
+
+   QSqlQueryModel model;
+   model.setQuery("SELECT name, salary FROM employee");
+   int salary = model.record(4).value("salary").toInt();
+```
+
+main.cpp:
+```c++
+#include <QtWidgets>
+#include <QtSql>
+
+#include "scooterwindow.h"
+
+bool createConnection()
+{
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE"); // QSQLITE
+    db.setDatabaseName("scooters.dat");
+    if (!db.open()) {
+        QMessageBox::warning(0, QObject::tr("Database Error"),
+                             db.lastError().text());
+        return false;
+    }
+    return true;
+}
+
+void createFakeData()
+{
+    QSqlQuery query;
+    query.exec("DROP TABLE scooter");
+
+    query.exec("CREATE TABLE scooter ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+               "name VARCHAR(40) NOT NULL, "
+               "maxspeed INTEGER NOT NULL, "
+               "maxrange INTEGER NOT NULL, "
+               "weight INTEGER NOT NULL, "
+               "description VARCHAR(80) NOT NULL)");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('Mod-Rad 1500', 40, 35, 298, "
+               "'Speedometer, odometer, battery meter, turn signal "
+               "indicator, locking steering column')");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('Rad2Go Great White E36', 22, 12, 93, "
+               "'10\" airless tires')");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('X-Treme X360', 21, 14, 59, "
+               "'Cargo rack, foldable')");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('Vego SX 600', 20, , 76, "
+               "'Two interchangeable batteries, foldable')");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('Sunbird E Bike', 18, 30, 118, '')");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('Leopard Shark', 16, 12, 63, "
+               "'Battery indicator, removable seat, foldable')");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('Vego iQ 450', 15, 0, 60, "
+               "'OUT OF STOCK')");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('X-Treme X-11', 15, 11, 38, "
+               "'High powered brakes, foldable')");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('ZZ Cruiser', 14, 10, 46, "
+               "'Two batteries, removable seat')");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('X-Treme X-010', 10, 10, 14, "
+               "'Solid tires')");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('Q Electric Chariot', 10, 15, 60, "
+               "'Foldable')");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('X-Treme X250', 15, 12, 0, "
+               "'Solid aluminum deck')");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('Go MotorBoard 2000X', 15, 0, 20, "
+               "'Foldable and carryable')");
+    query.exec("INSERT INTO scooter (name, maxspeed, "
+               "maxrange, weight, description) "
+               "VALUES ('Goped ESR750 Sport Electric Scooter', "
+               "20, 6, 45, " "'Foldable and carryable')");
+}
+
+int main(int argc, char *argv[])
+{
+    QApplication app(argc, argv);
+
+    bool create = !QFile::exists("scooters.dat");
+
+    if (!createConnection())
+        return 1;
+    if (create)
+        createFakeData();
+
+	ScooterWindow window;
+	window.resize(600, 500);
+    window.show();
+
+
+
+    return app.exec();
+}
+```
+
+与 Scooters 应用程序的数据库不同，大多数说数据库都存在着大量的表与外键关联（在关系数据库中，外键表示两表间的引用约束）。Qt 提供了 [QSqlRelationalTableModel](https://doc.qt.io/qt-5/qsqlrelationaltablemodel.html) ,它是一个可以利用外键来显示和编辑表的 QSqlTableModel 子类。除了可以为每一个外键将 QSqlTableModel 添加到模型以外， QSqlRelationalTableModel 与 QSqlTableModel 的功能非常相似。在许多情况下，外键有一个 ID 字段和一个命名字段。虽然在后台程序中相应的 ID 字段才是真正被使用的字段，但利用 QSqlRelationalTableModel ,可以确保用户能看到和更改外键的命名字段。为了让其有效运作，必须对用于显示模型的视图设置一个 QSqlRelationalDelegate 类（或者一个用户自定义的子类）。
+
+在随后的两节中，将看到如何实现显示功能及外键更改，还将在本章的最后一节给出更多关于 QTableView 内容。
+
+## 使用窗体编辑记录
+在本节中，我们将看到如何创建一次只显示一条记录的对话窗体。这个对话框可以用于增加、编辑、删除单独的记录，也可以遍历表中的所有的记录。
+
+我们将通过 Staff Manager 应用程序来阐明这些概念。该应用程序记录了雇员所属的部门、部门所处的位置以及雇员内部电话分机号码等一些基本信息。
+
+![](../images/13_database_202005021707_2.png)
+
+应用程序使用了如下三个表：
+```sql
+CREATE TABLE location (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(40) NOT NULL));
+CREATE TABLE department (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(40) NOT NULL,
+    locationid INTEGER NOT NULL,
+    FOREIGN KEY (locationid) REFERENCES location));
+CREATE TABLE employee (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(40) NOT NULL,
+    departmentid INTEGER NOT NULL,
+    extension INTEGER NOT NULL,
+    email VARCHAR(40) NOT NULL,
+    startdate DATE NOT NULL,
+    FOREIGN KEY (departmentid) REFERENCES department));
+```
+上述指定外键的语法主要针对 SQLite3 ，但可能会随数据库的不同而有所变化。
+
+![](../images/13_database_202005021707_3.png)
+
+本节将重点关注雇员信息用的对话框 EmployeeForm 。下一节讨论的是 MainForm，它提供了部门和雇员的主从关系图。
+
+EmployeeForm 类提供了一个从主窗体雇员概要信息到某一雇员的具体细节信息的下钻型视图。当调用该类时，如果给出了有效的雇员 ID，窗体将显示指定的雇员信息；否则显示第一个雇员的信息（窗体如下所示）。用户可以浏览查看所有雇员的信息，编辑或者删除现有雇员的信息，同时还可以添加新雇员的信息。
+
+![](../images/13_database_202005021707_4.png)
+
+employeeform.h:
+```c++
+#ifndef EMPLOYEEFORM_H
+#define EMPLOYEEFORM_H
+
+#include <QDialog>
+
+QT_BEGIN_NAMESPACE
+class QComboBox;
+class QDataWidgetMapper;
+class QDateEdit;
+class QDialogButtonBox;
+class QLabel;
+class QLineEdit;
+class QPushButton;
+class QSqlRelationalTableModel;
+QT_END_NAMESPACE
+
+enum {
+    Employee_Id = 0,
+    Employee_Name = 1,
+    Employee_DepartmentId = 2,
+    Employee_Extension = 3,
+    Employee_Email = 4,
+    Employee_StartDate = 5
+};
+
+class EmployeeForm : public QDialog
+{
+    Q_OBJECT
+
+public:
+    EmployeeForm(int id, QWidget * parent = 0);
+
+    void done(int result) override;
+
+private slots:
+    void addEmployee();
+    void deleteEmployee();
+
+private:
+    // 需要解析表之间的外键关系
+    // QSqlRelationalTableModel 是允许将某一窗体中的窗口部件映射到数据模型中对应的列的类。
+    QSqlRelationalTableModel * tableModel;
+    QDataWidgetMapper * mapper;
+    QLabel * nameLabel;
+    QLabel * departmentLabel;
+    QLabel * extensionLabel;
+    QLabel * emailLabel;
+    QLabel * startDateLabel;
+    QLineEdit * nameEdit;
+    QComboBox * departmentComboBox;
+    QLineEdit * extensionLineEdit;
+    QLineEdit * emailEdit;
+    QDateEdit * startDateEdit;
+    QPushButton * firstButton;
+    QPushButton * previousButton;
+    QPushButton * nextButton;
+    QPushButton * lastButton;
+    QPushButton * addButton;
+    QPushButton * deleteButton;
+    QPushButton * closeButton;
+    QDialogButtonBox * buttonBox;
+};
+
+#endif
+
+```
+
+employeeform.cpp:
+```c++
+#include <QtWidgets>
+#include <QtSql>
+
+#include "employeeform.h"
+
+EmployeeForm::EmployeeForm(int id, QWidget *parent)
+    : QDialog(parent)
+{
+    nameEdit = new QLineEdit;
+
+    nameLabel = new QLabel(tr("Na&me:"));
+    nameLabel->setBuddy(nameEdit);
+
+    departmentComboBox = new QComboBox;
+
+    departmentLabel = new QLabel(tr("Depar&tment:"));
+    departmentLabel->setBuddy(departmentComboBox);
+
+    extensionLineEdit = new QLineEdit;
+    // 确保 extension 行编辑器仅接受有效的分级号。
+    extensionLineEdit->setValidator(new QIntValidator(0, 99999, this));
+
+    extensionLabel = new QLabel(tr("E&xtension:"));
+    extensionLabel->setBuddy(extensionLineEdit);
+
+    emailEdit = new QLineEdit;
+
+    emailLabel = new QLabel(tr("&Email:"));
+    emailLabel->setBuddy(emailEdit);
+
+    startDateEdit = new QDateEdit;
+    // 提供一个弹出式的日历
+    startDateEdit->setCalendarPopup(true);
+    QDate today = QDate::currentDate();
+    startDateEdit->setDateRange(today.addDays(-90), today.addDays(90));
+
+    startDateLabel = new QLabel(tr("&Start Date:"));
+    startDateLabel->setBuddy(startDateEdit);
+
+    firstButton = new QPushButton(tr("<< &First"));
+    previousButton = new QPushButton(tr("< &Previous"));
+    nextButton = new QPushButton(tr("&Next >"));
+    lastButton = new QPushButton(tr("&Last >>"));
+
+    addButton = new QPushButton(tr("&Add"));
+    deleteButton = new QPushButton(tr("&Delete"));
+    closeButton = new QPushButton(tr("&Close"));
+
+    buttonBox = new QDialogButtonBox;
+    buttonBox->addButton(addButton, QDialogButtonBox::ActionRole);
+    buttonBox->addButton(deleteButton, QDialogButtonBox::ActionRole);
+    buttonBox->addButton(closeButton, QDialogButtonBox::AcceptRole);
+
+    tableModel = new QSqlRelationalTableModel(this);
+    tableModel->setTable("employee");
+    //设立外键关联
+    // setRelation() 函数获得一个外键字段索引及 QSqlRelation 索引。
+    // QSqlRelation 构造函数则用表名(外键关系对应的表)
+    //、外键字段名以及要显示的字段名来表示外键字段值。
+    tableModel->setRelation(Employee_DepartmentId,
+                            QSqlRelation("department", "id", "name"));
+    tableModel->setSort(Employee_Name, Qt::AscendingOrder);
+    tableModel->select();
+
+    // QComboBox 与 QListWidget 很相似，因为它有一个内部模型去保存它的数据条目项。
+    //我们可以用自己建的模型代替那个模型，这里需要做的
+    //，就是给出 QSqlRelationalTableModel 使用的关系模型。
+    QSqlTableModel * relationModel =
+            tableModel->relationModel(Employee_DepartmentId);
+    departmentComboBox->setModel(relationModel);
+    // 这个关系模型有两列，所以必须指出组合框应该显示的是哪一列。
+    // 我们使用 fieldIndex() 函数与字段名得到正确的标题索引
+    departmentComboBox->setModelColumn(
+            relationModel->fieldIndex("name"));
+
+    // QDataWidgetMapper 将一个数据库记录字段反映到其映射的窗口部件中
+    //，同时将窗口部件中所做出的更改反映回数据库。
+    // 我们即可以自己负责提交这些更改，也可以让映射器自动完成这个工作，这里选择自动选项。
+    mapper = new QDataWidgetMapper(this);
+    mapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
+    mapper->setModel(tableModel);
+    // 让模型有效工作的映射器必须给定，对于含有外键的模型
+    //，还需要给它一个 QSqlRelationalDelegate 委托基类。
+    //这个委托基类可以确保用户看到的是 QSqlRelation 显示栏的值，而不是原始的 ID 号
+    //，同时它也保证在用户开始编辑时，组合框会显示值，而映射
+    //器则实际上将相应的索引值（外键）写回到数据库中。
+
+    // 当外键引用约束含有大量记录的表的情况，最好创建自己的
+    //委托基类并与搜索性能一起使用以显示“列表值”窗体，而
+    //不是依靠 QSqlRelationalTableModel 的默认组合框。
+    mapper->setItemDelegate(new QSqlRelationalDelegate(this));
+    // 添加映射关系
+    mapper->addMapping(nameEdit, Employee_Name);
+    mapper->addMapping(departmentComboBox, Employee_DepartmentId);
+    mapper->addMapping(extensionLineEdit, Employee_Extension);
+    mapper->addMapping(emailEdit, Employee_Email);
+    mapper->addMapping(startDateEdit, Employee_StartDate);
+
+
+    if (id != -1) {
+        for (int row = 0; row < tableModel->rowCount(); ++row) {
+            QSqlRecord record = tableModel->record(row);
+            if (record.value(Employee_Id).toInt() == id) {
+                mapper->setCurrentIndex(row);
+                break;
+            }
+        }
+    } else {
+        mapper->toFirst();
+    }
+
+    connect(firstButton, SIGNAL(clicked()), mapper, SLOT(toFirst()));
+    connect(previousButton, SIGNAL(clicked()),
+            mapper, SLOT(toPrevious()));
+    connect(nextButton, SIGNAL(clicked()), mapper, SLOT(toNext()));
+    connect(lastButton, SIGNAL(clicked()), mapper, SLOT(toLast()));
+    connect(addButton, SIGNAL(clicked()), this, SLOT(addEmployee()));
+    connect(deleteButton, SIGNAL(clicked()),
+            this, SLOT(deleteEmployee()));
+    connect(closeButton, SIGNAL(clicked()), this, SLOT(accept()));
+
+    QHBoxLayout * topButtonLayout = new QHBoxLayout;
+    topButtonLayout->setContentsMargins(20, 0, 20, 5);
+    topButtonLayout->addStretch();
+    topButtonLayout->addWidget(firstButton);
+    topButtonLayout->addWidget(previousButton);
+    topButtonLayout->addWidget(nextButton);
+    topButtonLayout->addWidget(lastButton);
+    topButtonLayout->addStretch();
+
+    QGridLayout * mainLayout = new QGridLayout;
+    mainLayout->addLayout(topButtonLayout, 0, 0, 1, 3);
+    mainLayout->addWidget(nameLabel, 1, 0);
+    mainLayout->addWidget(nameEdit, 1, 1, 1, 2);
+    mainLayout->addWidget(departmentLabel, 2, 0);
+    mainLayout->addWidget(departmentComboBox, 2, 1, 1, 2);
+    mainLayout->addWidget(extensionLabel, 3, 0);
+    mainLayout->addWidget(extensionLineEdit, 3, 1);
+    mainLayout->addWidget(emailLabel, 4, 0);
+    mainLayout->addWidget(emailEdit, 4, 1, 1, 2);
+    mainLayout->addWidget(startDateLabel, 5, 0);
+    mainLayout->addWidget(startDateEdit, 5, 1);
+    mainLayout->addWidget(buttonBox, 7, 0, 1, 3);
+    mainLayout->setRowMinimumHeight(6, 10);
+    mainLayout->setRowStretch(6, 1);
+    mainLayout->setColumnStretch(2, 1);
+    setLayout(mainLayout);
+
+    if (id == -1) {
+        nextButton->setFocus();
+    } else {
+        nameEdit->setFocus();
+    }
+
+    setWindowTitle(tr("Edit Employees"));
+}
+
+void EmployeeForm::done(int result)
+{
+    mapper->submit();
+    QDialog::done(result);
+}
+
+void EmployeeForm::addEmployee()
+{
+    // 先提交当前行，确保对当前记录的修改没有任何遗失，虽然已经设置了自动提交策略，仍必须手动提交。
+    // 这是因为自动提交仅在用户改变光标焦点位置时才能使用 - 这样可以避免在每次用户插入或删除一个字符时，频繁
+    // 地对数据库进行更新操作 - 因为用户有可能刚编辑完一个字段，但当单击 Add 按钮时光标焦点位置并没有跳出该字段。
+    int row = mapper->currentIndex();
+    mapper->submit();
+
+    // 添加新行并让映射器导航浏览至该行
+    tableModel->insertRow(row);
+    mapper->setCurrentIndex(row);
+
+    nameEdit->clear();
+    extensionLineEdit->clear();
+    startDateEdit->setDate(QDate::currentDate());
+    nameEdit->setFocus();
+}
+
+void EmployeeForm::deleteEmployee()
+{
+    // 指明当前行开始，然后删除该行并提交。必须手动提交删除的更改，因为自动提交策略仅适用于对记录做出的更改。
+    int row = mapper->currentIndex();
+    tableModel->removeRow(row);
+    mapper->submit();
+    // 让映射器当前索引值指向被删除行的下一行。如果删除的是最后一行，则指向最后一行。
+    mapper->setCurrentIndex(qMin(row, tableModel->rowCount() - 1));
+}
+
+```
+
+[QDataWidgetMapper](https://doc.qt.io/qt-5/qdatawidgetmapper.html) 类使那些采用数据模型显示信息的数据可知型窗体的开发变得容易得多。在这个例子中，我们使用一个 QSqlRelationalTableModel 作为底层的数据模型，而 QDataWidgetMapper 则可以与任何数据模型一起使用，包括非 SQL 模型。另外一个可供选择的方式是直接使用 QSqlQuery 在窗体中填写数据，并更新数据库。这个方法要求更多的工作量，但也相应地更灵活一些。
+
+下一节中，我们将看到 Staff Manager 应用程序的余下部分。
 
 
 ## Link
