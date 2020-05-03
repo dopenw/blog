@@ -7,6 +7,7 @@
   - [连接和查询](#连接和查询)
   - [查看表](#查看表)
   - [使用窗体编辑记录](#使用窗体编辑记录)
+  - [在表中显示数据](#在表中显示数据)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -816,6 +817,283 @@ void EmployeeForm::deleteEmployee()
 [QDataWidgetMapper](https://doc.qt.io/qt-5/qdatawidgetmapper.html) 类使那些采用数据模型显示信息的数据可知型窗体的开发变得容易得多。在这个例子中，我们使用一个 QSqlRelationalTableModel 作为底层的数据模型，而 QDataWidgetMapper 则可以与任何数据模型一起使用，包括非 SQL 模型。另外一个可供选择的方式是直接使用 QSqlQuery 在窗体中填写数据，并更新数据库。这个方法要求更多的工作量，但也相应地更灵活一些。
 
 下一节中，我们将看到 Staff Manager 应用程序的余下部分。
+
+## 在表中显示数据
+
+在许多情况下，以表格式的视图为用户显示数据集是最简单的方法。本节给出应用程序的主窗体，它由两个呈主-从关系的 QTableView 组成。主视图是单位部门的列表，从视图是当前部门中的雇员列表。两个视图都使用了 QSqlRelationalTableModel ，因为它们呈现出的数据库都有外键字段。
+
+mainform.h:
+```c++
+#ifndef MAINFORM_H
+#define MAINFORM_H
+
+#include <QWidget>
+
+QT_BEGIN_NAMESPACE
+class QDialogButtonBox;
+class QLabel;
+class QModelIndex;
+class QPushButton;
+class QSplitter;
+class QSqlRelationalTableModel;
+class QTableView;
+QT_END_NAMESPACE
+
+enum {
+    Department_Id = 0,
+    Department_Name = 1,
+    Department_LocationId = 2
+};
+
+class MainForm : public QWidget
+{
+    Q_OBJECT
+
+public:
+    MainForm();
+
+private slots:
+    // 为了设立主-从关系，必须确保当用户浏览到主视图中不同的记录（行）时，更新从视图中的表并显示相关的记录。
+    void updateEmployeeView();
+    void addDepartment();
+    void deleteDepartment();
+    void editEmployees();
+
+private:
+    void createDepartmentPanel();
+    void createEmployeePanel();
+
+    QSqlRelationalTableModel * departmentModel;
+    QSqlRelationalTableModel * employeeModel;
+    QWidget * departmentPanel;
+    QWidget * employeePanel;
+    QLabel * departmentLabel;
+    QLabel * employeeLabel;
+    QTableView * departmentView;
+    QTableView * employeeView;
+    QSplitter * splitter;
+    QPushButton * addButton;
+    QPushButton * deleteButton;
+    QPushButton * editButton;
+    QPushButton * quitButton;
+    QDialogButtonBox * buttonBox;
+};
+
+#endif
+```
+
+mainform.cpp:
+
+```c++
+#include <QtWidgets>
+#include <QtSql>
+
+#include "employeeform.h"
+#include "mainform.h"
+
+MainForm::MainForm()
+{
+    createDepartmentPanel();
+    createEmployeePanel();
+
+    splitter = new QSplitter(Qt::Vertical);
+    splitter->setFrameStyle(QFrame::StyledPanel);
+    splitter->addWidget(departmentPanel);
+    splitter->addWidget(employeePanel);
+
+    addButton = new QPushButton(tr("&Add Dept."));
+    deleteButton = new QPushButton(tr("&Delete Dept."));
+    editButton = new QPushButton(tr("&Edit Employees..."));
+    quitButton = new QPushButton(tr("&Quit"));
+
+    buttonBox = new QDialogButtonBox;
+    buttonBox->addButton(addButton, QDialogButtonBox::ActionRole);
+    buttonBox->addButton(deleteButton, QDialogButtonBox::ActionRole);
+    buttonBox->addButton(editButton, QDialogButtonBox::ActionRole);
+    buttonBox->addButton(quitButton, QDialogButtonBox::AcceptRole);
+
+    connect(addButton, SIGNAL(clicked()), this, SLOT(addDepartment()));
+    connect(deleteButton, SIGNAL(clicked()),
+            this, SLOT(deleteDepartment()));
+    connect(editButton, SIGNAL(clicked()), this, SLOT(editEmployees()));
+    connect(quitButton, SIGNAL(clicked()), this, SLOT(close()));
+
+    QVBoxLayout * mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(splitter);
+    mainLayout->addWidget(buttonBox);
+    setLayout(mainLayout);
+
+    setWindowTitle(tr("Staff Manager"));
+    departmentView->setCurrentIndex(departmentModel->index(0, 0));
+}
+
+void MainForm::updateEmployeeView()
+{
+    QModelIndex index = departmentView->currentIndex();
+    if (index.isValid()) {
+        QSqlRecord record = departmentModel->record(index.row());
+        int id = record.value("id").toInt();
+        employeeModel->setFilter(QString("departmentid = %1").arg(id));
+        employeeLabel->setText(tr("E&mployees in the %1 Department")
+                               .arg(record.value("name").toString()));
+    } else {
+        employeeModel->setFilter("departmentid = -1");
+        employeeLabel->setText(tr("E&mployees"));
+    }
+    employeeModel->select();
+    // 设置标题是否可见
+    employeeView->horizontalHeader()->setVisible(
+            employeeModel->rowCount() > 0);
+}
+
+// 我们不必考虑为新记录创建独特的键，因为使用的是一个自动增加列。如果这个方法不能或者不适合使用，
+// 则可以连接模型的 beforeInsert() 信号。这个信号在用户编辑后将发射，正好在数据库的插入发生之前。
+// 这是放入 ID 或者处理用户数据的最佳时间。beforeDelete() 和 beforUpdate() 信号很类似
+// ，它们对创建审计追踪非常有用。
+void MainForm::addDepartment()
+{
+    int row = departmentModel->rowCount();
+    departmentModel->insertRow(row);
+    QModelIndex index = departmentModel->index(row, Department_Name);
+    departmentView->setCurrentIndex(index);
+    departmentView->edit(index);
+}
+
+void MainForm::deleteDepartment()
+{
+    QModelIndex index = departmentView->currentIndex();
+    if (!index.isValid())
+        return;
+
+    // 执行级联删除以确保数据库的关系完整性。为了实现这个功能，特别是针对那些并不会为我们保证关系完整性的数据库
+    //（如 SQLite3）,必须使用事务处理。
+    QSqlDatabase::database().transaction();
+    QSqlRecord record = departmentModel->record(index.row());
+    int id = record.value(Department_Id).toInt();
+    int numEmployees = 0;
+
+    QSqlQuery query(QString("SELECT COUNT(*) FROM employee "
+                            "WHERE departmentid = %1").arg(id));
+    if (query.next())
+        numEmployees = query.value(0).toInt();
+    if (numEmployees > 0) {
+        int r = QMessageBox::warning(this, tr("Delete Department"),
+                    tr("Delete %1 and all its employees?")
+                    .arg(record.value(Department_Name).toString()),
+                    QMessageBox::Yes | QMessageBox::No);
+        if (r == QMessageBox::No) {
+            QSqlDatabase::database().rollback();
+            return;
+        }
+
+        query.exec(QString("DELETE FROM employee "
+                           "WHERE departmentid = %1").arg(id));
+    }
+
+    departmentModel->removeRow(index.row());
+    departmentModel->submitAll();
+    QSqlDatabase::database().commit();
+
+    updateEmployeeView();
+    departmentView->setFocus();
+}
+
+void MainForm::editEmployees()
+{
+    int employeeId = -1;
+    QModelIndex index = employeeView->currentIndex();
+    if (index.isValid()) {
+        QSqlRecord record = employeeModel->record(index.row());
+        employeeId = record.value(Employee_Id).toInt();
+    }
+
+    EmployeeForm form(employeeId, this);
+    form.exec();
+    // 使主窗体的从表视图自我刷新，因为此时雇员信息可能已经发生了更改。
+    updateEmployeeView();
+}
+
+// 创建并设立部门模型和视图
+void MainForm::createDepartmentPanel()
+{
+    departmentPanel = new QWidget;
+
+    departmentModel = new QSqlRelationalTableModel(this);
+    departmentModel->setTable("department");
+    departmentModel->setRelation(Department_LocationId,
+            QSqlRelation("location", "id", "name"));
+    departmentModel->setSort(Department_Name, Qt::AscendingOrder);
+    departmentModel->setHeaderData(Department_Name, Qt::Horizontal,
+                                   tr("Dept."));
+    departmentModel->setHeaderData(Department_LocationId,
+                                   Qt::Horizontal, tr("Location"));
+    departmentModel->select();
+
+    departmentView = new QTableView;
+    departmentView->setModel(departmentModel);
+    departmentView->setItemDelegate(new QSqlRelationalDelegate(this));
+    departmentView->setSelectionMode(
+            QAbstractItemView::SingleSelection);
+    departmentView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    departmentView->setColumnHidden(Department_Id, true);
+    departmentView->resizeColumnsToContents();
+    departmentView->horizontalHeader()->setStretchLastSection(true);
+
+    departmentLabel = new QLabel(tr("Depar&tments"));
+    departmentLabel->setBuddy(departmentView);
+
+    connect(departmentView->selectionModel(),
+            SIGNAL(currentRowChanged(const QModelIndex &,
+                                     const QModelIndex &)),
+            this, SLOT(updateEmployeeView()));
+
+    QVBoxLayout * layout = new QVBoxLayout;
+    layout->addWidget(departmentLabel);
+    layout->addWidget(departmentView);
+    departmentPanel->setLayout(layout);
+}
+
+// 创建并设立雇员的模型和视图
+void MainForm::createEmployeePanel()
+{
+    employeePanel = new QWidget;
+
+    employeeModel = new QSqlRelationalTableModel(this);
+    employeeModel->setTable("employee");
+    employeeModel->setRelation(Employee_DepartmentId,
+            QSqlRelation("department", "id", "name"));
+    employeeModel->setSort(Employee_Name, Qt::AscendingOrder);
+    employeeModel->setHeaderData(Employee_Name, Qt::Horizontal,
+                                 tr("Name"));
+    employeeModel->setHeaderData(Employee_Extension, Qt::Horizontal,
+                                 tr("Ext."));
+    employeeModel->setHeaderData(Employee_Email, Qt::Horizontal,
+                                 tr("Email"));
+
+    employeeView = new QTableView;
+    employeeView->setModel(employeeModel);
+    employeeView->setSelectionMode(QAbstractItemView::SingleSelection);
+    employeeView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    employeeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    employeeView->horizontalHeader()->setStretchLastSection(true);
+    // 隐藏不需要的三列
+    employeeView->setColumnHidden(Employee_Id, true);
+    employeeView->setColumnHidden(Employee_DepartmentId, true);
+    employeeView->setColumnHidden(Employee_StartDate, true);
+
+    employeeLabel = new QLabel(tr("E&mployees"));
+    employeeLabel->setBuddy(employeeView);
+
+    QVBoxLayout * layout = new QVBoxLayout;
+    layout->addWidget(employeeLabel);
+    layout->addWidget(employeeView);
+    employeePanel->setLayout(layout);
+}
+```
+```c++
+
+```
+本章介绍了 Qt 的模型/视图类如何让 SQL 数据库中查看和编辑数据的操作变得尽可能简单。当我们想要使用一个窗体视图显示记录项时，可以利用 QDataWidgetMapper 将用户界面中的窗体部件映射到数据库记录的字段。主-从关系的设置也相当容易，仅仅要求一个信号-槽连接以及一个简单槽的实现。下钻型的窗口视图很直观，我们只需要导航到主窗体构造函数中被选中的记录，就可以在从视图中看到与其对应的具体信息。如果没有记录被选中，则直接看到的就是第一条记录。
 
 
 ## Link
