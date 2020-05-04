@@ -7,6 +7,7 @@
 - [16. XML](#16-xml)
   - [使用 QXmlStreamReader 读取 XML](#使用-qxmlstreamreader-读取-xml)
   - [用 DOM 读取 XML](#用-dom-读取-xml)
+  - [使用 SAX 读取 XML](#使用-sax-读取-xml)
   - [写入 XML](#写入-xml)
     - [使用 QXmlStreamWriter](#使用-qxmlstreamwriter)
     - [DOM](#dom)
@@ -512,6 +513,173 @@ int main(int argc, char *argv[])
     return app.exec();
 }
 ```
+
+## 使用 SAX 读取 XML
+SAX 事实上是公共领域中一种用于读取 XML 文档的标准应用程序编程接口。Qt 的 SAX 类是对基于 SAX2 的 Java 实现的模拟，只是在命名上有点不符合 Qt 的惯例。与 DOM 相比，SAX 更加底层但通常也更加快速。然而，由于在本章前面部分曾介绍过的 [QXmlSimpleReader](https://doc.qt.io/qt-5/qxmlsimplereader.html) 类提供了一个更接近 Qt 风格的应用程序编程接口，且比 SAX 解析器更加快速，因此 SAX 解析器的主要用户就是将使用 SAX 应用程序编程接口的代码导入 Qt 中。[SAX 详细信息](http://www.saxproject.org)
+
+Qt 提供了一个名为 QXmlSimpleReader 的基于 SAX 的非验证型 XML 解析器。这个解析器能够识别具有良好格式的 XML 文档且支持 XML 文档的命名空间。当这个解析器遍历文档时，它调用注册的处理函数中的虚拟函数来表明解析事件。（这些 “解析事件” 和 Qt 事件并无关联，就像按键事件和鼠标事件一样）。我们假设这个解析器正在解析如下的 XML 文档：
+```xml
+<doc>
+  <quote>Gnothi seauton</quote>
+</doc>
+```
+解析器将会调用如下这些解析事件处理函数：
+```c++
+startDocument()
+startElement("doc")
+startElement("quote")
+characters("Gnothi seauton")
+endElement("quote")
+endElement("doc")
+endDocument()
+```
+
+上述的这些函数都是在 [QXmlContentHandler](https://doc.qt.io/qt-5/qxmlcontenthandler.html) 中声明过的。为了简单，我们省略了 StartElement() 和 EndElement() 中的一些参数。
+
+QXmlContentHandler 只是可以和 QXmlSimpleReader 协作使用的众多处理程序类之一。其他的还有
+* [QXmlEntityResolver](https://doc.qt.io/qt-5/qxmlentityresolver.html)
+* [QXmlDTDHandler](https://doc.qt.io/qt-5/qxmldtdhandler.html)
+* [QXmlErrorHandler](https://doc.qt.io/qt-5/qxmlerrorhandler.html)
+* [QXmlDeclHandler](https://doc.qt.io/qt-5/qxmldeclhandler.html)
+* [QXmlLexicalHandler](https://doc.qt.io/qt-5/qxmllexicalhandler.html)
+
+这些类仅仅声明纯虚函数并且给出不同类型的解析事件的相关信息。对于绝大多数应用程序来说，只有 QXmlContentHandler 和 QXmlErrorHandler 是必要的。我们用到的类的层级关系如图所示
+
+![](../images/16_xml_202005041739_1.png)
+
+为了方便，Qt 还提供了 [QXmlDefaultHandler](https://doc.qt.io/qt-5/qxmldefaulthandler.html)。含有很多抽象处理程序类和一个具体子类的这种设计构思，在 Qt 中并不常用，这里他被用来密切关注模型的 Java 实现。
+
+与使用 QXmlStreamReader 或者 DOM 应用程序编程接口相比，使用 SAX 应用编程接口最显著的区别在于：SAX 应用程序编程接口需要我们利用成员变量手动追踪解析器的状态，而其他两种采用向下递归的方法则不需要。
+
+我们使用 SAX 重新实现解析前面部分提到的书刊索引文件格式的 xml 文档。
+
+saxhandler.h:
+```c++
+#ifndef SAXHANDLER_H
+#define SAXHANDLER_H
+
+#include <QXmlDefaultHandler>
+
+QT_BEGIN_NAMESPACE
+class QTreeWidget;
+class QTreeWidgetItem;
+QT_END_NAMESPACE
+
+class SaxHandler : public QXmlDefaultHandler
+{
+public:
+    SaxHandler(QTreeWidget * tree);
+
+    bool readFile(const QString &fileName);
+
+protected:
+  bool startElement(const QString &namespaceURI,
+                    const QString &localName,
+                    const QString &qName,
+                    const QXmlAttributes &attributes) override;
+  bool endElement(const QString &namespaceURI,
+                  const QString &localName,
+                  const QString &qName) override;
+  bool characters(const QString &str) override;
+  bool fatalError(const QXmlParseException &exception) override;
+
+private:
+    QTreeWidget * treeWidget;
+    QTreeWidgetItem * currentItem;
+    QString currentText;
+};
+
+#endif
+```
+
+saxhandler.cpp:
+```c++
+#include <QtWidgets>
+#include <iostream>
+
+#include "saxhandler.h"
+
+SaxHandler::SaxHandler(QTreeWidget *tree)
+{
+    treeWidget = tree;
+}
+
+bool SaxHandler::readFile(const QString &fileName)
+{
+    currentItem = 0;
+
+    QFile file(fileName);
+    QXmlInputSource inputSource(&file);
+    QXmlSimpleReader reader;
+    // 设置阅读器内容
+    reader.setContentHandler(this);
+    // 设置阅读器错误处理程序
+    reader.setErrorHandler(this);
+    // 我们传递一个 QXmlInputSource,而不是一个简单的 QFile 对象给 parse() 函数。
+    //这个类打开并读取给定的文件（考虑了 <?xml?>声明中指定的任意字符编码）给定的文件
+    //，同时它还提供了一个解析器读取文件的接口
+    return reader.parse(inputSource);
+}
+
+// 当阅读器遇到一个新的打开标签时，就会调用 startElement() 函数。
+// 第三个参数是标签的名称（或者更加准确的说，是它的“限定名”）。
+// 第四个参数是属性列表。
+bool SaxHandler::startElement(const QString & /* namespaceURI */,
+                              const QString & /* localName */,
+                              const QString &qName,
+                              const QXmlAttributes &attributes)
+{
+    if (qName == "entry") {
+        currentItem = new QTreeWidgetItem(currentItem ?
+                currentItem : treeWidget->invisibleRootItem());
+        currentItem->setText(0, attributes.value("term"));
+    } else if (qName == "page") {
+        currentText.clear();
+    }
+
+    // 最后，我们返回 true 值让 SAX 继续解析这个文件。如果想把那些未知的标签也
+    //作为错误报告，这时就需要返回 false 值。然后可以在 QXmlDefaultHandler
+    //中重新实现 errorString(),以返回一个适当的出错信息。
+    return true;
+}
+
+// 调用该函数报告 XML 文档中的字符数据
+bool SaxHandler::characters(const QString &str)
+{
+    currentText += str;
+    return true;
+}
+
+// 当阅读器遇到一个关闭标签时，就会调用 endElement() 函数
+bool SaxHandler::endElement(const QString & /* namespaceURI */,
+                            const QString & /* localName */,
+                            const QString &qName)
+{
+    if (qName == "entry") {
+        currentItem = currentItem->parent();
+    } else if (qName == "page") {
+        if (currentItem) {
+            QString allPages = currentItem->text(1);
+            if (!allPages.isEmpty())
+                allPages += ", ";
+            allPages += currentText;
+            currentItem->setText(1, allPages);
+        }
+    }
+    return true;
+}
+
+// 当阅读器解析 XML 文件失败时，就会调用 fatalError() 函数。
+bool SaxHandler::fatalError(const QXmlParseException &exception)
+{
+    // 输出错误信息
+    std::cerr << "Parse error at line " << exception.lineNumber()
+              << ", " << "column " << exception.columnNumber() << ": "
+              << qPrintable(exception.message()) << std::endl;
+    return false;
+}
+```
+
 
 ## 写入 XML
 
