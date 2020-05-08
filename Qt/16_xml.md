@@ -790,5 +790,5 @@ out << "<doc>\n"
 * [qt5-book-code/chap16/](https://github.com/mutse/qt5-book-code/tree/master/chap16)
 
 [上一级](README.md)
-[上一篇](14_multiThread.md)
+[上一篇](15_network.md)
 [下一篇](21_createPlugin.md)
