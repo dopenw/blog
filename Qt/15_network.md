@@ -6,6 +6,7 @@
 - [15. 网络](#15-网络)
   - [写 TCP 客户/服务器应用程序](#写-tcp-客户服务器应用程序)
     - [Trip Planner](#trip-planner)
+    - [TripServer](#tripserver)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -17,6 +18,8 @@ Qt 提供了 [QFtp](https://doc.qt.io/archives/qt-4.8/qftp.html) 与 [QHttp](htt
 [QHttp in not available in Qt5](https://stackoverflow.com/questions/26180311/qhttp-in-not-available-in-qt5)
 
 Qt 还提供了较低级的 [QTcpSocket](https://doc.qt.io/qt-5/qtcpsocket.html) 和 [QUdpSocket](https://doc.qt.io/qt-5/qudpsocket.html)。 若要创建服务器应用程序，还需要 [QTcpServer](https://doc.qt.io/qt-5/qtcpserver.html) 来处理引入的 TCP 连接。我们可以使用 [QSslSocket](https://doc.qt.io/qt-5/qsslsocket.html) 代替 QTcpSocket 来建立安全的 SSL/TLS 连接。
+
+[Qt Network](https://doc.qt.io/qt-5/qtnetwork-index.html)
 
 
 ## 写 TCP 客户/服务器应用程序
@@ -309,6 +312,204 @@ int main(int argc, char *argv[])
     return app.exec();
 }
 ```
+
+### TripServer
+
+服务器包括两个类：
+* TripServer - 派生自 [QTcpServer](https://doc.qt.io/qt-5/qtcpserver.html),这是一个允许接收来访的 TCP 连接的类。
+* ClientSocket - 派生自 QTcpSocket, 处理一个单独的连接。
+
+在任何时候，在内存中 ClientSocket 对象的数量和正在被服务的客户端数量都是一样多的。
+
+tripserver.h:
+```c++
+#ifndef TRIPSERVER_H
+#define TRIPSERVER_H
+
+#include <QTcpServer>
+
+class TripServer : public QTcpServer
+{
+    Q_OBJECT
+
+public:
+    TripServer(QObject * parent = 0);
+
+private:
+    // 只要有一个客户端试图连接到服务器正监听的端口，这个函数就会被调用
+    //void incomingConnection(int socketId) override;
+    // for my Qt5.13.2
+    void incomingConnection(qintptr socketId) override;
+};
+
+#endif
+```
+
+tripserver.cpp:
+```c++
+#include <QtCore>
+
+#include "clientsocket.h"
+#include "tripserver.h"
+
+TripServer::TripServer(QObject *parent)
+    : QTcpServer(parent)
+{
+}
+
+//void TripServer::incomingConnection(int socketId)
+//for my Qt5.13.2
+void TripServer::incomingConnection(qintptr socketId)
+{
+    // 创建 ClientSocket 对象，并且 setSocketDescriptor.
+    // 当连接终止时，ClientSocket 对象将自动删除
+    ClientSocket * socket = new ClientSocket(this);
+    socket->setSocketDescriptor(socketId);
+}
+```
+
+clientsocket.h:
+```c++
+#ifndef CLIENTSOCKET_H
+#define CLIENTSOCKET_H
+
+#include <QTcpSocket>
+
+class QDate;
+class QTime;
+
+class ClientSocket : public QTcpSocket
+{
+    Q_OBJECT
+
+public:
+    ClientSocket(QObject * parent = 0);
+
+private slots:
+    void readClient();
+
+private:
+    void generateRandomTrip(const QString &from, const QString &to,
+                            const QDate &date, const QTime &time);
+
+    quint16 nextBlockSize;
+};
+
+#endif
+```
+
+clientsocket.cpp:
+```c++
+#include <QtNetwork>
+
+#include "clientsocket.h"
+
+ClientSocket::ClientSocket(QObject *parent)
+    : QTcpSocket(parent)
+{
+    connect(this, SIGNAL(readyRead()), this, SLOT(readClient()));
+    // disconnect() 信号被连接到 deleteLater(),这是一个从 QObject 继承的函数
+    //，当控制权返回到 Qt 的事件循环时，它会删除对象。
+    // 这样就确保当关闭套接字连接时， ClientSocket 对象会被删除。
+    connect(this, SIGNAL(disconnected()), this, SLOT(deleteLater()));
+
+    nextBlockSize = 0;
+}
+
+void ClientSocket::readClient()
+{
+    QDataStream in(this);
+    in.setVersion(QDataStream::Qt_4_3);
+
+    if (nextBlockSize == 0) {
+        if (bytesAvailable() < sizeof(quint16))
+            return;
+        in >> nextBlockSize;
+    }
+
+    if (bytesAvailable() < nextBlockSize)
+        return;
+
+    quint8 requestType;
+    QString from;
+    QString to;
+    QDate date;
+    QTime time;
+    quint8 flag;
+
+    in >> requestType;
+    if (requestType == 'S') {
+        in >> from >> to >> date >> time >> flag;
+
+        std::srand(from.length() * 3600 + to.length() * 60
+                   + time.hour());
+        int numTrips = std::rand() % 8;
+        for (int i = 0; i < numTrips; ++i)
+            generateRandomTrip(from, to, date, time);
+
+        // 我们直接在 QTcpSocket(this)对象上使用 QDataStream
+        //,并且利用 >> 操作符来读取各个字段。
+        QDataStream out(this);
+        // 写入表示数据结束的标识
+        out << quint16(0xFFFF);
+    }
+
+    close();
+}
+
+// 生成一个随机的旅行
+void ClientSocket::generateRandomTrip(const QString & /* from */,
+        const QString & /* to */, const QDate &date, const QTime &time)
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_4_3);
+    quint16 duration = std::rand() % 200;
+    out << quint16(0) << date << time << duration << quint8(1)
+        << QString("InterCity");
+    out.device()->seek(0);
+    out << quint16(block.size() - sizeof(quint16));
+    write(block);
+}
+```
+
+main.cpp:
+```c++
+#include <QtWidgets>
+#include <iostream>
+
+#include "tripserver.h"
+
+int main(int argc, char *argv[])
+{
+    QApplication app(argc, argv);
+    TripServer server;
+    if (!server.listen(QHostAddress::Any, 6178)) {
+        std::cerr << "Failed to bind to port" << std::endl;
+        return 1;
+    }
+
+    QPushButton quitButton(QObject::tr("&Quit"));
+    quitButton.setWindowTitle(QObject::tr("Trip Server"));
+    QObject::connect(&quitButton, SIGNAL(clicked()),
+                     &app, SLOT(quit()));
+    quitButton.show();
+    return app.exec();
+}
+```
+
+在程序开发中，使用 QPushButton 来代表服务器是非常方便的。然而一个配备过的服务器常运行于没有图形用户界面的情况下。为此，提供了 [qtservice](https://github.com/qtproject/qt-solutions/tree/master/qtservice) 来辅助实现这一功能。
+
+现在我们完成了这个客户/服务器实例。在这个实例中，我们使用了一个基于块的协议，它允许使用 QDataStream 来读取和写入。如果想使用基于行的协议，最简单的方式是在一个连接到 readRead() 信号的槽中使用 QTcpSocket 的 canReadLine() 和 readLine() 函数：
+```c++
+QStringList lines;
+while (tcpSocket.canReadLine()) {
+  lines.append(tcpSocket.readLine());
+}
+```
+然后，处理已经读取的每一行。至于发送数据，可以通过在 QTcpSocket 上使用 QTextStream 来完成。
+
+这里使用的服务器实现，在同时有较多连接的时候，不能很好地并行工作。其原因在于：当处理一个请求时，并没有同时处理其他连接。一个更好地方式 [Threaded Fortune Server Example](https://doc.qt.io/qt-5/qtnetwork-threadedfortuneserver-example.html)
 
 ## Link
 * [qt5-book-code/chap15/](https://github.com/mutse/qt5-book-code/tree/master/chap15)
