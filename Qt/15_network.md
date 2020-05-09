@@ -7,6 +7,9 @@
   - [写 TCP 客户/服务器应用程序](#写-tcp-客户服务器应用程序)
     - [Trip Planner](#trip-planner)
     - [TripServer](#tripserver)
+  - [发送和接收 UDP 数据报](#发送和接收-udp-数据报)
+    - [Weather Balloon](#weather-balloon)
+    - [Weather Station](#weather-station)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -510,6 +513,266 @@ while (tcpSocket.canReadLine()) {
 然后，处理已经读取的每一行。至于发送数据，可以通过在 QTcpSocket 上使用 QTextStream 来完成。
 
 这里使用的服务器实现，在同时有较多连接的时候，不能很好地并行工作。其原因在于：当处理一个请求时，并没有同时处理其他连接。一个更好地方式 [Threaded Fortune Server Example](https://doc.qt.io/qt-5/qtnetwork-threadedfortuneserver-example.html)
+
+## 发送和接收 UDP 数据报
+
+[QUdpSocket](https://doc.qt.io/qt-5/qudpsocket.html) 类可以用来发送和接收 UDP 数据报(datagram)。 UDP 是一种不可靠地，面向数据报地协议。一些应用层的协议使用 UDP ，因为它比 TCP 更加小巧轻便。采用 UDP ，数据是以包（数据报）的形式从一个主机发送到另一个主机的。这里并没有连接的概念，而且如果 UDP 包没有被成功投递，它不会向发送者报告任何错误。
+
+### Weather Balloon
+该应用程序模拟气象气球的功能，每2秒钟就发送一个包含当前天气情况的 UDP 数据报。
+
+weatherballoon.h:
+```c++
+#ifndef WEATHERBALLOON_H
+#define WEATHERBALLOON_H
+
+#include <QPushButton>
+#include <QTimer>
+#include <QUdpSocket>
+
+class WeatherBalloon : public QPushButton
+{
+    Q_OBJECT
+
+public:
+    WeatherBalloon(QWidget * parent = 0);
+
+    double temperature() const;
+    double humidity() const;
+    double altitude() const;
+
+private slots:
+    void sendDatagram();
+
+private:
+    QUdpSocket udpSocket;
+    QTimer timer;
+};
+
+#endif
+```
+
+weatherballoon.cpp:
+```c++
+#include <QtCore>
+#include <QtNetwork>
+#include <cstdlib>
+
+#include "weatherballoon.h"
+
+WeatherBalloon::WeatherBalloon(QWidget *parent)
+    : QPushButton(tr("Quit"), parent)
+{
+    connect(this, SIGNAL(clicked()), this, SLOT(close()));
+    connect(&timer, SIGNAL(timeout()), this, SLOT(sendDatagram()));
+
+    timer.start(2 * 1000);
+
+    setWindowTitle(tr("Weather Balloon"));
+}
+
+// 温度(摄氏度)
+double WeatherBalloon::temperature() const
+{
+    return -20.0 + (2.0 * std::rand() / (RAND_MAX + 1.0));
+}
+
+// 湿度(%)
+double WeatherBalloon::humidity() const
+{
+    return 20.0 + (2.0 * std::rand() / (RAND_MAX + 1.0));
+}
+
+// 高度(m)
+double WeatherBalloon::altitude() const
+{
+    return 7000 + (100.0 * std::rand() / (RAND_MAX + 1.0));
+}
+
+void WeatherBalloon::sendDatagram()
+{
+    QByteArray datagram;
+    QDataStream out(&datagram, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_4_3);
+    out << QDateTime::currentDateTime() << temperature() << humidity()
+        << altitude();
+
+    // 发送 UDP 数据报
+    udpSocket.writeDatagram(datagram, QHostAddress::LocalHost, 5824);
+}
+```
+
+与 QTcpSocket::connectToHost() 不同，QUdpSocket::writeDatagram() 不接受主机名称，而只能使用主机地址。如果想再这里把主机名称解析成为它的IP地址，有两种选择：
+1. 再查找发生时阻塞，然后使用 [QHostInfo::fromName()](https://doc.qt.io/qt-5/qhostinfo.html#fromName) 静态函数
+2. 使用 [QHostInfo::lookupHost()](https://doc.qt.io/qt-5/qhostinfo.html#lookupHost) 静态函数。当查找完成时，它将立即返回，同时利用含有相应地址的 QHostInfo 对象传递而调用槽。
+
+main.cpp:
+```c++
+#include <QApplication>
+#include <QtWidgets>
+#include "weatherballoon.h"
+
+int main(int argc, char *argv[])
+{
+    QApplication app(argc, argv);
+    WeatherBalloon balloon;
+    balloon.show();
+    return app.exec();
+}
+```
+
+
+### Weather Station
+接收模拟气象气球的数据并且使这些信息显示出来。
+
+![](../images/15_network_202005092049_1.png)
+
+weatherstation.h:
+```c++
+#ifndef WEATHERSTATION_H
+#define WEATHERSTATION_H
+
+#include <QDialog>
+#include <QUdpSocket>
+
+class QLabel;
+class QLineEdit;
+
+class WeatherStation : public QDialog
+{
+    Q_OBJECT
+
+public:
+    WeatherStation(QWidget * parent = 0);
+
+private slots:
+    void processPendingDatagrams();
+
+private:
+    QUdpSocket udpSocket;
+
+    QLabel * dateLabel;
+    QLabel * timeLabel;
+    QLabel * temperatureLabel;
+    QLabel * humidityLabel;
+    QLabel * altitudeLabel;
+    QLineEdit * dateLineEdit;
+    QLineEdit * timeLineEdit;
+    QLineEdit * temperatureLineEdit;
+    QLineEdit * humidityLineEdit;
+    QLineEdit * altitudeLineEdit;
+};
+
+#endif
+```
+
+weatherstation.cpp:
+```c++
+#include <QtWidgets>
+#include <QtNetwork>
+
+#include "weatherstation.h"
+
+WeatherStation::WeatherStation(QWidget *parent)
+    : QDialog(parent)
+{
+    // 监听一个特定的 UDP 端口
+    udpSocket.bind(5824);
+
+    connect(&udpSocket, SIGNAL(readyRead()),
+            this, SLOT(processPendingDatagrams()));
+
+    dateLabel = new QLabel(tr("Date:"));
+    timeLabel = new QLabel(tr("Time:"));
+    temperatureLabel = new QLabel(tr("Temperature:"));
+    humidityLabel = new QLabel(tr("Humidity:"));
+    altitudeLabel = new QLabel(tr("Altitude:"));
+
+    dateLineEdit = new QLineEdit;
+    timeLineEdit = new QLineEdit;
+    temperatureLineEdit = new QLineEdit;
+    humidityLineEdit = new QLineEdit;
+    altitudeLineEdit = new QLineEdit;
+
+    dateLineEdit->setReadOnly(true);
+    timeLineEdit->setReadOnly(true);
+    temperatureLineEdit->setReadOnly(true);
+    humidityLineEdit->setReadOnly(true);
+    altitudeLineEdit->setReadOnly(true);
+
+    QGridLayout * mainLayout = new QGridLayout;
+    mainLayout->addWidget(dateLabel, 0, 0);
+    mainLayout->addWidget(dateLineEdit, 0, 1);
+    mainLayout->addWidget(timeLabel, 1, 0);
+    mainLayout->addWidget(timeLineEdit, 1, 1);
+    mainLayout->addWidget(temperatureLabel, 2, 0);
+    mainLayout->addWidget(temperatureLineEdit, 2, 1);
+    mainLayout->addWidget(humidityLabel, 3, 0);
+    mainLayout->addWidget(humidityLineEdit, 3, 1);
+    mainLayout->addWidget(altitudeLabel, 4, 0);
+    mainLayout->addWidget(altitudeLineEdit, 4, 1);
+    setLayout(mainLayout);
+
+    setWindowTitle(tr("Weather Station"));
+}
+
+// 当接收到数据报时，就调用该槽函数
+// QUdpSocket 将收到的数据报进行排队并让我们可以一次一个地读取它们。
+
+void WeatherStation::processPendingDatagrams()
+{
+    QByteArray datagram;
+
+    // 通常情况下，应该只有一个数据报，但是不能排除在发射 readyRead()
+    // 信号前发送端连续发送一些数据报的可能性。
+    // 如果是那样的话，可以忽略除最后一个以外的其他所有数据报，因为之前
+    // 的数据报包含的只是过期的天气情况。
+    // pendingDatagramSize() 返回第一个待处理的数据报的大小。
+    // 从应用程序的角度来看，数据报总是作为一个单一的数据单元来发送和接收的。
+    // 这意味着只要有任意字节的数据可用，就认为整个数据报都可以被读取。
+    do {
+        datagram.resize(udpSocket.pendingDatagramSize());
+        // readDatagram() 把第一个待处理的数据报的内容复制到指定的
+        // char* 缓冲区中（如果缓冲区空间太小，就直接截断数据），并且
+        // 前移至下一个待处理的数据报。
+        udpSocket.readDatagram(datagram.data(), datagram.size());
+    } while (udpSocket.hasPendingDatagrams());
+
+    // 将收到的数据更新到界面
+    QDateTime dateTime;
+    double temperature;
+    double humidity;
+    double altitude;
+
+    QDataStream in(&datagram, QIODevice::ReadOnly);
+    in.setVersion(QDataStream::Qt_4_3);
+    in >> dateTime >> temperature >> humidity >> altitude;
+
+    dateLineEdit->setText(dateTime.date().toString());
+    timeLineEdit->setText(dateTime.time().toString());
+    temperatureLineEdit->setText(tr("%1 C").arg(temperature));
+    humidityLineEdit->setText(tr("%1%").arg(humidity));
+    altitudeLineEdit->setText(tr("%1 m").arg(altitude));
+}
+```
+
+main.cpp:
+```c++
+#include <QApplication>
+#include <QtWidgets>
+#include "weatherstation.h"
+
+int main(int argc, char *argv[])
+{
+    QApplication app(argc, argv);
+    WeatherStation station;
+    station.show();
+    return app.exec();
+}
+```
+
+在绝大多数实际应用中，这两个应用程序都需要通过它们的套接字读取和写入。 QUdpSocket::writeDatagram() 函数可以传递主机地址和端口号，所以 QUdpSocket 可以从用 bind() 绑定的主机和端口读取数据，并且将其写入到其他的主机和端口。
+
 
 ## Link
 * [qt5-book-code/chap15/](https://github.com/mutse/qt5-book-code/tree/master/chap15)
