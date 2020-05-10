@@ -16,6 +16,7 @@
 * ### [14.多线程](14_multiThread.md)
 * ### [15. 网络](15_network.md)
 * ### [16. XML](16_xml.md)
+* ### [17. 提供在线帮助](17_onlineHelp.md)
 * ### [21. 创建插件](21_createPlugin.md)
 * ### [解决 qt 程序的依赖项](deployqt.md)
                            step by steop

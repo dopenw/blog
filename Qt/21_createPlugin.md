@@ -35,5 +35,5 @@ Qt 可以识别自己用于各域中的一套插件接口，这些域包含图�
 
 
 [上一级](README.md)
-[上一篇](16_xml.md)
+[上一篇](17_onlineHelp.md)
 [下一篇](deployqt.md)
