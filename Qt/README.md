@@ -18,6 +18,7 @@
 * ### [16. XML](16_xml.md)
 * ### [17. 提供在线帮助](17_onlineHelp.md)
 * ### [18. 国际化](18_unicode.md)
+* ### [19. 自定义外观](19_cutomStyle.md)
 * ### [21. 创建插件](21_createPlugin.md)
 * ### [解决 qt 程序的依赖项](deployqt.md)
                            step by steop

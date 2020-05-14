@@ -119,4 +119,4 @@ QTextCodec::setCodecForCStrings(QTextCodec::codecForName("EUC-JP"));
 
 [上一级](README.md)
 [上一篇](17_onlineHelp.md)
-[下一篇](21_createPlugin.md)
+[下一篇](19_cutomStyle.md)
