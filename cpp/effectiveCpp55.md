@@ -14,8 +14,8 @@
     - [条款 04：确定对象被使用前已先被初始化](#条款-04确定对象被使用前已先被初始化)
       - [请以 local static 对象替换 non-local static 对象](#请以-local-static-对象替换-non-local-static-对象)
   - [构造/析构/赋值运算](#构造析构赋值运算)
-    - [条款 05： 了解 c++ 默默编写并调用的哪些函数](#条款-05-了解-c-默默编写并调用的哪些函数)
-    - [条款 06： 若不想使用编译器自动生成的函数，就该明确拒绝](#条款-06-若不想使用编译器自动生成的函数就该明确拒绝)
+    - [条款 05：了解 c++ 默默编写并调用的哪些函数](#条款-05了解-c-默默编写并调用的哪些函数)
+    - [条款 06：若不想使用编译器自动生成的函数，就该明确拒绝](#条款-06若不想使用编译器自动生成的函数就该明确拒绝)
     - [条款 07：为多态基类声明 virtual 析构函数](#条款-07为多态基类声明-virtual-析构函数)
     - [条款 08：别让异常逃离析构函数](#条款-08别让异常逃离析构函数)
     - [条款 09：绝不在构造和析构过程中调用 virtual 函数](#条款-09绝不在构造和析构过程中调用-virtual-函数)
@@ -23,13 +23,15 @@
     - [条款 11：在 operator= 中处理“自我赋值”](#条款-11在-operator-中处理自我赋值)
     - [条款 12：复制对象时务忘其每一个成分](#条款-12复制对象时务忘其每一个成分)
   - [资源管理](#资源管理)
-    - [条款 13： 以对象管理资源](#条款-13-以对象管理资源)
-    - [条款 14： 在资源管理类中小心 copying 行为](#条款-14-在资源管理类中小心-copying-行为)
-    - [条款 15 ：在资源管理类中提供对原始资源的访问](#条款-15-在资源管理类中提供对原始资源的访问)
-    - [条款 16： 成对使用 new 和 delete 时要采取相同形式](#条款-16-成对使用-new-和-delete-时要采取相同形式)
+    - [条款 13：以对象管理资源](#条款-13以对象管理资源)
+    - [条款 14：在资源管理类中小心 copying 行为](#条款-14在资源管理类中小心-copying-行为)
+    - [条款 15：在资源管理类中提供对原始资源的访问](#条款-15在资源管理类中提供对原始资源的访问)
+    - [条款 16：成对使用 new 和 delete 时要采取相同形式](#条款-16成对使用-new-和-delete-时要采取相同形式)
     - [条款 17：以独立语句将 newed 对象置入智能指针](#条款-17以独立语句将-newed-对象置入智能指针)
   - [设计与声明](#设计与声明)
-    - [条款 18 ： 让接口容易被正确使用，不易被误用](#条款-18-让接口容易被正确使用不易被误用)
+    - [条款 18：让接口容易被正确使用，不易被误用](#条款-18让接口容易被正确使用不易被误用)
+    - [条款 19：设计 class 犹如设计 type](#条款-19设计-class-犹如设计-type)
+    - [条款 20：宁以 pass-by-reference-to-const 替换 pass-by-value](#条款-20宁以-pass-by-reference-to-const-替换-pass-by-value)
 
 <!-- /code_chunk_output -->
 
@@ -337,7 +339,7 @@ Directory &tempDir()
 * 为免除 “跨编译单元之初始化次序”问题，请以 local static 对象替换 non-local static 对象。
 
 ## 构造/析构/赋值运算
-### 条款 05： 了解 c++ 默默编写并调用的哪些函数
+### 条款 05：了解 c++ 默默编写并调用的哪些函数
 
 什么时候 empty class （空类） 不再是个 empty class 呢？ 当 c++ 处理过它之后。是的，如果你自己没声明，编译器就会为它声明（编译器版本的）一个 copy 构造函数、一个 copy assignment 操作符和一个析构函数。此外如果你没有声明任何构造函数，编译器也会为你声明一个 default 构造函数。所有这些函数都是 Public 且 inline(见条款 30)。因此，如果你写下：
 ```c++
@@ -358,7 +360,7 @@ public:
 
 至于 copy 构造函数和 copy assignment 操作符，编译器创建的版本只是单纯地将来源对象的每一个 non-static 成员拷贝到目标对象。
 
-### 条款 06： 若不想使用编译器自动生成的函数，就该明确拒绝
+### 条款 06：若不想使用编译器自动生成的函数，就该明确拒绝
 
 为驳回编译器自动（暗自）提供的机能，这又两种方法：
 1. 可将相应的成员函数声明为 private并且不予实现；
@@ -987,7 +989,7 @@ PriorityCustomer& PriorityCustomer::operator=(const PriorityCustomer& rhs)
 
 本章一开始是一个直接而易懂且基于对像(object-based) 的资源管理办法，建立在 c++ 对构造函数、析构函数、copying 函数的基础上。经验显示，经过训练后严守这些做法，可以几乎消除资源管理问题。
 
-### 条款 13： 以对象管理资源
+### 条款 13：以对象管理资源
 
 ```c++
 class Investment {...}; // “投资类型” 继承体系中的 root class
@@ -1067,7 +1069,7 @@ std::shared_ptr<int> spi(new int[1024]);
 * 为防止资源泄漏，请使用 RAII 对象，它们在构造函数中获得资源并在析构函数中释放资源。
 * 两个常被使用的 RAII classes 分别是 shared_ptr 和 auto_ptr(在 c++ 11 中被标记为弃用)。前者通常是较佳的选择，因为其 copy 行为比较直观。若选择 auto_ptr ，复制动作会使它（被复制物） 指向 null。
 
-### 条款 14： 在资源管理类中小心 copying 行为
+### 条款 14：在资源管理类中小心 copying 行为
 
 假如建立一个自己的资源管理类 Lock:
 ```c++
@@ -1134,7 +1136,7 @@ private:
 * 复制 RAII 对象必须一并复制它所管理的资源，所以资源的 copying 行为决定 RAII 对象的 copying 行为。
 * 普遍而常见的 RAII class copying 行为是：抑制 copying、施行引用计数法。不过其他行为也可能被实现。
 
-### 条款 15 ：在资源管理类中提供对原始资源的访问
+### 条款 15：在资源管理类中提供对原始资源的访问
 
 ```c++
 std::shared_ptr<Investment> pInv(createInvestment());
@@ -1237,7 +1239,7 @@ FontHandle f2 = f1; // oops!原意是要拷贝一个 Font 对象
 * APIs 往往要求访问原始资源，所以每一个 RAII class 应该提供一个 “取得其所管理之资源” 的办法。
 * 对原始资源的访问可能经由显式转换或隐式转换。一般而言显式转换比较安全，但隐式转换对客户比较方便。
 
-### 条款 16： 成对使用 new 和 delete 时要采取相同形式
+### 条款 16：成对使用 new 和 delete 时要采取相同形式
 
 以下动作有什么错？
 ```c++
@@ -1333,7 +1335,7 @@ processWidget(pw,priority());
 
 以下准备的材料并不覆盖你需要知道的优良接口设计的每一件事，但它强调某些最重要的考虑，对某些最频繁出现的错误提出警告，为 class 、 function 和 template 设计者经常遭遇的问题提供解答。
 
-### 条款 18 ： 让接口容易被正确使用，不易被误用
+### 条款 18：让接口容易被正确使用，不易被误用
 
 c++ 在接口之海漂浮。 function 接口、 class 接口 、 template 接口 ... 每一种接口都是客户与你的代码互动的手段。理想上，如果客户企图使用某个接口而却没有获得他所预期的行为，这个代码不该通过编译；如果代码通过了编译，它的作为就该是客户所想要的。
 
@@ -1449,6 +1451,131 @@ std::shared_ptr<Investment> createInvestment()
 * “促进正确使用” 的办法包括接口的一致性，以及与内置类型的行为兼容。
 * “阻止误用”的办法包括建立新类型、限制类型上的操作，束缚对象值，以及消除客户的资源管理责任。
 * std::shared_ptr 支持自定义删除器。这可防范 DLL 问题，可被用来自动解除互斥锁等等。
+
+### 条款 19：设计 class 犹如设计 type
+
+C++ 就像在其他 OOP 语言一样，当你定义了一个新的 class，也就定义了一个新的 type 。身为 c++ 程序员，你的许多时间主要用于扩张你的类型系统（type system）。这意味着你并不是一个 class 设计者，还是 type 设计者。
+
+设计优秀的 classes 是一项艰巨的工作，因为设计好的 types 是一项艰巨的工作。
+
+那么，如何设计高效的 classes 呢？首先必须了解你面对的问题。几乎每一个 classes 都要求你面对以下提问，而你的回答往往导致你的设计规范：
+* 新 type 的对象应该如何被创建和被销毁？
+* 对象的初始化和对象的赋值该有什么样的差别？
+* 新 type 的对象如果被 passed by value,意味着什么？
+* 什么是新 type 的 “合法值”？
+* 你的新的 type 需要配合某个继承体系吗？
+* 你的新 type 需要什么样的转换？
+* 什么样的操作符和函数对此新 type 而言是合理的？
+* 什么样的标准函数应该被驳回？
+* 谁该取用新 type 的成员？这个提问可以帮助你决定哪个成员为 public ,哪个为 protected ,哪个为 private。它也帮助你决定哪一个 classes 和/或 functions 应该是 friends,以及将它们嵌套于另外一个之内是否合理。
+* 什么是新 type 的 “未说明接口”（undeclared interface）?它对效率、异常安全性以及资源利用提供何种保证？你在这些方面体提供的保证将为你所实现 classes 实现代码加上相应的约束条件。
+* 你的新 type 有多么一般化？或许你其实并非定义一个新的 type ,而是定义一整个 types 家族。果真如此你就不该定义一个新 class,而是应该定义一个新的 class template.
+* 你真的需要一个新的 type 吗？如果只是定义新的 derived class 以便为即有的 class 添加机能，那么说不定单纯定义一个或多个 non-member 函数或 template ，更能够达到目标。
+
+这些问题不容易回答，所以定义出高效的 classes 是一种挑战。然而如果能够设计出至少像 c++ 内置类型一样好的用户自定义(user-defined)classes,一切汗水便都值得。
+
+请记住：
+* Class 的设计就是 type 的设计。在定义一个新 type 之前，请确认你已经考虑过本条款覆盖的所有讨论主题。
+
+### 条款 20：宁以 pass-by-reference-to-const 替换 pass-by-value
+
+缺省情况下 c++ 以 by value 的方式传递对象至函数。除非你另外指定，否则函数参数都是以实际实参的副本为初值，而调用端所获得的亦是函数返回值的一个副本。这些副本系由对象的 copy 构造函数产出，这可能使得 pass-by-value 成为费时的操作。考虑一下 class 继承体系：
+```c++
+class Person {
+private:
+  std::string name;
+  std::string address;
+
+public:
+  Person ();
+  virtual ~Person ();
+  ...
+};
+
+class Student:public Person {
+private:
+  std::string schoolName;
+  std::string schoolAddress;
+
+public:
+  Student (arguments);
+  virtual ~Student ();
+  ...
+};
+```
+
+```c++
+bool validateStudent(Student s);
+{
+  ...
+}
+```
+```c++
+Student plato;
+bool platoIsOk = validateStudent(plato);
+```
+上述函数被调用，将会发生：
+Student 的 copy 构造函数会被调用，以 plato 为蓝本将 s 初始化。同样明显地，当 validateStudent 返回 s 会被销毁。因此，对此函数而言，参数的传递成本是 "一次 Student copy 构造函数调用，加上一次 Student 析构函数调用"
+
+为了避免上述昂贵的操作：
+```c++
+bool validateStudent(const Student& s);
+{
+  ...
+}
+```
+
+以 by reference 方式传递参数也可以避免 slicing （对象切割）问题。当一个 derived class 对象以 by value 方式传递并被视为一个 base class 对象，base class 的 copy 构造函数会被调用，而“造成此对象的行为像个 derived class 对象” 的那些特化性质全被切割掉了，仅仅留下了一个 base class 对象。这实在不怎么让人惊讶，因为正是 base class 构造函数建立了它。但这几乎绝不会是你想要的。eg：
+```c++
+class Window {
+public:
+  ...
+  std::string name() const;
+  virtual void display() const;
+};
+
+class WindowWithScrollBars:public Window {
+public:
+  ...
+  virtual void display() const;
+};
+```
+
+```c++
+void printNameAndDisplay(Window w) // 不正确！参数可能会被切割
+{
+  std::cout << w.name();
+  w.display();
+}
+```
+```c++
+WindowWithScrollBars wwsb;
+printNameAndDisplay(wwsb);
+```
+上述在 printNameAndDisplay 内调用 display 调用的总是 Window::display(),绝不会是 WindowWithScrollBars::display().
+
+解决切割 (slicing) 的方法：
+```c++
+void printNameAndDisplay(const Window& w)
+{
+  std::cout << w.name();
+  w.display();
+}
+```
+
+如果窥视 C++ 编译器的底层，你会发现，reference 往往以指针实现出来，因此 pass by reference 通常意味真正传递的是指针。因此如果你有个对象属于内置类型(例如 int),pass by value 往往比 pass by reference 的效率高一些。对内置类型而言，当你有机会采用 pass-by-value 或者 pass-by-reference-to-const 时，选择 pass-by-value 并非没有道理。这个忠告也适用于 STL 的迭代器和函数对象，因为习惯上它们都被设计为 passed by value 。的迭代器和函数对象的实践者有责任看看它们是否高效且不受切割问题 (slicing problem) 的影响。这是 "规则之改变取决于你使用那一部分 c++ (见条款 1)" 的一个例子。
+
+内置类型都相当小，因此有人认为，所有小型 types 都是 pass-by-value 的合格候选人，甚至它们是用户自定义的 class 亦然。这是个不可靠的推论。对象小并不意味着其 copy 构造函数不昂贵。许多对象 - 包括大多数 STL 容器 - 内含的东西只比一个指针多一些，但复制这种对象却需承担 “复制那些指针所指的每一样东西”。那将非常昂贵。
+
+即使小型对象拥有并不昂贵的 copy 构造函数，还是可能有效率上的争议。某些编译器对待 “内置类型” 和 “用户自定义类型” 的态度截然不同，纵使两者拥有相同的底层描述。举个例子，某些编译器拒绝把只由一个 double 组成的对象放进缓存器内，却很乐意在一个正规基础上对光秃秃的 double 那样做。当这种事发生，你更应该以 by reference 的方式传递此等对象，因为编译器当然会将指针放进缓存器内，绝无问题。
+
+“小型的用户自定义类型不必然成为 pass-by-value 优良候选人”的另一个理由：作为一个用户自定义类型，其大小容易有所变化。甚至当你改用另一个 c++ 编译器都有可能改变 type 的大小。举个例子，在作者下笔此刻，某些标准程序库实现版本中的 string 类型比其他版本大 7 倍。
+
+一般而言，你可以合理假设 “pass-by-value 并不昂贵”的唯一对象就是内置类型和 STL 的迭代器和函数对象。至于其他任何东西都请遵守本条款的忠告，尽量以 pass-by-reference-to-const 替换 pass-by-value.
+
+请记住：
+* 尽量以 pass-by-reference-to-const 替换 pass-by-value。前者通常比较高效，并可避免切割问题(slicing problem)
+* 以上规则并不适用于内置类型，以及 STL 的迭代器和函数对象。对它们而言，pass-by-value 往往比较适当。
 
 [上一级](README.md)
 [上一篇](do_while_false.md)
