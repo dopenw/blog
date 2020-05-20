@@ -8,6 +8,7 @@
   - [使用 Unicode](#使用-unicode)
   - [让应用程序感知翻译](#让应用程序感知翻译)
     - [加载翻译文件](#加载翻译文件)
+  - [动态切换语言](#动态切换语言)
 
 <!-- /code_chunk_output -->
 
@@ -317,6 +318,182 @@ if (tr("Italic")[0] == 'C') {
 </qresource>
 ```
 如果用户的本地设置是 es(Español),那么 ":/italic.png" 就成为 cursivo.png 的图片引用。如果本地设置是 sv(Svenska),那么就使用 kursiv.png 图片。对于其他情况，就会使用 italic.png 。
+
+## 动态切换语言
+对于绝大多数应用程序，在 main() 中检测用户的首选语言并为之加载适当的 .qm 文件，能够这样做是非常完美的事情。但在一些情况下，用户也许需要程序具有动态切换语言的功能。
+
+让应用程序能够动态切换语言所需要的方法：
+* 提供用户可以用来切换语言的一种方法
+* 对于每一个窗口部件或者对话框，把它所有可翻译的字符串放在一个单独的函数[通常称为 retranslateUi()]中，并且当语言发生改变的时候调用这个函数。
+
+eg： 呼叫中心应用程序相关部分的源代码。这个应用提供了一个 Language 菜单（如下图），允许用户在程序运行时设置它的语言。默认的语言是英语。
+
+![](../images/18_unicode_202005201434_1.png)
+
+```c++
+MainWindow::MainWindow()
+{
+  journalView = new JournalView;
+  setCentralWidget(journalView);
+  // appTranslator 对象存储应用程序的当前翻译
+  qApp->installTranslator(&appTranslator);
+  // qtTranslator 对象存储 Qt 的翻译
+  qApp->installTranslator(&qtTranslator);
+  createActions();
+  createMenus();
+  // 设置程序在第一次运行时用户可见的那些字符串
+  retranslateUi();
+}
+
+// 创建了一些 QAction 对象，但是它没有设置任何文本。
+// 这些工作将会在 retranslateUi() 中完成。
+void MainWindow::createActions()
+{
+  newAction = new QAction(this);
+  newAction->setShortcut(QKeySequence::New);
+  connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
+  ...
+  exitAction = new QAction(this);
+  connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
+  ...
+  aboutQtAction = new QAction(this);
+  connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+}
+
+// 创建了菜单，但是没有向菜单条中插入任何标题。
+// 这些工作将会在 retranslateUi() 中完成。
+void MainWindow::createMenus()
+{
+  fileMenu = new QMenu(this);
+  fileMenu->addAction(newAction);
+  fileMenu->addAction(openAction);
+  fileMenu->addAction(saveAction);
+  fileMenu->addAction(exitAction);
+  editMenu = new QMenu(this);
+  ...
+  createLanguageMenu();
+  helpMenu = new QMenu(this);
+  helpMenu->addAction(aboutAction);
+  helpMenu->addAction(aboutQtAction);
+  menuBar()->addMenu(fileMenu);
+  menuBar()->addMenu(editMenu);
+  menuBar()->addMenu(reportsMenu);
+  menuBar()->addMenu(languageMenu);
+  menuBar()->addMenu(helpMenu);
+}
+
+// 该函数就是 MainWindow 类中所有出现tr() 调用的地方。
+// 它是在 MainWindow 构造函数的最后部分得到调用的，
+// 并且在用户每次使用 Language 菜单改变应用程序语言
+// 的时候也会调用这个函数。
+void MainWindow::retranslateUi()
+{
+  newAction->setText(tr("&New"));
+  newAction->setStatusTip(tr("Create a new journal"));
+  ...
+  exitAction->setText(tr("E&xit"));
+  exitAction->setShortcut(tr("Ctrl+Q"));
+  ...
+  aboutQtAction->setText(tr("About &Qt"));
+  aboutQtAction->setStatusTip(tr("Show the Qt library's About box"));
+  fileMenu->setTitle(tr("&File"));
+  editMenu->setTitle(tr("&Edit"));
+  reportsMenu->setTitle(tr("&Reports"));
+  languageMenu->setTitle(tr("&Language"));
+  helpMenu->setTitle(tr("&Help"));
+  setWindowTitle(tr("Call Center"));
+}
+
+void MainWindow::createLanguageMenu()
+{
+  languageMenu = new QMenu(this);
+  languageActionGroup = new QActionGroup(this);
+  connect(languageActionGroup, SIGNAL(triggered(QAction * )),
+  this, SLOT(switchLanguage(QAction * )));
+  QDir qmDir = directoryOf("translations");
+  QStringList fileNames =
+  qmDir.entryList(QStringList("callcenter_*.qm"));
+  for (int i = 0; i < fileNames.size(); ++i) {
+    QString locale = fileNames[i];
+    // ASCII 95 <==> 下划线
+    locale.remove(0, locale.indexOf(static_cast<Qchar>(95)) + 1);
+    locale.chop(3);
+    QTranslator translator;
+    translator.load(fileNames[i], qmDir.absolutePath());
+    QString language = translator.translate("MainWindow","English");
+    QAction * action = new QAction(tr("&%1 %2")
+            .arg(i + 1).arg(language), this);
+    action->setCheckable(true);
+    action->setData(locale);
+    languageMenu->addAction(action);
+    languageActionGroup->addAction(action);
+    if (language == "English")
+    action->setChecked(true);
+  }
+
+}
+```
+
+为简单起见，我们假设英文也有一个 .qm 文件，当用户选择 English 的时候，还有一种方法本应当对这些 QTranslator 对象调用 clear() 。
+
+这里存在一个特殊的困难，就是希望用一个漂亮的名字来表示每一个 .qm 文件所能提供的语言。如果只是基于每一个 .qm 文件的名字，既只为 "English" 显示一个 "en",或者只为 "Deutsch" 显示一个 "de"，这样的命名方法看起来就会显得有些过于简练，并且容易让用户产生困惑。在 createLanguageMenu() 中使用的解决方法就是在 "MainWindow" 的上下文中检查 "English" 这个字符串的翻译。这个字符串在德语的翻译中就应该被翻译为 "Deutsch"，而在一个法语翻译文件中就应该翻译为 "Francais",在一个日本语翻译文件中就应当翻译成 “日本语”。
+
+```c++
+// 当用户从 Language 菜单中选择一种语言的时候，就会调用该槽函数
+void MainWindow::switchLanguage(QAction *action)
+{
+  QString locale = action->data().toString();
+  QString qmPath = directoryOf("translations").absolutePath();
+  appTranslator.load("callcenter_" + locale, qmPath);
+  qtTranslator.load("qt_" + locale, qmPath);
+  retranslateUi();
+}
+```
+
+在 Windows 系统上，还有一种方法提供对 LocaleChange 事件做出响应的 Language 菜单，当 Qt 检测到环境的本地设置发生变化时，它就会发射一个这种类型的事件。Qt 在各个平台上都支持这种类型的事件，但是实际上只有在 Windows 上，当用户改变系统的本地设置的时候，才会产生这种事件（在控制面板种的 "地区和语言"选项中）。eg：
+```c++
+void MainWindow::changeEvent(QEvent *event)
+{
+  if (event->type() == QEvent::LocaleChange) {
+    QString qmPath = directoryOf("translations").absolutePath();
+    appTranslator.load("callcenter_"
+              + QLocale::system().name(), qmPath);
+    qtTranslator.load("qt_" + QLocale::system().name(), qmPath);
+    retranslateUi();
+  }
+  QMainWindow::changeEvent(event);
+}
+```
+
+JournalView(派生自 QTableWidget) 类的代码：
+```c++
+JournalView::JournalView(QWidget *parent)
+: QTableWidget(parent)
+{
+  ...
+  retranslateUi();
+}
+
+void JournalView::retranslateUi()
+{
+  QStringList labels;
+  labels << tr("Time") << tr("Priority") << tr("Phone Number")
+        << tr("Subject");
+  setHorizontalHeaderLabels(labels);
+}
+
+void JournalView::changeEvent(QEvent *event)
+{
+  if (event->type() == QEvent::LanguageChange)
+    retranslateUi();
+  QTableWidget::changeEvent(event);
+}
+```
+在安装到 QCoreApplication 中的当前 QTranslator 的内容发生变化时，Qt 就会产生一个 LanguageChange 事件。在应用程序中，当在 MainWindow::switchLanguage() 或者在 QMainWindow::changeEvent() 中对 appTranslator 或者 qtTranslator 调用 load() 时，就会发生这种情况。
+
+不应当混淆 LanguageChange 事件和 LocaleChange 事件。 LocaleChange 事件由系统产生并且会高速应用程序：“也许应当加载一个新的翻译文件了”。Language 事件则是由 Qt 产生的，它会告诉应用程序的窗口部件：“应当重新翻译所有字符串了”。
+
+当重新实现 MainWindow 时，不需要对 LanguageChange 做出响应。
 
 [上一级](README.md)
 [上一篇](17_onlineHelp.md)
