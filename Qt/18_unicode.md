@@ -9,6 +9,7 @@
   - [让应用程序感知翻译](#让应用程序感知翻译)
     - [加载翻译文件](#加载翻译文件)
   - [动态切换语言](#动态切换语言)
+  - [翻译应用程序](#翻译应用程序)
 
 <!-- /code_chunk_output -->
 
@@ -494,6 +495,71 @@ void JournalView::changeEvent(QEvent *event)
 不应当混淆 LanguageChange 事件和 LocaleChange 事件。 LocaleChange 事件由系统产生并且会高速应用程序：“也许应当加载一个新的翻译文件了”。Language 事件则是由 Qt 产生的，它会告诉应用程序的窗口部件：“应当重新翻译所有字符串了”。
 
 当重新实现 MainWindow 时，不需要对 LanguageChange 做出响应。
+## 翻译应用程序
+翻译一个含有 tr() 调用的 Qt 应用程序就是一个由三步构成的过程：
+1. 运行 lupdate ，从应用程序的源代码中提取所有用户可见的字符串。
+2. 使用 Qt Linguist 翻译该应用程序。
+3. 运行 lrelease ，生成二进制的 .qm 文件，应用程序可以使用 QTranslator 加载这个文件。
+
+第一步和第三步由应用程序开发人员执行，第二步由翻译人员处理。根据这个应用程序的开发过程和使用周期的需要，可以多次重复这一循环过程。
+
+这里我们以 第四章的 Spereadsheet 程序为例；
+首先，必须稍微修改一下 spereadsheet.pro 文件，以便说明我们想要支持哪些语言。例如，如果想除了支持英语之外，还想支持德语和法语，则需要在 spereadsheet.pro 文件中添加：
+```highLight
+TRANSLATIONS = spreadsheet_de.ts \
+                spreadsheet_fr.ts
+```
+这里给定了两个翻译文件：一个用于德语，另一个用于法语。当第一次运行 lupdate 时，将会创建这两个文件，并且在以后每次执行 lupdate 的时候，都会更新这两个文件。
+这些文件通常都有一个 .ts 扩展名。它们都使用简单的 XML 格式，并且都没有像可由 QTranslator 理解的二进制 .qm 文件那样紧凑。把人们可读的 .ts 文件转换成高效率的机器可以理解的 .qm 文件则是 lrelease 的工作。
+```highLight
+.ts 文件的名字代表翻译源(translation source)
+.qm 文件的名字代表 "Qt 消息"(Qt message)
+```
+Run lupdate in CMD:
+```sh
+lupdate -verbose spreadsheet.pro # -verbose 显示比平常更多的反馈信息。
+```
+输出结果：
+```sh
+Updating 'spreadsheet_de.ts'...
+    Found 88 source text(s) (0 new and 88 already existing)
+Updating 'spreadsheet_fr.ts'...
+    Found 88 source text(s) (0 new and 88 already existing)
+```
+在应用程序源代码的每个 tr() 调用中所出现的每一个字符串，都会存储到这些 .ts 文件中，后面会跟一个空白翻译。应用程序的 .ui 文件中所出现的字符串也会包含在其中。
+
+默认情况下，lupdate 工具会假设 tr() 中的参数都是 Latin-1 字符串。如果不是这种情况，那么就必须在 .pro 文件中添加 CODECFORTR.例如：
+```highLight
+CODECFORTR = EUC-JP
+```
+除了在应用程序的 mian() 函数中调用 QTextCodec::setCodecForTr() (qt5 不再支持) 之外，还必须完成这一点。
+然后，就需要使用 Qt Linguist 把这些翻译添加到 spreadsheet_de.ts 和 spereadsheet_fr.ts 文件中。Qt Linguist 图示例：
+
+![](../images/18_unicode_202005211435_1.png)
+
+在 Qt Linguist 主窗口的左侧一栏，显示的是一个树状视图。那些顶层项是要翻译的应用程序的上下文。
+
+一旦有了一个翻译过的 .ts 文件，就需要把它转换成一个可以由 QTranslator 使用的二进制 .qm 文件。为了在 Qt Linguist 中完成这一点，可以单击 File->Release 。通常情况下，应当先只翻译几个字符串，并且让应用程序在运行的时候使用该 .qm 文件来确保一切都可以正常工作。
+CMD 方式，可以：
+```sh
+lrelease -verbose spreadsheet.pro
+```
+这里翻译了2个德语字符串，输出如下信息：
+```sh
+Updating 'spreadsheet_de.qm'...
+    Generated 2 translation(s) (2 finished and 0 unfinished)
+    Ignored 86 untranslated source text(s)
+Updating 'spreadsheet_fr.qm'...
+    Generated 0 translation(s) (0 finished and 0 unfinished)
+    Ignored 88 untranslated source text(s)
+```
+当应用程序运行的时候，还没有被翻译的字符串将会按最初的语言显示出来。lrelease 将会忽略 Done 标记，翻译人员可以用它来判断哪些翻译已经完成了，同时哪些还必须重新访问。
+
+当修改应用程序源代码的时候，翻译文件就可能过时了。解决这个问题的方法就是再次运行 lupdate，这样就可以为新的字符串重新提供翻译，然后再重新生成这些 .qm 文件。一些开发团队发现经常运行 lupdate 是非常有用的，而其他一些开发团队则喜欢等到最终产品即将发布时才运行它。
+
+lupdate 和 Qt Linguist 这些工具都非常智能。那些不再使用的翻译会仍旧保存在 .ts 文件中，因为很可能会在以后的发布中用到它们。在更新 .ts 文件的时候，lupdate 会使用一种智能的合并算法，它可以为翻译人员在处理那些不同上下文中具有相同或者相近文本的翻译时节省相当多的事件。
+
+ [有关 Qt Linguist 、lupdate 和 lrelease 的更多信息](https://doc.qt.io/qt-5/qtlinguist-index.html)
 
 [上一级](README.md)
 [上一篇](17_onlineHelp.md)
