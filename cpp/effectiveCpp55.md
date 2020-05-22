@@ -32,6 +32,7 @@
     - [条款 18：让接口容易被正确使用，不易被误用](#条款-18让接口容易被正确使用不易被误用)
     - [条款 19：设计 class 犹如设计 type](#条款-19设计-class-犹如设计-type)
     - [条款 20：宁以 pass-by-reference-to-const 替换 pass-by-value](#条款-20宁以-pass-by-reference-to-const-替换-pass-by-value)
+    - [条款 21：必须返回对象时，别妄想返回其 reference](#条款-21必须返回对象时别妄想返回其-reference)
 
 <!-- /code_chunk_output -->
 
@@ -1576,6 +1577,100 @@ void printNameAndDisplay(const Window& w)
 请记住：
 * 尽量以 pass-by-reference-to-const 替换 pass-by-value。前者通常比较高效，并可避免切割问题(slicing problem)
 * 以上规则并不适用于内置类型，以及 STL 的迭代器和函数对象。对它们而言，pass-by-value 往往比较适当。
+
+### 条款 21：必须返回对象时，别妄想返回其 reference
+
+一旦程序员领悟了 pass-by-value 的效率牵连层面，往往变成十字军战士，一心一意根除 pass-by-value 带来的种中邪恶。在鉴定追求 pass-by-reference 的纯度中，它们一定会犯下一个致命错误：开始传递一些 references 指向其实并不存在的对象。这可不是件好事。
+
+```c++
+class Rational {
+private:
+  int n,d; // 分子 (numerator) 分母 (denominator)
+  friend const Rational operator * (const Rational& lhs,const Rational& rhs);
+
+public:
+  // 条款 24 说明为什么这个构造函数不声明为 explicit
+  Rational (int numerator = 0,int denominator = 1);
+  ...
+  virtual ~Rational ();
+};
+```
+
+唔，如果可以改而传递 reference ,就不需要付出代价。
+
+考虑下面的方法：
+```c++
+const Rational& operator * (const Rational& lengthIsVaild,const Rational& rhs)
+{
+  // 糟糕的代码
+  Rational result(lhs.n * rhs.n,lhs.d * rhs.d);
+  return result;
+}
+```
+这个函数调用了 构造函数，且更严重的是：这个函数返回了一个 reference 指向一个 local 对象，而 local 对象在函数退出前就被销毁了。
+```c++
+const Rational& operator * (const Rational& lengthIsVaild,const Rational& rhs)
+{
+  // 警告！更糟糕的写法
+  Rational * result = new Rational(lhs.n * rhs.n,lhs.d * rhs.d);
+  return * result;
+}
+```
+唔，你还是必须付出一个 “构造函数调用”代价，且出现了新的问题，如何阻止内存泄漏。
+```c++
+// 这绝对会导致内存泄漏
+Rational w,x,y,z;
+w = x*y*z;
+```
+或者这样？
+```c++
+const Rational& operator * (const Rational& lengthIsVaild,const Rational& rhs)
+{
+  // 警告！又一堆烂代码。static 对象，此函数将返回其 reference.
+
+  static Rational result;
+
+  result = ...; // 将 lhs 乘以 rhs,并将结果置于 result 内。
+  return result;
+}
+```
+就像所有用上 static 对象的设计一样，着一个也立刻造成我们对多线程安全性的考虑。不过那还只是显而易见的弱点。如果想看看更深层的瑕疵，考虑以下代码：
+```c++
+bool operator == (const Rational& lhs,const Rational& rhs);
+
+Rational a,b,c,d;
+...
+if ((a * b) == (c * d)) {
+  ...
+}
+else
+{
+  ...
+}
+```
+表达式 `(a * b) == (c * d)`总是被核算为 true，不论a,b,c,d 的值是什么!!!
+一旦将代码重新写为等价的函数形式，很容易就可以了解除了什么意外：
+```c++
+if (operator==(operator*(a,b),operator*(c,d)));
+```
+
+这应该足够说服你，欲令诸如 operator * 这样的函数返回 reference，只是浪费时间而已，但现在或许又有些人这样想：“唔，如果一个 static 不够，或许一个 static array 可以得分 ...”(oops,又是一个糟糕的想法)。
+
+
+一个“必须返回新对象”的函数的正确写法是：就让那个函数返回一个新对像。
+
+```c++
+const Rational operator * (const Rational& lengthIsVaild,const Rational& rhs)
+{
+  return Rational(lhs.n * rhs.n ,lhs.d * rhs.d);
+}
+```
+当然，你需要承受 operator * 返回值的构造成本和析构成本，然而长远来看那只是为了获得正确行为而付出的一个小小代价。但万一账单很恐怖，你承受不起，别忘了 C++ 程序和所有编程语言一样，允许编译器实现者施行最优化，用以改善产出码的效率却不改变其可观察的行为。因此某些情况下 operator * 返回值的构造和析构函数可被安全地消除。如果编译器运用这一事实（它们也往往如此），你的程序将继续保持它们该有的行为，而执行起来又比预期的更快。
+
+我把以上的讨论总结为：当你必须在 “返回一个 reference 和返回一个 object”之间抉择时，你的工作就是挑出行为正确的那个。就让编译器厂商为 “尽可能降低成本”鞠躬尽瘁吧，你可以享受你的生活。
+
+请记住：
+* 绝不要返回 pointer 或 reference 指向一个 local stack 对象，或返回 reference 指向一个 heap-allocated 对象，或返回 pointer 或 reference 指向一个 local static 对象而有可能需要多个这样的对象，条款 4 已经为 “在单线程环境中合理返回 reference 指向一个 local static对象”提供了一份设计实例。
 
 [上一级](README.md)
 [上一篇](do_while_false.md)
