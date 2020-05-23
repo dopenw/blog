@@ -21,4 +21,5 @@
 * ### [19. 自定义外观](19_cutomStyle.md)
 * ### [21. 创建插件](21_createPlugin.md)
 * ### [解决 qt 程序的依赖项](deployqt.md)
+* ### [使用 MFCMigrationFramework](useMFCMigrationFramework.md)
                            step by steop

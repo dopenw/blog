@@ -42,3 +42,4 @@ qApp->addLibraryPath("C:/customPath/plugins");
 
 [上一级](README.md)
 [上一篇](21_createPlugin.md)
+[下一篇](useMFCMigrationFramework.md)

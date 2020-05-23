@@ -84,3 +84,5 @@ void SpectrumInterface::closeSpectrum()
 #endif
 }
 ```
+[上一级](README.md)
+[上一篇](deployqt.md)
