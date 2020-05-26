@@ -33,6 +33,7 @@
     - [条款 19：设计 class 犹如设计 type](#条款-19设计-class-犹如设计-type)
     - [条款 20：宁以 pass-by-reference-to-const 替换 pass-by-value](#条款-20宁以-pass-by-reference-to-const-替换-pass-by-value)
     - [条款 21：必须返回对象时，别妄想返回其 reference](#条款-21必须返回对象时别妄想返回其-reference)
+    - [条款 22：将成员变量声明为 private](#条款-22将成员变量声明为-private)
 
 <!-- /code_chunk_output -->
 
@@ -1671,6 +1672,62 @@ const Rational operator * (const Rational& lengthIsVaild,const Rational& rhs)
 
 请记住：
 * 绝不要返回 pointer 或 reference 指向一个 local stack 对象，或返回 reference 指向一个 heap-allocated 对象，或返回 pointer 或 reference 指向一个 local static 对象而有可能需要多个这样的对象，条款 4 已经为 “在单线程环境中合理返回 reference 指向一个 local static对象”提供了一份设计实例。
+
+### 条款 22：将成员变量声明为 private
+
+首先来看看 public 成员变量。为什么不采用它呢？
+
+让我们从语法一致性开始（见条款 18）。如果成员变量不是 public，客户唯一能够访问对象的办法就是通过成员函数。如果 public 接口内的每样东西都是函数，客户就不需要在打算访问 class 成员时迷惑地记住是否该使用小括号。它们只要做就是了，因为每样东西都是函数。就生命而言，这至少可以省下许多搔首弄耳的时间。
+
+或许你不认为一致性的理由足以令人信服，来看另一个事实：使用函数可以让你对成员变量的处理有更精确的控制。
+
+```c++
+class AccessLevels {
+private:
+  int noAccess; // 对此 int 无任何访问动作
+  int readOnly;
+  int readWrite;
+  int writeOnly;
+
+public:
+  ...
+  int getReadOnly() const {return readOnly;}
+  void setReadWrite(int value) {readWrite = value;}
+  int getReadWrite() const {return readWrite;}
+  void setWriteOnly(int value) {writeOnly=value;}
+};
+```
+
+还是不够说服你？是端出大口径武器的时候了：封装。如果你通过函数访问成员变量，日后可改以某个计算替换这个成员变量，而 class 客户一点也不会知道 class 的内部实现已经起了变化。
+
+eg：
+```c++
+class SpeedDataCollection {
+private:
+  ...
+
+public:
+  void addValue(int speed); // 添加一笔新数据
+  double averageSoFar() const; // 返回平均速度
+};
+```
+现在让我们考虑成员函数 averageSoFar.做法之一是在 class 内设计一个成员变量，记录至今以来所有速度的平均值。当 averageSoFar 被调用，只需返回那个成员变量就好。另一个做法是令 averageSoFar 每次被调用时重新计算平均值，此函数有权利调取收集器内的每一笔速度值。
+
+置于哪一个比较好？这需要对应用场景进行分析。重点是，由于通过成员函数来访问平均值（也就是封装了它），你得以替换不同的实现方式，客户最多只需要重新编译。
+
+在成员变量隐藏在函数接口的背后，可以为“所有可能的实现”提供弹性。
+
+封装的重要性比你最初见到它时还重要。如果你对客户隐藏成员变量（也就是封装它们），你可以确保 class 的约束条件总是会获得维护，因为只有成员函数可以影响它们。犹有进者，你保留了日后变更实现的权利。。如果你不隐藏它们，你很快会发现，即使拥有 class 原始码，改变任何 public 事物的能力还是极端收到束缚，因为那会破坏太多客户码。public 意味不封装，而几乎可以说，不封装意味着不可改变，特别是对被广泛使用的 classes 而言。被广泛使用的 classes 是最需要封装的一个族群，因为它们最能够从 “改采用一个较佳实现版本”中获益。
+
+protected 成员变量的论点十分相似。“语法一致性”和“细微划分之访问控制”等理由显然也适用于 protected 数据，就像对 public 一样适用。但封装呢？ protected 成员变量的封装性是不是高过 public 成员变量？答案令人惊讶：并非如此。
+
+条款 23 会告诉你，某些东西的封装性与 “当其内容改变时可能造成的代码破坏量”成反比。因此，成员变量的封装性与 “成员变量的内容改变时所破环的代码数量”成反比。所谓改变，也许是从 class 中移除它。
+
+假设我们有一个 public 成员变量，而我们最终取消了它。多少代码可能会被破坏呢？唔，所有适用它的客户码都会被破坏，而那是一个不可知的大量。因此 public 成员变量完全没有封装性。假设我们有一个 protected 成员变量，而我们最终取消了它，有多少代码被破坏？唔，所有使用它的 derived classes 都会被破坏，那往往也是个不可知的大量。因此，protected 成员变量就像 public 成员变量一样缺乏封装性，因为在这两种情况下，如果成员变量被改变，都会有不可预知的大量代码受到破坏。虽然这个结论有点违反直观，但经验丰富的程序库作者会告诉你，它是真的。一旦你将成员变量声明为 public 或 protected 而客户开始使用它，就很难改变那个成员变量所涉及到的一切。太多代码需要重写、重新测试、重新编写文档、重新编译。从封装的角度来看，其是只有两种访问权限：private（提供封装）和其他（不提供封装）。
+
+请记住：
+* 切记将成员变量声明为 private。这可赋予客户访问数据的一致性、可细微划分访问控制、允诺约束条件获得保证，并提供 class 作者以充分的实现弹性。
+* protected 并不比 public 更具封装性。
 
 [上一级](README.md)
 [上一篇](do_while_false.md)
