@@ -15,4 +15,5 @@
 
 
 [上一级](README.md)
+[上一篇](CorePython.md)
 [下一篇](python_care.md)
