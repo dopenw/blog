@@ -573,5 +573,185 @@ False
 ```
 读者可能回想起来我们在正则表达式中使用\d 而没有使用原始字符串时并未遇到问题,这是因为 ASCII 中没有相应的特殊字符,所以正则表达式的编译器知道你想要表示十进制数字。
 
+### 一些正则表达式示例
+下面看一些 Python 正则表达式的示例代码,这将使我们更接近实际应用中的程序。如下所示,以 POSIX(UNIX 风格操作系统,如 Linux、Mac OS X 等)的 who 命令的输出为例,该命令将列出所有登录当前系统中的用户信息。
+```sh
+$ who
+wesley console Jun 20 20:33
+wesley pts/9 Jun 22 01:38 (192.168.0.6)
+wesley pts/1 Jun 20 20:33 (:0.0)
+wesley pts/2 Jun 20 20:33:00 (:0.0)
+wesley pts/4 Jun 20 20:33:00 (:0.0)
+wesley pts/3 Jun 20 20:33:00 (:0.0)
+wesley pts/5 Jun 20 20:33:00 (:0.0)
+wesley pts/6 Jun 20 20:33:00 (:0.0)
+wesley pts/7 Jun 20 20:33:00 (:0.0)
+wesley pts/8 Jun 20 20:33:00 (:0.0)
+```
+可能我们想要保存一些用户登录信息,诸如登录名、用户登录的终端类型、用户登录的时间和地点。
+创建一个名为 rewho.py 的程序：
+```py
+import re
+f = open('whodata.txt', 'r')
+for eachLine in f:
+  print re.split(r'\s\s+', eachLine)
+f.close()
+```
+```sh
+$ who > whodata.txt
+$ rewho.py
+['wesley', 'console', 'Jun 20 20:33\012']
+['wesley', 'pts/9', 'Jun 22 01:38\011(192.168.0.6)\012']
+['wesley', 'pts/1', 'Jun 20 20:33\011(:0.0)\012']
+['wesley', 'pts/2', 'Jun 20 20:33\011(:0.0)\012']
+['wesley', 'pts/4', 'Jun 20 20:33\011(:0.0)\012']
+['wesley', 'pts/3', 'Jun 20 20:33\011(:0.0)\012']
+['wesley', 'pts/5', 'Jun 20 20:33\011(:0.0)\012']
+['wesley', 'pts/6', 'Jun 20 20:33\011(:0.0)\012']
+['wesley', 'pts/7', 'Jun 20 20:33\011(:0.0)\012']
+['wesley', 'pts/8', 'Jun 20 20:33\011(:0.0)\012']
+```
+这是非常好的一次尝试。首先,我们不期望单个制表符(ASCII \011)作为输出的一部分(可能看起来像是至少两个空白符),然后可能我们并不真的希望保存\n (ASCII \012)作为每一行的终止符。我们现在将修复这些问题,然后通过一些改进来提高应用的整体质量。
+python 2 版本：
+```py
+#!/usr/bin/env python
+
+import os
+import re
+
+f=os.popen('who','r')
+for eachLine in f:
+  print re.split(r'\s\s+|\t',eachLine.rstrip())
+f.close()
+```
+python3 版本：
+```py
+#!/usr/bin/env python
+
+import os
+import re
+
+# 通过使用 with 语句，拥有上下文管理器的对象变得更容易使用
+with os.popen('who','r') as f:
+  for eachLine in f:
+    print(re.split(r'\s\s+|\t',eachLine.stip()))
+```
+通用版本：
+```py
+#!/usr/bin/env python
+
+import os
+from distutils.log import warn as printf
+import re
+
+with os.popen('who','r') as f:
+  for eachLine in f:
+    printf(re.split(r'\s\s+|\t',eachLine.stip()))
+
+```
+输出结果：
+```sh
+['wesley', 'console', 'Feb 22 14:12']
+['wesley', 'ttys000', 'Feb 22 14:18']
+['wesley', 'ttys001', 'Feb 22 14:49']
+['wesley', 'ttys002', 'Feb 25 00:13', '(192.168.0.20)']
+['wesley', 'ttys003', 'Feb 24 23:49', '(192.168.0.20)']
+```
+在 Windows 计算机上可以使用 tasklist 命令替代 who 来得到类似的结果。让我们查看该命令的输出结果。
+```sh
+C:\WINDOWS\system32>tasklist
+Image Name  PID Session  Name   Session#  Mem Usage
+========================= ====== ================ ======== ============
+System Idle Process 0 Console 0 28 K
+System 4 Console 0 240 K
+smss.exe 708 Console 0 420 K
+csrss.exe 764 Console 0 4,876 K
+winlogon.exe 788 Console 0 3,268 K
+services.exe 836 Console 0 3,932 K
+. . .
+```
+处理 Dos 环境下 tasklist 命令的输出 (retasklist.py)
+```py
+#!usr/bin/env python
+
+import os
+import re
+
+f=os.popen('tasklist /nh','r')
+for eachLine in f:
+  print re.findall(r'([\w.]+(?:[\w.]+)*)\s\s+(\d+) \w+\s\s+\d+\s\s+([\d,]+ k)'),eachLine.rstrip())
+f.close()
+```
+如果运行这个脚本,就能得到期望(已截断)的输出。
+```sh
+Z:\corepython\ch1>python retasklist.py
+[]
+[('System Idle Process', '0', '28 K')]
+[('System', '4', '240 K')]
+[('smss.exe', '708', '420 K')]
+[('csrss.exe', '764', '5,016 K')]
+[('winlogon.exe', '788', '3,284 K')]
+[('services.exe', '836', '3,932 K')]
+. . .
+```
+### 更长的正则表达式示例
+```py
+#!/usr/bin/env python
+
+from random import randrange, choice
+from string import ascii_lowercase as lc
+from sys import maxint
+from time import ctime
+
+lds = ('com', 'edu', 'net', 'org', 'gov')
+for i in xrange(randrange(5, 11)):
+dtint = randrange(maxint) # pick date
+dtstr = ctime(dtint) # date string
+llen = randrange(4, 8) # login is shorter
+login = ''.join(choice(lc) for j in range(llen))
+dlen = randrange(llen, 13)
+# domain is longer
+dom = ''.join(choice(lc) for j in xrange(dlen))
+print '%s::%s@%s.%s::%d-%d-%d' % (dtstr, login,
+dom, choice(tlds), dtint, llen, dlen)
+```
+输出结果：
+```sh
+Thu Jul 22 19:21:19 2004::izsp@dicqdhytvhv.edu::1090549279-4-11
+Sun Jul 13 22:42:11 2008::zqeu@dxaibjgkniy.com::1216014131-4-11
+Sat May 5 16:36:23 1990::fclihw@alwdbzpsdg.edu::641950583-6-10
+Thu Feb 15 17:46:04 2007::uzifzf@dpyivihw.gov::1171590364-6-8
+Thu Jun 26 19:08:59 2036::ugxfugt@jkhuqhs.net::2098145339-7-7
+Tue Apr 10 01:04:45 2012::zkwaq@rpxwmtikse.com::1334045085-5-10
+```
+#### 搜索与匹配...还有贪婪
+
+```py
+patt = '.+\d+-\d+-\d+'
+>>> re.match(patt, data).group() # entire match
+'Thu Feb 15 17:46:04 2007::uzifzf@dpyivihw.gov::1171590364-6-8'
+```
+```py
+>>> patt = '.+(\d+-\d+-\d+)'
+>>> re.match(patt, data).group(1)
+'4-6-8'
+```
+发生了什么?我们将提取 1171590364-6-8,而不仅仅是 4-6-8。第一个整数的其余部分在哪儿?问题在于正则表达式本质上实现贪婪匹配。这就意味着对于该通配符模式,将对正则表达式从左至右按顺序求值,而且试图获取匹配该模式的尽可能多的字符。在之前的示例中,使用“.+”获取从字符串起始位置开始的全部单个字符,包括所期望的第一个整数字段。\d+仅仅需要一个数字,因此将得到“4”,其中.+匹配了从字符串起始部分到所期望的第一个数字的全部内容:“Thu Feb 15 17:46:04 2007::uzifzf@dpyivihw.gov::117159036”,如下图所示：
+
+![](../images/CorePython_202005311945_1.png)
+
+其中的一个方案是使用“非贪婪”操作符“?”。读者可以在“*”、“+”或者“?”之后使用该操作符。该操作符将要求正则表达式引擎匹配尽可能少的字符。因此,如果在“.+”之后放置一个“?”,我们将获得所期望的结果。如下图所示：
+
+![](../images/CorePython_202005311945_2.png)
+
+```py
+>>> patt = '.+?(\d+-\d+-\d+)'
+>>> re.match(patt, data).group(1) # subgroup 1
+'1171590364-6-8'
+```
+另一个实际情况下更简单的方案,就是把“::”作为字段分隔符。读者可以仅仅使用正则字符串 strip(':: ')方法获取所有的部分,然后使用 strip('-')作为另一个横线分隔符,就能够获取最初想要查询的三个整数。
+
+对于想要更深入研究正则表达式的读者,建议阅读由 Jeffrey E. F. Friedl.编写的 [Mastering Regular Expressions](http://ww2.ii.uj.edu.pl/~tabor/prII09-10/perl/master.pdf)
+
 [上一级](README.md)
 [下一篇](noRootUserInstallPackage.md)
