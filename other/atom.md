@@ -179,11 +179,22 @@ apm config set https-proxy http://127.0.0.1:8118
 apm install atom-beautify ask-stack atom-clock atom-html-preview goto-definition highlight-selected markdown-preview-enhanced minimap minimap-highlight-selected minimap-linter platformio-ide-terminal symbols-tree-view file-icons docblockr highlight-line
 ```
 
+## 在 redora 上重装 atom
+```sh
+$ rm -rf ~/atom
+$ rm -rf ~/.atom
+$ rm -rf ~/.config/Atom-Shell
+$ sudo rm -rf /usr/local/share/atom/
+$ dnf autoremove atom
+$ rpm -ivh 'atom.x86_64.rpm'
+```
+
 ## Link
 
-[开发神器Atom编辑器优秀插件推荐](https://blog.wangjunfeng.com/archives/647)
-[The 20 Best Atom Packages for Front End Developers](https://www.shopify.com/partners/blog/best-atom-packages-2017)
-[Installing Atom](https://flight-manual.atom.io/getting-started/sections/installing-atom/)
+* [开发神器Atom编辑器优秀插件推荐](https://blog.wangjunfeng.com/archives/647)
+* [The 20 Best Atom Packages for Front End Developers](https://www.shopify.com/partners/blog/best-atom-packages-2017)
+* [Installing Atom](https://flight-manual.atom.io/getting-started/sections/installing-atom/)
+* [How to uninstall Atom text editor on Linux?](https://stackoverflow.com/questions/23621181/how-to-uninstall-atom-text-editor-on-linux)
 
 
 [上一级](README.md)
