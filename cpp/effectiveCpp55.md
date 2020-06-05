@@ -34,6 +34,7 @@
     - [条款 20：宁以 pass-by-reference-to-const 替换 pass-by-value](#条款-20宁以-pass-by-reference-to-const-替换-pass-by-value)
     - [条款 21：必须返回对象时，别妄想返回其 reference](#条款-21必须返回对象时别妄想返回其-reference)
     - [条款 22：将成员变量声明为 private](#条款-22将成员变量声明为-private)
+    - [条款 23：宁以 non-member、non-friend 替换 member 函数](#条款-23宁以-non-member-non-friend-替换-member-函数)
 
 <!-- /code_chunk_output -->
 
@@ -1728,6 +1729,87 @@ protected 成员变量的论点十分相似。“语法一致性”和“细微�
 请记住：
 * 切记将成员变量声明为 private。这可赋予客户访问数据的一致性、可细微划分访问控制、允诺约束条件获得保证，并提供 class 作者以充分的实现弹性。
 * protected 并不比 public 更具封装性。
+
+### 条款 23：宁以 non-member、non-friend 替换 member 函数
+
+```c++
+class WebBrowser{
+	public:
+	...
+	void clearCache();
+	void clearHistory();
+	void removeCookies();
+	...
+};
+```
+也提供一个这样的函数：
+```c++
+class WebBrowser{
+	public:
+	...
+	void clearEverything(); // 调用 clearCache,clearHistory 和 removeCookies
+	...
+};
+```
+当然，这一机能也可由一个 non-member 函数调用适当的 member 函数而提供出来：
+```c++
+void clearBrowser(WebBrowser& wb)
+{
+	wb.clearCache();
+	wb.clearHistory();
+	wb.removeCookies();
+}
+```
+那么，哪一个比较好呢？是 member 函数 clearEverything 还是 non-member 函数 clearBrowser?
+
+面向对象守则要求，数据以及操作数据的那些函数应该被绑定在一块，这意味它建议 member 函数是较好的选择。不幸的是这个建议不正确。这是基于对面向对象真实意义的一个误解。面向对象守则要求数据尽可能被封装，然而与直观相反地， member 函数 clearEverything 带来的封装性比 non-member 函数 clearBrowser 底。此外，提供 non-member 函数可允许对 webBrowser 相关机能有较大的包裹弹性 (packaging flexibility),而那最终导致较低的编译相侬度，增加 WebBrowser 的可延展性。因此在许多方面 non-member 做法比 member 做法好。重要的是，我们必须了解其原因。
+
+让我们从封装开始讨论。如果某些东西被封装，它就不再可见。越多东西被封装，越少人可以看到它。而越少人看到它，我们就有越大的弹性去改变它，因为我们的改变仅仅影响看到改变的那些人事物。因此，越多东西被封装，我们改变那些东西的能力也就越大。这就是我们首先推崇封装的原因：它使我们能够改变事物而只影响有限客户。
+
+现在考虑对象内的数据。越少代码可以看到数据（也就是访问它），越多数据可被封装，而我们就越能自由地改变数据。`如何测量 “有多少代码可以看到某一块数据” 呢？我们计算能够访问该数据的函数数量，作为一个粗糙的量测。越多函数可访问它，数据的封装性就越低。`
+
+条款 22 曾说过，成员变量应该是 private，因为如果它们不是，就有无限量的函数可以访问它们，它们就毫无封装性。能够访问 private 成员变量的函数只有 class 的 member 函数加上 friend 函数而已。如果要你在一个 member 函数（它不只能够访问 class 内的 private 数据，也可以取用 private 函数,enums,typedefs 等等）和一个 non-member、non-friend 函数（它无法访问上述任何东西）之间做抉择，而且两者提供相同机能，那么，导致较大封装性的是 non-member、non-friend 函数，因为它并不增加 “能够访问 class 内之 private 成分”的函数数量。这就解释了为什么是 clearBrowser 比 clearEverything 更受欢迎的原因：它导致 webBrowser class 有较大的封装性。
+
+在这一点上有两件事值得注意：
+1. 这个论述只是适用于 non-member、non-friend 函数。friends 函数对于 class private 成员的访问权力和 member 函数相同，因此两者对封装的冲击力道也相同。从封装的角度来看，这里的选择关键不在于 member 和 non-member 函数之间。而是在 member 和 non-member、non-friend 函数之间。（当然，封装并非唯一考虑。条款 24 解释当我们考虑隐式类型转换，应该在 member 和 non-member 函数之间抉择。）
+2. 只因在意封装性而让函数”成为 class 的 non-member“,并不意味着它 “不可以是另一个 class 的 member”.这对那些习惯于 "所有函数都必须定义于 class 内"的语言的程序员而言，可能是一个温暖的慰藉。例如我们可以令 clearBrowser 成为某个工具类的一个 statcic member 函数。只要它不是 webBrowser 的一部分（或成为其 friend） ，就不会影响 webBrowser 的  private 成员封装性。
+
+在 C++ 中，比较自然的做法：
+```c++
+namespace WebBrowserStuff {
+	class webBrowser {...};
+	void clearBrowser(webBrowser& wb);
+	...
+}
+```
+
+然而这不只是为了看起来自然而已。要知道，namespace 和 classes 不同，前者可以跨越多个源码文件而后者不能。这很重要，因为像  clearBrowser 这样的函数是个 “提供便利的函数”，如果它既不是 member 也不是 friends,就没有对 webBrowser 的特殊访问权力，也就不能提供 "webBrowser 客户无法以其他方式取得"的机能。
+
+一个像  webBrowser 这样的 class 可能拥有大量便利函数... 通常大多数客户只对其中某些感兴趣。分离它们的最直接做法就是这样：
+```c++
+// 头文件  "webbrowser.h" 这个针对于 class webbrowser 自身 及 webBrowser 核心机能
+namespace WebBrowserStuff{
+	class webBrowser{ ... };
+	... // 核心机能,例如几乎所有客户都需要的 non-member 函数
+}
+
+// 头文件 "webbrowserbookmasrks.h"
+namespace WebBrowserStuff{
+	... // 与书签相关的便利函数
+}
+
+// 头文件 "webbrowsercookies.h"
+namespace WebBrowserStuff{
+	... // 与 cookie 相关的便利函数
+}
+```
+
+注意，这正是 c++ 标准程序库的组织方式。标准程序库并不是拥有单一、整体、庞大的 <c++StandardLibrary> 头文件并在其中内含 std 命名空间内的每一样东西，而是有数十个头文件(<vector>,<algorithm>,<memory>等等)，每个头文件声明 std 的某些机能。
+
+将所有便利函数放在多个头文件内但隶属于同一个命名空间，意味客户可以轻松扩展这一组便利函数。它们需要做的就是添加更多 non-member、non-friend 函数到此命名空间内。举个例子，如果某个 WebBrowser 客户决定写些与影像下载相关的便利函数，它只需要在 WebBrowserStuff 命名空间内建立一个头文件，内含那些函数的声明即可。新函数就像其他旧有的便利函数那样可用且整合为一体。这是 class 无法提供的另一个性质，因为 class 定义式对客户而言是不能扩展的。当然啦，客户可以派生出新的 classes ，但 derived classes 无法访问 base class 中被封装的(private) 成员，于是如此的 “扩展机能” 拥有的只是次级身份。此外一如 条款 7 所说，并非所有 classes 都被设计用来作为 base classes.
+
+请记住：
+* 宁可拿 non-member、non-friend 函数替换 member 函数。这样做可以增加封装性、包裹弹性（packaging flexibility） 和机能扩充性。
 
 [上一级](README.md)
 [上一篇](do_while_false.md)
