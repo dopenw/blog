@@ -24,10 +24,20 @@
 
 * [Markdown Preview Enhanced](https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-enhanced)
 * [All Autocomplete](https://marketplace.visualstudio.com/items?itemName=Atishay-Jain.All-Autocomplete)
-
+* [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) I can say that it is the most powerful git management extensions out there. It lets you check git history, blame information, line and file history, commit searching, create or move between any branches and many other tools for handling Git.
+* [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) Prettier makes sure you don’t have to worry about formatting again! It’s super easy and can be configured to auto-format code on every save.
+* [Visual Studio IntelliCode](https://marketplace.visualstudio.com/items?itemName=VisualStudioExptTeam.vscodeintellicode) It is built for helping developers and programmers with smart code completion suggestions.
+* [Bracket Pair Colorizer 2](https://marketplace.visualstudio.com/items?itemName=CoenraadS.bracket-pair-colorizer-2) This extension colors pairs of brackets in different colors to make it easy to identify where each couple of brackets open and end.
+* [Better Comments](https://marketplace.visualstudio.com/items?itemName=aaron-bond.better-comments)
+* [CodeStream](https://marketplace.visualstudio.com/items?itemName=CodeStream.codestream) A great way to discuss code.
+* [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker)
+* [Path Intellisence](https://marketplace.visualstudio.com/items?itemName=christian-kohler.path-intellisense) Visual Studio Code plugin that autocompletes filenames.
+* [vscode-icons](https://marketplace.visualstudio.com/items?itemName=vscode-icons-team.vscode-icons)
 
 ## Link 
 * [vscode设置自动换行](https://zhuanlan.zhihu.com/p/65268106)
+* [16 Unique VSCode Extensions Every Developer Should Have in 2020](https://blog.bitsrc.io/16-unique-vscode-extensions-every-developer-should-have-in-2020-c4dcdb74506a)
+
 [上一级](README.md)
 [上一篇](v2ray.md)
 [下一篇](xiaomiMini.md)
