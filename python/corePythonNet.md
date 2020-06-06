@@ -723,6 +723,106 @@ $
 * socketpair()  Python 2.4 中新增
 * getfqdn() Python 2.0 中新增
 
+## SocketServer 模块
+
+[SocketServer](https://docs.python.org/zh-cn/2.7/library/socketserver.html) 是标准库中的一个高级模块(Python 3.x 中重命名为 [socketserver](https://docs.python.org/zh-cn/3/library/socketserver.html)),它的目标是简化很多样板代码,它们是创建网络客户端和服务器所必需的代码。
+
+|                      类                     	|                                                                  描述                                                                 	|
+|:-------------------------------------------:	|:-------------------------------------------------------------------------------------------------------------------------------------:	|
+|                  BaseServer                 	|          包含核心服务器功能和 mix-in 类的钩子;仅用于推导,这样不会创建这个类的实例;可以用 TCPServer 或 UDPServer 创建类的实例          	|
+|             TCPServer/UDPServer             	|                                                     基础的网络同步 TCP/UDP 服务器                                                     	|
+|     UnixStreamServer/UnixDatagramServer     	|                                                   基于文件的基础同步 TCP/UDP 服务器                                                   	|
+|         ForkingMixIn/ThreadingMixIn         	|                        核心派出或线程功能;只用作 mix-in 类与一个服务器类配合实现一些异步性;不能直接实例化这个类                       	|
+|      ForkingTCPServer/ForkingUDPServer      	|                                               ForkingMixIn 和 TCPServer/UDPServer 的组合                                              	|
+|    ThreadingTCPServer/ThreadingUDPServer    	|                                              ThreadingMixIn 和 TCPServer/UDPServer 的组合                                             	|
+|              BaseRequestHandler             	| 包含处理服务请求的核心功能;仅仅用于推导,这样无法创建这个类的实例;可以使用 StreamRequestHandler 或 DatagramRequestHandler 创建类的实例 	|
+| StreamRequestHandler/DatagramRequestHandler 	|                                                    实现 TCP/UDP 服务器的服务处理器                                                    	|
+
+应用程序现在是事件驱动的,这意味着只有在系统中的事件发生时,它们才会工作。
+
+事件包括消息的发送和接收。事实上,你会看到类定义只包括一个用来接收客户端消息的事件处理程序。所有其他的功能都来自使用的 SocketServer 类。
+
+在原始服务器循环中,我们阻塞等待请求,当接收到请求时就对其提供服务,然后继续等待。在此处的服务器循环中,并非在服务器中创建代码,而是定义一个处理程序,这样当服务器接收到一个传入的请求时,服务器就可以调用你的函数。
+
+### 创建 SocketServer TCP 服务器 
+示例： SocketServer 时间戳 TCP 服务器 (tsTservSS.py)
+```python
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*- 
+
+from SocketServer import (TCPServer as TCP,
+    StreamRequestHandler as SRH)
+from time import ctime 
+
+HOST = ''
+PORT = 21567
+ADDR = (HOST, PORT)
+
+class MyRequestHandler(SRH):
+  # 重写 handle() 方法
+  def handle(self): 
+    print '...connected from:', self.client_address
+    self.wfile.write('[%s] %s' % (ctime(),self.rfile.readline()))
+tcpServ = TCP(ADDR,MyRequestHandler)
+print 'waiting for connection...'
+tcpServ.serve_forever() # 无限循环地等待并服务于客户端请求
+```
+
+StreamRequestHandler 类将输入和输出套接字看作类似文件的对象，因此我们将使用 readline() 来获取客户端消息，并利用 write() 将字符串发送回客户端。
+
+### 创建 SocketServer TCP 客户端
+示例： SocketServer 时间戳 TCP 客户端(tsTclntSS.py)
+```python
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*- 
+
+from socket import *
+
+HOST = 'localhost'
+PORT = 21567
+BUFSIZ = 1024 
+ADDR = (HOST, PORT)
+
+while True:
+  tcpCliSock = socket(AF_INET, SOCK_STREAM)
+  tcpCliSock.connect(ADDR)
+
+  data = raw_input('> ')
+  if not data:
+      break
+  tcpCliSock.send('%s\r\n' % data)
+  data = tcpCliSock.recv(BUFSIZ)
+  if not data:
+      break
+  # 当得到从服务器返回的消息时，用 strip()函数
+  # 对其进行处理并使用由 print 声明自动提供的换行符。
+  print data.strip() 
+  tcpCliSock.close()
+```
+
+SocketServer 请求处理程序地默认行为是接收连接、获取请求，然后关闭连接。由于这个原因，我们不能在程序整个执行过程中都保持连接，因此每次像服务器发送消息时，都需要创建一个新地套接字。
+
+### 执行 TCP  服务器和客户端
+
+server:
+```sh
+$ ./tsTservSS.py 
+waiting for connection...
+...connected from: ('127.0.0.1', 47686)
+...connected from: ('127.0.0.1', 47688)
+```
+client:
+```sh
+$ ./tsTclntSS.py 
+> fds
+[Sat Jun  6 16:11:23 2020] fds
+> fsdfsdfsd
+[Sat Jun  6 16:11:26 2020] fsdfsdfsd
+> 
+$
+```
+此时的输出与最初的 TCP 客户端和服务器的输出类似。然而,你应该会发现,我们连接了服务器两次。
+
 附 python 版本：
 ```sh
 $ python2 -V
