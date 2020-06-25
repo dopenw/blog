@@ -5,17 +5,18 @@
 <!-- code_chunk_output -->
 
 - [google protobuf 的简单使用](#google-protobuf-的简单使用)
-	- [简要概述](#简要概述)
-	- [安装 google protobuf](#安装-google-protobuf)
-		- [linux 下安装 protobuf](#linux-下安装-protobuf)
-		- [windows 下编译安装库及生成 Protobuf Compiling](#windows-下编译安装库及生成-protobuf-compiling)
-	- [create Visual Studio 2015 solution file](#create-visual-studio-2015-solution-file)
-	- [Compiling Your Protocol Buffers](#compiling-your-protocol-buffers)
-	- [使用 protobuf](#使用-protobuf)
-		- [在 linux 下使用 protobuf](#在-linux-下使用-protobuf)
-		- [在 VS2015 下使用 protobuf](#在-vs2015-下使用-protobuf)
-	- [Language Guide](#language-guide)
-	- [链接](#链接)
+  - [简要概述](#简要概述)
+  - [安装 google protobuf](#安装-google-protobuf)
+    - [linux 下安装 protobuf](#linux-下安装-protobuf)
+    - [windows 下编译安装库及生成 Protobuf Compiling](#windows-下编译安装库及生成-protobuf-compiling)
+  - [create Visual Studio 2015 solution file](#create-visual-studio-2015-solution-file)
+  - [create visual studio 2015 MD/MDd](#create-visual-studio-2015-mdmdd)
+  - [Compiling Your Protocol Buffers](#compiling-your-protocol-buffers)
+  - [使用 protobuf](#使用-protobuf)
+    - [在 linux 下使用 protobuf](#在-linux-下使用-protobuf)
+    - [在 VS2015 下使用 protobuf](#在-vs2015-下使用-protobuf)
+  - [Language Guide](#language-guide)
+  - [链接](#链接)
 
 <!-- /code_chunk_output -->
 
@@ -100,6 +101,16 @@ cd solution
 cmake -G "Visual Studio 14 2015" -DCMAKE_INSTALL_PREFIX=../../../../install ../..
 ```
 
+## create visual studio 2015 MD/MDd
+```sh
+cd $probufDir/cmake
+mkdir build
+cd build 
+mkdir solution1 
+cd solution1
+cmake -G "Visual Studio 14" -Dprotobuf_MSVC_STATIC_RUNTIME=OFF ../..
+```
+
 ## Compiling Your Protocol Buffers
 ```sh
 # 示例
@@ -127,13 +138,13 @@ g++ -lprotobuf -lpthread reader.cpp addressbook.pb.cc -o read
 * [Youtube Link - Protocol Buffers (Protobuf) Tutorial Part 3: Creating an application using Visual Studio 2015](https://www.youtube.com/watch?v=x-u-hEFhDDo&feature=youtu.be)
 
 ## 链接
-
 * [C++使用protobuf(Linux下)
 ](http://hahaya.github.io/use-protobuf-in-c-plus-plus/)
 * [CMake生成Visual Studio Nmake文件时报错问题分析](http://www.tiger2doudou.com/blog/post/metorm/CMake%E7%94%9F%E6%88%90Visual-Studio-Nmake%E6%96%87%E4%BB%B6%E6%97%B6%E6%8A%A5%E9%94%99%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90)
 * [error LNK2038: 检测到“RuntimeLibrary”的不匹配项: 值“MTd_StaticDebug”不匹配值“MDd_DynamicDebug”](https://blog.csdn.net/chan20/article/details/77040441)
 * [error LNK2038: mismatch detected for '_ITERATOR_DEBUG_LEVEL': value '0' doesn't](http://huaxiamian.iteye.com/blog/1379287)
 * [Protobuffs import from another directory](https://stackoverflow.com/questions/21159451/protobuffs-import-from-another-directory)
+* [Statically link google protobuf lib into a dll library](https://stackoverflow.com/questions/47900268/statically-link-google-protobuf-lib-into-a-dll-library)
 
 [上一级](README.md)
 [上一篇](function_arg_stack.md)
