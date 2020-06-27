@@ -6,19 +6,19 @@
 <!-- code_chunk_output -->
 
 - [ZeroMQ](#zeromq)
-	- [简介](#简介)
-	- [Programming with ZeroMQ](#programming-with-zeromq)
-	- [ZeroMQ Socket Types](#zeromq-socket-types)
-	- [ZeroMQ guide](#zeromq-guide)
-	- [构建](#构建)
-		- [构建 libZmq](#构建-libzmq)
-		- [构建 cppzmq](#构建-cppzmq)
-	- [简要说明 及 cppzmq 示例](#简要说明-及-cppzmq-示例)
-		- [inproc](#inproc)
-		- [request/reply](#requestreply)
-		- [Publish/Subscribe](#publishsubscribe)
-		- [Push/Pull](#pushpull)
-			- [Parallel Pipeline](#parallel-pipeline)
+  - [简介](#简介)
+  - [Programming with ZeroMQ](#programming-with-zeromq)
+  - [ZeroMQ Socket Types](#zeromq-socket-types)
+  - [ZeroMQ guide](#zeromq-guide)
+  - [构建](#构建)
+    - [构建 libZmq](#构建-libzmq)
+    - [构建 cppzmq](#构建-cppzmq)
+  - [简要说明 及 cppzmq 示例](#简要说明-及-cppzmq-示例)
+    - [inproc](#inproc)
+    - [request/reply](#requestreply)
+    - [Publish/Subscribe](#publishsubscribe)
+    - [Push/Pull](#pushpull)
+      - [Parallel Pipeline](#parallel-pipeline)
 - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -203,6 +203,8 @@ In the case of publish/subscribe pattern, ZeroMQ is used to establish one or mor
 
 A choice to specify a prefix to accept only such messages beginning with it is available with this pattern.
 
+![](../images/zeroMsg_202006270918_1.png)
+
 Use-cases:
 
 Publish/subscribe pattern is used for evenly distributing messages across various consumers. Automatic updates for scoreboards and news can be considered as possible areas to use this solution.
@@ -314,6 +316,8 @@ Socket type(s) used:
 * zmq.PULL
 
 #### Parallel Pipeline
+
+![](../images/zeroMsg_202006270918_2.png)
 
 taskvent: Parallel task ventilator
 ```c++
@@ -506,3 +510,7 @@ The average cost of a batch is 5 seconds. When we start 1, 2, or 4 workers we ge
 * [Unknown CMake command "catch_discover_tests".](https://github.com/zeromq/cppzmq/issues/334)
 * [详解报错[zmq.error.ZMQError: Operation cannot be accomplished in current state]](https://blog.csdn.net/ybdesire/article/details/81435291)
 * [How To Work with the ZeroMQ Messaging Library](https://www.digitalocean.com/community/tutorials/how-to-work-with-the-zeromq-messaging-library#zeromq-transport-types)
+
+
+[上一级](README.md)
+[上一篇](wxWidget.md)
