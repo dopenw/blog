@@ -294,7 +294,7 @@ Qt 调用 QApplication::notify() 来发送一个事件。重新实现这个函�
 当处理一个事件时，也可能会同时产生一些其他的事件并且会将其追加到Qt 的事件列表中。如果在处理一个特定事件上耗费的时间过多，那么用户界面就会变得无法响应。eg：应用完成一个耗时较长的文件保存。
 
 在此情况下，一种解决方法就是使用多线程。
-一种更为简单的解决方法是在文件保存的代码中频繁调用 QApplication::processEvent()。 这个函数告诉 Qt 处理所有那些还没有被处理的各类事件，然后再将控制权返还给调用者。实际上，QApplication::exec() 就是一个不停调用 processEvent() 函数的 while 循环。
+一种更为简单的解决方法是在文件保存的代码中频繁调用 QApplication::processEvent()。 这个函数告诉 Qt 处理所有那些还没有被处理的各类事件，然后再将控制权返还给调用者。实际上，QApplication::exec() 就是一个不停调用 processEvents() 函数的 while 循环。
 
 ```c++
 bool Spreadsheet::writeFile(const QString &fileName)
@@ -317,9 +317,9 @@ bool Spreadsheet::writeFile(const QString &fileName)
 
 使用这个方法存在一个潜在的问题，即用户也许在应用程序还在保存文件的时候就关闭了主窗口，或者甚至在保存文件的时候又一次单击了 File->Save ，这样就可能会产生不可预料的后果。对于这个问题，最简单的解决办法：
 ```c++
-qApp->processEvent();
+qApp->processEvents();
 // 替换为
-qApp->processEvent(QEventLoop::ExcludeUserInputEvents); // 忽略鼠标事件和键盘事件
+qApp->processEvents(QEventLoop::ExcludeUserInputEvents); // 忽略鼠标事件和键盘事件
 ```
 
 通常情况下，当需要发生一个长时间运行的操作时，我们希望能够显示一个 [QProgressDialog](https://doc.qt.io/qt-5/qprogressdialog.html) 。 QProgressDialog 有一个进度条，它告诉用户应用程序中的这个操作目前的进度信息。QProgressDialog 还提供了一个 Cancel 按钮，它允许用户取消操作。
