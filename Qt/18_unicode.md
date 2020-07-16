@@ -10,6 +10,8 @@
     - [加载翻译文件](#加载翻译文件)
   - [动态切换语言](#动态切换语言)
   - [翻译应用程序](#翻译应用程序)
+  - [一些常用的编码转换](#一些常用的编码转换)
+  - [Link](#link)
 
 <!-- /code_chunk_output -->
 
@@ -560,6 +562,52 @@ Updating 'spreadsheet_fr.qm'...
 lupdate 和 Qt Linguist 这些工具都非常智能。那些不再使用的翻译会仍旧保存在 .ts 文件中，因为很可能会在以后的发布中用到它们。在更新 .ts 文件的时候，lupdate 会使用一种智能的合并算法，它可以为翻译人员在处理那些不同上下文中具有相同或者相近文本的翻译时节省相当多的事件。
 
  [有关 Qt Linguist 、lupdate 和 lrelease 的更多信息](https://doc.qt.io/qt-5/qtlinguist-index.html)
+
+## 一些常用的编码转换
+```c++
+// QString(Unicode) -> std::string (UTF8)
+std::string unicodeToUtf8(const QString &s) {
+  QByteArray arr = s.toUtf8();
+  std::string ret = arr.data();
+  return ret;
+}
+
+// std::string (UTF8) -> QString(Unicode)
+QString utf8ToUnicode(const std::string &s) {
+  return QString::fromUtf8(s.c_str());
+}
+
+// QString(Unicode) -> std::string (GBK)
+std::string unicodeToGbk(const QString &s) {
+  QTextCodec *pCodec = QTextCodec::codecForName("gb2312");
+  if (!pCodec) {
+    return "";
+  }
+
+  QByteArray arr = pCodec->fromUnicode(s);
+  std::string ret = arr.data();
+  return ret;
+}
+
+// std::string (GBK) -> QString(Unicode)
+QString gbkToUnicode(const std::string &s) {
+  QTextCodec *pCodec = QTextCodec::codecForName("gb2312");
+  if (!pCodec) {
+    return "";
+  }
+
+  QString ret = pCodec->toUnicode(s.c_str());
+  return ret;
+}
+
+std::string gbkToUtf8(const std::string &s) {
+  auto tmp = gbkToUnicode(s);
+  return unicodeToUtf8(tmp);
+}
+```
+
+## Link 
+* [string与QString转换（string既可以是utf8，也可以是gbk）]([https://link](https://blog.csdn.net/lengyuezuixue/article/details/80697492))
 
 [上一级](README.md)
 [上一篇](17_onlineHelp.md)
