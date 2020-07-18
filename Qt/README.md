@@ -20,6 +20,7 @@
 * ### [18. 国际化](18_unicode.md)
 * ### [19. 自定义外观](19_cutomStyle.md)
 * ### [21. 创建插件](21_createPlugin.md)
+* ### [Qt Creator 使用](QtCreatorTips.md)
 * ### [解决 qt 程序的依赖项](deployqt.md)
 * ### [使用 MFCMigrationFramework](useMFCMigrationFramework.md)
                            step by steop
