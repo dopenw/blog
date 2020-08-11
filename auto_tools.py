@@ -1,4 +1,5 @@
-import os 
+# python3.8
+import os
 import xml.etree.ElementTree as ET
 import time
 import re
@@ -18,11 +19,11 @@ def read_config(config_file_path,config_item):
         value = type_tag.text
         include_dir_list.append(value)
         logging.debug('Include dir is %s%%' % (value))
-    os = platform.system()
-    if 'Linux' == os:
+    platform_system = platform.system()
+    if 'Linux' == platform_system:
         config_item['end_of_line_seq'] = '\n'
-    elif 'Windows' == os:
-        config_item['end_of_line_seq'] = '\r\n'
+    elif 'Windows' == platform_system:
+        config_item['end_of_line_seq'] = '\n'
     
     logging.debug('config_item[\'end_of_line_seq\']=%s%%'%config_item['end_of_line_seq'])
 
