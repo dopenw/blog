@@ -8,6 +8,9 @@
   - [查看表](#查看表)
   - [使用窗体编辑记录](#使用窗体编辑记录)
   - [在表中显示数据](#在表中显示数据)
+  - [other](#other)
+    - [为有主键且具有 AUTOINCREMENT 的表添加行](#为有主键且具有-autoincrement-的表添加行)
+    - [为 QSqlTableModel 添加数据库表中不存在的列](#为-qsqltablemodel-添加数据库表中不存在的列)
   - [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -1095,6 +1098,84 @@ void MainForm::createEmployeePanel()
 ```
 本章介绍了 Qt 的模型/视图类如何让 SQL 数据库中查看和编辑数据的操作变得尽可能简单。当我们想要使用一个窗体视图显示记录项时，可以利用 QDataWidgetMapper 将用户界面中的窗体部件映射到数据库记录的字段。主-从关系的设置也相当容易，仅仅要求一个信号-槽连接以及一个简单槽的实现。下钻型的窗口视图很直观，我们只需要导航到主窗体构造函数中被选中的记录，就可以在从视图中看到与其对应的具体信息。如果没有记录被选中，则直接看到的就是第一条记录。
 
+## other
+### 为有主键且具有 AUTOINCREMENT 的表添加行
+```c++
+QSqlRecord newRecord = model->record();
+/* since the id field has the autoincrement attribute,
+     * it is not necessary to indicate its value,
+      * that is because this field of the request is removed.
+*/
+newRecord.remove(newRecord.indexOf("id"));
+newRecord.setValue(newRecord.indexOf("time"),localTime);
+
+// model 为 QSqlTableModel的实例
+/*-1 is set to indicate that it will be added to the last row*/
+if(model->insertRecord(-1,newRecord))
+{
+    //qDebug()<<"successful insertion";
+    model->submitAll();
+}
+else
+{
+    qDebug()<<"insert is failed";
+}
+```
+
+### 为 QSqlTableModel 添加数据库表中不存在的列
+代码段示例：
+```c++
+//m_model 是 QSqlTableModel 的实例；
+// m_tableview 是QTableView 的实例；
+
+void Test::insertOtherColumns() {
+ 	m_model->insertColumns(Signal_Choice,1);
+ 	m_model->setHeaderData(Signal_Choice, Qt::Horizontal, QString::fromLocal8Bit("选择"));
+
+	m_model->insertColumns(Signal_isRunning,1);
+	m_model->setHeaderData(Signal_isRunning,Qt::Horizontal,QString::fromLocal8Bit("状态"));
+
+	for (int i = 0; i < m_model->rowCount(); i++) {
+		auto *cb = new QCheckBox;
+		cb->setText(QString::number(i));
+		m_tableview->setIndexWidget(m_model->index(i , 0), cb);
+		connect(cb, SIGNAL(stateChanged(int)), this, SLOT(checkbox_IfClicked(int)));
+		auto item = new QLabel(this);
+		item->setPixmap(QPixmap (":/images/icons8_stop_16.png"));
+		std::string key = "isRunning";
+		item->setProperty(key.c_str(),false);
+		m_tableview->setIndexWidget(m_model->index(i,Signal_isRunning),item);
+	}
+	setTableViewHide(true);
+	m_tableview->resizeColumnsToContents();
+}
+```
+修改行示例：
+```c++ 
+setTableViewHide(false); // 显示之前隐藏的列
+m_model->submitAll();
+insertOtherColumns();
+```	
+删除行示例：
+```c++
+QVector<int> needDeleteRow;
+for (auto i=0;i < m_model->rowCount();++i) {
+    auto *cb = dynamic_cast<QCheckBox*>(
+         m_tableview->indexWidget(m_model->index(i, Signal_Choice)));
+    if (cb->isChecked()) {
+         needDeleteRow<<i;
+    }	
+}
+setTableViewHide(false); //显示之前隐藏的列
+m_model->submitAll(); // delete check box
+for (auto i=0;i<needDeleteRow.size();++i)
+{
+    bool ret = m_model->removeRow(i);
+    //qDebug()<<"removeRow ret is "<<ret;
+}
+m_model->submitAll();
+insertOtherColumns();
+```
 
 ## Link
 * [qt5-book-code/chap13/](https://github.com/mutse/qt5-book-code/tree/master/chap13)
