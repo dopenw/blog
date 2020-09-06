@@ -35,6 +35,7 @@
     - [条款 21：必须返回对象时，别妄想返回其 reference](#条款-21必须返回对象时别妄想返回其-reference)
     - [条款 22：将成员变量声明为 private](#条款-22将成员变量声明为-private)
     - [条款 23：宁以 non-member、non-friend 替换 member 函数](#条款-23宁以-non-member-non-friend-替换-member-函数)
+    - [条款 24：若所有参数皆需类型转换，请为此采用 non-member 函数](#条款-24若所有参数皆需类型转换请为此采用-non-member-函数)
 
 <!-- /code_chunk_output -->
 
@@ -1810,6 +1811,93 @@ namespace WebBrowserStuff{
 
 请记住：
 * 宁可拿 non-member、non-friend 函数替换 member 函数。这样做可以增加封装性、包裹弹性（packaging flexibility） 和机能扩充性。
+
+### 条款 24：若所有参数皆需类型转换，请为此采用 non-member 函数
+在之前的导读中提过，令 classes 支持隐式转换通常是一个糟糕的注意。当然这条规则有个例外，最常见的例外是在建立数值类型时。假设你设计一个 class 用来表现有理数，允许整数 “隐式转换”为有理数似乎颇为合理。假设你这样开始你的 Rational class:
+```c++
+class Rational{
+public:
+    Rational(int numerator = 0, // 构造函数刻意不为 explicit
+    int denominator =1); // 允许 int-to-Rational 隐式转换
+    int numerator() const; // 分子
+    int denominator() const; // 分母
+private:
+ ...
+};
+```
+你想支持算术运算诸如加法、乘法等，但你不确定是否该由 member 函数、 non-member 函数，或可能的话由 non-member friend 函数来实现它们。
+我们不妨先研究下将 operator * 写成 Rational 成员函数：
+```c++
+class Rational{
+	public:
+	...
+	const Rational operator * (const Rational& rhs) const;
+};
+```
+这个设计使你能够将两个有理数以最轻松自在的方式相乘：
+```c++
+Rational oneEighth(1,8);
+Rational oneHalf(1,2);
+Rational result = oneHalf * oneEighth; // good 
+result = result * oneEighth; // good
+```
+但你还不满足。你希望支持混合式运算，也就是拿 Rational 和 ... 嗯 ... 例如 ints 相乘。毕竟很少有什么东西会比两个数值相乘更自然了-即使是两个不同类型的数值。
+
+然而当你尝试混合式算术，你发现只有一半行得通：
+```c++
+result = oneHalf * 2; // good
+result = 2 * oneHalf; // error
+```
+这不是一个好兆头。乘法应该满足交换律，不是吗？
+以函数形式重写上述式子,问题便一目了然了：
+```c++
+result = oneHalf.operator*(2); // good
+result = 2.operator*(oneHalf); // error
+```
+
+再次看看之前成功的那个调用。这里发生了所谓的隐式转换(implicit type conversion).类似这样：
+```c++
+const Rational temp(2);
+result = oneHalf * temp;
+```
+当然，只因为涉及 non-explicit 构造函数，编译器才会这样做。如果 Rational 构造函数是 explicit ，以下语句没有一个可通过编译：
+```c++
+result = oneHalf * 2; // error
+result = 2 * oneHalf; // error
+```
+这就很难让 Rational class 支持混合式算术运算了，不过至少上述两个句子的行为从此一致。
+
+然而你的目标不仅在一致性，也要支持混合式算术运算，也就是希望有个设计能让以上语句通过编译。这把我们带回到上述两个语句，为什么即使 Rational 构造函数不是 explicit,仍然只有一个通过编译，另一个不可以.
+
+结论是，只有当参数被列于参数列(parameter list)内,这个参数才是隐式类型转换的合格参与者。地位相当于 “被调用之成员函数所隶属的那个对象”-即 this 对象 - 的那个隐喻参数，绝不是隐式转换的合格参与者。
+
+然而你一定也会想要支持混合式算术运算。可以这样：让 operator * 成为一个 non-member 函数，并允许编译器在每一个实参身上执行隐式类型转换：
+```c++
+class Rational{
+   ...  // 不包括 operator *
+};
+
+const Rational operator * (const Rational& lhs,
+                          const Rational& rhs){
+   return Rational(lhs.numerator() * rhs.numerator(),
+                  lhs.denominator()* rhs.denominator());
+}
+
+Rational oneFourth(1,4);
+Rational result;
+result = oneFourth * 2; // ok
+result = 2 * oneFourth; // ok
+```
+
+这当然是一个快乐的结局，不过有一点必须操心： operator * 是否该成为 Rational class 的一个 friend 函数呢？
+
+就本例而言答案是否定的，因为 operator * 可以完全藉由 Rational 的 public 接口完成任务，上面的代码已表明此种做法。这导出了一个重要的观察：member 函数的反面是 non-member 函数，不是 friend 函数。无论何时如果你可以避免 friend 函数就该避免，因为就像真实世界一样，朋友带来的麻烦往往多过其价值。当然有时候 friend 有其正当性，但这个事实依然存在：不能够只因函数不该成为 member ，就自动让它成为 friend。
+
+本条款内含真理，但却不是全部的真理。当你从 Object-Oriented c++ 跨进 Template c++ 并让 Rational 成为一个 class template 而非 class,又有一些需要考虑的新争议、新解法、以及一些令人惊讶的设计牵连。这些争议、解法和设计牵连形成了条款 46。
+
+请记住：
+* 如果你需要为某个函数的所有参数（包括 this 指针所指的那个隐喻参数）进行类型转换，那么这个函数必须是个 non-member 。
+
 
 [上一级](README.md)
 [上一篇](do_while_false.md)
