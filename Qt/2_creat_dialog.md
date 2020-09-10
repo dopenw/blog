@@ -197,6 +197,8 @@ connect(ftp,SIGNAL(rawCommandReply(int,const QString &)),this,SLOT(processReply(
 connect(ftp,SIGNAL(rawCommandReply(int,const QString &)),this,SLOT(checkErrorCode(int)));
 ```
 
+[20 ways to debug Qt signals and slots](https://samdutton.wordpress.com/2008/10/03/debugging-signals-and-slots-in-qt/)
+
 ## 快速设计对话框
 Qt designer为程序员提供了可供使用的新选择，它提供一种可视化的设计能力。
 
