@@ -22,5 +22,6 @@
 * ### [21. 创建插件](21_createPlugin.md)
 * ### [Qt Creator 使用](QtCreatorTips.md)
 * ### [解决 qt 程序的依赖项](deployqt.md)
+* ### [QML Tutorial](qml.md)
 * ### [使用 MFCMigrationFramework](useMFCMigrationFramework.md)
                            step by steop
