@@ -36,6 +36,7 @@
     - [条款 22：将成员变量声明为 private](#条款-22将成员变量声明为-private)
     - [条款 23：宁以 non-member、non-friend 替换 member 函数](#条款-23宁以-non-member-non-friend-替换-member-函数)
     - [条款 24：若所有参数皆需类型转换，请为此采用 non-member 函数](#条款-24若所有参数皆需类型转换请为此采用-non-member-函数)
+    - [条款 25：考虑写出一个不抛出异常的 swap 函数](#条款-25考虑写出一个不抛出异常的-swap-函数)
 
 <!-- /code_chunk_output -->
 
@@ -1897,6 +1898,167 @@ result = 2 * oneFourth; // ok
 
 请记住：
 * 如果你需要为某个函数的所有参数（包括 this 指针所指的那个隐喻参数）进行类型转换，那么这个函数必须是个 non-member 。
+
+### 条款 25：考虑写出一个不抛出异常的 swap 函数
+
+swap 是一个有趣的函数。原本它只是 STL 的一部分，而后成为异常安全性编程(exception-safe programming) 的脊柱，以及用来处理自我赋值可能性的一种常见机制。
+
+缺省情况下 swap 动作可由标准程序库提供的 swap 算法完成。其典型实现完全如你所预期：
+```c++
+namespace std {
+	template<typename T>
+	void swap(T& a,T& b)
+	{
+		T temp(a);
+		a=b;
+		b=temp;
+	}
+}
+```
+只要类型 T 支持 copying ,缺省的 swap 实现代码就会帮你置换类型为 T 的对象，你不需要为此另外再做任何工作。
+
+但如果是 “以指针指向一个对象，内含真正数据”(pimpl,pointer to implementation)那种类型。eg：
+```c++
+class WidgetImpl{ // 针对 Widget 数据而设计的类
+	public:
+	...
+	private:
+	int a,b,c;   // 可能有很多数据，
+	std::vector<double> v; // 意味复制时间很长。
+	...
+};
+
+class Widget{
+	public:
+	Widget(const Widget& rhs);
+	Widget& operator=(const Widget& rhs)
+	{
+		...
+		*pImpl = *(rhs.pImpl);
+		...
+	}
+	private:
+	WidgetImpl * pImpl;
+};
+```
+一旦要置换两个 Widget 对象值，我们唯一需要做的就是置换其 pImpl,但缺省的 swap 算法不知道这一点。
+我们希望能够告诉 std::swap;当 Widgets 被置换是真正该做的是置换其内部的 pImpl 指针。确切实践这个思路的一个做法是：将 std::swap 针对 Widget 特化。下面是基本构想，但目前这个形式无法通过编译：
+```c++
+namespace std{
+	template<>
+	void swap<Widget>(Widget& a,Widget& b)
+	{
+		swap(a.pImpl,b.pImpl);
+	}
+}
+```
+
+这个函数无法通过编译。因为它企图访问 a 和 b 的 pImpl 指针，而那确实 private。我们可以这样：
+```c++
+class Widget{
+public:
+   ...
+   void swap(Widget& other){
+	   using std::swap;  // 这个声明之所以必要，稍后解释；
+	   swap(pImpl,other.pImpl);
+   }
+};
+
+namespace std{
+	template<>
+	void swap<Widget>(Widget& a,Widget& b)
+	{
+		a.swap(b);
+	}
+}
+```
+这种做法不只能够通过编译，还与 STL 容器有一致性，因为所有的 STL 容器也都提供有 public swap 成员函数和 std::swap 特化版本（用以调用前者）。
+
+然而假设 Widget 和 WidgetImpl 都是 class template ，也许我们可以试试将 WidgetImpl 内的数据类型加以参数化：
+```c++
+template <typename T>
+class WidgetImpl{ ... };
+template <typename T>
+class Widget { ... };
+```
+在 Widget 中放个 swap 成员函数就像以往一样简单，但我们却在特化 std::swap 式遇上了乱流。我们想这样：
+```c++
+namespace std{
+	template<typename T>
+	void swap<Widget<T>>(Widget<T>& a,Widget<T>& b) // error
+	{
+		a.swap(b);
+	}
+}
+```
+当你打算偏特化一个 function template 时，惯常的做法是简单地为他添加一个重载版本，就像这样：
+```c++
+namespace std{
+	template<typename T>
+	void swap(Widget<T>& a,Widget<T>& b) 
+	{
+		a.swap(b);
+	}
+}
+```
+一般而言，重载 function template 没有问题，但 std 是一个特殊的命名空间，其管理规则也比较特殊。客户可以全特化 std 内的 templates,但不可以添加新的 templates(或 classes 或 functions 或其他任何东西)到 std 里头。std 的内容完全由 c++ 标准委员会决定，标准委员会禁止我们膨胀那些已经声明好的东西。啊呀，所谓 “禁止” 可能会让你沮丧，其时跨越红线的程序几乎仍可编译和执行，但他们的行为没有明确定义。如果你希望你的软件有可预期的行为，请不要添加任何新东西到 std 里头。
+
+那该如何是好？
+我们可以声明一个 non-member swap 让它调用 member swap,但不再将那个 non-member swap 声明为 std::swap 的特例版本或重载版本。eg：
+```c++
+namespace WidgetStuff{
+	...
+	template<typename T>
+	class Widget { ... }; // 同前，内含 swap 成员函数
+	...
+	template <typename T> // non-member swap 函数；
+	void swap(Widget<T>& a,Widget<T>& b) // 不属于 std 命名空间
+	{
+		a.swap(b);
+	}
+}
+```
+
+假设你正在写一个 function template,其内需要置换两个对象值：
+```c++
+template <typename T>
+void doSomething(T& obj1,T& obj2)
+{
+	...
+	swap(obj1,obj2);
+	...
+}
+```
+应该调用哪个 swap? 是std 即有的哪个一般化版本？还是某个存在的特化版本？抑或是一个可能存在的 T 专属版本而且可能栖身于某个命名空间（但当然不可以是 std）内？你希望的应该是调用 T 专属版本，并在该版本不存在的情况下调用 std 内的一般化版本。下面是你希望发生的事：
+```c++
+template <typename T>
+void doSomething(T& obj1,T& obj2)
+{
+	using std::swap; // 令 std::swap 在此函数内可用
+	...
+	swap(obj1,obj2); // 为 T 型对象调用最佳 swap 版本
+	...
+}
+```
+
+总结：
+首先，如果 swap 的缺省实现码对你的 class 或 class template 提供可接受的效率，你不需要额外做任何事。任何尝试置换 (swap) 那种对象的人都会取得缺省版本，而那将有良好的运作。
+
+其次，如果 swap 缺省版本的效率不足（那几乎总是意味着你的 class 或 template 使用了某种 pimpl 手法），试者做以下事情：
+1. 提供一个 public swap 成员函数，让他高效的置换你的类型的两个对象值。且这个函数绝不该抛出异常。
+2. 在你的 class 或 template 所在的命名空间内提供一个 non-member swap ,并令他调用上述 swap 成员函数。
+3. 如果你正编写一个 class (而非 class template)，为你的class 特化 std::swap。并令他调用你的 swap 成员函数。
+
+最后，如果你调用 swap ，请确保包含一个 using 声明式，以便让 std::swap 在你的函数内曝光可见，然后不加任何 namespace 修饰符，赤裸裸地调用 swap。
+
+成员版 swap 绝不可抛出异常。那是因为 swap 的一个最好的应用是帮助 classes （和 class templates） 提供强烈的异常安全性保障。条款 29 对此主题提供了所有细节，但此技术基于一个假设：成员版的 swap 绝不抛出异常。这一约束只施行于成员版，因为 swap 缺省版本是以 copy 构造函数和 copy assignment 操作符为基础，而一般情况下两者都允许抛出异常。因此当你写一个自定义版本的 swap ,往往提供的不只是高效置换对象值的方法，而且不抛出异常。一般而言这两个 swap 特性都是连在一起的，因为高效的 swaps 几乎总是基于对内置类型的操作(eg: pimpl 手法的底层指针)，而内置类型上的操作绝不会抛出异常。
+
+请记住：
+* 当 std::swap 对你的类型效率不高时，提供一个 swap 成员函数，并确定这个函数不抛出异常。
+* 如果你提供一个 member swap ，也该提供一个 non-member swap 来调用前者。对于 classes (而非 templates) ,也请特化 std::swap 。
+* 调用 swap 时应针对 std::swap 使用 using 声明式，然后调用 swap 并且不带任何 “命名空间资格修饰符”。
+* 为 “用户定义类型”进行 std templates 全特化是好的，但千万不要尝试在 std 内加入某些对 std 而言全新的东西。
+
 
 
 [上一级](README.md)
