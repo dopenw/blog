@@ -15,4 +15,4 @@
 * ### [mysql](mysql/README.md)
 * ### [windows](windows/README.md)
 * ### [other](other/README.md)
-                                        step by steop
+                                        step by step
