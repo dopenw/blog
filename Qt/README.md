@@ -23,5 +23,7 @@
 * ### [Qt Creator 使用](QtCreatorTips.md)
 * ### [解决 qt 程序的依赖项](deployqt.md)
 * ### [QML Tutorial](qml.md)
+* ### [qwt 简单使用](qwt.md)
+* ### [QwtPolar 简单使用](qwtPolar.md)
 * ### [使用 MFCMigrationFramework](useMFCMigrationFramework.md)
                            step by steop
