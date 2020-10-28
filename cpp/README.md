@@ -35,4 +35,4 @@
 * ### [c++ Web 编程](webProgramming.md)
 * ### [wxWidget](wxWidget.md)
 * ### [ZeroMQ](zeroMsg.md)
-                           step by steop
+                           step by step

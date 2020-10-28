@@ -18,4 +18,4 @@
 * ### [v2ray](v2ray.md)
 * ### [vsCode ](vsCode.md)
 * ### [小米路由器 1 mini 搞机篇](xiaomiMini.md)
-                           step by steop
+                           step by step

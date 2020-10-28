@@ -27,4 +27,4 @@
 * ### [qwt 简单使用](qwt.md)
 * ### [QwtPolar 简单使用](qwtPolar.md)
 * ### [使用 MFCMigrationFramework](useMFCMigrationFramework.md)
-                           step by steop
+                           step by step

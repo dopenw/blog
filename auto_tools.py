@@ -107,7 +107,7 @@ def write_base_markdown(config_file,blog_map,categories):
     for item in blog_map.items():
         out_file.write('* ### ' + '[' + item[1] + ']' + '(' + item[0] + ')'+config_item['end_of_line_seq'])
         logging.debug('blog item {}'.format(item))
-    out_file.write('                           step by steop')
+    out_file.write('                           step by step')
 
 
 def open_blog_clear_tail_links(blog_file,blog_map):

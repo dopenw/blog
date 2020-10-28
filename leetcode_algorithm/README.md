@@ -39,4 +39,4 @@
 * ### [给定一个排序的数组，和一个目标值，查找该值在数组的范围](search_for_a_range.md)
 * ### [求平方根](sqrt.md)
 * ### [Two Sum](two_sum.md)
-                           step by steop
+                           step by step

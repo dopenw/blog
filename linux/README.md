@@ -22,4 +22,4 @@
 * ### [shutter 截取屏幕异常](shutterException.md)
 * ### [su 和 su - 的区别](su_diff_su-.md)
 * ### [解决 Wine 下字体的乱码、模糊等问题](wineFontProblem.md)
-                           step by steop
+                           step by step

@@ -9,4 +9,4 @@
 * ### [7.套接字选项](7_socket_opt.md)
 * ### [8.基本UDP套接字编程](8_basic_udp_socket.md)
 * ### [11.名字与地址转换](11_name_addr.md)
-                           step by steop
+                           step by step
