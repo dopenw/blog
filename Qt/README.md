@@ -22,6 +22,7 @@
 * ### [21. 创建插件](21_createPlugin.md)
 * ### [Qt Creator 使用](QtCreatorTips.md)
 * ### [解决 qt 程序的依赖项](deployqt.md)
+* ### [Qt Creator 的一些配置](projectConfig.md)
 * ### [QML Tutorial](qml.md)
 * ### [qwt 简单使用](qwt.md)
 * ### [QwtPolar 简单使用](qwtPolar.md)

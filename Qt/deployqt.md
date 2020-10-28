@@ -42,4 +42,4 @@ qApp->addLibraryPath("C:/customPath/plugins");
 
 [上一级](README.md)
 [上一篇](QtCreatorTips.md)
-[下一篇](qml.md)
+[下一篇](projectConfig.md)

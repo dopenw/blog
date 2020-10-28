@@ -154,5 +154,5 @@ qmlscene -I . main.qml
 * [qt QML Tutorial](https://doc.qt.io/qt-5/qml-tutorial.html)
 
 [上一级](README.md)
-[上一篇](deployqt.md)
+[上一篇](projectConfig.md)
 [下一篇](qwt.md)
