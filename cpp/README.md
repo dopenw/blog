@@ -6,7 +6,7 @@
 * ### [Put functions into vector and execute](PutFunctionsIntoVectorAndExecute.md)
 * ### [STL](STL.md)
 * ### [problem sorting using member function as comparator](algorithmSortNonStaticMemberFunction.md)
-* ### [boost 程序库的简单使用](boost.md)
+* ### [一些 Boost 程序库的简单使用](boost.md)
 * ### [Boost file system](boostFileSystem.md)
 * ### [Clock 和 Timer](chrono.md)
 * ### [判断浮点数是否相等](compareDoubleFloat.md)
