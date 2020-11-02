@@ -4,6 +4,7 @@
 * ### [Build openGapps from github](buildOpengapps.md)
 * ### [理解chroot](chroot.md)
 * ### [linux实用命令集合](command.md)
+* ### [在 Linux 上搭建ARM应用程序开发环境](createArmDebugEnv.md)
 * ### [Create git server](createGitServer.md)
 * ### [ctl + alt + f3 login incorrect](ctrl_alt_f3_login_incorrect.md)
 * ### [自定义fedora桌面环境](custom_desktop_env.md)
