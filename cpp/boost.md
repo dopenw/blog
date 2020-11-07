@@ -12,6 +12,8 @@
   - [Numeric Conversion](#numeric-conversion)
   - [Process](#process)
   - [Smart Ptr](#smart-ptr)
+  - [Stacktrace](#stacktrace)
+  - [thread](#thread)
 
 <!-- /code_chunk_output -->
 
@@ -259,9 +261,7 @@ int convert_strings_part(const std::string& s, std::size_t pos, std::size_t n)
 
 ## Numeric Conversion
 
-[Boost.NumericConversion](https://www.boost.org/doc/libs/1_74_0/libs/numeric/conversion/doc/html/index.html)
-
-The Boost Numeric Conversion library is a collection of tools to describe and perform conversions between values of different numeric types.
+[The Boost Numeric Conversion library](https://www.boost.org/doc/libs/1_74_0/libs/numeric/conversion/doc/html/index.html) is a collection of tools to describe and perform conversions between values of different numeric types.
 
 The library includes a special alternative for a subset of [std::numeric_limits<>](https://www.boost.org/doc/libs/1_74_0/libs/numeric/conversion/doc/html/boost_numericconversion/improved_numeric_cast__.html), the [bounds<>](https://www.boost.org/doc/libs/1_74_0/libs/numeric/conversion/doc/html/boost_numericconversion/bounds___traits_class.html) traits class, which provides a consistent way to obtain the boundary values for the range of a numeric type.
 
@@ -348,9 +348,7 @@ int main() {
 
 ## Process
 
-[Boost.Process](https://www.boost.org/doc/libs/1_74_0/doc/html/process.html)
-
-Boost.Process is a library to manage system processes. It can be used to:
+[Boost.Process](https://www.boost.org/doc/libs/1_74_0/doc/html/process.html) is a library to manage system processes. It can be used to:
 
 * create child processes
 * setup streams for child processes
@@ -442,6 +440,188 @@ Run it:
 2
 Buckle my shoe
 ```
+
+## Stacktrace
+
+[Boost.Stacktrace](https://www.boost.org/doc/libs/1_74_0/doc/html/stacktrace.html) library is a simple C++03 library that provides information about call sequence in a human-readable form.
+
+注：需要链接 dl 库；
+
+print current call stack:
+
+```c++
+#define BOOST_STACKTRACE_USE_ADDR2LINE
+#include <boost/stacktrace.hpp>
+#include <iostream>
+
+int main()
+{
+    std::cout << boost::stacktrace::stacktrace();
+}
+```
+
+Run it:
+
+```sh
+ 0# boost::stacktrace::basic_stacktrace<std::allocator<boost::stacktrace::frame> >::basic_stacktrace() at /usr/include/boost/stacktrace/stacktrace.hpp:127
+ 1# __libc_start_main in /lib64/libc.so.6
+ 2# _start in /home/test/eclipse-workspace/boostTest/Debug/boostTest
+```
+
+Exceptions with stacktrace:
+
+```c++
+#define BOOST_STACKTRACE_USE_ADDR2LINE
+#include <boost/stacktrace.hpp>
+#include <iostream>
+#include <boost/stacktrace.hpp>
+#include <boost/exception/all.hpp>
+typedef boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace> traced;
+
+int main()
+{
+ try {
+  throw boost::enable_error_info(std::out_of_range("throw exception"))
+          << traced(boost::stacktrace::stacktrace());
+ } catch (const std::exception& e) {
+     std::cerr << e.what() << '\n';
+     const boost::stacktrace::stacktrace* st = boost::get_error_info<traced>(e);
+     if (st) {
+         std::cerr << *st << '\n';
+     }
+ }
+}
+```
+
+Run it:
+
+```sh
+throw exception
+ 0# boost::stacktrace::basic_stacktrace<std::allocator<boost::stacktrace::frame> >::basic_stacktrace() at /usr/include/boost/stacktrace/stacktrace.hpp:127
+ 1# __libc_start_main in /lib64/libc.so.6
+ 2# _start in /home/test/eclipse-workspace/boostTest/Debug/boostTest
+```
+
+Better asserts:
+
+```c++
+#define BOOST_STACKTRACE_USE_ADDR2LINE
+#define BOOST_ENABLE_ASSERT_DEBUG_HANDLER
+// BOOST_ENABLE_ASSERT_DEBUG_HANDLER is defined for the whole project
+#include <stdexcept>    // std::logic_error
+#include <iostream>     // std::cerr
+#include <boost/stacktrace.hpp>
+#include <boost/assert.hpp>
+
+namespace boost {
+    inline void assertion_failed_msg(char const* expr, char const* msg, char const* function, char const* /*file*/, long /*line*/) {
+        std::cerr << "Expression '" << expr << "' is false in function '" << function << "': " << (msg ? msg : "<...>") << ".\n"
+            << "Backtrace:\n" << boost::stacktrace::stacktrace() << '\n';
+
+        std::abort();
+    }
+
+    inline void assertion_failed(char const* expr, char const* function, char const* file, long line) {
+        ::boost::assertion_failed_msg(expr, 0 /*nullptr*/, function, file, line);
+    }
+} // namespace boost
+
+
+int main(int argc, char **argv) {
+ BOOST_ASSERT (0>1);
+}
+```
+
+Run it:
+
+```sh
+Expression '0>1' is false in function 'int main(int, char**)': <...>.
+Backtrace:
+ 0# boost::stacktrace::basic_stacktrace<std::allocator<boost::stacktrace::frame> >::basic_stacktrace() at /usr/include/boost/stacktrace/stacktrace.hpp:127 (discriminator 4)
+ 1# boost::assertion_failed(char const*, char const*, char const*, long) at /home/test/eclipse-workspace/boostTest/Debug/../main.cpp:19
+ 2# main at /home/test/eclipse-workspace/boostTest/Debug/../main.cpp:25
+ 3# __libc_start_main in /lib64/libc.so.6
+ 4# _start in /home/test/eclipse-workspace/boostTest/Debug/boostTest
+```
+
+* [boost::stacktrace::detail::location from symbol::location from symbol(void const*)': /usr/include/boost/stacktrace/detail/location_from_symbol.hpp:31: undefined reference to `dladdr'](https://github.com/boostorg/stacktrace/issues/80)
+* [Boost stack-trace not showing function names and line numbers](https://stackoverflow.com/questions/52583544/boost-stack-trace-not-showing-function-names-and-line-numbers)
+
+## thread
+
+[Boost.Thread](https://www.boost.org/doc/libs/1_74_0/doc/html/thread.html) is accepted Thread C++11 library.
+
+example:
+
+```c++
+#include <boost/thread.hpp>
+#include <boost/thread/lock_guard.hpp>
+#include <iostream>
+
+class BankAccount {
+    boost::mutex mtx_;
+    int balance_;
+public:
+    void Deposit(int amount) {
+        boost::lock_guard<boost::mutex> lg(mtx_);
+        balance_ += amount;
+    }
+    void Withdraw(int amount) {
+     boost::lock_guard<boost::mutex> lg(mtx_);
+        balance_ -= amount;
+    }
+    int GetBalance() {
+     boost::lock_guard<boost::mutex> lg(mtx_);
+        return balance_;
+    }
+};
+
+BankAccount g_joesAccount;
+
+void bankAgent()
+{
+    for (int i =10; i>0; --i) {
+        //...
+        g_joesAccount.Deposit(500);
+        //...
+    }
+}
+
+void Joe() {
+    for (int i =10; i>0; --i) {
+        //...
+        g_joesAccount.Withdraw(100);
+        std::cout << g_joesAccount.GetBalance() << std::endl;
+        //...
+    }
+}
+
+int main() {
+    //...
+    boost::thread thread1(bankAgent); // start concurrent execution of bankAgent
+    boost::thread thread2(Joe); // start concurrent execution of Joe
+    thread1.join();
+    thread2.join();
+    return 0;
+}
+```
+
+Run it:
+
+```sh
+4900
+4800
+4700
+4600
+4500
+4400
+4300
+4200
+4100
+4000
+```
+
+* [Boost thread error: undefined reference](https://stackoverflow.com/questions/3584365/boost-thread-error-undefined-reference)
 
 [上一级](README.md)
 [上一篇](algorithmSortNonStaticMemberFunction.md)
