@@ -6,6 +6,7 @@
 
 - [一些 Boost 程序库的简单使用](#一些-boost-程序库的简单使用)
   - [官网](#官网)
+    - [windows 下安装 boost](#windows-下安装-boost)
   - [Any](#any)
   - [Format](#format)
   - [Lexical_Cast](#lexical_cast)
@@ -14,6 +15,7 @@
   - [Smart Ptr](#smart-ptr)
   - [Stacktrace](#stacktrace)
   - [thread](#thread)
+  - [Property Tree](#property-tree)
 
 <!-- /code_chunk_output -->
 
@@ -21,6 +23,14 @@
 
 [Boost.org](https://www.boost.org/)
 
+### windows 下安装 boost 
+1. 可直接下载[对应版本的源码](https://www.boost.org/users/download/)，来编译；
+2. 直接下载 [Prebuilt windows binaries.](https://sourceforge.net/projects/boost/files/boost-binaries/)
+   
+参考链接：
+* [How to use Boost in Visual Studio 2010](https://stackoverflow.com/questions/2629421/how-to-use-boost-in-visual-studio-2010)
+* [在 windows 下安装 Boost 1.62.0](https://www.jianshu.com/p/004c99828af2)
+* 
 ## Any
 
 [Boost.Any](https://www.boost.org/doc/libs/1_74_0/doc/html/any.html)
@@ -622,6 +632,259 @@ Run it:
 ```
 
 * [Boost thread error: undefined reference](https://stackoverflow.com/questions/3584365/boost-thread-error-undefined-reference)
+
+
+## Property Tree
+[Boost.PropertyTree](https://www.boost.org/doc/libs/1_74_0/doc/html/property_tree.html)  provides a data structure that stores an arbitrarily deeply nested tree of values, indexed at each level by some key. Each node of the tree stores its own value, plus an ordered list of its subnodes and their keys. The tree allows easy access to any of its nodes by means of a path, which is a concatenation of multiple keys.
+
+In addition, the library provides parsers and generators for a number of data formats that can be represented by such a tree, including XML, INI, and JSON.
+
+xml example:
+`debug_settings.xml`:
+```xml
+<debug>
+<!-- debug -->
+    <filename>debug.log</filename>
+    <modules>
+        <module>Finance</module>
+        <module>Admin</module>
+        <module>HR</module>
+    </modules>
+    <level>2</level>
+    <Item name="project" desc="">
+        <ChildItem name="project1" desc="file size" datatype="int">600</ChildItem>
+        <ChildItem name="project2" desc="file size" datatype="int">353</ChildItem>
+        <ChildItem name="project3" desc="file size" datatype="int">756</ChildItem>
+        <ChildItem name="project4" desc="file size" datatype="int">888</ChildItem>
+    </Item>
+</debug>
+```
+```c++
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/foreach.hpp>
+#include <string>
+#include <set>
+#include <exception>
+#include <iostream>
+#include <map>
+#include <boost/lexical_cast.hpp>
+namespace pt = boost::property_tree;
+
+typedef std::multimap<std::string,std::map<std::string,std::string>> AllChildAttrMap;
+
+struct debug_settings
+{
+	std::string m_file;               // log filename
+	int m_level;                      // debug level
+	std::set<std::string> m_modules;  // modules where logging is enabled
+	pt::ptree m_tree;
+	AllChildAttrMap m_allChildItemAttrMap;
+	std::map<std::string,std::string> m_itemAttr;
+	void load(const std::string &filename);
+	void save(const std::string &filename);
+	void removeNode(const std::string& key,const std::string& val);
+	void removeNodeAll(const std::string& nodePath);
+	std::string getNodeAttr(const std::string& nodePath
+		,const std::string& attrName);
+	std::map<std::string,std::string> getNodeAllAttr(
+		const std::string& nodePath);
+	void setNodeAttr(const std::string& nodePath,const std::string& attrName
+		,const std::string& attrVal);
+	void setNodeAllAttr(const std::string& nodePath
+		,const std::map<std::string,std::string> allAttr);
+	AllChildAttrMap getNodeAllChildAllAttr(
+		const std::string& nodePath); 
+};
+
+void debug_settings::load(const std::string &filename)
+{
+
+	// Parse the XML into the property tree.
+	pt::read_xml(filename, m_tree
+		,boost::property_tree::xml_parser::trim_whitespace);
+
+	// Use the throwing version of get to find the debug filename.
+	// If the path cannot be resolved, an exception is thrown.
+	m_file = m_tree.get<std::string>("debug.filename");
+
+	// Use the default-value version of get to find the debug level.
+	// Note that the default value is used to deduce the target type.
+	// If the path cannot be resolved, Will not throw an exception
+	m_level = m_tree.get("debug.level", 0);
+	auto itemName = getNodeAttr("debug.Item","name"); 
+
+	m_itemAttr = getNodeAllAttr("debug.Item");
+	m_allChildItemAttrMap = getNodeAllChildAllAttr("debug.Item");
+
+	// Use get_child to find the node containing the modules, and iterate over
+	// its children. If the path cannot be resolved, get_child throws.
+	// A C++11 for-range loop would also work.
+	BOOST_FOREACH(pt::ptree::value_type &v, m_tree.get_child("debug.modules")) {
+		// The data function is used to access the data stored in a node.
+		m_modules.insert(v.second.data());
+	}
+
+}
+
+void debug_settings::save(const std::string &filename)
+{
+	removeNode("debug.filename","notExists");
+	// erase node debug.filename
+	removeNode("debug","filename");
+	m_tree.put("debug.filename",m_file);
+	m_tree.put("debug.level", m_level);
+	removeNodeAll("debug.modules");
+	// Add all the modules. Unlike put, which overwrites existing nodes, add
+	// adds a new node at the lowest level, so the "modules" node will have
+	// multiple "module" children.
+	BOOST_FOREACH(const std::string &name, m_modules)
+		m_tree.add("debug.modules.module", name);
+
+	removeNodeAll("debug.Item");
+	setNodeAttr("debug.Item","test","ok");
+	std::map<std::string,std::string> newChildItemAttr;
+	newChildItemAttr.insert(std::make_pair("name","project1"));
+	newChildItemAttr.insert(std::make_pair("desc","1"));
+	setNodeAllAttr("debug.Item.newChildItem",newChildItemAttr);
+	newChildItemAttr["name"]="project2";
+	newChildItemAttr["desc"]="2";
+	setNodeAllAttr("debug.Item.newChildItem1",newChildItemAttr);
+
+	auto order = 0;
+	for(auto it=m_allChildItemAttrMap.begin();it!=m_allChildItemAttrMap.end();++it){
+		setNodeAllAttr("debug.Item."+it->first
+			+boost::lexical_cast<std::string>(order++),it->second);
+	}
+	setNodeAttr("debug.Item","count"
+		,boost::lexical_cast<std::string>(6));
+	// Better XML formatting
+	boost::property_tree::xml_writer_settings<std::string> settings('\t', 1);
+
+	// Write property tree to XML file
+	pt::write_xml(filename, m_tree,std::locale(),settings);
+}
+
+
+
+void debug_settings::removeNode(const std::string& key,const std::string& val)
+{
+	auto &children = m_tree.get_child(key);
+	for(auto attrIt = children.begin(); attrIt != children.end();)
+	{
+		if(attrIt->first == val)
+			attrIt = children.erase(attrIt);
+		else
+			++attrIt;
+	}
+}
+
+void debug_settings::removeNodeAll(const std::string& nodePath)
+{
+	auto &children = m_tree.get_child(nodePath);
+	for(auto attrIt = children.begin(); attrIt != children.end();)
+	{
+		attrIt = children.erase(attrIt);
+	}
+	auto idx = nodePath.find_last_of(".");
+	if(idx != std::string::npos){
+		auto key = nodePath.substr(0,idx);
+		auto value = nodePath.substr(idx+1);
+		if(!key.empty() && ! value.empty()){
+			removeNode(key,value);
+		}
+	}
+}
+
+std::string debug_settings::getNodeAttr(const std::string& nodePath ,const std::string& attrName)
+{
+	return  m_tree.get<std::string>(nodePath+".<xmlattr>."+attrName);
+}
+
+std::map<std::string,std::string> debug_settings::getNodeAllAttr(const std::string& nodePath)
+{
+	std::map<std::string,std::string> ret;
+	BOOST_FOREACH(pt::ptree::value_type &v
+		, m_tree.get_child(nodePath+".<xmlattr>")) {
+			ret.insert(std::make_pair(v.first.data(),v.second.data()));
+	}
+	return ret;
+}
+
+void debug_settings::setNodeAttr(const std::string& nodePath
+	,const std::string& attrName ,const std::string& attrVal)
+{
+	m_tree.put(nodePath+".<xmlattr>."+attrName,attrVal);
+}
+
+void debug_settings::setNodeAllAttr(const std::string& nodePath ,const std::map<std::string,std::string> allAttr)
+{
+	for(auto it=allAttr.cbegin();it!=allAttr.cend();++it){
+		m_tree.put(nodePath+".<xmlattr>."+it->first,it->second);
+	}
+}
+
+AllChildAttrMap debug_settings::getNodeAllChildAllAttr(
+	const std::string& nodePath)
+{
+	AllChildAttrMap ret;
+	BOOST_FOREACH(pt::ptree::value_type &v, m_tree.get_child(nodePath)){
+		BOOST_FOREACH(pt::ptree::value_type &v2, v.second){
+			std::map<std::string,std::string> tmp;
+			BOOST_FOREACH(pt::ptree::value_type &v3, v2.second){
+				tmp.insert(std::make_pair(v3.first.data(),v3.second.data()));		
+			}
+			if(!tmp.empty()){
+				ret.insert(std::make_pair(v.first,tmp));
+			}
+		}
+		
+	} 
+	return ret;
+}
+
+int main(int argc, char *argv[])
+{
+	try
+	{
+		debug_settings ds;
+		ds.load("debug_settings.xml");
+		ds.save("debug_settings_out.xml");
+		std::cout << "Success\n";
+	}
+	catch (std::exception &e)
+	{
+		std::cout << "Error: " << e.what() << "\n";
+	}
+}
+```
+Run it, `debug_settings_out.xml`:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<debug>
+<!-- debug -->
+	<level>2</level>
+	<filename>debug.log</filename>
+	<modules>
+		<module>Admin</module>
+		<module>Finance</module>
+		<module>HR</module>
+	</modules>
+	<Item test="ok" count="6">
+		<newChildItem desc="1" name="project1"/>
+		<newChildItem1 desc="2" name="project2"/>
+		<ChildItem0 datatype="int" desc="file size" name="project1"/>
+		<ChildItem1 datatype="int" desc="file size" name="project2"/>
+		<ChildItem2 datatype="int" desc="file size" name="project3"/>
+		<ChildItem3 datatype="int" desc="file size" name="project4"/>
+	</Item>
+</debug>
+```
+
+* [Better XML formatting using Boost? [duplicate]](https://stackoverflow.com/questions/27135813/better-xml-formatting-using-boost)
+* [boost.property_tree的高级用法（你们没见过的操作）](https://blog.csdn.net/heshaai6843/article/details/80971375)
+* [BOOST存储 XML格式化问题](https://blog.csdn.net/yulinxx/article/details/89915370)
+* [How are attributes parsed in Boost.PropertyTree?](https://stackoverflow.com/questions/3690436/how-are-attributes-parsed-in-boost-propertytree)
 
 [上一级](README.md)
 [上一篇](algorithmSortNonStaticMemberFunction.md)
