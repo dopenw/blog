@@ -16,6 +16,8 @@
   - [Stacktrace](#stacktrace)
   - [thread](#thread)
   - [Property Tree](#property-tree)
+  - [Asio](#asio)
+    - [Basic Skills](#basic-skills)
 
 <!-- /code_chunk_output -->
 
@@ -23,14 +25,16 @@
 
 [Boost.org](https://www.boost.org/)
 
-### windows 下安装 boost 
+### windows 下安装 boost
+
 1. 可直接下载[对应版本的源码](https://www.boost.org/users/download/)，来编译；
 2. 直接下载 [Prebuilt windows binaries.](https://sourceforge.net/projects/boost/files/boost-binaries/)
-   
+
 参考链接：
+
 * [How to use Boost in Visual Studio 2010](https://stackoverflow.com/questions/2629421/how-to-use-boost-in-visual-studio-2010)
 * [在 windows 下安装 Boost 1.62.0](https://www.jianshu.com/p/004c99828af2)
-* 
+
 ## Any
 
 [Boost.Any](https://www.boost.org/doc/libs/1_74_0/doc/html/any.html)
@@ -633,14 +637,15 @@ Run it:
 
 * [Boost thread error: undefined reference](https://stackoverflow.com/questions/3584365/boost-thread-error-undefined-reference)
 
-
 ## Property Tree
+
 [Boost.PropertyTree](https://www.boost.org/doc/libs/1_74_0/doc/html/property_tree.html)  provides a data structure that stores an arbitrarily deeply nested tree of values, indexed at each level by some key. Each node of the tree stores its own value, plus an ordered list of its subnodes and their keys. The tree allows easy access to any of its nodes by means of a path, which is a concatenation of multiple keys.
 
 In addition, the library provides parsers and generators for a number of data formats that can be represented by such a tree, including XML, INI, and JSON.
 
 xml example:
 `debug_settings.xml`:
+
 ```xml
 <debug>
 <!-- debug -->
@@ -659,6 +664,7 @@ xml example:
     </Item>
 </debug>
 ```
+
 ```c++
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -675,209 +681,211 @@ typedef std::multimap<std::string,std::map<std::string,std::string>> AllChildAtt
 
 struct debug_settings
 {
-	std::string m_file;               // log filename
-	int m_level;                      // debug level
-	std::set<std::string> m_modules;  // modules where logging is enabled
-	pt::ptree m_tree;
-	AllChildAttrMap m_allChildItemAttrMap;
-	std::map<std::string,std::string> m_itemAttr;
-	void load(const std::string &filename);
-	void save(const std::string &filename);
-	void removeNode(const std::string& key,const std::string& val);
-	void removeNodeAll(const std::string& nodePath);
-	std::string getNodeAttr(const std::string& nodePath
-		,const std::string& attrName);
-	std::map<std::string,std::string> getNodeAllAttr(
-		const std::string& nodePath);
-	void setNodeAttr(const std::string& nodePath,const std::string& attrName
-		,const std::string& attrVal);
-	void setNodeAllAttr(const std::string& nodePath
-		,const std::map<std::string,std::string> allAttr);
-	AllChildAttrMap getNodeAllChildAllAttr(
-		const std::string& nodePath); 
+ std::string m_file;               // log filename
+ int m_level;                      // debug level
+ std::set<std::string> m_modules;  // modules where logging is enabled
+ pt::ptree m_tree;
+ AllChildAttrMap m_allChildItemAttrMap;
+ std::map<std::string,std::string> m_itemAttr;
+ void load(const std::string &filename);
+ void save(const std::string &filename);
+ void removeNode(const std::string& key,const std::string& val);
+ void removeNodeAll(const std::string& nodePath);
+ std::string getNodeAttr(const std::string& nodePath
+  ,const std::string& attrName);
+ std::map<std::string,std::string> getNodeAllAttr(
+  const std::string& nodePath);
+ void setNodeAttr(const std::string& nodePath,const std::string& attrName
+  ,const std::string& attrVal);
+ void setNodeAllAttr(const std::string& nodePath
+  ,const std::map<std::string,std::string> allAttr);
+ AllChildAttrMap getNodeAllChildAllAttr(
+  const std::string& nodePath);
 };
 
 void debug_settings::load(const std::string &filename)
 {
 
-	// Parse the XML into the property tree.
-	pt::read_xml(filename, m_tree
-		,boost::property_tree::xml_parser::trim_whitespace);
+ // Parse the XML into the property tree.
+ pt::read_xml(filename, m_tree
+  ,boost::property_tree::xml_parser::trim_whitespace);
 
-	// Use the throwing version of get to find the debug filename.
-	// If the path cannot be resolved, an exception is thrown.
-	m_file = m_tree.get<std::string>("debug.filename");
+ // Use the throwing version of get to find the debug filename.
+ // If the path cannot be resolved, an exception is thrown.
+ m_file = m_tree.get<std::string>("debug.filename");
 
-	// Use the default-value version of get to find the debug level.
-	// Note that the default value is used to deduce the target type.
-	// If the path cannot be resolved, Will not throw an exception
-	m_level = m_tree.get("debug.level", 0);
-	auto itemName = getNodeAttr("debug.Item","name"); 
+ // Use the default-value version of get to find the debug level.
+ // Note that the default value is used to deduce the target type.
+ // If the path cannot be resolved, Will not throw an exception
+ m_level = m_tree.get("debug.level", 0);
+ auto itemName = getNodeAttr("debug.Item","name");
 
-	m_itemAttr = getNodeAllAttr("debug.Item");
-	m_allChildItemAttrMap = getNodeAllChildAllAttr("debug.Item");
+ m_itemAttr = getNodeAllAttr("debug.Item");
+ m_allChildItemAttrMap = getNodeAllChildAllAttr("debug.Item");
 
-	// Use get_child to find the node containing the modules, and iterate over
-	// its children. If the path cannot be resolved, get_child throws.
-	// A C++11 for-range loop would also work.
-	BOOST_FOREACH(pt::ptree::value_type &v, m_tree.get_child("debug.modules")) {
-		// The data function is used to access the data stored in a node.
-		m_modules.insert(v.second.data());
-	}
+ // Use get_child to find the node containing the modules, and iterate over
+ // its children. If the path cannot be resolved, get_child throws.
+ // A C++11 for-range loop would also work.
+ BOOST_FOREACH(pt::ptree::value_type &v, m_tree.get_child("debug.modules")) {
+  // The data function is used to access the data stored in a node.
+  m_modules.insert(v.second.data());
+ }
 
 }
 
 void debug_settings::save(const std::string &filename)
 {
-	removeNode("debug.filename","notExists");
-	// erase node debug.filename
-	removeNode("debug","filename");
-	m_tree.put("debug.filename",m_file);
-	m_tree.put("debug.level", m_level);
-	removeNodeAll("debug.modules");
-	// Add all the modules. Unlike put, which overwrites existing nodes, add
-	// adds a new node at the lowest level, so the "modules" node will have
-	// multiple "module" children.
-	BOOST_FOREACH(const std::string &name, m_modules)
-		m_tree.add("debug.modules.module", name);
+ removeNode("debug.filename","notExists");
+ // erase node debug.filename
+ removeNode("debug","filename");
+ m_tree.put("debug.filename",m_file);
+ m_tree.put("debug.level", m_level);
+ removeNodeAll("debug.modules");
+ // Add all the modules. Unlike put, which overwrites existing nodes, add
+ // adds a new node at the lowest level, so the "modules" node will have
+ // multiple "module" children.
+ BOOST_FOREACH(const std::string &name, m_modules)
+  m_tree.add("debug.modules.module", name);
 
-	removeNodeAll("debug.Item");
-	setNodeAttr("debug.Item","test","ok");
-	std::map<std::string,std::string> newChildItemAttr;
-	newChildItemAttr.insert(std::make_pair("name","project1"));
-	newChildItemAttr.insert(std::make_pair("desc","1"));
-	setNodeAllAttr("debug.Item.newChildItem",newChildItemAttr);
-	newChildItemAttr["name"]="project2";
-	newChildItemAttr["desc"]="2";
-	setNodeAllAttr("debug.Item.newChildItem1",newChildItemAttr);
+ removeNodeAll("debug.Item");
+ setNodeAttr("debug.Item","test","ok");
+ std::map<std::string,std::string> newChildItemAttr;
+ newChildItemAttr.insert(std::make_pair("name","project1"));
+ newChildItemAttr.insert(std::make_pair("desc","1"));
+ setNodeAllAttr("debug.Item.newChildItem",newChildItemAttr);
+ newChildItemAttr["name"]="project2";
+ newChildItemAttr["desc"]="2";
+ setNodeAllAttr("debug.Item.newChildItem1",newChildItemAttr);
 
-	auto order = 0;
-	for(auto it=m_allChildItemAttrMap.begin();it!=m_allChildItemAttrMap.end();++it){
-		setNodeAllAttr("debug.Item."+it->first
-			+boost::lexical_cast<std::string>(order++),it->second);
-	}
-	setNodeAttr("debug.Item","count"
-		,boost::lexical_cast<std::string>(6));
-	// Better XML formatting
-	boost::property_tree::xml_writer_settings<std::string> settings('\t', 1);
+ auto order = 0;
+ for(auto it=m_allChildItemAttrMap.begin();it!=m_allChildItemAttrMap.end();++it){
+  setNodeAllAttr("debug.Item."+it->first
+   +boost::lexical_cast<std::string>(order++),it->second);
+ }
+ setNodeAttr("debug.Item","count"
+  ,boost::lexical_cast<std::string>(6));
+ // Better XML formatting
+ boost::property_tree::xml_writer_settings<std::string> settings('\t', 1);
 
-	// Write property tree to XML file
-	pt::write_xml(filename, m_tree,std::locale(),settings);
+ // Write property tree to XML file
+ pt::write_xml(filename, m_tree,std::locale(),settings);
 }
 
 
 
 void debug_settings::removeNode(const std::string& key,const std::string& val)
 {
-	auto &children = m_tree.get_child(key);
-	for(auto attrIt = children.begin(); attrIt != children.end();)
-	{
-		if(attrIt->first == val)
-			attrIt = children.erase(attrIt);
-		else
-			++attrIt;
-	}
+ auto &children = m_tree.get_child(key);
+ for(auto attrIt = children.begin(); attrIt != children.end();)
+ {
+  if(attrIt->first == val)
+   attrIt = children.erase(attrIt);
+  else
+   ++attrIt;
+ }
 }
 
 void debug_settings::removeNodeAll(const std::string& nodePath)
 {
-	auto &children = m_tree.get_child(nodePath);
-	for(auto attrIt = children.begin(); attrIt != children.end();)
-	{
-		attrIt = children.erase(attrIt);
-	}
-	auto idx = nodePath.find_last_of(".");
-	if(idx != std::string::npos){
-		auto key = nodePath.substr(0,idx);
-		auto value = nodePath.substr(idx+1);
-		if(!key.empty() && ! value.empty()){
-			removeNode(key,value);
-		}
-	}
+ auto &children = m_tree.get_child(nodePath);
+ for(auto attrIt = children.begin(); attrIt != children.end();)
+ {
+  attrIt = children.erase(attrIt);
+ }
+ auto idx = nodePath.find_last_of(".");
+ if(idx != std::string::npos){
+  auto key = nodePath.substr(0,idx);
+  auto value = nodePath.substr(idx+1);
+  if(!key.empty() && ! value.empty()){
+   removeNode(key,value);
+  }
+ }
 }
 
 std::string debug_settings::getNodeAttr(const std::string& nodePath ,const std::string& attrName)
 {
-	return  m_tree.get<std::string>(nodePath+".<xmlattr>."+attrName);
+ return  m_tree.get<std::string>(nodePath+".<xmlattr>."+attrName);
 }
 
 std::map<std::string,std::string> debug_settings::getNodeAllAttr(const std::string& nodePath)
 {
-	std::map<std::string,std::string> ret;
-	BOOST_FOREACH(pt::ptree::value_type &v
-		, m_tree.get_child(nodePath+".<xmlattr>")) {
-			ret.insert(std::make_pair(v.first.data(),v.second.data()));
-	}
-	return ret;
+ std::map<std::string,std::string> ret;
+ BOOST_FOREACH(pt::ptree::value_type &v
+  , m_tree.get_child(nodePath+".<xmlattr>")) {
+   ret.insert(std::make_pair(v.first.data(),v.second.data()));
+ }
+ return ret;
 }
 
 void debug_settings::setNodeAttr(const std::string& nodePath
-	,const std::string& attrName ,const std::string& attrVal)
+ ,const std::string& attrName ,const std::string& attrVal)
 {
-	m_tree.put(nodePath+".<xmlattr>."+attrName,attrVal);
+ m_tree.put(nodePath+".<xmlattr>."+attrName,attrVal);
 }
 
 void debug_settings::setNodeAllAttr(const std::string& nodePath ,const std::map<std::string,std::string> allAttr)
 {
-	for(auto it=allAttr.cbegin();it!=allAttr.cend();++it){
-		m_tree.put(nodePath+".<xmlattr>."+it->first,it->second);
-	}
+ for(auto it=allAttr.cbegin();it!=allAttr.cend();++it){
+  m_tree.put(nodePath+".<xmlattr>."+it->first,it->second);
+ }
 }
 
 AllChildAttrMap debug_settings::getNodeAllChildAllAttr(
-	const std::string& nodePath)
+ const std::string& nodePath)
 {
-	AllChildAttrMap ret;
-	BOOST_FOREACH(pt::ptree::value_type &v, m_tree.get_child(nodePath)){
-		BOOST_FOREACH(pt::ptree::value_type &v2, v.second){
-			std::map<std::string,std::string> tmp;
-			BOOST_FOREACH(pt::ptree::value_type &v3, v2.second){
-				tmp.insert(std::make_pair(v3.first.data(),v3.second.data()));		
-			}
-			if(!tmp.empty()){
-				ret.insert(std::make_pair(v.first,tmp));
-			}
-		}
-		
-	} 
-	return ret;
+ AllChildAttrMap ret;
+ BOOST_FOREACH(pt::ptree::value_type &v, m_tree.get_child(nodePath)){
+  BOOST_FOREACH(pt::ptree::value_type &v2, v.second){
+   std::map<std::string,std::string> tmp;
+   BOOST_FOREACH(pt::ptree::value_type &v3, v2.second){
+    tmp.insert(std::make_pair(v3.first.data(),v3.second.data()));  
+   }
+   if(!tmp.empty()){
+    ret.insert(std::make_pair(v.first,tmp));
+   }
+  }
+  
+ }
+ return ret;
 }
 
 int main(int argc, char *argv[])
 {
-	try
-	{
-		debug_settings ds;
-		ds.load("debug_settings.xml");
-		ds.save("debug_settings_out.xml");
-		std::cout << "Success\n";
-	}
-	catch (std::exception &e)
-	{
-		std::cout << "Error: " << e.what() << "\n";
-	}
+ try
+ {
+  debug_settings ds;
+  ds.load("debug_settings.xml");
+  ds.save("debug_settings_out.xml");
+  std::cout << "Success\n";
+ }
+ catch (std::exception &e)
+ {
+  std::cout << "Error: " << e.what() << "\n";
+ }
 }
 ```
+
 Run it, `debug_settings_out.xml`:
+
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <debug>
 <!-- debug -->
-	<level>2</level>
-	<filename>debug.log</filename>
-	<modules>
-		<module>Admin</module>
-		<module>Finance</module>
-		<module>HR</module>
-	</modules>
-	<Item test="ok" count="6">
-		<newChildItem desc="1" name="project1"/>
-		<newChildItem1 desc="2" name="project2"/>
-		<ChildItem0 datatype="int" desc="file size" name="project1"/>
-		<ChildItem1 datatype="int" desc="file size" name="project2"/>
-		<ChildItem2 datatype="int" desc="file size" name="project3"/>
-		<ChildItem3 datatype="int" desc="file size" name="project4"/>
-	</Item>
+ <level>2</level>
+ <filename>debug.log</filename>
+ <modules>
+  <module>Admin</module>
+  <module>Finance</module>
+  <module>HR</module>
+ </modules>
+ <Item test="ok" count="6">
+  <newChildItem desc="1" name="project1"/>
+  <newChildItem1 desc="2" name="project2"/>
+  <ChildItem0 datatype="int" desc="file size" name="project1"/>
+  <ChildItem1 datatype="int" desc="file size" name="project2"/>
+  <ChildItem2 datatype="int" desc="file size" name="project3"/>
+  <ChildItem3 datatype="int" desc="file size" name="project4"/>
+ </Item>
 </debug>
 ```
 
@@ -885,6 +893,270 @@ Run it, `debug_settings_out.xml`:
 * [boost.property_tree的高级用法（你们没见过的操作）](https://blog.csdn.net/heshaai6843/article/details/80971375)
 * [BOOST存储 XML格式化问题](https://blog.csdn.net/yulinxx/article/details/89915370)
 * [How are attributes parsed in Boost.PropertyTree?](https://stackoverflow.com/questions/3690436/how-are-attributes-parsed-in-boost-propertytree)
+
+## Asio
+
+[Boost.Asio](https://www.boost.org/doc/libs/1_74_0/doc/html/boost_asio.html) is a cross-platform C++ library for network and low-level I/O programming that provides developers with a consistent asynchronous model using a modern C++ approach.
+
+### Basic Skills
+
+[Using a timer synchronously](https://www.boost.org/doc/libs/1_74_0/doc/html/boost_asio/tutorial/tuttimer1.html)
+
+Print the `Hello, world!` message to show when the timer has expired(5s).
+
+```c++
+#include <iostream>
+#include <boost/asio.hpp>
+
+int main()
+{
+  boost::asio::io_context io;
+
+  boost::asio::steady_timer t(io, boost::asio::chrono::seconds(5));
+
+  t.wait();
+
+  std::cout << "Hello, world!" << std::endl;
+
+  return 0;
+}
+```
+
+[Using a timer asynchronously](https://www.boost.org/doc/libs/1_74_0/doc/html/boost_asio/tutorial/tuttimer2.html):
+
+```c++
+#include <iostream>
+#include <boost/asio.hpp>
+
+void print(const boost::system::error_code& /*e*/)
+{
+  std::cout << "Hello, world!" << std::endl;
+}
+
+int main()
+{
+  boost::asio::io_context io;
+
+  boost::asio::steady_timer t(io, boost::asio::chrono::seconds(5));
+  t.async_wait(&print);
+
+//The io_context::run() function will also continue
+//to run while there is still "work" to do.
+// In this example, the work is the asynchronous wait
+//on the timer, so the call will not return until
+//the timer has expired and the callback has completed.
+  io.run();
+
+  return 0;
+}
+
+```
+
+[Binding arguments to a handler](https://www.boost.org/doc/libs/1_74_0/doc/html/boost_asio/tutorial/tuttimer3.html):
+
+```c++
+#include <iostream>
+#include <boost/asio.hpp>
+#include <boost/bind/bind.hpp>
+
+void print(const boost::system::error_code& /*e*/,
+    boost::asio::steady_timer* t, int* count)
+{
+  if (*count < 5)
+  {
+    std::cout << *count << std::endl;
+    ++(*count);
+
+    //Next we move the expiry time for the timer along by /
+    //one second from the previous expiry time. By
+    //calculating the new expiry time relative to the old,
+    //we can ensure that the timer does not drift away
+    //from the whole-second mark due to any delays in
+    //processing the handler.
+    t->expires_at(t->expiry() + boost::asio::chrono::seconds(1));
+    t->async_wait(boost::bind(print,
+          boost::asio::placeholders::error, t, count));
+  }
+}
+
+int main()
+{
+  boost::asio::io_context io;
+
+  int count = 0;
+  boost::asio::steady_timer t(io, boost::asio::chrono::seconds(1));
+  t.async_wait(boost::bind(print,
+        boost::asio::placeholders::error, &t, &count));
+
+  io.run();
+
+  std::cout << "Final count is " << count << std::endl;
+
+  return 0;
+}
+```
+
+Run it:
+
+```sh
+0
+1
+2
+3
+4
+Final count is 5
+```
+
+[Using a member function as a handler](https://www.boost.org/doc/libs/1_74_0/doc/html/boost_asio/tutorial/tuttimer4.html):
+
+```c++
+#include <iostream>
+#include <boost/asio.hpp>
+#include <boost/bind/bind.hpp>
+
+class printer
+{
+public:
+  printer(boost::asio::io_context& io)
+    : timer_(io, boost::asio::chrono::seconds(1)),
+      count_(0)
+  {
+    timer_.async_wait(boost::bind(&printer::print, this));
+  }
+
+  ~printer()
+  {
+    std::cout << "Final count is " << count_ << std::endl;
+  }
+
+  void print()
+  {
+    if (count_ < 5)
+    {
+      std::cout << count_ << std::endl;
+      ++count_;
+
+      timer_.expires_at(timer_.expiry() + boost::asio::chrono::seconds(1));
+      timer_.async_wait(boost::bind(&printer::print, this));
+    }
+  }
+
+private:
+  boost::asio::steady_timer timer_;
+  int count_;
+};
+
+int main()
+{
+  boost::asio::io_context io;
+  printer p(io);
+  io.run();
+
+  return 0;
+}
+```
+
+[Synchronising handlers in multithreaded programs](https://www.boost.org/doc/libs/1_74_0/doc/html/boost_asio/tutorial/tuttimer5.html):
+
+Consequently, calling io_context::run() from only one thread ensures that callback handlers cannot run concurrently.
+
+if have a pool of threads calling io_context::run(). However, as this allows handlers to execute concurrently, we need a method of synchronisation when handlers might be accessing a shared, thread-unsafe resource.
+
+use of the [strand](https://www.boost.org/doc/libs/1_74_0/doc/html/boost_asio/reference/strand.html) class template to synchronise callback handlers in a multithreaded program.
+
+```c++
+#include <iostream>
+#include <boost/asio.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/bind/bind.hpp>
+
+class printer {
+public:
+ printer(boost::asio::io_context &io) :
+   strand_(boost::asio::make_strand(io)), timer1_(io,
+     boost::asio::chrono::seconds(1)), timer2_(io,
+     boost::asio::chrono::seconds(1)), count_(0) {
+  timer1_.async_wait(
+    boost::asio::bind_executor(strand_,
+      boost::bind(&printer::print1, this)));
+
+  timer2_.async_wait(
+    boost::asio::bind_executor(strand_,
+      boost::bind(&printer::print2, this)));
+ }
+
+ ~printer() {
+  std::cout << "Final count is " << count_ << std::endl;
+ }
+
+ void print1() {
+  if (count_ < 10) {
+   std::cout << "Timer 1: " << count_ << std::endl;
+   ++count_;
+
+   timer1_.expires_at(
+     timer1_.expiry() + boost::asio::chrono::seconds(1));
+
+   timer1_.async_wait(
+     boost::asio::bind_executor(strand_,
+       boost::bind(&printer::print1, this)));
+  }
+ }
+
+ void print2() {
+  if (count_ < 10) {
+   std::cout << "Timer 2: " << count_ << std::endl;
+   ++count_;
+
+   timer2_.expires_at(
+     timer2_.expiry() + boost::asio::chrono::seconds(1));
+
+   timer2_.async_wait(
+     boost::asio::bind_executor(strand_,
+       boost::bind(&printer::print2, this)));
+  }
+ }
+
+private:
+ boost::asio::strand<boost::asio::io_context::executor_type> strand_;
+ boost::asio::steady_timer timer1_;
+ boost::asio::steady_timer timer2_;
+ int count_;
+};
+
+int main() {
+ //The main function now causes io_context::run() to be called from two threads:
+ //the main thread and one additional thread.
+ //This is accomplished using an boost::thread object.
+ boost::asio::io_context io;
+ printer p(io);
+ boost::thread t(boost::bind(&boost::asio::io_context::run, &io));
+ //Just as it would with a call from a single thread,
+ //concurrent calls to io_context::run() will continue to
+ //execute while there is "work" left to do. The background
+ //thread will not exit until all asynchronous operations have completed.
+ io.run();
+ t.join();
+
+ return 0;
+}
+```
+
+Run it:
+
+```sh
+Timer 1: 0
+Timer 2: 1
+Timer 1: 2
+Timer 2: 3
+Timer 1: 4
+Timer 2: 5
+Timer 1: 6
+Timer 2: 7
+Timer 1: 8
+Timer 2: 9
+Final count is 10
+```
 
 [上一级](README.md)
 [上一篇](algorithmSortNonStaticMemberFunction.md)
