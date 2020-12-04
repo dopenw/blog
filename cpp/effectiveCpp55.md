@@ -38,6 +38,7 @@
     - [条款 25：考虑写出一个不抛出异常的 swap 函数](#条款-25考虑写出一个不抛出异常的-swap-函数)
   - [实现](#实现)
     - [条款26： 尽可能延后变量定义式的出现时间](#条款26-尽可能延后变量定义式的出现时间)
+    - [条款 27：尽量少做转型动作](#条款-27尽量少做转型动作)
 
 <!-- /code_chunk_output -->
 
@@ -2394,6 +2395,183 @@ for(int i=0;i<n;++i){
 请记住：
 
 * 尽可能延后变量定义式的出现时间。这样做可以增加程序的清晰度并改善程序效率。
+
+### 条款 27：尽量少做转型动作
+
+C++ 规则的设计目的之一是，保证 “类型错误”绝不可能发生。理论上如果你的程序很“干净地”通过编译，就表示它并不企图在任何对象身上执行任何不安全，无意义、愚蠢荒谬的操作。这是一个极具价值的保证，可别草率地放弃它。
+
+不幸的是，转型(casts)破环了类型系统(type system)。那可能导致任何种类的麻烦，有些容易辨识，有些非常隐晦。
+
+C 风格的转型动作：
+
+```c++
+// 将 expression 转型为 T
+(T)expression
+//or
+T(expression)
+```
+
+C++ 提供了四种新式转型：
+
+* [const_cast](https://en.cppreference.com/w/cpp/language/const_cast) 通常被用来将对象的常量性移除（const away the constness）。它也是唯一有此能力的 C++ style 转型操作符。
+* [dynamic_cast](https://en.cppreference.com/w/cpp/language/dynamic_cast)  主要用来执行“安全向下转型”。它是唯一无法由旧式语法执行的动作，也是唯一可能耗费重大运行成本的转型动作（稍后细谈）
+* [reinterpret_cast](https://en.cppreference.com/w/cpp/language/reinterpret_cast) 意图执行底级转型，实际动作（及结果）可能取决于编译器，这也就表示它不可移植。
+* [static_cast](https://en.cppreference.com/w/cpp/language/static_cast) 用来强迫隐式转换。例如将 pointer-to-base 转为 pointer-to-derived 。
+
+注意:[Regular cast vs. static_cast vs. dynamic_cast](https://stackoverflow.com/questions/28002/regular-cast-vs-static-cast-vs-dynamic-cast)
+
+旧式转换仍然合法，但新式转型较受欢迎。原因是：
+
+1. 他们很容易在代码中辨识出来
+2. 各转型动作的目标愈窄化，编译器愈可能诊断出错误的运用。
+
+许多程序员相信，转型其实什么都没做，只是告诉编译器把某种类型视为另一种类型。这是错误的观念。任何一个类型转换往往真的令编译器编译处运行期间执行的码：
+eg:
+
+```c++
+int x,y;
+...
+double d = static_cast<double>(x)/y;
+```
+
+下一个例子就有可能让你稍微睁大眼睛了：
+
+```c++
+class Base{...};
+class Derived:public Base{...};
+Derived d;
+Base * pb = &d; // 隐喻地将 Derived * 转换为 Base *
+```
+
+这里我们不过是建立一个 base class 指针指向一个 derived class 对象，但有时候上述的两个指针值并不相同。这种情况下会有个偏移量(offset) 在运行期被施行于 Derived * 指针上，用以取得正确的 Base* 指针值。
+
+上个例子表明，单一对象（例如一个类型为 Derived 的对象）可能拥有一个以上的地址（例如“以 Base* 指向它”时的地址和“以 Derived* 指向它”时的地址。c 不可能发生这种事，java 不可能发生这种事，c# 也不可能发生这种事。但 C++ 可能！ 实际上一旦使用多重继承，这事几乎一直发生着。即使在单一继承中也可能发生。虽然这还有2其他意涵，但至少意味着你通常应该避免做出 “对象在 C++ 中如何布局”的假设。当然更不该以此假设为基础执行任何转型动作。例如，将对象地址转型为 char * 指针然后在他们身上进行指针算术，几乎总是导致不明确的行为）。
+
+但请注意：对象的布局方式和它们的地址计算方式随编译器的不同而不同，那意味 “由于知道对象如何布局”而设计的转型，在某一平台行得通，在其他平台并不一定行得通。这个世界有许多悲惨的程序员，它们历经千辛万苦才学到这堂课。
+
+另一个关于转型的有趣事情是：我们很容易写出某些似是而非的代码（在其他语言中也许是对的）。
+
+```c++
+class Window{
+  public:
+  virtual void onResize() {...}
+};
+
+class SpecialWindow:public Window{
+  virtual void onResize(){
+    // 调用基类的 onResize
+    static_cast<Window>(*this).onResize(); // 这不可行
+    ... // 这里进行 SpecialWindow 专属行为
+  }
+}
+```
+
+上面的转换是在 “当前对象之 base class 成分”的副本上调用 Window::onResize,然后在当前对象上执行 SpecialWindow 专属动作。
+
+应该这样写：
+
+```c++
+class SpecialWindow：public Window{
+  public:
+  virtual void onResize(){
+    Window::onResize();
+    ...
+  }
+}
+```
+
+这个例子也说明，如果你发现你自己打算转型，那活脱是个警告信号：你可能正在将局面发展成错误的方向上。如果你用的是 dynamic_cast 更是如此。
+
+在探究 dynamic_cast 设计意涵之前，值得注意的是， dynamic_cast 的许多实现版本执行速度相当慢。深度继承或多重继承的成本更高！某些实现版本这样做有其原因（它们必须支持动态连接）。然而还是要强调的是，除了对一般转型保持机敏与猜疑，更应该在注重效率的代码中对 dynamic_cast 保持机敏与猜疑。
+
+之所以需要 dynamic_cast ,通常是因为你想再一个你认定为 derived class 对象身上执行 derived class 操作函数，但你的手上却只有一个 "指向base"的 pointer 或 reference,你只能靠它们来处理对象。有两个一般性做法可以避免这个问题：
+
+第一：使用容器并在其中存储直接指向 derived class 对象的指针。试着不要这样做：
+
+```c++
+class Window{...};
+  class SpecialWindow:public Window{
+  public:
+    void blink();
+    ...
+};
+
+typedef std::vector<std::shared_ptr<Window>> VPW;
+
+VPW winPtrs;
+
+for(auto p:winPtrs){
+  if(SpecialWindow * psw = dynamic_cast<SpecialWindow*>(p.get())){
+    psw->blink();
+  }
+}
+```
+
+应该改而这样做：
+
+```c++
+typedef std::vector<std::shared_ptr<SpecialWindow>> VPSW;
+VPSW winPtrs;
+for(auto p:winPtrs){
+  p->blink();
+}
+```
+
+当然啦，这种做法使你无法在同一个容器内存储指针 “指向所有可能之各种 Window 派生类”。如果真要处理多种窗口类型，你可能需要多个容器，它们都必须具备类型安全性。
+
+另一种做法可让你通过 base class 接口处理 “所有之各种 Window 派生类”，那就是在 base class 内提供 virtual 函数做你想对各个 Window 派生类做的事。
+比如：
+
+```c++
+class Window{
+public:
+  virtual void blink(){}
+  ...
+
+};
+
+class SpecialWindow：public Window{
+  public:
+  virtual void blink(){...}
+  ...
+};
+
+typedef std::vector<std::shared_ptr<Window>> VPW;
+
+VPW winPtrs;
+... // 所有可能的 Window 类型
+
+for(auto p:winPtrs){
+  p->blink();
+}
+```
+
+无论是上面两种的哪一种写法，都并非放之四海皆准，但在许多情况下它们都提供一个可行的 dynamic_cast 替代方案。当它们有此功效时，你应该欣然拥抱它们。
+
+绝对必须避免的一件事时所谓的 “连串 dynamic_cast”,就像这样：
+
+```c++
+class Window{...};
+...
+typedef std::vector<std::shared_ptr<Window>> VPW;
+VPW winPtrs;
+...
+
+for(auto p:winPtrs){
+  if(SpecialWindow1 * psw1 = dynamic_cast<SpecialWindow1 * >(p.get())){...}
+  else if(SpecialWindow2 * psw2 = dynamic_cast<SpecialWindow2 * >(p.get())){...}
+  else if(SpecialWindow3 * psw3 = dynamic_cast<SpecialWindow3 * >(p.get())){...}
+  ...
+}
+```
+
+这样产生出来的代码又大又慢，而且基础不稳，因为每次 Window 继承体系一有改变，所有这一类代码都必须再次检阅看看是否需要修改。例如一旦加入新的 derived class ,或许上述连串判断中需要加入新的条件分支。这样的代码应该总是以某些 “基于 virtual 函数调用”的东西取而代之。
+
+请记住：
+
+* 如果可以，尽量避免转型，特别是在注重效率的代码中避免 dynamic_cast 。如果有个设计需要转型动作，试着发展无需转型的替代设计。
+* 如果转型是必要的，试着将他隐藏于某个函数背后。客户随后可以调用该函数，而不需要将转型放进他们自己的代码内。
+* 宁可使用 c++-style(新式)转型，不要使用旧式转型。前者很容易辨识出来，而且也比较有着分门别类的职掌。
 
 [上一级](README.md)
 [上一篇](do_while_false.md)
