@@ -4,23 +4,23 @@
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [自定义fedora桌面环境](#自定义fedora桌面环境)
-	* [gnome shell extensions](#gnome-shell-extensions)
-	* [gnome theme](#gnome-theme)
-	* [gnome icons](#gnome-icons)
-	* [gnome cusor](#gnome-cusor)
-	* [显示效果](#显示效果)
-	* [截屏](#截屏)
-	* [系统清理工具](#系统清理工具)
-	* [utilties](#utilties)
-	* [upgrade fedora26 to fedora27](#upgrade-fedora26-to-fedora27)
-	* [fedora 27 install nvidia-driver](#fedora-27-install-nvidia-driver)
-	* [youtube downloader](#youtube-downloader)
-		* [merge video and audio](#merge-video-and-audio)
-	* [Change the default boot entry](#change-the-default-boot-entry)
-		* [List the default kernel](#list-the-default-kernel)
-		* [List all the kernel menu entries](#list-all-the-kernel-menu-entries)
-		* [Change the default boot entry](#change-the-default-boot-entry-1)
+- [自定义fedora桌面环境](#自定义fedora桌面环境)
+  - [gnome shell extensions](#gnome-shell-extensions)
+  - [gnome theme](#gnome-theme)
+  - [gnome icons](#gnome-icons)
+  - [gnome cusor](#gnome-cusor)
+  - [显示效果](#显示效果)
+  - [截屏](#截屏)
+  - [系统清理工具](#系统清理工具)
+  - [utilties](#utilties)
+  - [upgrade fedora26 to fedora27](#upgrade-fedora26-to-fedora27)
+  - [fedora 27 install nvidia-driver](#fedora-27-install-nvidia-driver)
+  - [youtube downloader](#youtube-downloader)
+    - [merge video and audio](#merge-video-and-audio)
+  - [Change the default boot entry](#change-the-default-boot-entry)
+    - [List the default kernel](#list-the-default-kernel)
+    - [List all the kernel menu entries](#list-all-the-kernel-menu-entries)
+    - [Change the default boot entry](#change-the-default-boot-entry-1)
 
 <!-- /code_chunk_output -->
 
@@ -37,7 +37,15 @@
 
 5. Gno-Menu
 
+6. [Dash to Panel](https://extensions.gnome.org/extension/1160/dash-to-panel/)
+
+7. [ArcMenu](https://extensions.gnome.org/extension/3628/arcmenu/)
+
+![](../images/custom_desktop_env_202012051451_1.png)
+
 [youtube video link](https://www.youtube.com/watch?v=YFvFo5sUAhw)
+
+[How to Use GNOME Shell Extensions [Complete Guide]](https://itsfoss.com/gnome-shell-extensions/)
 
 
 ## gnome theme
