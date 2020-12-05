@@ -39,6 +39,7 @@
   - [实现](#实现)
     - [条款26： 尽可能延后变量定义式的出现时间](#条款26-尽可能延后变量定义式的出现时间)
     - [条款 27：尽量少做转型动作](#条款-27尽量少做转型动作)
+    - [条款 28：避免返回 handles 指向对象内部成分](#条款-28避免返回-handles-指向对象内部成分)
 
 <!-- /code_chunk_output -->
 
@@ -2443,9 +2444,9 @@ Derived d;
 Base * pb = &d; // 隐喻地将 Derived * 转换为 Base *
 ```
 
-这里我们不过是建立一个 base class 指针指向一个 derived class 对象，但有时候上述的两个指针值并不相同。这种情况下会有个偏移量(offset) 在运行期被施行于 Derived * 指针上，用以取得正确的 Base* 指针值。
+这里我们不过是建立一个 base class 指针指向一个 derived class 对象，但有时候上述的两个指针值并不相同。这种情况下会有个偏移量(offset) 在运行期被施行于 Derived *指针上，用以取得正确的 Base* 指针值。
 
-上个例子表明，单一对象（例如一个类型为 Derived 的对象）可能拥有一个以上的地址（例如“以 Base* 指向它”时的地址和“以 Derived* 指向它”时的地址。c 不可能发生这种事，java 不可能发生这种事，c# 也不可能发生这种事。但 C++ 可能！ 实际上一旦使用多重继承，这事几乎一直发生着。即使在单一继承中也可能发生。虽然这还有2其他意涵，但至少意味着你通常应该避免做出 “对象在 C++ 中如何布局”的假设。当然更不该以此假设为基础执行任何转型动作。例如，将对象地址转型为 char * 指针然后在他们身上进行指针算术，几乎总是导致不明确的行为）。
+上个例子表明，单一对象（例如一个类型为 Derived 的对象）可能拥有一个以上的地址（例如“以 Base*指向它”时的地址和“以 Derived* 指向它”时的地址。c 不可能发生这种事，java 不可能发生这种事，c# 也不可能发生这种事。但 C++ 可能！ 实际上一旦使用多重继承，这事几乎一直发生着。即使在单一继承中也可能发生。虽然这还有2其他意涵，但至少意味着你通常应该避免做出 “对象在 C++ 中如何布局”的假设。当然更不该以此假设为基础执行任何转型动作。例如，将对象地址转型为 char * 指针然后在他们身上进行指针算术，几乎总是导致不明确的行为）。
 
 但请注意：对象的布局方式和它们的地址计算方式随编译器的不同而不同，那意味 “由于知道对象如何布局”而设计的转型，在某一平台行得通，在其他平台并不一定行得通。这个世界有许多悲惨的程序员，它们历经千辛万苦才学到这堂课。
 
@@ -2572,6 +2573,113 @@ for(auto p:winPtrs){
 * 如果可以，尽量避免转型，特别是在注重效率的代码中避免 dynamic_cast 。如果有个设计需要转型动作，试着发展无需转型的替代设计。
 * 如果转型是必要的，试着将他隐藏于某个函数背后。客户随后可以调用该函数，而不需要将转型放进他们自己的代码内。
 * 宁可使用 c++-style(新式)转型，不要使用旧式转型。前者很容易辨识出来，而且也比较有着分门别类的职掌。
+
+### 条款 28：避免返回 handles 指向对象内部成分
+
+假设你的的程序涉及矩形。
+
+```c++
+class Point{
+  public:
+  Point(int x,int y);
+  ...
+  void setX(int newVal);
+  void setY(int newVal);
+  ...
+};
+
+struct RectData{
+  Point ulhc; // upper left-hand conrner (左上角)
+  Point lrhc;// lower right-hand corner (右下角)
+};
+
+class Rectangle{
+  public:
+  ...
+  private:
+  std::shared_ptr<RectData> pData;
+};
+```
+
+提供一些函数返回 reference:
+
+```c++
+class Rectangle{
+  public:
+  ...
+  Point& upperLeft() const{
+    return pData->ulhc;
+  }
+  Point& lowerRight() const{
+    return pData->lrhc;
+  }
+  ...
+};
+```
+
+这样的设计可以通过编译，但却是错误的。实际上它是自相矛盾的。一方面 upperLeft 和 lowerRight 被声明为 const 成员函数，因为它们的目的只是为了提供一个得知 Rectangle 相关坐标点的方法，而不是让客户修改 Rectangle 。 另一方面两个函数却都返回 reference 指向 private 内部数据，调用者于是可通过这些 reference 更改内部数据。例如：
+
+```c++
+Point coord1(0,0);
+Point coord2(100,100);
+const Rectangle rec(coord1,coord2);
+
+rec.upperLeft().setX(50); //warning,更改成员
+```
+
+这立刻带给我们两个教训：
+
+1. 成员的封装性最多等于“返回其 reference” 的函数的访问级别。本例虽然 ulhc 和 lrhc 都被声明为了 private，它们实际上却是 public。
+2. 如果 const 成员函数传出一个 reference ，后者所指数据与对象自身有关联，而它又被存储于对象之外，那么这个函数的调用者可以修改那一笔数据。
+
+如果它们返回的是指针或者迭代器，相同的情况还是会发生，原因也相同。Reference 、 指针 、和迭代器都是所谓的 handles (号码牌，用来取得某个对象)；而返回一个 “代表对象内部数据”的 handle，随之而来的便是 “降低对象封装性”的风险。同时，它也可能导致 “虽然调用 const 成员函数却造成对象状态被更改”。
+
+通常我们认为，对象的“内部”就是指它的成员变量，但其实不被公开使用的成员函数(protected 或 private)也是对象 “内部” 的一部分。因此也应该留心不要返回它们的 handles。这意味这你绝对不该令成员函数返回一个指针指向 “访问级别较低”的成员函数。
+
+我们可以去除上述函数所遭遇的两个问题，就像这样：
+
+```c++
+class Rectangle{
+  public:
+  ...
+  const Point& upperLeft() const{
+    return pData->ulhc;
+  }
+  const Point& lowerRight() const{
+    return pData->lrhc;
+  }
+  ...
+};
+```
+
+但即使如此，upperLeft 和 lowerRight 还是返回了 "代表对象内部"的 handles，有可能在其他场合带来问题。更明确地说，它可能导致 dangling handles(空悬的号码牌)：这种 handles 所指东西不复存在。这种“不复存在的对象”最常见的来源就是函数返回值。例如：
+
+```c++
+class GUIObject{
+  ...
+};
+
+const Rectangle boundingBox(const GUIObject& obj);
+```
+
+现在客户有可能这么使用这个函数：
+
+```c++
+GUIObject * pgo; // 让 pgo 指向某个 GUIObject
+...
+
+const Point * pUpperLeft = &(boundingBox(*pgo).upperLeft());
+```
+
+对 boundingBox 的调用获得一个新的、暂时的 Rectangle 对象。一旦产出 pUpperLeft 的哪个语句结束，pUpperLeft 也就变成空悬、虚吊(dangling)！
+
+这就是为什么函数如果“返回一个 handle 代表对象内部成分”总是危险的原因。不论这所谓的 handle 是个指针或迭代器或 reference，也不论这个 handle 是否为 const ，也不论那个返回 handle 的成员函数是否为 const 。这里的唯一关键是，有个 handle 被传出去了，一旦如此你就是暴露在 “handle 比其所指对象更长寿”的风险下。
+
+这并不意味着你绝对不可以让成员函数返回 handle。有时候你必须这样做。例如 operator[] 就允许你 “摘采” strings 和 vector 的个别元素，而这些 operator[]s 就是返回 reference 指向 “容器内的数据”，那些数据会随着容器被销毁而销毁。尽管如此，这样的函数毕竟是例外，不是常态。
+
+请记住：
+
+* 避免返回 handles (包括 references、指针、迭代器)指向对象内部。遵守这个条款可增加封装性，帮助 const 成员函数的行为像个 const ，并将发生 “虚吊号码牌”(dangling handles) 的可能性降至最低。
 
 [上一级](README.md)
 [上一篇](do_while_false.md)
