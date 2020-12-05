@@ -19,6 +19,9 @@
   - [Asio](#asio)
     - [Basic Skills](#basic-skills)
     - [Introduction to Sockets](#introduction-to-sockets)
+  - [Boost.Python](#boostpython)
+    - [call your C++ code from Python](#call-your-c-code-from-python)
+    - [call Python code from the C++-side](#call-python-code-from-the-c-side)
 
 <!-- /code_chunk_output -->
 
@@ -1678,6 +1681,30 @@ int main() {
  return 0;
 }
 ```
+
+## Boost.Python
+
+[Boost.Python](https://www.boost.org/doc/libs/1_74_0/libs/python/doc/html/index.html) is a C++ library which enables seamless interoperability between C++ and the Python programming language.
+The library includes support for:
+
+* References and Pointers
+* Globally Registered Type Coercions
+* Automatic Cross-Module Type Conversions
+* Efficient Function Overloading
+* C++ to Python Exception Translation
+* Default Arguments
+* Keyword Arguments
+* Manipulating Python objects in C++
+* Exporting C++ Iterators as Python Iterators
+* Documentation Strings
+
+### call your C++ code from Python
+
+[Boost.Python Tutorial](https://www.boost.org/doc/libs/1_74_0/libs/python/doc/html/tutorial/index.html)
+
+### call Python code from the C++-side
+
+[Embedding](https://www.boost.org/doc/libs/1_74_0/libs/python/doc/html/tutorial/tutorial/embedding.html)
 
 [上一级](README.md)
 [上一篇](algorithmSortNonStaticMemberFunction.md)
