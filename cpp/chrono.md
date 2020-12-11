@@ -4,15 +4,15 @@
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [Clock 和 Timer](#clock-和-timer)
-	* [chrono 程序库概览](#chrono-程序库概览)
-		* [duration](#duration)
-		* [clock（时钟） 和 Timepoint（时间点）](#clock时钟-和-timepoint时间点)
-			* [clock](#clock)
-			* [timepoint](#timepoint)
-		* [C 和 POSIX 提供的 Date/Time 函数](#c-和-posix-提供的-datetime-函数)
-			* [timepoint 与 日历时间的转换](#timepoint-与-日历时间的转换)
-		* [以计时器停滞线程](#以计时器停滞线程)
+- [Clock 和 Timer](#clock-和-timer)
+  - [chrono 程序库概览](#chrono-程序库概览)
+    - [duration](#duration)
+    - [clock（时钟） 和 Timepoint（时间点）](#clock时钟-和-timepoint时间点)
+      - [clock](#clock)
+      - [timepoint](#timepoint)
+    - [C 和 POSIX 提供的 Date/Time 函数](#c-和-posix-提供的-datetime-函数)
+      - [timepoint 与 日历时间的转换](#timepoint-与-日历时间的转换)
+    - [以计时器停滞线程](#以计时器停滞线程)
 
 <!-- /code_chunk_output -->
 
@@ -77,7 +77,7 @@ std::cout << std::chrono::nanoseconds(ms).count()<<" ns" << '\n';
 172839998000000 ns
 ```
 
-你可以隐式转换至一个“教精准的单位类型”可行，转换至“教粗糙的单位类型”就不可行了。但你可以使用 duration_cast 强制转换
+你可以隐式转换至一个“较精准的单位类型”可行，转换至“较粗糙的单位类型”就不可行了。但你可以使用 duration_cast 强制转换
 ```c++
 std::chrono::seconds sec(55);
 std::chrono::minutes m1=sec; //error，不允许这样的隐式转换
