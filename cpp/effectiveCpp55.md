@@ -37,9 +37,10 @@
     - [条款 24：若所有参数皆需类型转换，请为此采用 non-member 函数](#条款-24若所有参数皆需类型转换请为此采用-non-member-函数)
     - [条款 25：考虑写出一个不抛出异常的 swap 函数](#条款-25考虑写出一个不抛出异常的-swap-函数)
   - [实现](#实现)
-    - [条款26： 尽可能延后变量定义式的出现时间](#条款26-尽可能延后变量定义式的出现时间)
+    - [条款 26： 尽可能延后变量定义式的出现时间](#条款-26-尽可能延后变量定义式的出现时间)
     - [条款 27：尽量少做转型动作](#条款-27尽量少做转型动作)
     - [条款 28：避免返回 handles 指向对象内部成分](#条款-28避免返回-handles-指向对象内部成分)
+    - [条款 29：为 “异常安全”而努力是值得的](#条款-29为-异常安全而努力是值得的)
 
 <!-- /code_chunk_output -->
 
@@ -2303,7 +2304,7 @@ void doSomething(T& obj1,T& obj2)
 * 过度热心地 inlining 可能引起代码膨胀；
 * 过度耦合(couping) 则可能导致让人不满意的冗长建置时间(build times)。
 
-### 条款26： 尽可能延后变量定义式的出现时间
+### 条款 26： 尽可能延后变量定义式的出现时间
 
 只要你定义了一个变量而其类型带有一个构造函数或析构函数，那么当程序的控制流(control flow) 到达这个变量定义式时，你便得承受构造成本；当这个变量离开这个作用域的时候，你便得承受其析构成本。即使这个变量最终并未被使用，仍需耗费这些成本，所以你应该尽可能避免这种情形。
 
@@ -2680,6 +2681,132 @@ const Point * pUpperLeft = &(boundingBox(*pgo).upperLeft());
 请记住：
 
 * 避免返回 handles (包括 references、指针、迭代器)指向对象内部。遵守这个条款可增加封装性，帮助 const 成员函数的行为像个 const ，并将发生 “虚吊号码牌”(dangling handles) 的可能性降至最低。
+
+### 条款 29：为 “异常安全”而努力是值得的
+
+假设有个 class：
+```c++
+class PrettyMenu{
+  public:
+  ...
+  void changeBackground(std::istream& imgSrc); 
+  ...
+  private:
+  std::mutex mtx;
+  Image * bgImage;
+  int imageChanges;
+};
+```
+
+下面是 PrettyMenu 的 changeBackground 函数的一个可能实现：
+```c++
+void PrettyMenu::changeBackground(std::istream& imgSrc){
+  mtx.lock();
+  delete bgImage;
+  ++imageChanges;
+  bgImage = new Image(imgSrc);
+  mtx.unlock();
+}
+```
+
+从“异常安全性”的观点来看，这个函数很糟。“异常安全”有两个条件，而这个函数都没有满足：
+当异常被抛出时，带有异常安全性的函数会：
+* 不泄露任何资源。上述代码没有做到这一点，因为一旦 “new Image(imgSrc)” 导致异常，对 unlock 的调用就绝不会执行，于是互斥器就永远被把持住了。
+
+* 不允许数据败坏。如果 “new Image(imgSrc)” 抛出异常，bgImage 就是执行一个已被删除的对象，imageChanges 也已被累加，而其实并没有新的图像被成功安装起来。
+
+解决资源泄漏的问题很容易：
+```c++
+void PrettyMenu::changeBackground(std::istream& imgSrc){
+  std::lock_guard<std::mutex> lg(mtx);
+  delete bgImage;
+  ++imageChanges;
+  bgImage = new Image(imgSrc);
+}
+```
+
+异常安全函数(Exception-safe functions) 提供以下三个保证之一：
+* 基本承诺：如果异常被抛出，程序中的任何事物仍然保持在有效状态下。没有任何对象或数据结构会因此而败坏，所有对象都处于一种内部前后一致的状态。
+* 强烈保证：如果异常被抛出，程序状态不变。调用这样的函数需有这样的认知：如果函数成功，就是完全成功，如果函数失败，程序会回复到“调用函数之前”的状态。
+* 不抛掷(nothrow) 保证，承诺绝不抛出异常，因为它们总是能够完成它们原先承诺的功能。作用于内置类型(例如 ints,指针等等)身上的所有操作都是提供 nothrow 保证。
+
+```c++
+int doSomething() throw(); // 注意：“空白的异常明细”
+// empty exception spec 
+```
+注意：这并不是说 doSomething 绝不会抛出异常，而是说如果 doSomething 抛出异常，将是严重错误，会有你意想不到的函数被调用。
+
+异常安全码（exception-safe code） 必须提供上述三种保证之一。如果它不这样做，它就不具备异常安全性。因此，我们的抉择是，该为我们所写的每一个函数提供哪一种保证？
+
+一般而言你应该会提供可实施之最强烈保证。从异常安全性的角度来看， nothrow 函数很棒，但我们很难在 C part of c++ 领域中完全没有调用任何一个可能抛出异常的函数。可能的话请提供 nothrow 保证，但对大部分函数而言，抉择往往落在基本保证和强烈保证之间。
+
+对于 changeBackground 而言，提供清冽保证几乎不困难。
+
+```c++
+class PrettyMenu{
+  ...
+  std::shared_ptr<Image> bgImage;
+  ...
+};
+
+void PrettyMenu::changeBackground(std::istream& imgSrc){
+  std::lock_guard<std::mutex> lg(mtx);
+  bgImage.reset(new Image(imgSrc));
+  ++imageChanges;
+}
+```
+
+有个一般化的设计策略很典型地会导致强烈保证，很值得熟悉它。这个策略被称为 "copy and swap".原则很简单：为你打算修改的对象（原件）做出一份副本，然后在这个副本身上做一切必要修改。若有任何修改动作抛出异常，原对象仍保持未改变状态。待所有改变都成功后，再将修改过的那个副本和原对象在一个不抛出异常的操作中置换 (swap).
+
+实现上通常是将所有 “隶属对象的数据”从原对象放进另一个对象内，然后赋予原对象一个指针，指向那个所谓的实现对象(implementation object,即副本)。这种手法常被称为 pimpl idiom ，典型的写法如下：
+
+```c++
+struct PMImpl{
+  std::shared_ptr<Image> bgImage;
+  int imageChanges;
+};
+
+class PrettyMenu{
+  ...
+  private:
+  std::mutex mtx;
+  std::shared_ptr<PMImpl> pImpl;
+};
+
+void PrettyMenu::changeBackground(std::istream& imgSrc){
+  using std::swap;
+  std::lock_guard<std::mutex> lg(mtx);
+  std::shared_ptr<PMImpl> pNew(new PMImpl(*pImpl));
+
+  pNew->bgImage.reset(new Image(imgSrc));
+  ++pNew->imageChanges;
+  swap(pImpl,pNew); 
+}
+
+```
+
+“copy and swap”策略是对对象状态做出的“全有或全无“改变的一个很好办法，但一般而言它并不保证整个函数有强烈的异常安全性。为了了解原因，让我们考虑 changeBackground 的一个抽象概念: someFunc。它使用 copy-and-swap 策略，但函数内还包括对另外两个函数 f1 和 f2 的调用：
+```c++
+void someFunc(){
+  ... // 对 local 状态做一份副本
+  f1();
+  f2();
+  ... // 将修改后的状态置换过来
+}
+```
+很显然，如果 f1 或 f2 的异常安全性比“强烈保证”低，就很难让 someFunc 成为 “强烈异常安全”。
+如果 f1 和 f2 都是 “强烈异常安全”，情况并不就此好转。毕竟如果 f1 圆满结束，程序状态在任何方面都可能有所改变，因此如果 f2 随后抛出异常，程序状态和 someFunc 被调用前并不相同，甚至当 f2 没有改变任何东西时也是如此。
+问题出在 “连带影响 (side effects)” 。如果函数只操作局部性状态(local state),便相对容易地提供强烈保证。但是当函数对“非局部数据”(non-local data)有连带影响时，提供强烈保证就困难得多。
+
+这些议题想必会阻止你为函数提供强烈保证- 即使你想那么做。另一个主题时效率。
+
+当“强烈保证”不切实际时，你就必须提供 “基本保证”。
+
+请记住：
+* 异常安全函数 (exception-safe functions) 即使发生异常也不会泄漏资源或允许任何数据结构败坏。这样的函数分为三种可能的保证：基本型、强烈型、不抛异常型。
+* “强烈保证”往往能够以 copy-and-swap 实现出来，但“强烈保证”并非对所有函数都可实现或具备现实意义。
+* 函数提供“异常安全保证”通常最高只等于其所调用之各个函数的“异常安全保证”中的最弱者。
+
 
 [上一级](README.md)
 [上一篇](do_while_false.md)
