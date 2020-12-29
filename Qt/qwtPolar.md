@@ -24,6 +24,7 @@ The QwtPolar library contains classes for displaying values on a polar coordinat
 
 编译需要依赖 qwt,可参考 [qwt-简单使用](./qwt.md)
 
+可在 qwtpolarconfig.pri 文件中更改安装路径：
 ## 添加环境变量
 在环境变量 QMAKEFEATURES 后添加 `${QWT_POLAR_ROOT}\features`
 
@@ -45,4 +46,4 @@ CONFIG+=qwtpolar
 [下一篇](useMFCMigrationFramework.md)
 [上一级](README.md)
 [上一篇](qwt.md)
-[下一篇](useMFCMigrationFramework.md)
+[下一篇](useCompiledQt.md)

@@ -26,5 +26,6 @@
 * ### [QML Tutorial](qml.md)
 * ### [qwt 简单使用](qwt.md)
 * ### [QwtPolar 简单使用](qwtPolar.md)
+* ### [编译 vs2012 qt 5.3.1 64 位版本](useCompiledQt.md)
 * ### [使用 MFCMigrationFramework](useMFCMigrationFramework.md)
                            step by step

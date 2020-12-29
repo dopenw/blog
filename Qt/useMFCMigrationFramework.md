@@ -85,4 +85,4 @@ void SpectrumInterface::closeSpectrum()
 }
 ```
 [上一级](README.md)
-[上一篇](qwtPolar.md)
+[上一篇](useCompiledQt.md)
