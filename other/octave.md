@@ -70,7 +70,7 @@ ylabel('|P1(f)|')
 ```
 
 Run it:
-![](../images/octave_202101082230_1.png)
+![](../images/octave_202101082230_1.PNG)
 
 参见 mathworks 帮助中心 - [快速傅里叶变换](https://ww2.mathworks.cn/help/matlab/ref/fft.html)
 
