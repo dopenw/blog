@@ -9,6 +9,7 @@
 * ### [google cloud 使用](googleCloud.md)
 * ### [google Tips](google_search_tips.md)
 * ### [markdown 嵌入 HTML table，让其具有更多的特性](markdownHtmlTable.md)
+* ### [Octave 的简单使用](octave.md)
 * ### [openresty测试](openresty_test.md)
 * ### [利用 Pandoc 转换文档格式](pandocConvertDoc.md)
 * ### [shadowsocks optimize](shadowsocksOptimize.md)
