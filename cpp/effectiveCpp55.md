@@ -42,6 +42,7 @@
     - [条款 28：避免返回 handles 指向对象内部成分](#条款-28避免返回-handles-指向对象内部成分)
     - [条款 29：为 “异常安全”而努力是值得的](#条款-29为-异常安全而努力是值得的)
     - [条款 30：透彻了解 inlining 的里里外外](#条款-30透彻了解-inlining-的里里外外)
+    - [条款 31：将文件的编译依存关系将至最低](#条款-31将文件的编译依存关系将至最低)
 
 <!-- /code_chunk_output -->
 
@@ -2928,6 +2929,232 @@ Derived::Derived()
 
 * 大多数 inlining 限制在 小型、被频繁调用的函数身上。这可使日后的调试过程和二进制升级更容易，也可使潜在的代码膨胀问题最小化，使程序的速度提升机会最大化。
 * 不要只因为 function templates 出现在头文件，就将它们声明为 inline。
+
+### 条款 31：将文件的编译依存关系将至最低
+
+假设你对 c++ 程序的某个 class 实现文件做出了些轻微修改。注意，修改的不是 class 接口，而是实现，而且只改了 Private 部分。然后重新建置这个程序，并预计只是花费几秒就好了。毕竟只有一个 class 被修改。你开始构置，然后大吃一惊，然后感到窘困，因为你意识到整个世界都被重新编译和连接了！！！
+
+问题出现在 C++ 并没有将“把接口从实现中分离”这事做得很好。Class 的定义式不只详细叙述了 class 接口，还包括了十足的实现细目。eg：
+
+```c++
+class Person{
+public:
+  Person(const std::string& name,const Date& birthday
+  ,const Addresss& addr);
+  std::string name() const;
+  std::string birthDate() const ;
+  std::string address() const;
+  ...
+private:
+  std::string theName; //实现细目
+  Date theBirthData; //实现细目
+  Address theAddress; //实现细目
+};
+```
+
+Person 定义文件的最上方很可能存在这样的东西：
+
+```c++
+#include <string>
+#include "date.h"
+#include "address.h"
+```
+
+不幸的是，这么一来便在 Person 定义文件和其含入文件之间形成了一种编译依存关系(compilation dependency)。如果这些头文件中有任何一个被改变，或这些头文件所依赖的其他头文件有任何改变，那么每一个含入 Person class 的文件就得重新编译，任何使用 Person class 的文件也必须重新编译。这样的连串编译依存关系会对许多项目造成难以形容的灾难。
+
+那为什么不这样定义 Person,将实现细目分开叙述？
+
+```c++
+namespace std{
+  class tring; // 前置声明（不正确，详下）
+}
+class Date;
+class Address;
+class Person{
+public:
+   Person(const std::string& name,const Date& birthday
+  ,const Addresss& addr);
+  std::string name() const;
+  std::string birthDate() const ;
+  std::string address() const;
+  ...
+};
+```
+
+但这个想法存在两个问题：
+
+1. string 不是一个 class ，它是个 typedef (basic_string<char>)。因此前置声明不正确；正确的前置声明比较复杂。然而那并不要紧，因为你本来就不该尝试手工声明一部分标准程序库。你应该仅仅使用适当的 #include 完成目的。
+2. 编译器必须在编译期间知道对象的大小。eg：
+
+```c++
+int main(){
+  int x;
+  Person p(params);
+}
+```
+
+编译器必须获取放置一个 Person 所需的空间，其唯一办法就是询问 class 定义式。然而如果 class 定义式可以合法地不列出实现细目，编译器如何知道该分配多少空间呢？
+
+此问题在 Smalltalk,Java 等语言上不存在的，因为当我们以那种语言定义对象时，编译器只分配足够空间给一个指针使用。就像这样：
+
+```c++
+int main(){
+  int x;
+  Person * p ;
+}
+```
+
+我们可以自己“将对象实现细目隐藏于一个指针背后”，eg:
+
+```c++
+#include <string>
+#include <memory>
+
+class PersonImpl; // Person 实现类的前置声明
+class Date;
+class Address;
+
+class Person{
+public:
+   Person(const std::string& name,const Date& birthday
+  ,const Addresss& addr);
+  std::string name() const;
+  std::string birthDate() const ;
+  std::string address() const;
+  ...
+private:
+  std::shared_ptr<PersonImpl> pImpl; 
+};
+
+```
+
+在这里，Person 只内含一个指针成员，指向其实现类。这种设计常被称为 pimpl(pointer to implementation) idiom。
+
+上述方法真正是“接口与实现分离”
+
+这个分离的关键在与 “声明的依存性”替换“定义的依存性”，那正是编译依存性最小化的本质：现实中让头文件自我满足，万一做不到，则让它与其他文件内的声明式相依。其他每一件事都源自于这个简单的设计策略：
+
+* 如果使用 object references 或 object pointers 可以完成任务，就不要使用 objects。
+* 如果能够，尽量以 class 声明式替换 class 定义式。eg:
+
+```c++
+class Date; // 声明式
+Date today();
+void clearAppointments(Date d); 
+```
+
+* 为声明式和定义式提供不同的头文件。eg:
+
+```c++
+#include "datefwd.h" // 这个头文件声明（但未定义） class Date。
+Date today();
+void clearAppointments(Date d);
+```
+
+头文件 "datefwd.h"，命名方式取自c++ 标准库头文件 的 [<iosfwd>](https://en.cppreference.com/w/cpp/header/iosfwd),iosfwd 内含 iostream 各组件的声明式。
+<iosfwd>深具启发意义的另一个原因是，它分外彰显“本条款适用于 templates 也适用于 non-templates”。
+
+像 Person 这样使用 pimpl idiom 的 classes ,往往被称为 Handle classes 。想让其正常工作，办法是将它们的所有的函数转交给相应的实现类(implementation classes)并由后者完成实际工作。eg:
+
+```c++
+#include "Person.h"
+#include "PersonImpl.h"
+
+Person::Person(const std::string& name
+,const Date& birthday,const Address& addr)
+:pImpl(new PersonImpl(name,birthday,addr))
+{}
+
+std::string Person::name() const {
+  return pImpl->name();
+}
+```
+
+另一个接口实现分离的办法是，令 Person 成为一中特殊的 abstract base class （抽象基类），称为 Interface class。这种 class 的目的是详细一一描述 derived classes 的接口，因此它通常不带成员变量，也没有构造函数，只有一个 virtual 析构函数以及一组 pure virtual 函数，用来叙述整个接口。eg：
+
+```c++
+class Person{
+public:
+  virtual ~Person();
+  virtual std::string name() const =0;
+  virtual std::string birthDate() const =0;
+  virtual std::string address() const =0;
+  ...
+};
+```
+
+此外 Interface class 还需提供一个函数，用于创建 derived class 的实例对象。
+
+```c++
+class Person{
+  public:
+  ...
+  static std::shared_ptr<Person> create(const std::string& name
+  ,const Date& birthday
+  ,const Address& addr);
+  ...
+};
+```
+
+客户可以这样使用：
+
+```c++
+std::string name;
+Date dateOfBirth;
+Address address;
+
+...
+
+auto person(Person::create(name,dateOfBirth,address));
+...
+std::cout<<person->name()
+<< " was born on "
+<< person->birthDate()
+<< " and now lives at "
+<<person->address();
+...
+```
+
+假设有个 具象的 derived class RealPerson ：
+
+```c++
+class RealPerson:public Person{
+public:
+  RealPerson(const std::string name
+  ,const Date& birthday
+  ,const Address& addr):
+  theName(name),theBirthData(birthday)
+  ,theAddress(addr){}
+
+  virtual ~RealPerson(){}
+  std::string name() const override;
+  std::string birthDate() const override;
+  std::string address() const override;
+private:
+  std::string theName; 
+  Date theBirthData; 
+  Address theAddress; 
+};
+```
+
+然后 Person::create 函数：
+
+```c++
+std::shared_ptr<Person> Person::create(const std::string& name
+  ,const Date& birthday
+  ,const Address& addr){
+    return std::shared_ptr<Person>(new RealPerson(name,birthday,addr));
+  }
+```
+
+Handle classes 和 interfaces classes 解除了接口和实现之间的耦合关系，从而降低了文件间的编译依存性。那么“所有这些戏法得付出多少代价呢？”答案是：它使你在运行期丧失若干速度，又让你为每个对象付出若干内存。
+
+然而，如果只因为若干额外成本便不考虑 Handle classes 和 interface classes ，将是严重的错误。你应该以渐进方式使用这些技术。在程序发展过程中使用 Handle classes 和 interface classes 以求实现码有所变化时对其客户带来最小冲击。而当它们导致速度和/或大小差异过于重大以至于 classes 之间的耦合相形之下不成为关键时，就以具象类(concrete classes)替换 Handle classes 和 interface classes。
+
+请记住：
+
+* 支持“编译依存性最小化”的一般构思是：相依于声明式，不要依于定义式。基于此构思的两个手段是 Handle classes 和 interface classes。
+* 程序库头文件应该以“完全且仅有声明式”(full and declaration-only forms) 的形式存在。这种做法不论是否涉及 templates 都适用。
 
 [上一级](README.md)
 [上一篇](do_while_false.md)
