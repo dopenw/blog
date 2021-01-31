@@ -4,10 +4,12 @@
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [Visual studio 安装 Visual Assist](#visual-studio-安装-visual-assist)
-	* [Visual Assist 概览](#visual-assist-概览)
-	* [crack visual Assist](#crack-visual-assist)
-	* [VisualStudio 2008 install visual assist](#visualstudio-2008-install-visual-assist)
+- [Visual studio 安装 Visual Assist](#visual-studio-安装-visual-assist)
+	- [Visual Assist 概览](#visual-assist-概览)
+	- [crack visual Assist](#crack-visual-assist)
+	- [VisualStudio 2008 install visual assist](#visualstudio-2008-install-visual-assist)
+		- [使用 Trial-Reset40 重置试用期](#使用-trial-reset40-重置试用期)
+	- [Link](#link)
 
 <!-- /code_chunk_output -->
 
@@ -67,6 +69,23 @@ WorldSrc.com
 ![](../images/VisualStudioInstallVisualAssist_201805312037_1.PNG)
 
 点击安装就可以给 VisualStudio 2008 安装 Visual assist。
+
+### 使用 Trial-Reset40 重置试用期
+1. [下载Trial-Reset40 ](https://www.raymond.cc/blog/download/did/278/)
+2. 已管理员权限运行 `Trial-Reset.exe`
+3. 点击左侧工具栏的 Armadillo 按钮，等待扫描结束，选中右侧列表所有 key，右键选择 `Deleter key`
+
+注意：若提示 `Component ‘MSCOMCTL.OCX’ or one of its dependencies not correctly registered: a file is missing or invalid`:
+1. [Download MSCOMCTL.OCX](https://www.ocxme.com/files/mscomctl_ocx)
+2. for 64 bits:拷贝 MSCOMCTL.OCX 到 `C:\Windows\SysWOW64`
+3. for 32 bits:拷贝 MSCOMCTL.OCX 到 `C:\Windows\System32`
+4. 以管理员模式启动 cmd 程序
+5. 执行 `regsvr32 mscomctl.ocx`
+
+
+## Link 
+* [5 Ways to Extend Trial Periods of Shareware Software](https://www.raymond.cc/blog/how-to-extend-the-trial-period-of-a-software/)
+* [Fix: Component ‘MSCOMCTL.OCX’ or one of its dependencies not correctly registered: a file is missing or invalid](https://appuals.com/fix-component-mscomctl-ocx-one-dependencies-not-correctly-registered-file-missing-invalid/)
 
 [上一级](README.md)
 [上一篇](DocZhToEn.md)

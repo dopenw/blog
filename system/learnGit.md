@@ -4,34 +4,36 @@
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [Git 学习笔记](#git-学习笔记)
-	* [介绍](#介绍)
-	* [安装 Git](#安装-git)
-		* [fedora install Git](#fedora-install-git)
-		* [windows install Git](#windows-install-git)
-	* [起步](#起步)
-		* [Git 命令行](#git-命令行)
-		* [Git 使用快速入门](#git-使用快速入门)
-			* [创建初始化版本库](#创建初始化版本库)
-			* [将文件添加到版本库中](#将文件添加到版本库中)
-			* [配置提交作者](#配置提交作者)
-			* [再次提交](#再次提交)
-			* [查看提交](#查看提交)
-			* [查看提交差异](#查看提交差异)
-			* [版本库内文件的删除和重命名](#版本库内文件的删除和重命名)
-			* [创建版本库副本](#创建版本库副本)
-		* [配置文件](#配置文件)
-			* [配置别名](#配置别名)
-	* [更改提交](#更改提交)
-		* [关于修改历史记录的注意事项](#关于修改历史记录的注意事项)
-		* [使用 git reset](#使用-git-reset)
-			* [revert a commit already pushed to a remote repository](#revert-a-commit-already-pushed-to-a-remote-repository)
-	* [git submodule](#git-submodule)
-		* [add submodule](#add-submodule)
-		* [remove git submodule](#remove-git-submodule)
-		* [Git submodule URL not including username?](#git-submodule-url-not-including-username)
-		* [遇到的一些问题](#遇到的一些问题)
-	* [Link](#link)
+- [Git 学习笔记](#git-学习笔记)
+  - [介绍](#介绍)
+  - [安装 Git](#安装-git)
+    - [fedora install Git](#fedora-install-git)
+    - [windows install Git](#windows-install-git)
+  - [起步](#起步)
+  - [Git GUI 工具](#git-gui-工具)
+    - [Windows](#windows)
+    - [Git 命令行](#git-命令行)
+    - [Git 使用快速入门](#git-使用快速入门)
+      - [创建初始化版本库](#创建初始化版本库)
+      - [将文件添加到版本库中](#将文件添加到版本库中)
+      - [配置提交作者](#配置提交作者)
+      - [再次提交](#再次提交)
+      - [查看提交](#查看提交)
+      - [查看提交差异](#查看提交差异)
+      - [版本库内文件的删除和重命名](#版本库内文件的删除和重命名)
+      - [创建版本库副本](#创建版本库副本)
+    - [配置文件](#配置文件)
+      - [配置别名](#配置别名)
+  - [更改提交](#更改提交)
+    - [关于修改历史记录的注意事项](#关于修改历史记录的注意事项)
+    - [使用 git reset](#使用-git-reset)
+      - [revert a commit already pushed to a remote repository](#revert-a-commit-already-pushed-to-a-remote-repository)
+  - [git submodule](#git-submodule)
+    - [add submodule](#add-submodule)
+    - [remove git submodule](#remove-git-submodule)
+    - [Git submodule URL not including username?](#git-submodule-url-not-including-username)
+    - [遇到的一些问题](#遇到的一些问题)
+  - [Link](#link)
 
 <!-- /code_chunk_output -->
 
@@ -73,6 +75,10 @@ Git 负责管理变化。鉴于这一意图，Git 与其他版本控制系统有
 * 版本库
 
 当然，Git 还提供了许多新奇的事物。
+
+## Git GUI 工具
+### Windows 
+安装 Git windows + [tortoisegit](https://tortoisegit.org/)
 
 ### Git 命令行
 
@@ -452,6 +458,7 @@ git submodule update
 ## Link
 * [How do I remove a submodule?](https://stackoverflow.com/questions/1260748/how-do-i-remove-a-submodule)
 * [Git Submodules: Adding, Using, Removing, Updating](https://chrisjean.com/git-submodules-adding-using-removing-and-updating/)
+* [TortoiseGit not showing icon overlays](https://stackoverflow.com/questions/25156238/tortoisegit-not-showing-icon-overlays)
 
 [上一级](README.md)
 [上一篇](graph.md)
