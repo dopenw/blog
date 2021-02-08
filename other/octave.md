@@ -76,8 +76,6 @@ Run it:
 
 
 ## Link 
-* [后MATLAB时代的七种开源替代，一种替代堪称完美！](https://zhuanlan.zhihu.com/p/148059038)[上一级](README.md)
-
-
+[上一级](README.md)
 [上一篇](markdownHtmlTable.md)
 [下一篇](openresty_test.md)

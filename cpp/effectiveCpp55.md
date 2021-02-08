@@ -43,6 +43,9 @@
     - [条款 29：为 “异常安全”而努力是值得的](#条款-29为-异常安全而努力是值得的)
     - [条款 30：透彻了解 inlining 的里里外外](#条款-30透彻了解-inlining-的里里外外)
     - [条款 31：将文件的编译依存关系将至最低](#条款-31将文件的编译依存关系将至最低)
+    - [条款 32：确定你的 public 继承塑模出 is-a 关系](#条款-32确定你的-public-继承塑模出-is-a-关系)
+    - [条款 33：避免遮掩继承而来的名称](#条款-33避免遮掩继承而来的名称)
+    - [条款 34：区分接口继承和实现继承](#条款-34区分接口继承和实现继承)
 
 <!-- /code_chunk_output -->
 
@@ -3155,6 +3158,530 @@ Handle classes 和 interfaces classes 解除了接口和实现之间的耦合关
 
 * 支持“编译依存性最小化”的一般构思是：相依于声明式，不要依于定义式。基于此构思的两个手段是 Handle classes 和 interface classes。
 * 程序库头文件应该以“完全且仅有声明式”(full and declaration-only forms) 的形式存在。这种做法不论是否涉及 templates 都适用。
+
+### 条款 32：确定你的 public 继承塑模出 is-a 关系
+
+如果你令 class D(Derived) 以public 形式继承 class B(Base),你便是告诉 c++ 编译器（以及你的代码读者）说，每一个类型为 D 的对象同时也是一个类型为 B 的对象，反之不成立。
+
+考虑如下例子：
+
+```c++
+class Person{...};
+class Student:public Person{...};
+```
+
+使用：
+
+```c++
+void eat(const Person& p);  // 任何人都会吃
+void study(const Student& s); //只有学生才到校学习
+Person p; //p 是人
+Student s; // s 是学生
+eat(p); // 没问题，p 是人
+eat(s); // 没问题，s 是学生，而学生也是 (is-a) 人
+study(s); // 没问题，s 是个学生
+study(p); //错误！p 不是学生
+```
+
+public 继承和 is-a 之间的等价关系听起来颇为简单，但有时候你的直觉可能会误导你。eg：企鹅(penguin) 是一种鸟，这是事实。鸟可以飞，这也是事实。如果我们这样：
+
+```c++
+class Bird{
+public:
+  virtual void fly(); 
+  ...
+};
+
+class Penguin:public Bird{ // 企鹅是一种鸟
+  ...
+};
+```
+
+突然间我们遇上了乱流，因为这个继承体系说企鹅可以飞，oops.
+我们可以这样：
+
+```c++
+class Bird{
+  ... // 没有声明 fly 函数
+};
+class FlyingBird:public Bird{
+public:
+  virtual void fly();
+  ...
+}
+class Pengunin:public Bird{
+  ... // 没有声明 fly 函数
+};
+```
+
+这样的继承体系比原先的设计更能忠实反映我们真正的意思。
+但，世界上并不存在一个“适用于所有软件”的完美设计。所谓最佳设计，取决于系统希望做什么事，包括现在与未来。如果你的程序对飞行一无所知，而且也不打算未来对飞行“有所知”，那么不去区分会飞的鸟和不会飞的鸟，不失为一个完美而有效的设计。
+
+另有一种思想处理所谓的“所有鸟都会飞，企鹅是鸟，但是企鹅不会飞，喔欧”的问题，就是为企鹅重新定义 fly 函数，令它产生一个运行期错误：
+
+```c++
+void error(const std::string msg); // 定义与另外某处
+class Penguin:public Bird{
+public:
+  virtual void fly() {error("Attempt to make a penguin fly!");}
+  ...
+};
+```
+
+这里是说“企鹅会飞，但尝试那么做是一个错误”。
+
+更好的设计：
+
+```c++
+class Bird{
+  ... // 没有声明 fly 函数
+};
+
+class Penguin:public Bird{
+  ... // 没有声明 fly 函数
+};
+```
+
+现在，如果你试图让企鹅飞，编译器会对你的背信加以谴责：
+
+```c++
+Penguin p;
+p.fly(); // 错误！
+```
+
+这和采取“令程序于运行期发生错误”的解法极为不同。若以那种做法，编译器不会对 p.fly 调用式发出任何抱怨。条款18说过：好的接口可以防止无效的代码通过编译，因此，你应该宁可采取“在编译器拒绝企鹅飞行”的设计，而不是“只在运行期才能侦测它们”的设计。
+
+再来一个例子：class Square（正方形） 应该以 public 形式继承 class Rectangle（矩形） 吗？
+考虑这段代码：
+
+```c++
+class Rectangle{
+public:
+  virtual void setHeight(int newHeight);
+  virtual void setWidth(int newWidth);
+  virtual int height() const;
+  virtual int width() const;
+  ...
+};
+
+void makeBigger(Rectangle& r){
+  int oldHeight = r.height();
+  r.setWidth(r.width()+10);
+  assert(r.height() == oldHeight);
+}
+```
+
+现在考虑这段代码，其中使用pulic 继承，允许正方形被视为一种矩形：
+
+```c++
+class Square:public Rectangle{...};
+Square s;
+...
+
+assert(s.width() == s.height()); // 这对所有的正方形一定为真。
+makeBigger(s); // 增加面积
+assert(s.width() == s.height()); // 对所有正方形应该仍然为真。oops!!!!
+```
+
+但，现在我们遇到了问题。
+
+本例的根本困难是，某些可施行于矩形身上的事情（例如宽度可以独立于其高度被外界修改）却不可施行于正方形上。但是 public 继承主张，能够施行于 base class 对象身上的每件事情，每件事情唷，也可以施行于 derived class 对象身上。在上述的正方形和矩形的例子中（另一个类似的例子是条款 38 的 sets 和 lists），那样的主张无法保持，所以以 public 继承塑模它们之间的关系并不正确。
+
+请记住：
+
+* public继承 意味着 is-a。适用于 base classes 身上的每一件事情也适用于 derived classes 身上，因为每一个 derived class 对象也都是一个 base class 对象。
+
+### 条款 33：避免遮掩继承而来的名称
+
+考虑如下代码：
+
+```c++
+int x; // global 变量
+void someFunc(){
+  double x; // local 变量
+  std::cin >> x;  // 读一个新值赋予 local 变量 x
+}
+```
+
+这个读取数据的语句指涉的是 local 变量x，而不是 global 变量 x,因为内层作用域的名称会遮掩外围作用域的名称。
+
+![](../images/effectiveCpp55_202102081848_1.png)
+
+现在导入继承。我们知道，当位于一个 derived class 成员函数内指涉(refer to) base class 内的某物（也许是个成员函数、typedef 或成员变量）时，编译器可以找出我们所指涉的东西，因为 derived classes 继承了声明于 base classes 内的所有东西。实际运作方式时，derived class 作用域被嵌套在 base class 作用域内，eg:
+
+```c++
+class Base{
+private:
+  int x;
+public:
+  virtual void mf1()=0;
+  virtual void mf2();
+  void mf3();
+  ...
+};
+
+class Derived:public Base{
+public:
+  virtual void mf1();
+  void mf4();
+  ...
+};
+```
+
+![](../images/effectiveCpp55_202102081848_2.png)
+
+假设 derived class 内的 mf4 的实现代码像这样：
+
+```c++
+void Derived::mf4(){
+  ...
+  mf2();
+  ...
+}
+```
+
+当编译器看到这里使用名称 mf2，必须估算它指涉(refer to) 什么东西。编译器的做法就是查找各作用域,查找规则如下
+`local作用域(即 mf4 覆盖的作用域) -> class Derived 覆盖的作用域 -> base class -> 内含 Base 的那个 namespace 的作用域(如果有的话) -> global 作用域`,直到找到 mf2 或查找完毕依旧未能查找到的话，便停止查找。当然，本例查找到的为 Base::mf2()。
+
+那如果这样，我们重载 mf1 和 mf3,并且添加一个新版的 mf3 到 Derived 去。那将会使整个设计立刻显得疑云重重。
+
+```c++
+class Base{
+private:
+  int x;
+public:
+  virtual void mf1()=0;
+  virtual void mf1(int);
+  virtual void mf2();
+  void mf3();
+  void mf3(double);
+  ...
+};
+
+class Derived:public Base{
+public:
+  virtual void mf1();
+  void mf3();
+  void mf4();
+  ...
+};
+```
+
+![](../images/effectiveCpp55_202102081848_3.png)
+
+以作用域为基础的“名称遮掩规则”并没有改变，因此 base class 内所有名为 mf1 和 mf3 的函数都被 derived class 内的 mf1 和 mf3 函数遮掩掉了。从名称查找观点来看，Base::mf1 和 Base::mf3 不再被 Derived 继承！
+
+```c++
+Derived d;
+int x;
+...
+d.mf1(); // ok
+d.mf1(x); //错误，因为 Derived::mf1 遮掩了 Base::mf1
+d.mf2(); //ok
+d.mf3(); //ok
+d.mf3(x); //错误，因为 Derived::mf3 遮掩了 Base::mf3
+```
+
+如你所见，上述规则都适用，即使 base classes 和 derived classes 内的函数有不同的参数类型也适用，而且不论函数是 virtual 或 non-virtual 一体适用。
+
+这些行为的背后的基本原理是为了防止你在程序库或应用框架内建立新的 derived class 时附带地从疏远的 base classes 继承重载函数。不幸的是你通常会想继承重载函数。实际上如果你正在使用 public 继承而又不继承那些重载函数的话，就是违反了 base 和 derived class 之间的 is-a 关系。
+
+你可以使用 using 声明式来达成目标：
+
+```c++
+class Base{
+private:
+  int x;
+public:
+  virtual void mf1()=0;
+  virtual void mf1(int);
+  virtual void mf2();
+  void mf3();
+  void mf3(double);
+  ...
+};
+
+class Derived:public Base{
+public:
+  using Base::mf1; // 让 Base class 内名为 mf1 和 mf3 的所有东西
+  using Basse::mf3; // 在 Derived 作用域内都可见(并且 public)
+  virtual void mf1();
+  void mf3();
+  void mf4();
+  ...
+};
+```
+
+![](../images/effectiveCpp55_202102081848_4.png)
+
+```c++
+Derived d;
+int x;
+...
+d.mf1(); // ok
+d.mf1(x); //ok
+d.mf2(); //ok
+d.mf3(); //ok
+d.mf3(x); //ok
+```
+
+假设 Derived 以 private 形式继承 Base,而 Derived 唯一想继承的 mf1 是那个无参数版本。using 声明式在这里派不上用场，因为 using 声明式会令继承而来的某给定名称之所有同名函数在 derived class 中都可见。不，我们需要不同的技术，即一个简单的转交函数(forwarding function):
+
+```c++
+class Base{
+public:
+  virtual void mf1()=0;
+  virtual void mf1(int);
+  ... // 与前同
+};
+
+class Derived:private Base{
+public:
+  virtual void mf1() // forwarding funciton
+  {
+    Base::mf1(); // inline
+  }
+  ...
+};
+
+...
+
+Derived d;
+int x;
+d.mf1(); // ok
+d.mf1(x); // 错误！ Base::mf1() 被遮掩了
+```
+
+inline 转交函数的另一用途是为那些不支持 using 声明式的老旧编译器另辟一条新路，将继承而来的名称汇入 derived class 作用域内。
+
+请记住：
+
+* derived classes 内的名称会遮掩 base classes 内的名称。在 public 继承下从来没有人希望如此。
+* 为了让被遮掩的名称重见天日，可使用 using 声明式或转交函数(forwarding functions)。
+
+### 条款 34：区分接口继承和实现继承
+
+表面上直接了当的 public 继承概念，经过更严密的检查之后，发现它由两部分组成：
+
+* 函数接口(function interfaces)继承
+* 函数实现(function implementations)继承
+
+身为 class 设计者：
+
+* 有时候你会希望 derived classes 只继承成员函数的接口（也就是声明）；
+* 有时候你又会希望 derived classes 同时继承函数和接口和实现，但又希望能够覆写(override) 它们所继承的实现；
+* 又有时候你希望 derived classes 同时继承函数的接口和实现，并且不允许覆写任何东西。
+
+eg：
+
+```c++
+class Shape{
+public:
+  virtual void draw() const =0;
+  virtual void error(const std::string& msg);
+  int objectID()const;
+  ...
+};
+
+class Rectangle:public Shape{...};
+class Ellipse:public Shape{...};
+```
+
+Shape 强烈影响了所有以 public 继承它的 derived clasess,因为：
+
+* 成员函数的接口总是会被继承。
+
+Shape class 声明了三个函数，每个函数的声明方式都不相同：draw是个 pure virtual 函数；error 是个简朴的（非纯） impure virtual 函数；objectID 是个 non-virtual 函数。这些不同的声明带来什么样的暗示呢？
+首先考虑 pure virtual 函数 draw：
+
+```c++
+class Shape{
+public:
+  virtual void draw() const =0;
+  ...
+};
+```
+
+pure virtual 函数有两个最突出的特性：它们必须被任何“继承了它们”的具象 class 重新声明，而且通常它们在抽象 class 中通常没有定义。把这两个性质摆在一起，你就会明白：
+
+* 声明一个 pure virtual 函数的目的是为了 derived classes 只继承接口。
+令人意外的是，我们竟然可以为 pure virtual 函数提供定义。也就是说你可以为 Shape::draw 供应一份实现代码，c++ 并不会发出怨言，但调用它的唯一途径是“调用时明确指出其 class 名称”:
+
+```c++
+Shape * ps = new Shape; // 错误！ Shape 是抽象的
+Shape * ps1 = new Rectangle; // ok
+ps1->draw(); // ok
+Shape * ps2 = new Ellipse; // ok
+ps2->draw(); // ok
+ps1->Shape::draw(); // 调用 Shape::draw
+ps2->Shape::draw(); // 调用 Shape::draw
+```
+
+一般而言这项性质用途有限。但是一如稍后你将看到，它可以实现一种机制，为简朴的（非纯） impure virtual 函数提供更平常更安全的缺省实现。
+
+* 声明简朴的(飞纯)的 impure virtual 函数的目的，是让 derived classes 继承该函数的接口和缺省实现。
+
+```c++
+class Shape{
+public:
+  virtual void error(const std::string& msg);
+  ...
+};
+```
+
+但是，允许 impure virtual 函数同时指定函数声明和函数缺省行为，却有可能造成危险。让我们考虑 XYZ 航空公司涉及的飞机继承体系。
+
+```c++
+class Airport{...};
+class Airplane{
+public:
+  virtual void fly(const Airport& destination);
+  ...
+};
+
+void Airplane::fly(const Airport& destination){
+  //缺省代码，将飞机飞至指定的目的地
+}
+
+class ModelA:public Airplane{...};
+class ModelB:public Airplane{...};
+```
+
+现在，假设 XYZ 决定购买一中新式 C 型飞机。且目的地不同。于是该公司的程序员添加了一个新的类 ModelC,但由于它们急着让新飞机上线服务，竟忘了重新定义其 fly 函数：
+
+```c++
+class ModelC:public Airplane{
+  ... // 为声明 fly 函数
+};
+```
+
+然后代码中有一些诸如此类的动作：
+
+```c++
+Airport dst(...);
+Airplane * pa = new ModelC;
+...
+pa->fly(dst); //调用 Airplane::fly
+```
+
+这将酿成大灾难,oops。
+
+问题不在 Airplane::fly 有缺省行为，而在于 ModelC 在未明白说出“我要”的情况下就继承了该缺省行为。幸运的是我们可以轻易做到“提供缺省实现给 derived classes，但除非它们明白要求否则免谈”。此间伎俩在于切断“virtual 函数接口”和其“缺省实现”之间的连接。下面是一种做法：
+
+```c++
+class Airplane{
+public:
+  virtual void fly(const Airport& destination) = 0;
+  ...
+protected:
+  void defaultFly(const Airport& destination);
+};
+
+void Airplane::defaultFly(const Airport& destination){
+  //缺省代码，将飞机飞至指定的目的地
+}
+
+// derived classes 实现
+class ModelA:public Airplane{
+public:
+  void fly(const Airport& destination) override{
+    defaultFly(destination);
+  }
+  ...
+};
+class ModelB:public Airplane{
+public:
+  void fly(const Airport& destination) override{
+    defaultFly(destination);
+  }
+  ...
+};
+class ModelC:public Airplane{
+public:
+  void fly(const Airport& destination) override;
+  ...
+};
+
+void ModelC::fly(const Airport& destination){
+  //将 C 型飞机飞至指定的目的地
+}
+```
+
+这个方案并非安全无虞，程序员还是可能因为剪贴代码而招来麻烦，但它的确比原先的设计更值得依赖。
+
+我们可以利用“pure virtual 函数必须在 derived classes 中重新声明，但它们也可以拥有自己的实现”这一事实，来做出第二种方法：
+
+```c++
+class Airplane{
+public:
+  virtual void fly(const Airport& destination) = 0;
+  ...
+};
+
+void Airplane::fly(const Airport& destination) // pure virtual 函数实现
+{
+  //缺省代码，将飞机飞至指定的目的地
+}
+
+// derived classes 实现
+class ModelA:public Airplane{
+public:
+  void fly(const Airport& destination) override{
+    Airplane::fly(destination);
+  }
+  ...
+};
+class ModelB:public Airplane{
+public:
+  void fly(const Airport& destination) override{
+    Airplane::fly(destination);
+  }
+  ...
+};
+class ModelC:public Airplane{
+public:
+  void fly(const Airport& destination) override;
+  ...
+};
+
+void ModelC::fly(const Airport& destination){
+  //将 C 型飞机飞至指定的目的地
+}
+```
+
+这几乎和前一个设计一模一样。本质上，现在的 fly 被分割为两个基本要素：其声明部分表现的是接口，其定义的部分则表现出缺省行为（那是 derived classes 可能使用的，但只有在它们明确提出申请才是）。
+
+最后，让我们看看 Shape 的 non-virtual 函数 objectID:
+
+```c++
+class Shape{
+public:
+  int objectID()const;
+  ...
+};
+```
+
+如果成员函数是个 non-virtual 函数，意味着它并不打算在 derived classes 中有不同的行为。实际上一个 non-virtual 成员函数所表现的不变性 (invariant) 凌驾于特异性(specialization),因为它表示不论 derived class 变得多么特异化，它的行为都不可以改变。就其自身而言：
+
+* 声明 non-virtual 函数的目的是为了令 derived classes 继承函数的接口以及一份强制性实现。
+
+pure virtual 函数、simple(impure) virtual 函数、non-virtual 函数之间此的差异，使你得以精准你想要 derived classes 继承的东西：
+
+* 只继承接口
+* 继承接口和一份缺省实现
+* 继承接口和一份强制实现
+
+如果你确定履行上述规则，应该能够能够避免经验不足的 class 设计者最常犯的两个错误：
+
+1. 将所有成员函数声明为 non-virtual 。这使得 derived classes 没有余裕空间进行特化工作。
+2. 将所有成员函数声明为 virtual。有时候这样做是正确的，例如条款31 的 interface classes.然而这也可能是 class 设计者缺乏坚定立场的前兆。
+
+请记住：
+
+* 接口继承和实现继承不同，在 Public 继承下，derived classes 总是继承 base class 的接口。
+* pure virtual 函数只具体指定接口继承。
+* 简朴的(非纯) impure virtual 函数具体指定接口继承及缺省实现继承。
+* non-virtual 函数具体指定接口继承以及强制性实现继承。
 
 [上一级](README.md)
 [上一篇](do_while_false.md)
