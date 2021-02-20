@@ -43,9 +43,15 @@
     - [条款 29：为 “异常安全”而努力是值得的](#条款-29为-异常安全而努力是值得的)
     - [条款 30：透彻了解 inlining 的里里外外](#条款-30透彻了解-inlining-的里里外外)
     - [条款 31：将文件的编译依存关系将至最低](#条款-31将文件的编译依存关系将至最低)
+  - [继承与面向对象设计](#继承与面向对象设计)
     - [条款 32：确定你的 public 继承塑模出 is-a 关系](#条款-32确定你的-public-继承塑模出-is-a-关系)
     - [条款 33：避免遮掩继承而来的名称](#条款-33避免遮掩继承而来的名称)
     - [条款 34：区分接口继承和实现继承](#条款-34区分接口继承和实现继承)
+    - [条款 35：考虑 virtual 函数以外的其他选择](#条款-35考虑-virtual-函数以外的其他选择)
+      - [藉由 Non-Virtual Interface 手法实现 Template Method 模式](#藉由-non-virtual-interface-手法实现-template-method-模式)
+      - [藉由 Function Pointers 实现 Strategy 模式](#藉由-function-pointers-实现-strategy-模式)
+      - [藉由 std::function 完成 Strategy 模式](#藉由-stdfunction-完成-strategy-模式)
+      - [古典的 Strategy 模式](#古典的-strategy-模式)
 
 <!-- /code_chunk_output -->
 
@@ -55,16 +61,16 @@
 
 为了理解 C++，你必须认识其主要的次语言。幸运的是总共只有四个：
 
-* `C`：说到底 C++ 仍是以 C 为基础。
-* `Object-Oriented C++` :这部分是面向对象设计之古典守则在 C++ 上的最直接实施。
-* `Template C++`:模板
-* `STL`
+- `C`：说到底 C++ 仍是以 C 为基础。
+- `Object-Oriented C++` :这部分是面向对象设计之古典守则在 C++ 上的最直接实施。
+- `Template C++`:模板
+- `STL`
 
 因此，C++ 并不是一个带有一组守则的一体语言；它是从四个次语言组成的联邦政府，每个次语言都有自己的规约。记住这四个次语言你就会发现 C++ 容易了解得多。
 
 请注意：
 
-* C++ 高效编程守则视状况而变化，取决于你使用 C++ 的那一部分。
+- C++ 高效编程守则视状况而变化，取决于你使用 C++ 的那一部分。
 
 ### 条款 02：尽量以 const,enum,inline 替换 #define
 
@@ -72,8 +78,8 @@
 
 请记住：
 
-* 对于单纯常量，最好以 `const` 对象或 `enum` 替换 `#define`
-* 对于形似函数的宏(macros)（注：该方式不会招致函数调用带来的额外开销）,最好改用 `inline` 函数替换 `#define`
+- 对于单纯常量，最好以 `const` 对象或 `enum` 替换 `#define`
+- 对于形似函数的宏(macros)（注：该方式不会招致函数调用带来的额外开销）,最好改用 `inline` 函数替换 `#define`
 
 ### 条款 03：尽可能使用 const
 
@@ -85,8 +91,8 @@ const 的一件奇妙的事情是，它允许你指定一个语义约束（也�
 
 将 const 实施于成员函数的目的，是为了确认该成员函数可作用于 const 对象身上。这一类函数之所以重要，基于两个理由：
 
-* 他们使 class 接口比较容易被理解。
-* 他们使 “操作 const 对象”成为可能。这对编写高效率代码是个关键。
+- 他们使 class 接口比较容易被理解。
+- 他们使 “操作 const 对象”成为可能。这对编写高效率代码是个关键。
 
 两个成员函数如果只是常量性(constness) 不同，可以被重载。考虑以下 class:
 
@@ -260,9 +266,9 @@ class TextBlock
 
 请记住：
 
-* 将某些东西声明为 const 可帮助编译器侦测出错误用法。
-* 编译器强制实施 bitwise constness,但你编写程序应该使用 “概念上的常量性” (conceptual constness)
-* 当 const 和 non-const 成员函数有着实质等价的实现时，令 non-const 版本调用 const 版本可避免代码重复。
+- 将某些东西声明为 const 可帮助编译器侦测出错误用法。
+- 编译器强制实施 bitwise constness,但你编写程序应该使用 “概念上的常量性” (conceptual constness)
+- 当 const 和 non-const 成员函数有着实质等价的实现时，令 non-const 版本调用 const 版本可避免代码重复。
 
 ### 条款 04：确定对象被使用前已先被初始化
 
@@ -375,9 +381,9 @@ Directory &tempDir()
 
 请注意：
 
-* 为内置型对象进行手工初始化，因为 C++ 不保证初始化它们。
-* 构造函数最好使用成员初值列(member initialization list),而不要在构造函数本体内使用赋值操作 (assignment)。初值列列出的成员变量，其排列次序应该和它们在 class 中的声明次序相同。
-* 为免除 “跨编译单元之初始化次序”问题，请以 local static 对象替换 non-local static 对象。
+- 为内置型对象进行手工初始化，因为 C++ 不保证初始化它们。
+- 构造函数最好使用成员初值列(member initialization list),而不要在构造函数本体内使用赋值操作 (assignment)。初值列列出的成员变量，其排列次序应该和它们在 class 中的声明次序相同。
+- 为免除 “跨编译单元之初始化次序”问题，请以 local static 对象替换 non-local static 对象。
 
 ## 构造/析构/赋值运算
 
@@ -537,8 +543,8 @@ A delete
 
 请记住：
 
-* polymorphic(带多态性质的) base classes 应该声明一个 virtual 析构函数。如果 class 带有任何 virtual 函数，他就应该拥有一个 virtual 析构函数。
-* classes 的设计目的如果不是作为 base classes 使用，或不是为了具备多态性(polymorphic),就不应该声明 virtual 析构函数。
+- polymorphic(带多态性质的) base classes 应该声明一个 virtual 析构函数。如果 class 带有任何 virtual 函数，他就应该拥有一个 virtual 析构函数。
+- classes 的设计目的如果不是作为 base classes 使用，或不是为了具备多态性(polymorphic),就不应该声明 virtual 析构函数。
 
 ### 条款 08：别让异常逃离析构函数
 
@@ -679,8 +685,8 @@ private:
 
 请记住：
 
-* 析构函数绝不要吐出异常。如果一个被析构函数调用的函数可能抛出异常，析构函数应该捕捉任何异常，然后吞下它们（不传播）或结束程序；
-* 如果客户需要对某个操作函数运行期间抛出的异常做出反应，那么 class 应该提供一个普通函数（而非在析构函数中）执行该操作。
+- 析构函数绝不要吐出异常。如果一个被析构函数调用的函数可能抛出异常，析构函数应该捕捉任何异常，然后吞下它们（不传播）或结束程序；
+- 如果客户需要对某个操作函数运行期间抛出的异常做出反应，那么 class 应该提供一个普通函数（而非在析构函数中）执行该操作。
 
 ### 条款 09：绝不在构造和析构过程中调用 virtual 函数
 
@@ -984,8 +990,8 @@ Widget& Widget::operator=(Widget rhs)
 
 请记住：
 
-* 确保当对象自我赋值时 operator= 有良好的行为。其中技术包括比较“来源对象”和“目标对象”的地址、精心周到的语句顺序、以及 copy-and-swap;
-* 确定任何函数如果操作一个以上的对象，而其中多个对象时同一个对象时，其行为仍然正确。
+- 确保当对象自我赋值时 operator= 有良好的行为。其中技术包括比较“来源对象”和“目标对象”的地址、精心周到的语句顺序、以及 copy-and-swap;
+- 确定任何函数如果操作一个以上的对象，而其中多个对象时同一个对象时，其行为仍然正确。
 
 ### 条款 12：复制对象时务忘其每一个成分
 
@@ -1087,9 +1093,9 @@ PriorityCustomer& PriorityCustomer::operator=(const PriorityCustomer& rhs)
 
 请记住：
 
-* copying 函数应该确保复制“对象内的所有成员变量”及“所有 base class 成分”。
-* 你不该令 copy assignment 操作符调用 copy 构造函数；同样不该令 copy 构造函数调用 copy assignment 操作符。
-* 不要尝试以某个 copying 函数实现另一个 copying 函数。应该将共同机能放进第三个函数中，并由两个 copying 函数共同调用。
+- copying 函数应该确保复制“对象内的所有成员变量”及“所有 base class 成分”。
+- 你不该令 copy assignment 操作符调用 copy 构造函数；同样不该令 copy 构造函数调用 copy assignment 操作符。
+- 不要尝试以某个 copying 函数实现另一个 copying 函数。应该将共同机能放进第三个函数中，并由两个 copying 函数共同调用。
 
 ## 资源管理
 
@@ -1145,8 +1151,8 @@ void f()
 
 这个简单的例子示范“以对象管理资源”的两个关键想法：
 
-* 获得资源后立刻放进管理对象内。
-* 管理对象运用析构函数确保资源被释放。
+- 获得资源后立刻放进管理对象内。
+- 管理对象运用析构函数确保资源被释放。
 
 由于 auto_ptr 被销毁时会自动删除它所指之物，所以一定要注意别让多个 auto_ptr 同时指向同一对象。如果真是那样，对象会被删除一次以上，而那会使你的程序搭上驶向“未定义行为”的快速列车上。为了预防这个问题，auto_ptrs 有一个不寻常的特性：若通过 copy 构造函数或 copy assignment 操作符复制它们，它们就会变成 null ,而复制所得的指针将取得资源的唯一拥有权！
 
@@ -1184,8 +1190,8 @@ std::shared_ptr<int> spi(new int[1024]);
 
 请记住：
 
-* 为防止资源泄漏，请使用 RAII 对象，它们在构造函数中获得资源并在析构函数中释放资源。
-* 两个常被使用的 RAII classes 分别是 shared_ptr 和 auto_ptr(在 c++ 11 中被标记为弃用)。前者通常是较佳的选择，因为其 copy 行为比较直观。若选择 auto_ptr ，复制动作会使它（被复制物） 指向 null。
+- 为防止资源泄漏，请使用 RAII 对象，它们在构造函数中获得资源并在析构函数中释放资源。
+- 两个常被使用的 RAII classes 分别是 shared_ptr 和 auto_ptr(在 c++ 11 中被标记为弃用)。前者通常是较佳的选择，因为其 copy 行为比较直观。若选择 auto_ptr ，复制动作会使它（被复制物） 指向 null。
 
 ### 条款 14：在资源管理类中小心 copying 行为
 
@@ -1228,7 +1234,7 @@ Lock ml2(ml1); // oops
 
 这是一个一般化问题的特定例子，那个一般问题是每一位 RAII class 作者一定需要面对的： “当一个 RAII 对象被复制，会发生什么事？” 大多数你会选择以下两种可能：
 
-* 禁止复制。如果复制动作对 RAII class 并不合理，你便应该禁止之。eg：
+- 禁止复制。如果复制动作对 RAII class 并不合理，你便应该禁止之。eg：
 
 ```c++
 class Lock:private Uncopyable
@@ -1237,7 +1243,7 @@ class Lock:private Uncopyable
 };
 ```
 
-* 对底层资源祭出 “引用计数法”
+- 对底层资源祭出 “引用计数法”
 比如这样：
 
 ```c++
@@ -1253,13 +1259,13 @@ private:
 };
 ```
 
-* 复制底部资源（复制资源管理对象时，进行的是 “深度拷贝”。就像字符串深度拷贝那样）
-* 转移底部资源的拥有权。某些罕见场合下你可能希望确保永远只有一个 RAII 对象指向一个未加工资源，即使 RAII 对象被复制依然如此。此时资源的拥有权会从被复制物转移到目标物。这是 auto_ptr 奉行的复制的意义。
+- 复制底部资源（复制资源管理对象时，进行的是 “深度拷贝”。就像字符串深度拷贝那样）
+- 转移底部资源的拥有权。某些罕见场合下你可能希望确保永远只有一个 RAII 对象指向一个未加工资源，即使 RAII 对象被复制依然如此。此时资源的拥有权会从被复制物转移到目标物。这是 auto_ptr 奉行的复制的意义。
 
 请记住：
 
-* 复制 RAII 对象必须一并复制它所管理的资源，所以资源的 copying 行为决定 RAII 对象的 copying 行为。
-* 普遍而常见的 RAII class copying 行为是：抑制 copying、施行引用计数法。不过其他行为也可能被实现。
+- 复制 RAII 对象必须一并复制它所管理的资源，所以资源的 copying 行为决定 RAII 对象的 copying 行为。
+- 普遍而常见的 RAII class copying 行为是：抑制 copying、施行引用计数法。不过其他行为也可能被实现。
 
 ### 条款 15：在资源管理类中提供对原始资源的访问
 
@@ -1275,8 +1281,8 @@ int daysHeld(const Investment* p); //返回投资天数
 
 这时候你需要一个函数可以将 RAII class 对象转换为其所内含之原始资源。有两个做法可以达成目标：
 
-* 显式转换
-* 隐式转换
+- 显式转换
+- 隐式转换
 
 std::shared_ptr 和 auto_ptr 都提供一个 get 成员函数，用来执行显示转换，也就是它返回智能指针内部的原始指针：
 
@@ -1374,8 +1380,8 @@ FontHandle f2 = f1; // oops!原意是要拷贝一个 Font 对象
 
 请记住：
 
-* APIs 往往要求访问原始资源，所以每一个 RAII class 应该提供一个 “取得其所管理之资源” 的办法。
-* 对原始资源的访问可能经由显式转换或隐式转换。一般而言显式转换比较安全，但隐式转换对客户比较方便。
+- APIs 往往要求访问原始资源，所以每一个 RAII class 应该提供一个 “取得其所管理之资源” 的办法。
+- 对原始资源的访问可能经由显式转换或隐式转换。一般而言显式转换比较安全，但隐式转换对客户比较方便。
 
 ### 条款 16：成对使用 new 和 delete 时要采取相同形式
 
@@ -1427,7 +1433,7 @@ typedef std::vector<string> AddressLines;
 
 请记住：
 
-* 如果你调用 new 时使用 [],必须在对应调用 delete 时也使用 []。如果你调用 new 时没有使用 [],一定不要在相应的 delete 表达式中使用 []
+- 如果你调用 new 时使用 [],必须在对应调用 delete 时也使用 []。如果你调用 new 时没有使用 [],一定不要在相应的 delete 表达式中使用 []
 
 ### 条款 17：以独立语句将 newed 对象置入智能指针
 
@@ -1452,20 +1458,20 @@ processWidget(std::shared_ptr<Widget>(new Widget),priority());
 
 编译器产出一个 processWidget 调用码之前，必须首先核算即将被传递的各个实参。上述第二个参数只是一个单纯的对 priority 函数的调用，但第一个实参 shared_ptr<Widget>(new Widget) 有两部分组成：
 
-* 执行 "new Widget" 表达式
-* 调用 shared_ptr 构造函数
+- 执行 "new Widget" 表达式
+- 调用 shared_ptr 构造函数
 
 于是在调用 processWidget 之前，编译器必须创建代码，做以下三件事：
 
-* 调用 priority
-* 执行 "new Widget" 表达式
-* 调用 shared_ptr 构造函数
+- 调用 priority
+- 执行 "new Widget" 表达式
+- 调用 shared_ptr 构造函数
 
 c++ 编译器以什么样的次序完成这些事情呢？弹性很大。这和其他语言如 Jave 和 c# 不同，那两种语言总是以特定次序完成函数参数的核算。可以确定的是 “ new Widget” 一定执行于 shared_ptr 构造函数被调用之前，因为这个表达式的结果还要传递作为 shared_ptr 构造函数的一个实参，但对 priority 的调用可以排在第一或第二或第三执行。如果编译器选择以第二顺位执行它（说不定可因此生成更高效的代码，谁知道！），最终获得这样的操作序列：
 
-* 执行 "new Widget" 表达式
-* 调用 priority
-* 调用 shared_ptr 构造函数
+- 执行 "new Widget" 表达式
+- 调用 priority
+- 调用 shared_ptr 构造函数
 
 现在请你想想，万一对 priority 调用导致异常，会发生什么事情？（oops，将会发生内存泄漏）
 
@@ -1483,7 +1489,7 @@ processWidget(pw,priority());
 
 请记住：
 
-* 以独立语句将 newed 对象存储于智能指针内。如果不这样做，一旦异常被抛出，有可能导致难以察觉的资源泄漏。
+- 以独立语句将 newed 对象存储于智能指针内。如果不这样做，一旦异常被抛出，有可能导致难以察觉的资源泄漏。
 
 ## 设计与声明
 
@@ -1621,10 +1627,10 @@ std::shared_ptr<Investment> createInvestment()
 
 请记住：
 
-* 好的接口很容易被正确使用，不容易被误用。你应该在你的所有接口中努力达成这些性质。
-* “促进正确使用” 的办法包括接口的一致性，以及与内置类型的行为兼容。
-* “阻止误用”的办法包括建立新类型、限制类型上的操作，束缚对象值，以及消除客户的资源管理责任。
-* std::shared_ptr 支持自定义删除器。这可防范 DLL 问题，可被用来自动解除互斥锁等等。
+- 好的接口很容易被正确使用，不容易被误用。你应该在你的所有接口中努力达成这些性质。
+- “促进正确使用” 的办法包括接口的一致性，以及与内置类型的行为兼容。
+- “阻止误用”的办法包括建立新类型、限制类型上的操作，束缚对象值，以及消除客户的资源管理责任。
+- std::shared_ptr 支持自定义删除器。这可防范 DLL 问题，可被用来自动解除互斥锁等等。
 
 ### 条款 19：设计 class 犹如设计 type
 
@@ -1634,24 +1640,24 @@ C++ 就像在其他 OOP 语言一样，当你定义了一个新的 class，也�
 
 那么，如何设计高效的 classes 呢？首先必须了解你面对的问题。几乎每一个 classes 都要求你面对以下提问，而你的回答往往导致你的设计规范：
 
-* 新 type 的对象应该如何被创建和被销毁？
-* 对象的初始化和对象的赋值该有什么样的差别？
-* 新 type 的对象如果被 passed by value,意味着什么？
-* 什么是新 type 的 “合法值”？
-* 你的新的 type 需要配合某个继承体系吗？
-* 你的新 type 需要什么样的转换？
-* 什么样的操作符和函数对此新 type 而言是合理的？
-* 什么样的标准函数应该被驳回？
-* 谁该取用新 type 的成员？这个提问可以帮助你决定哪个成员为 public ,哪个为 protected ,哪个为 private。它也帮助你决定哪一个 classes 和/或 functions 应该是 friends,以及将它们嵌套于另外一个之内是否合理。
-* 什么是新 type 的 “未说明接口”（undeclared interface）?它对效率、异常安全性以及资源利用提供何种保证？你在这些方面体提供的保证将为你所实现 classes 实现代码加上相应的约束条件。
-* 你的新 type 有多么一般化？或许你其实并非定义一个新的 type ,而是定义一整个 types 家族。果真如此你就不该定义一个新 class,而是应该定义一个新的 class template.
-* 你真的需要一个新的 type 吗？如果只是定义新的 derived class 以便为即有的 class 添加机能，那么说不定单纯定义一个或多个 non-member 函数或 template ，更能够达到目标。
+- 新 type 的对象应该如何被创建和被销毁？
+- 对象的初始化和对象的赋值该有什么样的差别？
+- 新 type 的对象如果被 passed by value,意味着什么？
+- 什么是新 type 的 “合法值”？
+- 你的新的 type 需要配合某个继承体系吗？
+- 你的新 type 需要什么样的转换？
+- 什么样的操作符和函数对此新 type 而言是合理的？
+- 什么样的标准函数应该被驳回？
+- 谁该取用新 type 的成员？这个提问可以帮助你决定哪个成员为 public ,哪个为 protected ,哪个为 private。它也帮助你决定哪一个 classes 和/或 functions 应该是 friends,以及将它们嵌套于另外一个之内是否合理。
+- 什么是新 type 的 “未说明接口”（undeclared interface）?它对效率、异常安全性以及资源利用提供何种保证？你在这些方面体提供的保证将为你所实现 classes 实现代码加上相应的约束条件。
+- 你的新 type 有多么一般化？或许你其实并非定义一个新的 type ,而是定义一整个 types 家族。果真如此你就不该定义一个新 class,而是应该定义一个新的 class template.
+- 你真的需要一个新的 type 吗？如果只是定义新的 derived class 以便为即有的 class 添加机能，那么说不定单纯定义一个或多个 non-member 函数或 template ，更能够达到目标。
 
 这些问题不容易回答，所以定义出高效的 classes 是一种挑战。然而如果能够设计出至少像 c++ 内置类型一样好的用户自定义(user-defined)classes,一切汗水便都值得。
 
 请记住：
 
-* Class 的设计就是 type 的设计。在定义一个新 type 之前，请确认你已经考虑过本条款覆盖的所有讨论主题。
+- Class 的设计就是 type 的设计。在定义一个新 type 之前，请确认你已经考虑过本条款覆盖的所有讨论主题。
 
 ### 条款 20：宁以 pass-by-reference-to-const 替换 pass-by-value
 
@@ -1759,8 +1765,8 @@ void printNameAndDisplay(const Window& w)
 
 请记住：
 
-* 尽量以 pass-by-reference-to-const 替换 pass-by-value。前者通常比较高效，并可避免切割问题(slicing problem)
-* 以上规则并不适用于内置类型，以及 STL 的迭代器和函数对象。对它们而言，pass-by-value 往往比较适当。
+- 尽量以 pass-by-reference-to-const 替换 pass-by-value。前者通常比较高效，并可避免切割问题(slicing problem)
+- 以上规则并不适用于内置类型，以及 STL 的迭代器和函数对象。对它们而言，pass-by-value 往往比较适当。
 
 ### 条款 21：必须返回对象时，别妄想返回其 reference
 
@@ -1866,7 +1872,7 @@ const Rational operator * (const Rational& lengthIsVaild,const Rational& rhs)
 
 请记住：
 
-* 绝不要返回 pointer 或 reference 指向一个 local stack 对象，或返回 reference 指向一个 heap-allocated 对象，或返回 pointer 或 reference 指向一个 local static 对象而有可能需要多个这样的对象，条款 4 已经为 “在单线程环境中合理返回 reference 指向一个 local static对象”提供了一份设计实例。
+- 绝不要返回 pointer 或 reference 指向一个 local stack 对象，或返回 reference 指向一个 heap-allocated 对象，或返回 pointer 或 reference 指向一个 local static 对象而有可能需要多个这样的对象，条款 4 已经为 “在单线程环境中合理返回 reference 指向一个 local static对象”提供了一份设计实例。
 
 ### 条款 22：将成员变量声明为 private
 
@@ -1924,8 +1930,8 @@ protected 成员变量的论点十分相似。“语法一致性”和“细微�
 
 请记住：
 
-* 切记将成员变量声明为 private。这可赋予客户访问数据的一致性、可细微划分访问控制、允诺约束条件获得保证，并提供 class 作者以充分的实现弹性。
-* protected 并不比 public 更具封装性。
+- 切记将成员变量声明为 private。这可赋予客户访问数据的一致性、可细微划分访问控制、允诺约束条件获得保证，并提供 class 作者以充分的实现弹性。
+- protected 并不比 public 更具封装性。
 
 ### 条款 23：宁以 non-member、non-friend 替换 member 函数
 
@@ -2015,7 +2021,7 @@ namespace WebBrowserStuff{
 
 请记住：
 
-* 宁可拿 non-member、non-friend 函数替换 member 函数。这样做可以增加封装性、包裹弹性（packaging flexibility） 和机能扩充性。
+- 宁可拿 non-member、non-friend 函数替换 member 函数。这样做可以增加封装性、包裹弹性（packaging flexibility） 和机能扩充性。
 
 ### 条款 24：若所有参数皆需类型转换，请为此采用 non-member 函数
 
@@ -2117,7 +2123,7 @@ result = 2 * oneFourth; // ok
 
 请记住：
 
-* 如果你需要为某个函数的所有参数（包括 this 指针所指的那个隐喻参数）进行类型转换，那么这个函数必须是个 non-member 。
+- 如果你需要为某个函数的所有参数（包括 this 指针所指的那个隐喻参数）进行类型转换，那么这个函数必须是个 non-member 。
 
 ### 条款 25：考虑写出一个不抛出异常的 swap 函数
 
@@ -2293,21 +2299,21 @@ void doSomething(T& obj1,T& obj2)
 
 请记住：
 
-* 当 std::swap 对你的类型效率不高时，提供一个 swap 成员函数，并确定这个函数不抛出异常。
-* 如果你提供一个 member swap ，也该提供一个 non-member swap 来调用前者。对于 classes (而非 templates) ,也请特化 std::swap 。
-* 调用 swap 时应针对 std::swap 使用 using 声明式，然后调用 swap 并且不带任何 “命名空间资格修饰符”。
-* 为 “用户定义类型”进行 std templates 全特化是好的，但千万不要尝试在 std 内加入某些对 std 而言全新的东西。
+- 当 std::swap 对你的类型效率不高时，提供一个 swap 成员函数，并确定这个函数不抛出异常。
+- 如果你提供一个 member swap ，也该提供一个 non-member swap 来调用前者。对于 classes (而非 templates) ,也请特化 std::swap 。
+- 调用 swap 时应针对 std::swap 使用 using 声明式，然后调用 swap 并且不带任何 “命名空间资格修饰符”。
+- 为 “用户定义类型”进行 std templates 全特化是好的，但千万不要尝试在 std 内加入某些对 std 而言全新的东西。
 
 ## 实现
 
 大多数情况下，适当提出你的 classes（和 class templates） 定义以及 functions(和 function templates) 声明，是花费最多心力的两件事。一旦正确完成它们，相应的实现大多直截了当。尽管如此，还是有些东西需要小心。
 
-* 太快定义变量可能造成效率上的拖延；
-* 过度使用转型(casts)可能导致代码变满又难以维护，又招来微妙难解的错误；
-* 返回对象“内部数据之号码牌（handles）” 可能会破坏封装并留给客户虚吊号码牌(dangling handles);
-* 未考虑异常带来的冲击则可能导致资源泄漏和数据败坏；
-* 过度热心地 inlining 可能引起代码膨胀；
-* 过度耦合(couping) 则可能导致让人不满意的冗长建置时间(build times)。
+- 太快定义变量可能造成效率上的拖延；
+- 过度使用转型(casts)可能导致代码变满又难以维护，又招来微妙难解的错误；
+- 返回对象“内部数据之号码牌（handles）” 可能会破坏封装并留给客户虚吊号码牌(dangling handles);
+- 未考虑异常带来的冲击则可能导致资源泄漏和数据败坏；
+- 过度热心地 inlining 可能引起代码膨胀；
+- 过度耦合(couping) 则可能导致让人不满意的冗长建置时间(build times)。
 
 ### 条款 26： 尽可能延后变量定义式的出现时间
 
@@ -2394,14 +2400,14 @@ for(int i=0;i<n;++i){
 
 在 Widget 函数内部，以上两种写法的成本如下:
 
-* 做法A：一个构造函数 + 1个析构函数 + n个赋值操作
-* 做法B：n个构造函数 + n个析构函数
+- 做法A：一个构造函数 + 1个析构函数 + n个赋值操作
+- 做法B：n个构造函数 + n个析构函数
 
 如果 classes 的一个赋值成本低于一组构造+析构成本，做法 A 大体而言比较高效。尤其当 n 值很大的时候。否则做法 B 或许较好。此外做法 A 造成名称 w 的作用域（覆盖整个循环）比做法 B 更大，有时那对程序的可理解性和易维护性造成冲突。因此除非（1） 你知道赋值成本比“构造+析构”成本底，（2）你正在处理代码中效率高度敏感(performance-sensitive) 的部分，否则你应该使用做法 B。
 
 请记住：
 
-* 尽可能延后变量定义式的出现时间。这样做可以增加程序的清晰度并改善程序效率。
+- 尽可能延后变量定义式的出现时间。这样做可以增加程序的清晰度并改善程序效率。
 
 ### 条款 27：尽量少做转型动作
 
@@ -2420,10 +2426,10 @@ T(expression)
 
 C++ 提供了四种新式转型：
 
-* [const_cast](https://en.cppreference.com/w/cpp/language/const_cast) 通常被用来将对象的常量性移除（const away the constness）。它也是唯一有此能力的 C++ style 转型操作符。
-* [dynamic_cast](https://en.cppreference.com/w/cpp/language/dynamic_cast)  主要用来执行“安全向下转型”。它是唯一无法由旧式语法执行的动作，也是唯一可能耗费重大运行成本的转型动作（稍后细谈）
-* [reinterpret_cast](https://en.cppreference.com/w/cpp/language/reinterpret_cast) 意图执行底级转型，实际动作（及结果）可能取决于编译器，这也就表示它不可移植。
-* [static_cast](https://en.cppreference.com/w/cpp/language/static_cast) 用来强迫隐式转换。例如将 pointer-to-base 转为 pointer-to-derived 。
+- [const_cast](https://en.cppreference.com/w/cpp/language/const_cast) 通常被用来将对象的常量性移除（const away the constness）。它也是唯一有此能力的 C++ style 转型操作符。
+- [dynamic_cast](https://en.cppreference.com/w/cpp/language/dynamic_cast)  主要用来执行“安全向下转型”。它是唯一无法由旧式语法执行的动作，也是唯一可能耗费重大运行成本的转型动作（稍后细谈）
+- [reinterpret_cast](https://en.cppreference.com/w/cpp/language/reinterpret_cast) 意图执行底级转型，实际动作（及结果）可能取决于编译器，这也就表示它不可移植。
+- [static_cast](https://en.cppreference.com/w/cpp/language/static_cast) 用来强迫隐式转换。例如将 pointer-to-base 转为 pointer-to-derived 。
 
 注意:[Regular cast vs. static_cast vs. dynamic_cast](https://stackoverflow.com/questions/28002/regular-cast-vs-static-cast-vs-dynamic-cast)
 
@@ -2576,9 +2582,9 @@ for(auto p:winPtrs){
 
 请记住：
 
-* 如果可以，尽量避免转型，特别是在注重效率的代码中避免 dynamic_cast 。如果有个设计需要转型动作，试着发展无需转型的替代设计。
-* 如果转型是必要的，试着将他隐藏于某个函数背后。客户随后可以调用该函数，而不需要将转型放进他们自己的代码内。
-* 宁可使用 c++-style(新式)转型，不要使用旧式转型。前者很容易辨识出来，而且也比较有着分门别类的职掌。
+- 如果可以，尽量避免转型，特别是在注重效率的代码中避免 dynamic_cast 。如果有个设计需要转型动作，试着发展无需转型的替代设计。
+- 如果转型是必要的，试着将他隐藏于某个函数背后。客户随后可以调用该函数，而不需要将转型放进他们自己的代码内。
+- 宁可使用 c++-style(新式)转型，不要使用旧式转型。前者很容易辨识出来，而且也比较有着分门别类的职掌。
 
 ### 条款 28：避免返回 handles 指向对象内部成分
 
@@ -2685,7 +2691,7 @@ const Point * pUpperLeft = &(boundingBox(*pgo).upperLeft());
 
 请记住：
 
-* 避免返回 handles (包括 references、指针、迭代器)指向对象内部。遵守这个条款可增加封装性，帮助 const 成员函数的行为像个 const ，并将发生 “虚吊号码牌”(dangling handles) 的可能性降至最低。
+- 避免返回 handles (包括 references、指针、迭代器)指向对象内部。遵守这个条款可增加封装性，帮助 const 成员函数的行为像个 const ，并将发生 “虚吊号码牌”(dangling handles) 的可能性降至最低。
 
 ### 条款 29：为 “异常安全”而努力是值得的
 
@@ -2719,9 +2725,9 @@ void PrettyMenu::changeBackground(std::istream& imgSrc){
 从“异常安全性”的观点来看，这个函数很糟。“异常安全”有两个条件，而这个函数都没有满足：
 当异常被抛出时，带有异常安全性的函数会：
 
-* 不泄露任何资源。上述代码没有做到这一点，因为一旦 “new Image(imgSrc)” 导致异常，对 unlock 的调用就绝不会执行，于是互斥器就永远被把持住了。
+- 不泄露任何资源。上述代码没有做到这一点，因为一旦 “new Image(imgSrc)” 导致异常，对 unlock 的调用就绝不会执行，于是互斥器就永远被把持住了。
 
-* 不允许数据败坏。如果 “new Image(imgSrc)” 抛出异常，bgImage 就是执行一个已被删除的对象，imageChanges 也已被累加，而其实并没有新的图像被成功安装起来。
+- 不允许数据败坏。如果 “new Image(imgSrc)” 抛出异常，bgImage 就是执行一个已被删除的对象，imageChanges 也已被累加，而其实并没有新的图像被成功安装起来。
 
 解决资源泄漏的问题很容易：
 
@@ -2736,9 +2742,9 @@ void PrettyMenu::changeBackground(std::istream& imgSrc){
 
 异常安全函数(Exception-safe functions) 提供以下三个保证之一：
 
-* 基本承诺：如果异常被抛出，程序中的任何事物仍然保持在有效状态下。没有任何对象或数据结构会因此而败坏，所有对象都处于一种内部前后一致的状态。
-* 强烈保证：如果异常被抛出，程序状态不变。调用这样的函数需有这样的认知：如果函数成功，就是完全成功，如果函数失败，程序会回复到“调用函数之前”的状态。
-* 不抛掷(nothrow) 保证，承诺绝不抛出异常，因为它们总是能够完成它们原先承诺的功能。作用于内置类型(例如 ints,指针等等)身上的所有操作都是提供 nothrow 保证。
+- 基本承诺：如果异常被抛出，程序中的任何事物仍然保持在有效状态下。没有任何对象或数据结构会因此而败坏，所有对象都处于一种内部前后一致的状态。
+- 强烈保证：如果异常被抛出，程序状态不变。调用这样的函数需有这样的认知：如果函数成功，就是完全成功，如果函数失败，程序会回复到“调用函数之前”的状态。
+- 不抛掷(nothrow) 保证，承诺绝不抛出异常，因为它们总是能够完成它们原先承诺的功能。作用于内置类型(例如 ints,指针等等)身上的所有操作都是提供 nothrow 保证。
 
 ```c++
 int doSomething() throw(); // 注意：“空白的异常明细”
@@ -2817,9 +2823,9 @@ void someFunc(){
 
 请记住：
 
-* 异常安全函数 (exception-safe functions) 即使发生异常也不会泄漏资源或允许任何数据结构败坏。这样的函数分为三种可能的保证：基本型、强烈型、不抛异常型。
-* “强烈保证”往往能够以 copy-and-swap 实现出来，但“强烈保证”并非对所有函数都可实现或具备现实意义。
-* 函数提供“异常安全保证”通常最高只等于其所调用之各个函数的“异常安全保证”中的最弱者。
+- 异常安全函数 (exception-safe functions) 即使发生异常也不会泄漏资源或允许任何数据结构败坏。这样的函数分为三种可能的保证：基本型、强烈型、不抛异常型。
+- “强烈保证”往往能够以 copy-and-swap 实现出来，但“强烈保证”并非对所有函数都可实现或具备现实意义。
+- 函数提供“异常安全保证”通常最高只等于其所调用之各个函数的“异常安全保证”中的最弱者。
 
 ### 条款 30：透彻了解 inlining 的里里外外
 
@@ -2930,8 +2936,8 @@ Derived::Derived()
 
 请记住：
 
-* 大多数 inlining 限制在 小型、被频繁调用的函数身上。这可使日后的调试过程和二进制升级更容易，也可使潜在的代码膨胀问题最小化，使程序的速度提升机会最大化。
-* 不要只因为 function templates 出现在头文件，就将它们声明为 inline。
+- 大多数 inlining 限制在 小型、被频繁调用的函数身上。这可使日后的调试过程和二进制升级更容易，也可使潜在的代码膨胀问题最小化，使程序的速度提升机会最大化。
+- 不要只因为 function templates 出现在头文件，就将它们声明为 inline。
 
 ### 条款 31：将文件的编译依存关系将至最低
 
@@ -3037,8 +3043,8 @@ private:
 
 这个分离的关键在与 “声明的依存性”替换“定义的依存性”，那正是编译依存性最小化的本质：现实中让头文件自我满足，万一做不到，则让它与其他文件内的声明式相依。其他每一件事都源自于这个简单的设计策略：
 
-* 如果使用 object references 或 object pointers 可以完成任务，就不要使用 objects。
-* 如果能够，尽量以 class 声明式替换 class 定义式。eg:
+- 如果使用 object references 或 object pointers 可以完成任务，就不要使用 objects。
+- 如果能够，尽量以 class 声明式替换 class 定义式。eg:
 
 ```c++
 class Date; // 声明式
@@ -3046,7 +3052,7 @@ Date today();
 void clearAppointments(Date d); 
 ```
 
-* 为声明式和定义式提供不同的头文件。eg:
+- 为声明式和定义式提供不同的头文件。eg:
 
 ```c++
 #include "datefwd.h" // 这个头文件声明（但未定义） class Date。
@@ -3156,8 +3162,10 @@ Handle classes 和 interfaces classes 解除了接口和实现之间的耦合关
 
 请记住：
 
-* 支持“编译依存性最小化”的一般构思是：相依于声明式，不要依于定义式。基于此构思的两个手段是 Handle classes 和 interface classes。
-* 程序库头文件应该以“完全且仅有声明式”(full and declaration-only forms) 的形式存在。这种做法不论是否涉及 templates 都适用。
+- 支持“编译依存性最小化”的一般构思是：相依于声明式，不要依于定义式。基于此构思的两个手段是 Handle classes 和 interface classes。
+- 程序库头文件应该以“完全且仅有声明式”(full and declaration-only forms) 的形式存在。这种做法不论是否涉及 templates 都适用。
+
+## 继承与面向对象设计
 
 ### 条款 32：确定你的 public 继承塑模出 is-a 关系
 
@@ -3289,7 +3297,7 @@ assert(s.width() == s.height()); // 对所有正方形应该仍然为真。oops!
 
 请记住：
 
-* public继承 意味着 is-a。适用于 base classes 身上的每一件事情也适用于 derived classes 身上，因为每一个 derived class 对象也都是一个 base class 对象。
+- public继承 意味着 is-a。适用于 base classes 身上的每一件事情也适用于 derived classes 身上，因为每一个 derived class 对象也都是一个 base class 对象。
 
 ### 条款 33：避免遮掩继承而来的名称
 
@@ -3456,21 +3464,21 @@ inline 转交函数的另一用途是为那些不支持 using 声明式的老旧
 
 请记住：
 
-* derived classes 内的名称会遮掩 base classes 内的名称。在 public 继承下从来没有人希望如此。
-* 为了让被遮掩的名称重见天日，可使用 using 声明式或转交函数(forwarding functions)。
+- derived classes 内的名称会遮掩 base classes 内的名称。在 public 继承下从来没有人希望如此。
+- 为了让被遮掩的名称重见天日，可使用 using 声明式或转交函数(forwarding functions)。
 
 ### 条款 34：区分接口继承和实现继承
 
 表面上直接了当的 public 继承概念，经过更严密的检查之后，发现它由两部分组成：
 
-* 函数接口(function interfaces)继承
-* 函数实现(function implementations)继承
+- 函数接口(function interfaces)继承
+- 函数实现(function implementations)继承
 
 身为 class 设计者：
 
-* 有时候你会希望 derived classes 只继承成员函数的接口（也就是声明）；
-* 有时候你又会希望 derived classes 同时继承函数和接口和实现，但又希望能够覆写(override) 它们所继承的实现；
-* 又有时候你希望 derived classes 同时继承函数的接口和实现，并且不允许覆写任何东西。
+- 有时候你会希望 derived classes 只继承成员函数的接口（也就是声明）；
+- 有时候你又会希望 derived classes 同时继承函数和接口和实现，但又希望能够覆写(override) 它们所继承的实现；
+- 又有时候你希望 derived classes 同时继承函数的接口和实现，并且不允许覆写任何东西。
 
 eg：
 
@@ -3489,7 +3497,7 @@ class Ellipse:public Shape{...};
 
 Shape 强烈影响了所有以 public 继承它的 derived clasess,因为：
 
-* 成员函数的接口总是会被继承。
+- 成员函数的接口总是会被继承。
 
 Shape class 声明了三个函数，每个函数的声明方式都不相同：draw是个 pure virtual 函数；error 是个简朴的（非纯） impure virtual 函数；objectID 是个 non-virtual 函数。这些不同的声明带来什么样的暗示呢？
 首先考虑 pure virtual 函数 draw：
@@ -3504,7 +3512,7 @@ public:
 
 pure virtual 函数有两个最突出的特性：它们必须被任何“继承了它们”的具象 class 重新声明，而且通常它们在抽象 class 中通常没有定义。把这两个性质摆在一起，你就会明白：
 
-* 声明一个 pure virtual 函数的目的是为了 derived classes 只继承接口。
+- 声明一个 pure virtual 函数的目的是为了 derived classes 只继承接口。
 令人意外的是，我们竟然可以为 pure virtual 函数提供定义。也就是说你可以为 Shape::draw 供应一份实现代码，c++ 并不会发出怨言，但调用它的唯一途径是“调用时明确指出其 class 名称”:
 
 ```c++
@@ -3519,7 +3527,7 @@ ps2->Shape::draw(); // 调用 Shape::draw
 
 一般而言这项性质用途有限。但是一如稍后你将看到，它可以实现一种机制，为简朴的（非纯） impure virtual 函数提供更平常更安全的缺省实现。
 
-* 声明简朴的(飞纯)的 impure virtual 函数的目的，是让 derived classes 继承该函数的接口和缺省实现。
+- 声明简朴的(飞纯)的 impure virtual 函数的目的，是让 derived classes 继承该函数的接口和缺省实现。
 
 ```c++
 class Shape{
@@ -3663,13 +3671,13 @@ public:
 
 如果成员函数是个 non-virtual 函数，意味着它并不打算在 derived classes 中有不同的行为。实际上一个 non-virtual 成员函数所表现的不变性 (invariant) 凌驾于特异性(specialization),因为它表示不论 derived class 变得多么特异化，它的行为都不可以改变。就其自身而言：
 
-* 声明 non-virtual 函数的目的是为了令 derived classes 继承函数的接口以及一份强制性实现。
+- 声明 non-virtual 函数的目的是为了令 derived classes 继承函数的接口以及一份强制性实现。
 
 pure virtual 函数、simple(impure) virtual 函数、non-virtual 函数之间此的差异，使你得以精准你想要 derived classes 继承的东西：
 
-* 只继承接口
-* 继承接口和一份缺省实现
-* 继承接口和一份强制实现
+- 只继承接口
+- 继承接口和一份缺省实现
+- 继承接口和一份强制实现
 
 如果你确定履行上述规则，应该能够能够避免经验不足的 class 设计者最常犯的两个错误：
 
@@ -3678,10 +3686,204 @@ pure virtual 函数、simple(impure) virtual 函数、non-virtual 函数之间�
 
 请记住：
 
-* 接口继承和实现继承不同，在 Public 继承下，derived classes 总是继承 base class 的接口。
-* pure virtual 函数只具体指定接口继承。
-* 简朴的(非纯) impure virtual 函数具体指定接口继承及缺省实现继承。
-* non-virtual 函数具体指定接口继承以及强制性实现继承。
+- 接口继承和实现继承不同，在 Public 继承下，derived classes 总是继承 base class 的接口。
+- pure virtual 函数只具体指定接口继承。
+- 简朴的(非纯) impure virtual 函数具体指定接口继承及缺省实现继承。
+- non-virtual 函数具体指定接口继承以及强制性实现继承。
+
+### 条款 35：考虑 virtual 函数以外的其他选择
+
+考虑如下例子：
+```c++
+class GameCharacter{
+public:
+  virtual int healthValue() const; // 返回人物的健康指数
+  ...
+};
+```
+
+这的确是再明白不过的设计，但是从某个角度来说却反而成了它的弱点。由于这个设计如此明显，你可能因此没有认真考虑其他替代方案。为了帮助你跳脱面向对象设计路上的常轨，让我们考虑其他一些解法。
+
+#### 藉由 Non-Virtual Interface 手法实现 Template Method 模式
+
+我们从一个有趣的思想流派开始，这个流派主张 virtual 函数应该几乎总是 pravate。这个流派的拥护者建议，较好的设计是保留 healthValue 为 Public 成员函数，但让它成为 non-virtual ，并调用一个 private virtual 函数进行实际工作：
+
+```c++
+class GameCharacter{
+public:
+  int healthValue() const // derived classes 不重新定义它。
+  {
+    ... // 做一些事前工作
+    int retVal = doHealthValue(); // 做真正的工作
+    ... // 做一些事后工作
+    return retVal;
+  }
+  ...
+private:
+  virtual int doHealthValue() const // derived classes 可重新定义它。 
+  {
+    ... // 缺省算法，计算健康指数
+  }
+};
+```
+
+这一基本设计，也就是“令客户通过 public non-virtual 成员函数间接调用 private virtual 函数”，称为 non-virtual interface （NVI） 手法。它是所谓 Template Method 设计模式(与 c++ templates 并无关联)的一个独特表现形式。
+
+NVI 手法的一个优点隐身在上述代码注释“做一些事前工作”和“做一些事后工作”之中。
+
+在 NVI 手法下其实没有必要让 virtual 函数一定是 private。某些 class 继承体系要求 derived class 在 virtual 函数的实现内必须调用其 base class 的对应兄弟，而为了这样的调用合法，virtual 函数必须是 protected,不能是 private。
+
+[详见设计模式/模板方法](./design_patterns.md#template-method模板方法-模式)
+
+#### 藉由 Function Pointers 实现 Strategy 模式
+
+NVI 手法对 public virtual 函数而言是一个有趣的替代方案，但从某种设计角度观之，它只比窗饰花样更强一些而已。我们可以这样做：
+
+```c++
+class GameCharacter;
+int defaultHealthCalc(const GameCharacter& gc);
+
+class GameCharacter{
+public:
+  typedef int  (* HealthCalcFunc)(const GameCharacter&);
+  explicit GameCharacter(HealthCalcFunc hcf = defaultHealthCalc):healthFunc(hcf){}
+  int healthValue() const{
+      return healthFunc(*this);
+  }
+  ...
+private:
+  HealthCalcFunc healthFunc;
+};
+```
+
+这个做法是常见的 Strategy 设计模式的简单应用。拿它和“植基于 GameCharacter 继承体系内之 virtual 函数”的做法比较，它提供了某些有趣弹性：
+
+- 同一人物类型之不同实体可以有不同的健康计算函数。
+
+```c++
+class EvilBadGuy:public GameCharacter{
+public:
+    explicit EvilBadGuy(HealthCalcFunc hcf = defaultHealthCalc):GameCharacter(hcf){
+        ...
+    }
+    ...
+};
+
+int loseHealthQuickly(const GameCharacter&);
+int loseHealthSlowly(const GameCharacter&);
+
+EvilBadGuy ebg1(loseHealthQuick ly);
+EvilBadGuy ebg2(loseHealthSlowly);
+```
+
+- 某已知人物之健康指数可在运行期变更。例如 GameCharacter 可提供一个成员函数 setHealthCalculator,用来替换当前的健康指数计算函数。
+
+如果人物的健康可纯粹根据该人物 public 接口得来的信息加以计算，这就没有问题，但如果需要 non-public 信息进行精确计算，那就有问题了。
+
+一般而言，唯一能够解决“需要以 non-member 函数访问 class 的 non-public 成分”的办法就是：弱化 class 的封装。例如 class 可声明那个 non-member 函数为 friends,或是为其实现的某一部分提供 public 访问函数。运用函数指针替换 virtual 函数，其优点是否足以弥补缺点，是你必须根据每个设计情况的不同而抉择的。
+
+#### 藉由 std::function 完成 Strategy 模式
+
+```c++
+class GameCharacter;
+int defaultHealthCalc(const GameCharacter& gc);
+
+class GameCharacter{
+public:
+  typedef std::function<int(const GameCharacter&)> HealthCalcFunc;
+  explicit GameCharacter(HealthCalcFunc hcf = defaultHealthCalc):healthFunc(hcf){}
+  int healthValue() const{
+      return healthFunc(*this);
+  }
+  ...
+private:
+  HealthCalcFunc healthFunc;
+};
+
+ //注意其返回类型为 non-int
+short calcHealth(const GameCharacter&); 
+
+struct HealthCalculator{
+    int operator()(const GameCharacter&)const{
+        ...
+    }
+};
+
+class GameLevel{
+public:
+    //注意其返回类型为 non-int
+    float health(const GameCharacter&) const 
+    {
+        ...
+    }
+};
+class EvilBadGuy:public GameCharacter{
+    ...
+};
+class EyeCandyCharacter:public GameCharacter{
+    ...
+};
+
+EvilBadGuy ebg1(calcHealth);
+EyeCandyCharacter ecc1(HealthCalculator());
+GameLevel currentLevel;
+...
+EvilBadGuy ebg2(std::bind(&GameCharacter::health
+      ,currentLevel,_1));
+```
+
+若以 std::function 替换函数指针，吾人将因此允许客户在计算人物健康指数时使用任何兼容的可调用物(callable entity)。如果这还不酷，什么是酷呢？
+
+#### 古典的 Strategy 模式
+
+UML图如下所示：
+
+![](../images/effectiveCpp55_202102201746_1.png)
+
+代码如下：
+
+```c++
+class GameCharacter;
+class HealthCalcFunc{
+public:
+    ...
+    virtual int calc(const GameCharacter& gc) const{
+        ...
+    }
+    ...
+};
+
+HealthCalcFunc defaultHealthCalc;
+class GameCharacter{
+public:
+    explicit GameCharacter(HealthCalcFunc * phcf = &defaultHealthCalc):pHealthCalc(phcf)
+    {}
+    int healthValue() const{
+        return pHealthCalc->calc(*this);
+    }
+
+private:
+    HealthCalcFunc * pHealthCalc;
+};
+```
+
+这个解法的吸引力在于，熟悉标准 Strategy 模式的人很容易辨认它，而且它还提供“将一个即有的健康算法纳入使用”的可能性-只要为 HealthCalcFunc 继承体系添加一个 derived class 即可。
+
+[详见 设计模式/Strategy(策略) 模式](./design_patterns.md#strategy策略-模式)
+
+摘要
+本条款的根本忠告是，当你为解决问题而寻找某种设计方法时，不妨考虑 virtual 函数的替代方案。
+- 使用 non-virtual interface (NVI) 手法，那是 Template Method 设计模式的一种特殊形式。它以 public non-virtual 成员函数包裹较低访问性(private 或 Protected)的 virtual 函数。
+- 将 virtual 函数替换为 "函数指针成员变量"，这是 Strategy 设计模式的一种分解表现形式。
+- 以 std::function 成员变量替换 virtual 函数，因此允许使用任何可调用物(callable entity) 搭配一个兼容于需求的签名式，这也是 Strategy 设计模式的某种形式。
+- 将继承体系的 virtual 函数替换为另一个继承体系的 virtual 函数。这是 Strategy 设计模式的传统实现手法。
+
+以上并未彻底而详尽地列出 virtual 函数的所用替换方案，但应该足够让你知道的确有不少替换方案。此外，它们各有其相对的优点和缺点，你应该把它们全部列入考虑。
+
+请记住：
+- virtual 函数的替代方案包括 NVI 手法及 Strategy 设计模式的多种形式。NVI 手法自身是一个特殊形式的 Template Method 设计模式。
+- 将机能从成员函数移到 class 外部函数，带来一个缺点是，非成员函数无法访问 class 的 non-public 成员。
+- std::function 对象的行为就像一般函数指针。这样的对象可接纳“与给定之目标签名式(target signature)兼容”的所有可调用物(callable entities)。
 
 [上一级](README.md)
 [上一篇](do_while_false.md)
