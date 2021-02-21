@@ -52,6 +52,7 @@
       - [藉由 Function Pointers 实现 Strategy 模式](#藉由-function-pointers-实现-strategy-模式)
       - [藉由 std::function 完成 Strategy 模式](#藉由-stdfunction-完成-strategy-模式)
       - [古典的 Strategy 模式](#古典的-strategy-模式)
+    - [条款 36：绝不重新定义继承而来的 non-virtual 函数](#条款-36绝不重新定义继承而来的-non-virtual-函数)
 
 <!-- /code_chunk_output -->
 
@@ -3884,6 +3885,49 @@ private:
 - virtual 函数的替代方案包括 NVI 手法及 Strategy 设计模式的多种形式。NVI 手法自身是一个特殊形式的 Template Method 设计模式。
 - 将机能从成员函数移到 class 外部函数，带来一个缺点是，非成员函数无法访问 class 的 non-public 成员。
 - std::function 对象的行为就像一般函数指针。这样的对象可接纳“与给定之目标签名式(target signature)兼容”的所有可调用物(callable entities)。
+  
+### 条款 36：绝不重新定义继承而来的 non-virtual 函数
+
+考虑如下例子：
+
+```c++
+class B{
+public:
+    void mf();
+    ...
+};
+
+class D:public B{
+public:
+    void mf(); // 遮掩(hides)了 B::mf;
+    ...
+};
+
+D x;
+B * pB = &x;
+D * pD = &x;
+// 如下两个调用，行为相异
+pB->mf(); // 调用 B::mf
+pD->mf(); // 调用 D::mf
+```
+
+造成此一两面行为的原因是，non-virtual 函数加 B::mf 和 D::mf 都是静态绑定(staticlly bound，见条款 37)。
+但另一方面，virtual 函数确实动态绑定(dynamically bound,见条款 37)，所以他们不受这个问题之苦。
+
+条款 32 已经说过，所谓 public 继承意味 is-a 的关系。条款 34 则描述为什么在 class 内声明一个 non-virtual 会为该 class 建立起一个不变性(invariant)，凌驾其特异性(specialization)。如果你将这两个观点施行于两个 classes B 和 D 以及 non-virtual 函数成员 B::mf 身上，那么：
+
+- 适用于对象 B 的每一件事，也适用于 D对象，因为每个 D 对象都是一个B对象；
+- B 的dervied classes 一定会继承 mf 的接口和实现，因为 mf 是 B 的一个 non-virtual 函数。
+
+现在，如果D 重新定义 mf ，你的设计便出现矛盾。
+不论哪一个观点，结论都一样：任何情况下都不该重新定义一个继承而来的 non-virtual 函数。
+
+就本质而言，条款7是本条款的一个特殊案例，尽管它也足够重要到单独成为一个条款。
+
+请记住：
+
+- 绝对不要重新定义继承而来的 non-virtual 函数。
+
 
 [上一级](README.md)
 [上一篇 -> do_while_false的功用](do_while_false.md)
