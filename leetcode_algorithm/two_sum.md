@@ -68,4 +68,4 @@ public:
 
 
 [上一级](README.md)
-[上一篇](sqrt.md)
+[上一篇 -> 求平方根](sqrt.md)

@@ -28,5 +28,5 @@
 
 
 [上一级](README.md)
-[上一篇](visualStudioCreateUseDLL.md)
-[下一篇](windows_linux.md)
+[上一篇 -> visual studio 创建和使用 DLL 文件](visualStudioCreateUseDLL.md)
+[下一篇 -> 在windows下开发linux程序需要注意的问题](windows_linux.md)

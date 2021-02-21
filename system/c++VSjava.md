@@ -49,5 +49,5 @@ void tt() { System.out.println("jk"); }
 * [Is there a goto statement in Java?](https://stackoverflow.com/questions/2545103/is-there-a-goto-statement-in-java?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa)
 * [Operator overloading in Java](https://stackoverflow.com/questions/1686699/operator-overloading-in-java/1686714)
 [上一级](README.md)
-[上一篇](Wireshark.md)
-[下一篇](developTest.md)
+[上一篇 -> Wireshark 使用](Wireshark.md)
+[下一篇 -> 开发者测试](developTest.md)

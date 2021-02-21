@@ -11,5 +11,5 @@ if [ $(echo $?) -eq 0 ];then
 fi
 ```
 [上一级](README.md)
-[上一篇](fedoraInstallCinnamonDesktop.md)
-[下一篇](gnomeUSBError.md)
+[上一篇 -> fedora install cinnamon desktop](fedoraInstallCinnamonDesktop.md)
+[下一篇 -> 插入U盘、手机等设备，gnome异常退出到登陆界面](gnomeUSBError.md)

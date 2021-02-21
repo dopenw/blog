@@ -5,5 +5,5 @@
 
 
 [上一级](README.md)
-[上一篇](chroot.md)
-[下一篇](createArmDebugEnv.md)
+[上一篇 -> 理解chroot](chroot.md)
+[下一篇 -> 在 Linux 上搭建ARM应用程序开发环境](createArmDebugEnv.md)

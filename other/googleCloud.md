@@ -20,5 +20,5 @@ COMPUTE-> Compute Engine -> VM instances
 
 
 [上一级](README.md)
-[上一篇](find_a_job.md)
-[下一篇](google_search_tips.md)
+[上一篇 -> c/c++面试](find_a_job.md)
+[下一篇 -> google Tips](google_search_tips.md)

@@ -232,5 +232,5 @@ Operation done successfully
 * [configure: error: SQLite3 library not found](https://dba.stackexchange.com/questions/52336/configure-error-sqlite3-library-not-found)
 
 [上一级](README.md)
-[上一篇](sort.md)
-[下一篇](tree.md)
+[上一篇 -> 排序](sort.md)
+[下一篇 -> 数据结构（树）](tree.md)

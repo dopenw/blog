@@ -80,5 +80,5 @@ B delete
 A delete
 ```
 [上一级](README.md)
-[上一篇](stream_IO.md)
-[下一篇](visualC++.md)
+[上一篇 -> 以stream完成I/O](stream_IO.md)
+[下一篇 -> VC++ 学习](visualC++.md)

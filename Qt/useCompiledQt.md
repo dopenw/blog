@@ -29,5 +29,5 @@ Path 添加 "D:\qt5.3.1\msvc2012_x64"
 
 
 [上一级](README.md)
-[上一篇](qwtPolar.md)
-[下一篇](useMFCMigrationFramework.md)
+[上一篇 -> QwtPolar 简单使用](qwtPolar.md)
+[下一篇 -> 使用 MFCMigrationFramework](useMFCMigrationFramework.md)

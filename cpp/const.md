@@ -137,5 +137,5 @@ cout<<a++<<endl; //wrong
 只能在类的构造函数的初始化列表中进行
 
 [上一级](README.md)
-[上一篇](compareDoubleFloat.md)
-[下一篇](constructorThrowException.md)
+[上一篇 -> 判断浮点数是否相等](compareDoubleFloat.md)
+[下一篇 -> c++ 构造函数抛出异常](constructorThrowException.md)

@@ -25,5 +25,5 @@
 
 
 [上一级](README.md)
-[上一篇](vmvare_windows.md)
-[下一篇](zerobrane_VisualStudio_debug_linux.md)
+[上一篇 -> Vmvare_window使用问题及解决方法](vmvare_windows.md)
+[下一篇 -> 在windows下编译调试c++和lua代码](zerobrane_VisualStudio_debug_linux.md)

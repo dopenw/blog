@@ -8,5 +8,5 @@
 
 
 [上一级](README.md)
-[上一篇](createGitServer.md)
-[下一篇](custom_desktop_env.md)
+[上一篇 -> Create git server](createGitServer.md)
+[下一篇 -> 自定义fedora桌面环境](custom_desktop_env.md)

@@ -146,4 +146,4 @@ CoUninitialize();
 * [C++ (Cpp) CoInitializeEx Examples](https://cpp.hotexamples.com/examples/-/-/CoInitializeEx/cpp-coinitializeex-function-examples.html)
 
 [上一级](README.md)
-[下一篇](DocZhToEn.md)
+[下一篇 -> 将中文docx文档转换为英文文档](DocZhToEn.md)

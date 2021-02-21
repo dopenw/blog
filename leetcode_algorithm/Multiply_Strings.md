@@ -58,5 +58,5 @@ When pos is specified, the search only includes characters at or after position 
 
 
 [上一级](README.md)
-[上一篇](Merge_Intervals.md)
-[下一篇](Permutation_Sequence.md)
+[上一篇 -> 合并间隔](Merge_Intervals.md)
+[下一篇 -> 置换序列](Permutation_Sequence.md)

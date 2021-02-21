@@ -8,7 +8,7 @@
 	- [Visual Assist 概览](#visual-assist-概览)
 	- [crack visual Assist](#crack-visual-assist)
 	- [VisualStudio 2008 install visual assist](#visualstudio-2008-install-visual-assist)
-		- [使用 Trial-Reset40 重置试用期](#使用-trial-reset40-重置试用期)
+	- [使用 Trial-Reset40 重置试用期](#使用-trial-reset40-重置试用期)
 	- [Link](#link)
 
 <!-- /code_chunk_output -->
@@ -70,9 +70,9 @@ WorldSrc.com
 
 点击安装就可以给 VisualStudio 2008 安装 Visual assist。
 
-### 使用 Trial-Reset40 重置试用期
+## 使用 Trial-Reset40 重置试用期
 1. [下载Trial-Reset40 ](https://www.raymond.cc/blog/download/did/278/)
-2. 已管理员权限运行 `Trial-Reset.exe`
+2. 以管理员权限运行 `Trial-Reset.exe`
 3. 点击左侧工具栏的 Armadillo 按钮，等待扫描结束，选中右侧列表所有 key，右键选择 `Deleter key`
 
 注意：若提示 `Component ‘MSCOMCTL.OCX’ or one of its dependencies not correctly registered: a file is missing or invalid`:
@@ -88,5 +88,5 @@ WorldSrc.com
 * [Fix: Component ‘MSCOMCTL.OCX’ or one of its dependencies not correctly registered: a file is missing or invalid](https://appuals.com/fix-component-mscomctl-ocx-one-dependencies-not-correctly-registered-file-missing-invalid/)
 
 [上一级](README.md)
-[上一篇](DocZhToEn.md)
-[下一篇](insertUSBDevicesNotResponse.md)
+[上一篇 -> 将中文docx文档转换为英文文档](DocZhToEn.md)
+[下一篇 -> Win 10 插入U盘后，听见插入提示音，但在我的电脑里没有相应的入口](insertUSBDevicesNotResponse.md)

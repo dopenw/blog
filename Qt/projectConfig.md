@@ -26,5 +26,5 @@ else:win32:CONFIG(debug, debug|release): TARGET = 目标名
 ```
 
 [上一级](README.md)
-[上一篇](deployqt.md)
-[下一篇](qml.md)
+[上一篇 -> 解决 qt 程序的依赖项](deployqt.md)
+[下一篇 -> QML Tutorial](qml.md)

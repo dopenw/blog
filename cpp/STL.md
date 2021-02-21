@@ -103,5 +103,5 @@ coll.erase(remove(coll.begin(),coll.end(),3),coll.end());
 
 注： 参考 《c++ 标准库第二版》 第六章
 [上一级](README.md)
-[上一篇](PutFunctionsIntoVectorAndExecute.md)
-[下一篇](algorithmSortNonStaticMemberFunction.md)
+[上一篇 -> Put functions into vector and execute](PutFunctionsIntoVectorAndExecute.md)
+[下一篇 -> problem sorting using member function as comparator](algorithmSortNonStaticMemberFunction.md)

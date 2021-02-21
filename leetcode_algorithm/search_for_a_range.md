@@ -83,5 +83,5 @@ int lower_bound(vector<int>& nums, int target) {
 
 
 [上一级](README.md)
-[上一篇](same_tree.md)
-[下一篇](sqrt.md)
+[上一篇 -> 判断两个二叉树是不是相同的(same_tree)](same_tree.md)
+[下一篇 -> 求平方根](sqrt.md)

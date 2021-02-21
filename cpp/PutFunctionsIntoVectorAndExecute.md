@@ -39,5 +39,5 @@ Links:
 * [Put functions into vector and execute](https://stackoverflow.com/questions/25628031/put-functions-into-vector-and-execute?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa)
 * [C++11 Callbacks with function and lambda](https://gist.github.com/4poc/3155832)
 [上一级](README.md)
-[上一篇](Preprocessor.md)
-[下一篇](STL.md)
+[上一篇 -> C++ Preprocessor](Preprocessor.md)
+[下一篇 -> STL](STL.md)

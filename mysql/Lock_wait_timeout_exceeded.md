@@ -56,4 +56,4 @@ SET GLOBAL innodb_lock_wait_timeout = 120;
 
 
 [上一级](README.md)
-[下一篇](delete_data.md)
+[下一篇 -> 删除数据量较大的表的部分数据](delete_data.md)

@@ -22,5 +22,5 @@ rpm -ivh --nodeps --force netease-cloud-music.rpm
 
 
 [上一级](README.md)
-[上一篇](hpOmenInstallFedora.md)
-[下一篇](linux.md)
+[上一篇 -> 惠普暗影精灵4安装fedora 28](hpOmenInstallFedora.md)
+[下一篇 -> linux 下遇到的一些问题、](linux.md)

@@ -9380,4 +9380,4 @@ int main(int argc, char const * argv[]) {
 * [Mooophy/Cpp-Primer](https://github.com/Mooophy/Cpp-Primer)
 
 [上一级](README.md)
-[下一篇](MFC_VS_QT.md)
+[下一篇 -> MFC 对比 QT](MFC_VS_QT.md)

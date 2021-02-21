@@ -271,5 +271,5 @@ key: d,huffman: 111
 * 参考 《算法导论 3rd》 第 16 章
 
 [上一级](README.md)
-[上一篇](CAndC++MemoryDistribution.md)
-[下一篇](ThePowerOfVariableName.md)
+[上一篇 -> C 和 C++ 的内存分布](CAndC++MemoryDistribution.md)
+[下一篇 -> 变量名的力量](ThePowerOfVariableName.md)

@@ -77,5 +77,5 @@ dialog->setWhatsThis(tr("<img src=\":/images/icon.png\">"
 
 
 [上一级](README.md)
-[上一篇](16_xml.md)
-[下一篇](18_unicode.md)
+[上一篇 -> 16. XML](16_xml.md)
+[下一篇 -> 18. 国际化](18_unicode.md)

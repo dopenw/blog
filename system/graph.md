@@ -230,5 +230,5 @@ Following is Breadth First Traversal (starting from vertex 2)
 
 
 [上一级](README.md)
-[上一篇](enterpriseArchitectClassView.md)
-[下一篇](learnGit.md)
+[上一篇 -> 利用 enterprise architect 从源代码生成类图](enterpriseArchitectClassView.md)
+[下一篇 -> Git 学习笔记](learnGit.md)

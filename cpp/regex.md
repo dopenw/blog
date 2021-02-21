@@ -20,5 +20,5 @@ Aborted (core dumped)
 
 
 [上一级](README.md)
-[上一篇](myString.md)
-[下一篇](smartPointer.md)
+[上一篇 -> MyString](myString.md)
+[下一篇 -> 智能指针](smartPointer.md)

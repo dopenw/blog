@@ -778,5 +778,5 @@ int main(int argc, char *argv[])
 * [qt5-book-code/chap15/](https://github.com/mutse/qt5-book-code/tree/master/chap15)
 
 [上一级](README.md)
-[上一篇](14_multiThread.md)
-[下一篇](16_xml.md)
+[上一篇 -> 14.多线程](14_multiThread.md)
+[下一篇 -> 16. XML](16_xml.md)

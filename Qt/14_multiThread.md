@@ -1130,5 +1130,5 @@ Qt 的 QtSql 模块也可用于多线程的应用程序，但是它也有其约�
 * [qt5-book-code/chap16/](https://github.com/mutse/qt5-book-code/tree/master/chap16)
 
 [上一级](README.md)
-[上一篇](13_database.md)
-[下一篇](15_network.md)
+[上一篇 -> 13. 数据库](13_database.md)
+[下一篇 -> 15. 网络](15_network.md)

@@ -258,5 +258,5 @@ throw exception from A
 
 
 [上一级](README.md)
-[上一篇](const.md)
-[下一篇](conv_string_to_char_pointer.md)
+[上一篇 -> const限定符](const.md)
+[下一篇 -> 将string转换为char指针](conv_string_to_char_pointer.md)

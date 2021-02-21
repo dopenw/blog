@@ -80,5 +80,5 @@ private:
 
 
 [上一级](README.md)
-[上一篇](Permutation_Sequence.md)
-[下一篇](Permutations_II.md)
+[上一篇 -> 置换序列](Permutation_Sequence.md)
+[下一篇 -> 排列 2](Permutations_II.md)

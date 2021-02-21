@@ -163,5 +163,5 @@ public:
 
 
 [上一级](README.md)
-[上一篇](add_binary.md)
-[下一篇](atoi.md)
+[上一篇 -> 相加2进制字符串](add_binary.md)
+[下一篇 -> atoi](atoi.md)

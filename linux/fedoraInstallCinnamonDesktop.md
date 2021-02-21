@@ -41,5 +41,5 @@ ibus-setup
 
 ![](../images/fedoraInstallCinnamonDesktop_201802042026_2.png)
 [上一级](README.md)
-[上一篇](fedoraCreateCustomDesktopShortcut.md)
-[下一篇](gen_cpp_bin.md)
+[上一篇 -> fedora create custom desktop shortcut](fedoraCreateCustomDesktopShortcut.md)
+[下一篇 -> 自动编译并运行cpp程序shell脚本](gen_cpp_bin.md)

@@ -36,4 +36,4 @@ rpm -ivh boostnote.rpm
 [How to Convert From RPM to DEB and DEB to RPM Package Using Alien](https://www.tecmint.com/convert-from-rpm-to-deb-and-deb-to-rpm-package-using-alien/)
 
 [上一级](README.md)
-[下一篇](buildOpengapps.md)
+[下一篇 -> Build openGapps from github](buildOpengapps.md)

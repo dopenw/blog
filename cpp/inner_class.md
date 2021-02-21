@@ -80,5 +80,5 @@ show
 ~innerA
 ```
 [上一级](README.md)
-[上一篇](initalization_list.md)
-[下一篇](linkList.md)
+[上一篇 -> 当类中含有const，reference成员变量,其构造函数都需要初始化列表](initalization_list.md)
+[下一篇 -> 链表](linkList.md)

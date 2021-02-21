@@ -318,5 +318,5 @@ BUCKET_SORT(A)
 |------------------|----------------------|------------|
 | 是             | O(n) 	|    			 O(k)      |
 [上一级](README.md)
-[上一篇](mulThreadAndMulProcesses.md)
-[下一篇](sqlite.md)
+[上一篇 -> 多线程 VS 多进程](mulThreadAndMulProcesses.md)
+[下一篇 -> sqlite 学习](sqlite.md)

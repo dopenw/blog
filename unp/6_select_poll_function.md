@@ -1074,5 +1074,5 @@ void modify_event(int epollfd, int fd, int state) {
 
 
 [上一级](README.md)
-[上一篇](5_tcp_cli_srv_example.md)
-[下一篇](7_socket_opt.md)
+[上一篇 -> 5.TCP客户/服务器程序示例](5_tcp_cli_srv_example.md)
+[下一篇 -> 7.套接字选项](7_socket_opt.md)

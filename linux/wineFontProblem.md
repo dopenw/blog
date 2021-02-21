@@ -18,4 +18,4 @@ Link:
 * [解决linux下flash,qq各种乱码 字体模糊 的不太合法的方案](https://blog.csdn.net/xcwenn/article/details/20701411)
 
 [上一级](README.md)
-[上一篇](su_diff_su-.md)
+[上一篇 -> su 和 su - 的区别](su_diff_su-.md)

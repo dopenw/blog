@@ -1373,5 +1373,5 @@ int main(int argc, char const *argv[]) {
 
 
 [上一级](README.md)
-[上一篇](log4cplus.md)
-[下一篇](mutable.md)
+[上一篇 -> log4cplus 学习笔记](log4cplus.md)
+[下一篇 -> mutable的使用](mutable.md)

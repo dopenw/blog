@@ -36,5 +36,5 @@ vector<Interval> merge(vector<Interval>& ins) {
 
 [source link](https://leetcode.com/problems/merge-intervals/discuss/)
 [上一级](README.md)
-[上一篇](Jump_Game.md)
-[下一篇](Multiply_Strings.md)
+[上一篇 -> 跳 游戏](Jump_Game.md)
+[下一篇 -> 字符串乘字符串](Multiply_Strings.md)

@@ -189,5 +189,5 @@ int main(int argc, char const *argv[]) {
 [mysql/procedureVSFunction](../mysql/procedureVSFunction.md)
 
 [上一级](README.md)
-[上一篇](fedoraInstallSS.md)
-[下一篇](googleCloud.md)
+[上一篇 -> fedora install SS libev](fedoraInstallSS.md)
+[下一篇 -> google cloud 使用](googleCloud.md)

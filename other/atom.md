@@ -198,5 +198,5 @@ $ rpm -ivh 'atom.x86_64.rpm'
 
 
 [上一级](README.md)
-[上一篇](UseFusionAppCreateBlogApp.md)
-[下一篇](config_hadoop_httpfs.md)
+[上一篇 -> 利用 Fusion App 创建个人blog安卓客户端](UseFusionAppCreateBlogApp.md)
+[下一篇 -> 安装配置hadoop httpfs](config_hadoop_httpfs.md)

@@ -67,5 +67,5 @@ pyperclip.paste()
 'Hello world'
 ```
 [上一级](README.md)
-[上一篇](noRootUserInstallPackage.md)
-[下一篇](translateTool.md)
+[上一篇 -> 普通用户安装 python package](noRootUserInstallPackage.md)
+[下一篇 -> 翻译小工具](translateTool.md)

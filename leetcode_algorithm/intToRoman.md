@@ -24,5 +24,5 @@ public:
 
 
 [上一级](README.md)
-[上一篇](generate_parentheses.md)
-[下一篇](maximum_subarray.md)
+[上一篇 -> 生成括号](generate_parentheses.md)
+[下一篇 -> Maximum Subarray(最大子串和)](maximum_subarray.md)

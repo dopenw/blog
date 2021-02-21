@@ -68,5 +68,5 @@ public:
 
 
 [上一级](README.md)
-[上一篇](pow(x,n).md)
-[下一篇](romanToInt.md)
+[上一篇 -> 求x的n次方](pow(x,n).md)
+[下一篇 -> 罗马数字转换为int](romanToInt.md)

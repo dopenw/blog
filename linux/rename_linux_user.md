@@ -64,5 +64,5 @@ userdel $old_user
 
 
 [上一级](README.md)
-[上一篇](process.md)
-[下一篇](restoreGRUB2.md)
+[上一篇 -> 进程相关](process.md)
+[下一篇 -> linux 恢复 GRUB2](restoreGRUB2.md)

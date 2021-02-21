@@ -816,4 +816,4 @@ int main(int argc, char const *argv[]) {
 
 
 [上一级](README.md)
-[上一篇](pthread.md)
+[上一篇 -> 线程](pthread.md)

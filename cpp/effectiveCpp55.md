@@ -3886,5 +3886,5 @@ private:
 - std::function 对象的行为就像一般函数指针。这样的对象可接纳“与给定之目标签名式(target signature)兼容”的所有可调用物(callable entities)。
 
 [上一级](README.md)
-[上一篇](do_while_false.md)
-[下一篇](function_arg_stack.md)
+[上一篇 -> do_while_false的功用](do_while_false.md)
+[下一篇 -> 函数参数入栈的顺序](function_arg_stack.md)

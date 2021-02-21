@@ -34,5 +34,5 @@ export no_proxy=localhost
 6. proxy 支持过滤规则
 
 [上一级](README.md)
-[上一篇](skip_opengapps_init.md)
-[下一篇](ubuntuInstallSSAndV2rayPlugin.md)
+[上一篇 -> 跳过 openGapps 设置向导](skip_opengapps_init.md)
+[下一篇 -> Install ss-libev and config v2ray-plugin on ubuntu](ubuntuInstallSSAndV2rayPlugin.md)

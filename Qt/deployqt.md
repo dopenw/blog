@@ -41,5 +41,5 @@ qApp->addLibraryPath("C:/customPath/plugins");
 * [设置qt插件路径](https://www.cnblogs.com/findumars/p/6353066.html)
 
 [上一级](README.md)
-[上一篇](QtCreatorTips.md)
-[下一篇](projectConfig.md)
+[上一篇 -> Qt Creator 使用](QtCreatorTips.md)
+[下一篇 -> Qt Creator 的一些配置](projectConfig.md)

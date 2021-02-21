@@ -310,5 +310,5 @@ C++ 和 Java 的命名规则示例
 * 《代码大全 2rd》 第 11 章
 
 [上一级](README.md)
-[上一篇](GreedyAlgorithms.md)
-[下一篇](UML.md)
+[上一篇 -> 贪心算法](GreedyAlgorithms.md)
+[下一篇 -> UML 统一建模语言](UML.md)

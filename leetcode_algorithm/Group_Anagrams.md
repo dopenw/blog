@@ -89,5 +89,5 @@ class Solution {
 
 
 [上一级](README.md)
-[上一篇](Combination_Sum_II.md)
-[下一篇](Jump_Game.md)
+[上一篇 -> 组合和 2](Combination_Sum_II.md)
+[下一篇 -> 跳 游戏](Jump_Game.md)

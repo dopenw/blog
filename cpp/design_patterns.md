@@ -3301,5 +3301,5 @@ do Down on TheOther
 * 另一方面，Mediator 可以利用 Observer 动态注册方法并与其它对象进行通信。
 
 [上一级](README.md)
-[上一篇](createOwnIterator.md)
-[下一篇](develop_care_detail.md)
+[上一篇 -> 用户自定义迭代器](createOwnIterator.md)
+[下一篇 -> 开发注意事项](develop_care_detail.md)

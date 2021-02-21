@@ -162,21 +162,26 @@ def blog_add_pre_next_links(blog_file,blog_map):
             logging.error('not found blog_file{}'.format(blog_file))
             return False
         
+        file_name = ''
         if 0 == pos :
             tmp = pos
             tmp += 1
             if (tmp != endPos):
-                out_file.write('[下一篇]({}){}'.format(blog_key_list[tmp]
+                file_name = blog_key_list[tmp];
+                out_file.write('[下一篇 -> {}]({}){}'.format(blog_map[file_name],file_name
                 ,config_item['end_of_line_seq']))
         else :
             tmp = pos 
             if tmp+1 == endPos:
-                out_file.write('[上一篇]({}){}'.format(blog_key_list[tmp-1]
+                file_name = blog_key_list[tmp-1]
+                out_file.write('[上一篇 -> {}]({}){}'.format(blog_map[file_name],file_name
                 ,config_item['end_of_line_seq']))
             else:
-                out_file.write('[上一篇]({}){}'.format(blog_key_list[tmp-1]
+                file_name = blog_key_list[tmp-1]
+                out_file.write('[上一篇 -> {}]({}){}'.format(blog_map[file_name],file_name
                 ,config_item['end_of_line_seq']))
-                out_file.write('[下一篇]({}){}'.format(blog_key_list[tmp+1]
+                file_name = blog_key_list[tmp+1]
+                out_file.write('[下一篇 -> {}]({}){}'.format(blog_map[file_name],file_name
                 ,config_item['end_of_line_seq']))
     return True 
 

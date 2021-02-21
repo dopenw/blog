@@ -272,5 +272,5 @@ Run it:
 
 
 [上一级](README.md)
-[上一篇](sqlite.md)
-[下一篇](userModeAndKernelMode.md)
+[上一篇 -> sqlite 学习](sqlite.md)
+[下一篇 -> 用户模式和内核模式](userModeAndKernelMode.md)

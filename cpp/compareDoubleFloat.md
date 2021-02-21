@@ -48,5 +48,5 @@ float:1.19209e-07
 
 [geeksforgeeks.org/cpp-program-to-find-machine-epsilon](https://www.geeksforgeeks.org/cpp-program-to-find-machine-epsilon/)
 [上一级](README.md)
-[上一篇](chrono.md)
-[下一篇](const.md)
+[上一篇 -> Clock 和 Timer](chrono.md)
+[下一篇 -> const限定符](const.md)

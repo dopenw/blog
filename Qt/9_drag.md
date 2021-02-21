@@ -451,5 +451,5 @@ void MyTextEditor::mouseReleaseEvent(QMouseEvent *event)
 
 
 [上一级](README.md)
-[上一篇](8_painter.md)
-[下一篇](10_itemViewClass.md)
+[上一篇 -> 8. 二维图形](8_painter.md)
+[下一篇 -> 10. 项视图类](10_itemViewClass.md)

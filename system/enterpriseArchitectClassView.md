@@ -38,5 +38,5 @@ Link :
 * （oops，猜想是由于我的电脑上 visual studio 版本过多，或者是由于我现在的电脑上还安装了 office 2016(除 visio)）
 
 [上一级](README.md)
-[上一篇](eclipse.md)
-[下一篇](graph.md)
+[上一篇 -> Eclipse IDE](eclipse.md)
+[下一篇 -> 数据结构-图](graph.md)

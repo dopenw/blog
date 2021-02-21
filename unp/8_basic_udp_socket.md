@@ -472,5 +472,5 @@ int main(int argc, char const *argv[]) {
 
 
 [上一级](README.md)
-[上一篇](7_socket_opt.md)
-[下一篇](11_name_addr.md)
+[上一篇 -> 7.套接字选项](7_socket_opt.md)
+[下一篇 -> 11.名字与地址转换](11_name_addr.md)

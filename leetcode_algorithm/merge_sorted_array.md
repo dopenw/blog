@@ -51,5 +51,5 @@ public:
 
 
 [上一级](README.md)
-[上一篇](maximum_subarray.md)
-[下一篇](next_permutation.md)
+[上一篇 -> Maximum Subarray(最大子串和)](maximum_subarray.md)
+[下一篇 -> 下一个排列](next_permutation.md)

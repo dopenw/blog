@@ -185,5 +185,5 @@ forward-socks5 / 127.0.0.1:1080
 * [Linux下部署代理服务器](https://blog.csdn.net/m0_38110132/article/details/79796171)
 
 [上一级](README.md)
-[上一篇](docker.md)
-[下一篇](find_a_job.md)
+[上一篇 -> docker 使用记录（读docker实践记）](docker.md)
+[下一篇 -> c/c++面试](find_a_job.md)

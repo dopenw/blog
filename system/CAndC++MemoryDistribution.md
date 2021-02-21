@@ -37,4 +37,4 @@
 
 
 [上一级](README.md)
-[下一篇](GreedyAlgorithms.md)
+[下一篇 -> 贪心算法](GreedyAlgorithms.md)

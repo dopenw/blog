@@ -1182,5 +1182,5 @@ insertOtherColumns();
 
 
 [上一级](README.md)
-[上一篇](12_inOut.md)
-[下一篇](14_multiThread.md)
+[上一篇 -> 12. 输入与输出](12_inOut.md)
+[下一篇 -> 14.多线程](14_multiThread.md)

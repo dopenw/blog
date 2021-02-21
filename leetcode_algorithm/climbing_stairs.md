@@ -38,5 +38,5 @@ public:
 
 
 [上一级](README.md)
-[上一篇](atoi.md)
-[下一篇](count_and_say.md)
+[上一篇 -> atoi](atoi.md)
+[下一篇 -> 统计字符串的相同字符个数，并输出（count-char）](count_and_say.md)

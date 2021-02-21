@@ -238,5 +238,5 @@ void test()
 }
 ```
 [上一级](README.md)
-[上一篇](MFC_VS_QT.md)
-[下一篇](PutFunctionsIntoVectorAndExecute.md)
+[上一篇 -> MFC 对比 QT](MFC_VS_QT.md)
+[下一篇 -> Put functions into vector and execute](PutFunctionsIntoVectorAndExecute.md)

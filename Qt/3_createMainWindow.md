@@ -779,5 +779,5 @@ qApp->processEvents();
 
 
 [上一级](README.md)
-[上一篇](2_creat_dialog.md)
-[下一篇](4_SpreadSheet.md)
+[上一篇 -> 2.创建对话框](2_creat_dialog.md)
+[下一篇 -> 4. 实现应用程序的功能](4_SpreadSheet.md)

@@ -77,5 +77,5 @@ else
 
 
 [上一级](README.md)
-[上一篇](develop_care_detail.md)
-[下一篇](effectiveCpp55.md)
+[上一篇 -> 开发注意事项](develop_care_detail.md)
+[下一篇 -> Effective c++ 改善程序与设计的55个具体做法](effectiveCpp55.md)

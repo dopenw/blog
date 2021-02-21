@@ -110,5 +110,5 @@ Process Monitor 是windows下高级实时监听工具，用于监视文件系统
 * [从vb6加载DLL时找不到文件](https://codeday.me/bug/20181004/278067.html)
 
 [上一级](README.md)
-[上一篇](useVisualStudio.md)
-[下一篇](vmvare_windows.md)
+[上一篇 -> 使用 visual studio 遇到的一些问题](useVisualStudio.md)
+[下一篇 -> Vmvare_window使用问题及解决方法](vmvare_windows.md)

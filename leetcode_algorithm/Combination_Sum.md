@@ -89,5 +89,5 @@ public:
 
 
 [上一级](README.md)
-[上一篇](4sum.md)
-[下一篇](Combination_Sum_II.md)
+[上一篇 -> 4 sum](4sum.md)
+[下一篇 -> 组合和 2](Combination_Sum_II.md)

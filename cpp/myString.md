@@ -80,5 +80,5 @@ MyString &MyString::operator=(const MyString &data) {
 参见：剑指offer 第二版 第二章
 
 [上一级](README.md)
-[上一篇](mutable.md)
-[下一篇](regex.md)
+[上一篇 -> mutable的使用](mutable.md)
+[下一篇 -> c++正则表达式](regex.md)

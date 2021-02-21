@@ -1106,5 +1106,5 @@ void PlotSettings::adjustAxis(double &min, double &max, int &numTicks)
 * [qt5-book-code/chap05/](https://github.com/mutse/qt5-book-code/tree/master/chap05)
 
 [上一级](README.md)
-[上一篇](4_SpreadSheet.md)
-[下一篇](6_layoutManage.md)
+[上一篇 -> 4. 实现应用程序的功能](4_SpreadSheet.md)
+[下一篇 -> 6. 布局管理](6_layoutManage.md)

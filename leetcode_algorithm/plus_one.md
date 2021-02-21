@@ -33,5 +33,5 @@ public:
 
 
 [上一级](README.md)
-[上一篇](next_permutation.md)
-[下一篇](pow(x,n).md)
+[上一篇 -> 下一个排列](next_permutation.md)
+[下一篇 -> 求x的n次方](pow(x,n).md)

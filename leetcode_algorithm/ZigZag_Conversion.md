@@ -84,5 +84,5 @@ string convert(string s, int nRows) {
 
 
 [上一级](README.md)
-[上一篇](Valid_Sudoku.md)
-[下一篇](add_binary.md)
+[上一篇 -> 有效数独](Valid_Sudoku.md)
+[下一篇 -> 相加2进制字符串](add_binary.md)
