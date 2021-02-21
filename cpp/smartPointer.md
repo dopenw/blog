@@ -339,6 +339,6 @@ nico 's family exists
 
 注，参考 《c++ 标准库第二版》 第五章
 
-[上一级](README.md)
-[上一篇 -> c++正则表达式](regex.md)
-[下一篇 -> 以stream完成I/O](stream_IO.md)
+- [上一级](README.md)
+- 上一篇 -> [c++正则表达式](regex.md)
+- 下一篇 -> [以stream完成I/O](stream_IO.md)

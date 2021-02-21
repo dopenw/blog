@@ -118,6 +118,6 @@ In this environment: aes better than chacha20
 [link1](https://github.com/shadowsocks/shadowsocks/wiki/Optimizing-Shadowsocks)
 
 [link2](https://github.com/iMeiji/shadowsocks_install/wiki/shadowsocks-optimize)
-[上一级](README.md)
-[上一篇 -> 利用 Pandoc 转换文档格式](pandocConvertDoc.md)
-[下一篇 -> 跳过 openGapps 设置向导](skip_opengapps_init.md)
+- [上一级](README.md)
+- 上一篇 -> [利用 Pandoc 转换文档格式](pandocConvertDoc.md)
+- 下一篇 -> [跳过 openGapps 设置向导](skip_opengapps_init.md)

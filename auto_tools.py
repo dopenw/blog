@@ -153,7 +153,7 @@ def open_blog_clear_tail_links(blog_file,blog_map):
 def blog_add_pre_next_links(blog_file,blog_map):
     if file_is_exists(blog_file):
         out_file=open(blog_file,'a',encoding='UTF-8')
-        out_file.write('[上一级](README.md)'+config_item['end_of_line_seq'])
+        out_file.write('- [上一级](README.md)'+config_item['end_of_line_seq'])
 
         endPos = len(blog_map.keys())
         blog_key_list = list(blog_map.keys())
@@ -168,20 +168,20 @@ def blog_add_pre_next_links(blog_file,blog_map):
             tmp += 1
             if (tmp != endPos):
                 file_name = blog_key_list[tmp];
-                out_file.write('[下一篇 -> {}]({}){}'.format(blog_map[file_name],file_name
+                out_file.write('- 下一篇 -> [{}]({}){}'.format(blog_map[file_name],file_name
                 ,config_item['end_of_line_seq']))
         else :
             tmp = pos 
             if tmp+1 == endPos:
                 file_name = blog_key_list[tmp-1]
-                out_file.write('[上一篇 -> {}]({}){}'.format(blog_map[file_name],file_name
+                out_file.write('- 上一篇 -> [{}]({}){}'.format(blog_map[file_name],file_name
                 ,config_item['end_of_line_seq']))
             else:
                 file_name = blog_key_list[tmp-1]
-                out_file.write('[上一篇 -> {}]({}){}'.format(blog_map[file_name],file_name
+                out_file.write('- 上一篇 -> [{}]({}){}'.format(blog_map[file_name],file_name
                 ,config_item['end_of_line_seq']))
                 file_name = blog_key_list[tmp+1]
-                out_file.write('[下一篇 -> {}]({}){}'.format(blog_map[file_name],file_name
+                out_file.write('- 下一篇 -> [{}]({}){}'.format(blog_map[file_name],file_name
                 ,config_item['end_of_line_seq']))
     return True 
 

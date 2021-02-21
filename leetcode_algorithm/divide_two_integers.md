@@ -96,6 +96,6 @@ public:
 ```
 
 
-[上一级](README.md)
-[上一篇 -> 统计字符串的相同字符个数，并输出（count-char）](count_and_say.md)
-[下一篇 -> 生成括号](generate_parentheses.md)
+- [上一级](README.md)
+- 上一篇 -> [统计字符串的相同字符个数，并输出（count-char）](count_and_say.md)
+- 下一篇 -> [生成括号](generate_parentheses.md)

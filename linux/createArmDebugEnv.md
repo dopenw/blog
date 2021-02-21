@@ -58,6 +58,6 @@ sudo apt install git git-cola
 * [GDB 调试遇到??的问题](https://www.cnblogs.com/jlmgary/p/6198307.html)
 * [Debugging shared libraries with gdbserver](https://stackoverflow.com/questions/8611194/debugging-shared-libraries-with-gdbserver)
  
-[上一级](README.md)
-[上一篇 -> linux实用命令集合](command.md)
-[下一篇 -> Create git server](createGitServer.md)
+- [上一级](README.md)
+- 上一篇 -> [linux实用命令集合](command.md)
+- 下一篇 -> [Create git server](createGitServer.md)

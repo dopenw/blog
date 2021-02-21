@@ -68,5 +68,5 @@ Qt有三个主要的布局管理器类：
 ### Link
 * [Qt Creator on Fedora 25: “No valid kits found”](https://stackoverflow.com/questions/40978510/qt-creator-on-fedora-25-no-valid-kits-found)
 
-[上一级](README.md)
-[下一篇 -> 2.创建对话框](2_creat_dialog.md)
+- [上一级](README.md)
+- 下一篇 -> [2.创建对话框](2_creat_dialog.md)

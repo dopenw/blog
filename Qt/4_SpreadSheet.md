@@ -786,6 +786,6 @@ QVariant Cell::evalFactor(const QString &str, int &pos) const
 ## Link
 * [qt5-book-code/chap04/](https://github.com/mutse/qt5-book-code/tree/master/chap04)
 
-[上一级](README.md)
-[上一篇 -> 3. 创建主窗口](3_createMainWindow.md)
-[下一篇 -> 5. 创建自定义窗口部件](5_createCustomWidget.md)
+- [上一级](README.md)
+- 上一篇 -> [3. 创建主窗口](3_createMainWindow.md)
+- 下一篇 -> [5. 创建自定义窗口部件](5_createCustomWidget.md)

@@ -22,6 +22,6 @@
 * [What is the shortcut to format code in Qt Creator?](https://stackoverflow.com/questions/37597117/what-is-the-shortcut-to-format-code-in-qt-creator)
 * [dll error when starting Qt Creator 4.8.2](https://forum.qt.io/topic/109164/dll-error-when-starting-qt-creator-4-8-2)
 
-[上一级](README.md)
-[上一篇 -> 21. 创建插件](21_createPlugin.md)
-[下一篇 -> 解决 qt 程序的依赖项](deployqt.md)
+- [上一级](README.md)
+- 上一篇 -> [21. 创建插件](21_createPlugin.md)
+- 下一篇 -> [解决 qt 程序的依赖项](deployqt.md)

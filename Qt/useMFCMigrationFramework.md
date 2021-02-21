@@ -84,5 +84,5 @@ void SpectrumInterface::closeSpectrum()
 #endif
 }
 ```
-[上一级](README.md)
-[上一篇 -> 编译 vs2012 qt 5.3.1 64 位版本](useCompiledQt.md)
+- [上一级](README.md)
+- 上一篇 -> [编译 vs2012 qt 5.3.1 64 位版本](useCompiledQt.md)

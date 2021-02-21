@@ -789,6 +789,6 @@ out << "<doc>\n"
 ## Link
 * [qt5-book-code/chap16/](https://github.com/mutse/qt5-book-code/tree/master/chap16)
 
-[上一级](README.md)
-[上一篇 -> 15. 网络](15_network.md)
-[下一篇 -> 17. 提供在线帮助](17_onlineHelp.md)
+- [上一级](README.md)
+- 上一篇 -> [15. 网络](15_network.md)
+- 下一篇 -> [17. 提供在线帮助](17_onlineHelp.md)

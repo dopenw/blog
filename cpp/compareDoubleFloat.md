@@ -47,6 +47,6 @@ float:1.19209e-07
 [std :: numeric_limits :: epsilon()](http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon)
 
 [geeksforgeeks.org/cpp-program-to-find-machine-epsilon](https://www.geeksforgeeks.org/cpp-program-to-find-machine-epsilon/)
-[上一级](README.md)
-[上一篇 -> Clock 和 Timer](chrono.md)
-[下一篇 -> const限定符](const.md)
+- [上一级](README.md)
+- 上一篇 -> [Clock 和 Timer](chrono.md)
+- 下一篇 -> [const限定符](const.md)

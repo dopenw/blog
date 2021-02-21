@@ -21,6 +21,6 @@ dnf install @gnome-desktop
 
 重新配置 gnome 界面
 
-[上一级](README.md)
-[上一篇 -> 自动编译并运行cpp程序shell脚本](gen_cpp_bin.md)
-[下一篇 -> 惠普暗影精灵4安装fedora 28](hpOmenInstallFedora.md)
+- [上一级](README.md)
+- 上一篇 -> [自动编译并运行cpp程序shell脚本](gen_cpp_bin.md)
+- 下一篇 -> [惠普暗影精灵4安装fedora 28](hpOmenInstallFedora.md)

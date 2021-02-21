@@ -63,6 +63,6 @@ userdel $old_user
 [source link](https://ask.fedoraproject.org/en/question/55339/change-of-user-name-at-terminal/)
 
 
-[上一级](README.md)
-[上一篇 -> 进程相关](process.md)
-[下一篇 -> linux 恢复 GRUB2](restoreGRUB2.md)
+- [上一级](README.md)
+- 上一篇 -> [进程相关](process.md)
+- 下一篇 -> [linux 恢复 GRUB2](restoreGRUB2.md)

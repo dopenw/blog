@@ -3929,6 +3929,6 @@ pD->mf(); // 调用 D::mf
 - 绝对不要重新定义继承而来的 non-virtual 函数。
 
 
-[上一级](README.md)
-[上一篇 -> do_while_false的功用](do_while_false.md)
-[下一篇 -> 函数参数入栈的顺序](function_arg_stack.md)
+- [上一级](README.md)
+- 上一篇 -> [do_while_false的功用](do_while_false.md)
+- 下一篇 -> [函数参数入栈的顺序](function_arg_stack.md)

@@ -4,15 +4,15 @@
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [STL](#stl)
-	* [STL 组件](#stl-组件)
-	* [容器](#容器)
-		* [容器适配器](#容器适配器)
-	* [迭代器](#迭代器)
-		* [迭代器种类](#迭代器种类)
-		* [迭代器适配器](#迭代器适配器)
-	* [算法](#算法)
-		* [remove 元素](#remove-元素)
+- [STL](#stl)
+  - [STL 组件](#stl-组件)
+  - [容器](#容器)
+    - [容器适配器](#容器适配器)
+  - [迭代器](#迭代器)
+    - [迭代器种类](#迭代器种类)
+    - [迭代器适配器](#迭代器适配器)
+  - [算法](#算法)
+    - [remove 元素](#remove-元素)
 
 <!-- /code_chunk_output -->
 
@@ -102,6 +102,7 @@ coll.erase(remove(coll.begin(),coll.end(),3),coll.end());
 
 
 注： 参考 《c++ 标准库第二版》 第六章
-[上一级](README.md)
-[上一篇 -> Put functions into vector and execute](PutFunctionsIntoVectorAndExecute.md)
-[下一篇 -> problem sorting using member function as comparator](algorithmSortNonStaticMemberFunction.md)
+
+- [上一级](README.md)
+- 上一篇 -> [Put functions into vector and execute](PutFunctionsIntoVectorAndExecute.md)
+- 下一篇 -> [problem sorting using member function as comparator](algorithmSortNonStaticMemberFunction.md)

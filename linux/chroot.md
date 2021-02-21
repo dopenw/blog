@@ -17,6 +17,6 @@ chroot，即change root directory（更改root目录）。在linux系统中，�
 [source link](https://www.ibm.com/developerworks/cn/linux/l-cn-chroot/index.html)
 
 
-[上一级](README.md)
-[上一篇 -> Build openGapps from github](buildOpengapps.md)
-[下一篇 -> linux实用命令集合](command.md)
+- [上一级](README.md)
+- 上一篇 -> [Build openGapps from github](buildOpengapps.md)
+- 下一篇 -> [linux实用命令集合](command.md)

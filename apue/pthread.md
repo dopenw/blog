@@ -262,6 +262,6 @@ int pthread_barrier_wait(pthread_barrier_t * barrier);
 ```         
 
 
-[上一级](README.md)
-[上一篇 -> 进程间通信](IPC.md)
-[下一篇 -> 线程控制](pthread_control.md)
+- [上一级](README.md)
+- 上一篇 -> [进程间通信](IPC.md)
+- 下一篇 -> [线程控制](pthread_control.md)

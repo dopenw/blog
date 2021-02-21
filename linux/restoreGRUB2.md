@@ -26,6 +26,6 @@ reboot
 
 [How to reinstall or fix GRUB in Fedora without a recovery option on the Live CD?](https://ask.fedoraproject.org/en/question/40578/how-to-reinstall-or-fix-grub-in-fedora-without-a-recovery-option-on-the-live-cd/?answer=40593#post-id-40593)
 
-[上一级](README.md)
-[上一篇 -> 更改linux用户名](rename_linux_user.md)
-[下一篇 -> shutter 截取屏幕异常](shutterException.md)
+- [上一级](README.md)
+- 上一篇 -> [更改linux用户名](rename_linux_user.md)
+- 下一篇 -> [shutter 截取屏幕异常](shutterException.md)

@@ -76,6 +76,6 @@ Run it:
 
 
 ## Link 
-[上一级](README.md)
-[上一篇 -> markdown 嵌入 HTML table，让其具有更多的特性](markdownHtmlTable.md)
-[下一篇 -> openresty测试](openresty_test.md)
+- [上一级](README.md)
+- 上一篇 -> [markdown 嵌入 HTML table，让其具有更多的特性](markdownHtmlTable.md)
+- 下一篇 -> [openresty测试](openresty_test.md)

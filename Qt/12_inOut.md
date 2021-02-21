@@ -644,6 +644,6 @@ QProcess 的另一个用处是：还可以启动其他的用户图形界面应�
 ## Link
 * [qt5-book-code/chap12/](https://github.com/mutse/qt5-book-code/tree/master/chap12)
 
-[上一级](README.md)
-[上一篇 -> 11. 容器类](11_container.md)
-[下一篇 -> 13. 数据库](13_database.md)
+- [上一级](README.md)
+- 上一篇 -> [11. 容器类](11_container.md)
+- 下一篇 -> [13. 数据库](13_database.md)

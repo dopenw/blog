@@ -38,6 +38,6 @@
 * [vscode设置自动换行](https://zhuanlan.zhihu.com/p/65268106)
 * [16 Unique VSCode Extensions Every Developer Should Have in 2020](https://blog.bitsrc.io/16-unique-vscode-extensions-every-developer-should-have-in-2020-c4dcdb74506a)
 
-[上一级](README.md)
-[上一篇 -> v2ray](v2ray.md)
-[下一篇 -> 小米路由器 1 mini 搞机篇](xiaomiMini.md)
+- [上一级](README.md)
+- 上一篇 -> [v2ray](v2ray.md)
+- 下一篇 -> [小米路由器 1 mini 搞机篇](xiaomiMini.md)

@@ -31,6 +31,6 @@
 ![DocZhToEn_201804231356_6](../images/DocZhToEn_201804231356_6.png)
 
 Google Doc 支持多种输出格式，转换效果也比 office 的好
-[上一级](README.md)
-[上一篇 -> 组件对象模型 (COM)](COM.md)
-[下一篇 -> Visual studio 安装 Visual Assist](VisualStudioInstallVisualAssist.md)
+- [上一级](README.md)
+- 上一篇 -> [组件对象模型 (COM)](COM.md)
+- 下一篇 -> [Visual studio 安装 Visual Assist](VisualStudioInstallVisualAssist.md)

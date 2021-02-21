@@ -21,6 +21,6 @@ rpm -ivh --nodeps --force netease-cloud-music.rpm
 * [重打包网易云音乐1.1? ](https://github.com/FZUG/repo/issues/288)
 
 
-[上一级](README.md)
-[上一篇 -> 惠普暗影精灵4安装fedora 28](hpOmenInstallFedora.md)
-[下一篇 -> linux 下遇到的一些问题、](linux.md)
+- [上一级](README.md)
+- 上一篇 -> [惠普暗影精灵4安装fedora 28](hpOmenInstallFedora.md)
+- 下一篇 -> [linux 下遇到的一些问题、](linux.md)

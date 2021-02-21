@@ -143,6 +143,6 @@ ptr=inet_ntoa(foo.sin_addr);
 ```
 
 
-[上一级](README.md)
-[上一篇 -> 2.传输层：TCP、UDP、SCTP](2_transport_layer.md)
-[下一篇 -> 4.基本TCP套接字编程](4_basic_tcp_socket.md)
+- [上一级](README.md)
+- 上一篇 -> [2.传输层：TCP、UDP、SCTP](2_transport_layer.md)
+- 下一篇 -> [4.基本TCP套接字编程](4_basic_tcp_socket.md)

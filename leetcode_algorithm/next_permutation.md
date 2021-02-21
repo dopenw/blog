@@ -53,6 +53,6 @@ public:
 [Solution link](https://leetcode.com/problems/next-permutation/solution/)
 
 
-[上一级](README.md)
-[上一篇 -> 合并已排序的数组（vector）](merge_sorted_array.md)
-[下一篇 -> 将给定非负整数的vector<int> digits加一，返回加一后的最高位](plus_one.md)
+- [上一级](README.md)
+- 上一篇 -> [合并已排序的数组（vector）](merge_sorted_array.md)
+- 下一篇 -> [将给定非负整数的vector<int> digits加一，返回加一后的最高位](plus_one.md)

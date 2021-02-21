@@ -1911,6 +1911,6 @@ void TrackDelegate::commitAndCloseEditor()
 ## Link
 * [qt5-book-code/chap10/](https://github.com/mutse/qt5-book-code/tree/master/chap10)
 
-[上一级](README.md)
-[上一篇 -> 9. 拖放](9_drag.md)
-[下一篇 -> 11. 容器类](11_container.md)
+- [上一级](README.md)
+- 上一篇 -> [9. 拖放](9_drag.md)
+- 下一篇 -> [11. 容器类](11_container.md)

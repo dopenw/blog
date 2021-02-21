@@ -19,6 +19,6 @@ Aborted (core dumped)
     5. strRes regex_replace(str.regex,repl) 根据regex替换所有匹配
 
 
-[上一级](README.md)
-[上一篇 -> MyString](myString.md)
-[下一篇 -> 智能指针](smartPointer.md)
+- [上一级](README.md)
+- 上一篇 -> [MyString](myString.md)
+- 下一篇 -> [智能指针](smartPointer.md)

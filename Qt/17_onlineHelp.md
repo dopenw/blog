@@ -76,6 +76,6 @@ dialog->setWhatsThis(tr("<img src=\":/images/icon.png\">"
 除了使用 Web 浏览器、QTextBrowser或 Qt Assistant,还有一种方法就是使用与平台相关的方法来提供在线帮助。对于 Windows 应用程序，创建 [Windows HTML help](https://docs.microsoft.com/en-us/previous-versions/windows/desktop/htmlhelp/microsoft-html-help-1-4-sdk) 文件并且利用 Microsoft Internet Explorer 访问它们，也许是一种不错的选择。可以使用 Qt 的 QProcess 类或者 ActiveQt 框架来实现这一点。在 Mac OS X 系统上，Apple Help 也提供了与 Qt Assistant 相似的功能。
 
 
-[上一级](README.md)
-[上一篇 -> 16. XML](16_xml.md)
-[下一篇 -> 18. 国际化](18_unicode.md)
+- [上一级](README.md)
+- 上一篇 -> [16. XML](16_xml.md)
+- 下一篇 -> [18. 国际化](18_unicode.md)

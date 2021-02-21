@@ -71,6 +71,6 @@ public:
 [source link](https://leetcode.com/problems/valid-sudoku/discuss/)
 
 
-[上一级](README.md)
-[上一篇 -> 交换一对链表节点](Swap_Nodes_in_Pairs.md)
-[下一篇 -> 折线转换(zigzag)](ZigZag_Conversion.md)
+- [上一级](README.md)
+- 上一篇 -> [交换一对链表节点](Swap_Nodes_in_Pairs.md)
+- 下一篇 -> [折线转换(zigzag)](ZigZag_Conversion.md)

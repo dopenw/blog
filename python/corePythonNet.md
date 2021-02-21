@@ -831,6 +831,6 @@ $ python3 -V
 Python 3.8.3
 ```
 
-[上一级](README.md)
-[上一篇 -> Python 核心编程:正则表达式](CorePython.md)
-[下一篇 -> 普通用户安装 python package](noRootUserInstallPackage.md)
+- [上一级](README.md)
+- 上一篇 -> [Python 核心编程:正则表达式](CorePython.md)
+- 下一篇 -> [普通用户安装 python package](noRootUserInstallPackage.md)

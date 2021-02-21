@@ -609,6 +609,6 @@ std::string gbkToUtf8(const std::string &s) {
 ## Link 
 * [string与QString转换（string既可以是utf8，也可以是gbk）]([https://link](https://blog.csdn.net/lengyuezuixue/article/details/80697492))
 
-[上一级](README.md)
-[上一篇 -> 17. 提供在线帮助](17_onlineHelp.md)
-[下一篇 -> 19. 自定义外观](19_cutomStyle.md)
+- [上一级](README.md)
+- 上一篇 -> [17. 提供在线帮助](17_onlineHelp.md)
+- 下一篇 -> [19. 自定义外观](19_cutomStyle.md)

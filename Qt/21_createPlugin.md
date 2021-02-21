@@ -34,6 +34,6 @@ Qt 可以识别自己用于各域中的一套插件接口，这些域包含图�
 * [qt5-book-code/chap21/](https://github.com/mutse/qt5-book-code/tree/master/chap21)
 
 
-[上一级](README.md)
-[上一篇 -> 19. 自定义外观](19_cutomStyle.md)
-[下一篇 -> Qt Creator 使用](QtCreatorTips.md)
+- [上一级](README.md)
+- 上一篇 -> [19. 自定义外观](19_cutomStyle.md)
+- 下一篇 -> [Qt Creator 使用](QtCreatorTips.md)

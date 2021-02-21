@@ -265,6 +265,6 @@ non linux entry
 
 
 
-[上一级](README.md)
-[上一篇 -> ctl + alt + f3 login incorrect](ctrl_alt_f3_login_incorrect.md)
-[下一篇 -> virtualbox on fedora 27 fails to load virtualbox Kernel Modules](failsToLoadVirtualBoxKernelModules.md)
+- [上一级](README.md)
+- 上一篇 -> [ctl + alt + f3 login incorrect](ctrl_alt_f3_login_incorrect.md)
+- 下一篇 -> [virtualbox on fedora 27 fails to load virtualbox Kernel Modules](failsToLoadVirtualBoxKernelModules.md)

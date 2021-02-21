@@ -22,6 +22,6 @@ insert into tmp_table select * from Table where (codition=True);
 
 3. 将需要的数据导出为文件，删除表，然后在将文件load到数据库，效率较方法2更高效
 
-[上一级](README.md)
-[上一篇 -> mysql提示“Lock wait timeout exceeded; try restarting transaction”的解决办法](Lock_wait_timeout_exceeded.md)
-[下一篇 -> MYSQL 存储过程 VS 函数](procedureVSFunction.md)
+- [上一级](README.md)
+- 上一篇 -> [mysql提示“Lock wait timeout exceeded; try restarting transaction”的解决办法](Lock_wait_timeout_exceeded.md)
+- 下一篇 -> [MYSQL 存储过程 VS 函数](procedureVSFunction.md)

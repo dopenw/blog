@@ -257,6 +257,6 @@ throw exception from A
 ](https://stackoverflow.com/questions/810839/throwing-exceptions-from-constructors)
 
 
-[上一级](README.md)
-[上一篇 -> const限定符](const.md)
-[下一篇 -> 将string转换为char指针](conv_string_to_char_pointer.md)
+- [上一级](README.md)
+- 上一篇 -> [const限定符](const.md)
+- 下一篇 -> [将string转换为char指针](conv_string_to_char_pointer.md)

@@ -22,5 +22,5 @@ build setting,debug setting,custom build steps)
 4. Add require("mobdebug").start("192.168.XXX.1") in debug file
 
 
-[上一级](README.md)
-[上一篇 -> 在windows下开发linux程序需要注意的问题](windows_linux.md)
+- [上一级](README.md)
+- 上一篇 -> [在windows下开发linux程序需要注意的问题](windows_linux.md)

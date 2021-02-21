@@ -102,6 +102,6 @@ systemctl enable v2ray # 设置为开机启动
 * [白话文教程/VMess](https://toutyrater.github.io/basic/vmess.html)
 
 
-[上一级](README.md)
-[上一篇 -> Install ss-libev and config v2ray-plugin on ubuntu](ubuntuInstallSSAndV2rayPlugin.md)
-[下一篇 -> vsCode ](vsCode.md)
+- [上一级](README.md)
+- 上一篇 -> [Install ss-libev and config v2ray-plugin on ubuntu](ubuntuInstallSSAndV2rayPlugin.md)
+- 下一篇 -> [vsCode ](vsCode.md)
