@@ -53,6 +53,7 @@
       - [藉由 std::function 完成 Strategy 模式](#藉由-stdfunction-完成-strategy-模式)
       - [古典的 Strategy 模式](#古典的-strategy-模式)
     - [条款 36：绝不重新定义继承而来的 non-virtual 函数](#条款-36绝不重新定义继承而来的-non-virtual-函数)
+    - [条款 37：绝不重新定义继承而来的缺省参数值](#条款-37绝不重新定义继承而来的缺省参数值)
 
 <!-- /code_chunk_output -->
 
@@ -3927,6 +3928,116 @@ pD->mf(); // 调用 D::mf
 请记住：
 
 - 绝对不要重新定义继承而来的 non-virtual 函数。
+
+### 条款 37：绝不重新定义继承而来的缺省参数值
+
+因为条款 36，我们可以安全地将本条款讨论局限于“继承一个带有缺省参数值的 virtual 函数”。
+
+这种情况下，本条款成立的理由就非常直接而明确了：virtual 函数 系动态绑定(dynamically bound),而缺省值确是静态绑定(staticlly bound)。
+
+- 静态类型就是它在程序中被声明时采用的类型
+- 动态类型则是指“目前所指对象的类型”
+
+考虑如下例子：
+
+```c++
+// 一个用来描述几何形状的 class 
+class Shape{
+public:
+    enum ShapeColor{Red,Green,Blue};
+    //所有形状都必须提供一个函数，用来绘出自己
+    virtual void draw(ShapeColor color = ShapeColor::Red) const = 0;
+    ...
+};
+
+class Rectangle:public Shape{
+public:
+    // 注意，赋予不同的缺省参数值，这真糟糕
+    virtual void draw(ShapeColor color = ShapeColor::Green) const;
+    ...
+};
+
+class Circle:public Shape{
+public:
+    virtual void draw(ShapeColor color) const;
+    //请注意，以上这么写则当客户以对象调用此函数，一定要指定参数值。
+    //  因为静态绑定下这个函数并不从 base 继承缺省参数值。 
+    //  但若以指针(或 reference) 调用此函数，可以不指定参数值。   
+    //  因为动态绑定下这个函数会从 base 继承缺省参数值。 
+};
+```
+
+```c++
+Shape * ps;
+Shape * pc = new Circle;
+Shape * pr = new Rectangle;
+```
+
+这样使用很清晰：
+
+```c++
+pc->draw(Shape::Red); // 调用 Circle::draw(Shape::Red)
+pr->draw(Shape::Red); // 调用 Rectangle::draw(Shape::Red)
+```
+
+但这样：
+
+```c++
+pr->draw(); // 调用 Rectangle::draw(Shape::Red) !
+```
+
+oops。 Rectangle::draw 函数的缺省参数是 Green，但由于 Pr 的静态类型是 Shape * ,所以此一调用的缺省参数来自 Shape class 而非 Rectangle class ！ 结局是这个函数调用用着奇怪并且几乎绝对没人预料得到的组合，由 Shape class 和 Rectangle class 的 draw 声明式各出一半力。
+
+为什么 c++ 坚持以这种乖张的方式来运作呢？`答案在于运行效率`。
+
+如果你试着遵守这条规则，并且同时提供缺省参数给 base 和 derived classes 用户，又会发生什么呢？
+
+```c++
+class Shape{
+public:
+    enum ShapeColor{Red,Green,Blue};
+    virtual void draw(ShapeColor color = ShapeColor::Red) const = 0;
+    ...
+};
+
+class Rectangle:public Shape{
+public:
+    virtual void draw(ShapeColor color = ShapeColor::Red) const;
+    ...
+};
+```
+
+oops,代码重复。更糟的是，代码重复又带有相依性：如果 Shape 内的缺省参数值改变了，所有“重复给定缺省参数值”的那些 derived classes 也必须改变，否则他们最终会导致“重复定义一个继承而来的缺省参数值”。怎么办？
+
+我们可以使用 NVI (non-virtual interface) 手法来做：
+
+```c++
+class Shape{
+public:
+    enum ShapeColor{Red,Green,Blue};
+    void draw(ShapeColor color = ShapeColor::Red) const {
+        doDraw(color);
+    }
+    ...
+private:
+    virtual void doDraw(ShapeColor color) const =0;
+};
+
+class Rectangle:public Shape{
+public:
+...
+private:
+    virtual void doDraw(ShapeColor color) const; // 注意，不须指定缺省参数值
+    ...
+};
+```
+
+由于 non-virtual 函数应该绝对不会被 derived class 覆写（见条款 36），这个设计很清楚地使得 draw 函数的 color 缺省参数值总是 Red。
+
+请记住：
+
+- 绝对不要重新定义继承而来的的缺省参数值，因为缺省参数值是静态绑定，而 virtual 函数 -- 你唯一应该覆写的东西 -- 却是动态绑定。
+
 
 
 - [上一级](README.md)
