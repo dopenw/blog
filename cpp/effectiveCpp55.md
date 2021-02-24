@@ -55,6 +55,7 @@
     - [条款 36：绝不重新定义继承而来的 non-virtual 函数](#条款-36绝不重新定义继承而来的-non-virtual-函数)
     - [条款 37：绝不重新定义继承而来的缺省参数值](#条款-37绝不重新定义继承而来的缺省参数值)
     - [条款 38：通过复合塑造出 has-a 或 “根据某物实现出”](#条款-38通过复合塑造出-has-a-或-根据某物实现出)
+    - [条款 39：明智而审慎地使用 Private 继承](#条款-39明智而审慎地使用-private-继承)
 
 <!-- /code_chunk_output -->
 
@@ -4130,6 +4131,107 @@ std::size_t Set<T>::size() const
 
 - 复合(composition) 的意义和 public 继承完全不同。
 - 在应用域(application domain)，复合意味着 has-a（有一个）。在实现域(implementation domain),复合意味着 is-implemented-in-terms-of （根据某物实现出）。
+
+### 条款 39：明智而审慎地使用 Private 继承
+
+考虑下面的例子：
+
+```c++
+class Person{...};
+class Student:private Person{...};
+void eat(const Person& p);  // 任何人都会吃
+void study(const Student& s); //只有学生才到校学习
+Person p; //p 是人
+Student s; // s 是学生
+eat(p); // 没问题，p 是人
+eat(s); // 错误！吓，难道学生不是人？
+```
+
+显然 private 继承并不意味着 is-a 关系。那么它意味着什么？
+
+现在让我们开始讨论其意义。private 继承纯粹只是一种实现技术。 private 继承意味着 implemented-in-terms-of(根据某物实现出)，这个事实有点令人不安，因为条款 38 才刚指出复合(composition)的意义也是这样。你如何在两者之间取合？
+
+- 主要是当 protected 成员和/或 virtual 函数牵扯进来的时候；
+- 当空间方面的利害关系足以踢翻 private 继承的支柱的时候（激进情况）；
+
+假如我们有这样的一个类：
+
+```c++
+class Timer{
+public:
+    explicit Timer(int tickFrequency);
+    virtual void onTick() const; //定时器每滴答一次
+                                //，此函数就被自动调用一次
+    ...
+};
+```
+
+假设我们需要让 Widget 使用 Timer 的功能。我们这样做：
+
+```c++
+// 我们必须以 private 形式继承 Timer
+// pubic 继承在此例并不合适，因为 Widget 并不是个 Timer 
+class Widget:private Timer{
+private:
+    //若把 onTick 放进 public 接口内会误导客户端
+    //以为他们可以调用它，那就违反了条款 18.
+    virtual void onTick() const;
+    ...
+};
+```
+
+这是个好设计，但不值几文钱，因为 private 继承并非必要。如果我们决定以复合(composition)取而代之，是可以的。eg：
+
+```c++
+class Widget{
+private:
+    class WidgetTimer:public Timer{
+    public:
+        virtual void onTick() const;
+        ...
+    }; 
+    WidgetTimer timer;
+    ...
+};
+```
+
+这个设计比只是使用 private 继承要复杂一些，为什么你可能愿意（或说应该）选择这样的 public 继承加复合，而不是选择原先的 private 继承设计：
+
+- 你或许会想设计 Widget 使它得以拥有 derived classes，但同时你可能会想阻止 derived classes 重新定义 onTick。如果 Widget 继承自 Timer ，上面的想法就不可能实现，即使是 private 继承也不可能(`注意：c++11 后，c++ 支持 final 关键字用于阻止继承或重新定义它的 virtual 函数` - [final specifier (since C++11)](https://en.cppreference.com/w/cpp/language/final))
+- 你或许会想将 Widget 的编译依存性降至最低。如果 Widget 继承 Timer ，当 Widget 被编译时 Timer 的定义必须可见，所以定义 Widget 的那个头文件恐怕必须包含 Timer.h。但如果 WidgetTimer 移除 Widget 之外而 Widget 内含指针指向一个 WidgetTimer,Widget 可以只是带有一个简单的 WidgetTimer 声明式，那么Widget头文件中不再需要包含任何与 Timer 有关的头文件。对于大型系统而言，如此的解耦(decouplings)可能是重要的措施。
+
+考虑如下例子：
+
+```c++
+class Empty{}; // 没有数据，所以其对象应该不使用任何内存
+
+class HoldsAnInt{
+private:
+    int x;
+    Empty e; // 应该不需要任何内存
+};
+```
+
+`你会发现 sizeof(HoldsAnInt) > sizeof(int)。`oops，一个 Empty 成员变量竟然要求内存。在大多数编译器中 sizeof(Empty) 获得 1 ，因为面对“大小为0之独立（非附属）对象”，通常 c++ 官方勒令默默安插一个 char 到空对象内。
+
+但如果你这样：
+
+```c++
+class HoldsAnInt:private Empty{
+private:
+    int x;
+};
+```
+
+几乎可以确定 sizeof(HoldsAnInt) == sizeof(int)。这是所谓的 EBO (Empty base optimization; 空白基类最优化).另外还有一个值得知道，EBO 一般只在单一继承（而非多重继承）下才可行，统治 c++ 对象布局的那些规则通常表示 EBO 无法被施行于“拥有多个 base”的 derived classes 身上。
+
+尽管如此，让我们回到根本。大多数 classes 并非 empty,所以 EBO 很少
+成为 private 继承的正当理由。更进一步，大多数继承相当于 is-a,不是 private继承。复合和 private继承 都意味着 implemented-in-terms-of，但复合比较容易理解，所以无论什么时候，只要可以，你还是应该选择复合。
+
+请记住：
+
+- private继承意味着 implemented-in-terms-of(根据某物实现出)。它通常比复合 (composition)的级别底。但是当 derived class 需要访问 protected base class 的成员，或需要重新定义继承而来的 virtual 函数，这么设计是合理的。
+- 和复合(composition)不和，private 继承可以造成 empty base 最优化。这对于致力于“对象尺寸最小化”的程序库开发者而言，可能很重要。
 
 - [上一级](README.md)
 - 上一篇 -> [do_while_false的功用](do_while_false.md)
