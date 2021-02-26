@@ -56,6 +56,7 @@
     - [条款 37：绝不重新定义继承而来的缺省参数值](#条款-37绝不重新定义继承而来的缺省参数值)
     - [条款 38：通过复合塑造出 has-a 或 “根据某物实现出”](#条款-38通过复合塑造出-has-a-或-根据某物实现出)
     - [条款 39：明智而审慎地使用 Private 继承](#条款-39明智而审慎地使用-private-继承)
+    - [条款 40：明智而审慎地使用多重继承](#条款-40明智而审慎地使用多重继承)
 
 <!-- /code_chunk_output -->
 
@@ -4232,6 +4233,146 @@ private:
 
 - private继承意味着 implemented-in-terms-of(根据某物实现出)。它通常比复合 (composition)的级别底。但是当 derived class 需要访问 protected base class 的成员，或需要重新定义继承而来的 virtual 函数，这么设计是合理的。
 - 和复合(composition)不和，private 继承可以造成 empty base 最优化。这对于致力于“对象尺寸最小化”的程序库开发者而言，可能很重要。
+
+### 条款 40：明智而审慎地使用多重继承
+
+一旦设计多重继承（multiple inheritance:MI），c++ 社区便分为两个阵营：
+
+1. 如果单一继承(single inheritance:SI)是好的，多重继承一定更好
+2. 单一继承是好的，但多重继承不值得拥有（或使用）。
+
+最先需要认清的一件事是，当 MI 进入设计景框，程序可能从一个以上的 base classes 继承相同的名称(如函数，typedef 等等)。那会导致较多的歧义(ambiguity) 机会。例如：
+
+```c++
+class BorrowableItem{ // 图书馆允许你借某些东西
+public:
+    void checkOut(); // 离开时进行检查
+    ...
+};
+
+class ElectronicGadget{ // 电子配件
+public:
+    bool checkOut() const; // 执行自我检测，返回是否测试成功
+    ...
+};
+
+class MP3Player: // 注意这里的多重继承
+    public BorrowableItem,
+    pubic ElectronicGadget
+{...};
+
+MP3Player mp;
+mp.checkOut(); // 歧义！调用的是哪个 checkOut?
+// 即使两个函数只有一个可取用(BorrowableItem checkOut public
+//,ElectronicGadget checkOut private)
+```
+
+为了解决这个歧义，必须：
+
+```c++
+mp.BorrowableItem::checkOut();  
+```
+
+当然如果调用 `ElectronicGadget::checkOut`,你将会获得一个“尝试调用 private 成员函数”的错误。
+
+多重继承的意思是继承一个以上的 base classes，但这些 base classes 并不常在继承体系中又有更高级的 base classes,因为那会导致要命的 "钻石型多重继承"：
+
+```c++
+class File{
+public:
+    ...
+private:
+    std::string fileName;
+};
+class InputFile:public File{...};
+class OutputFile:pubic File{...};
+class IOFile:public InputFile,
+    public OutputFile
+{...};
+```
+
+![](../images/effectiveCpp55_202102261343_1.png)
+
+简单的逻辑告诉我们，IOFile 对象只该有一个文件名称，所以它继承自两个 base classes 而来的 fileName 不该重复。为了解决这个问题，应该令所有直接继承自它的 classes 采用 "virtual 继承"：
+
+```c++
+class File{
+public:
+    ...
+private:
+    std::string fileName;
+};
+class InputFile:virtual public File{...};
+class OutputFile:virtual pubic File{...};
+class IOFile:public InputFile,
+    public OutputFile
+{...};
+```
+
+![](../images/effectiveCpp55_202102261343_2.png)
+
+`但，你得为virtual 继承付出代价。virtual 继承的成本还包括其他方面。支配“virtual base classes 初始化”的规则比起 non-virtual base 的情况远为复杂且不直观。`
+
+这里对 virtual base classes(亦相当于 virtual 继承)的忠告很简单：
+
+1. 非必要不使用 virtual base。平常请使用 non-virtual 继承。
+2. 如果你必须使用 virtual base classes,尽可能避免在其中放置数据。这么一来你就不需要担心这些 classes 身上的初始化（和赋值）所带来的诡异事情了。 Java 和 .NET 的 interface 值得注意，他在许多方面兼容于 C++ 的 virtual base classes,而且也不允许含有任何数据。
+
+考虑如下的例子：
+
+```c++
+class Iperson{
+pubic:
+    virtual ~Iperson();
+    virtual std::string name() const =0;
+    virtual std::string birthDate() const =0;
+};
+
+class DatabaseID{...}; 
+class PersonInfo{ // 这个类有若干有用函数，可以用于实现 Iperson 接口
+pubic:
+    explicit PersonInfo(DatabaseID pid);
+    virtual ~PersonInfo();
+    virtual const char * theName() const;
+    virtual const char * theBirthDate() const;
+    virtual const char * valueDelimOpen() const;
+    virtual const char * valueDelimClose() const;
+    ...
+};
+
+// 这里使用 private 继承 PersonInfo,是因为我们想要(根据某物实现出)
+class CPerson:public Iperson,private PersonInfo{
+pubic:
+    explicit CPerson(DatabaseID pid):PersonInfo(pid){}
+    std::string name() const override{
+        return PersonInfo::theName()
+    }
+    std::string birthDate() const override{
+        return PersonInfo::theBirthDate();
+    }
+private:
+    const char * valueDelimOpen const override{
+        return "";
+    }
+    const char * valueDelimClose() const override{
+        return "";
+    }
+    
+};
+```
+
+UML 图就像这样：
+
+![](../images/effectiveCpp55_202102261343_3.png)
+
+这个例子告诉我们，多重继承也有它的合理用途。
+
+请记住：
+
+- 多重继承比单一继承复杂。它可能导致新的歧义性，以及对 virtual 继承的需要。
+- virtual 继承会增加大小、速度、初始化（及赋值）复杂度等等成本。如果 virtual base classes 不带任何数据，将是最具实用价值的情况。
+- 多重继承的确有正当用途。其中一个情节涉及“public 继承某个 interface class”和 "private继承某个协助实现的 class"的两者组合。
+
 
 - [上一级](README.md)
 - 上一篇 -> [do_while_false的功用](do_while_false.md)
