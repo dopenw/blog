@@ -57,6 +57,10 @@
     - [条款 38：通过复合塑造出 has-a 或 “根据某物实现出”](#条款-38通过复合塑造出-has-a-或-根据某物实现出)
     - [条款 39：明智而审慎地使用 Private 继承](#条款-39明智而审慎地使用-private-继承)
     - [条款 40：明智而审慎地使用多重继承](#条款-40明智而审慎地使用多重继承)
+  - [杂项讨论](#杂项讨论)
+    - [条款 53：不要轻忽编译器的警告](#条款-53不要轻忽编译器的警告)
+    - [条款 54：让自己熟悉标准程序库](#条款-54让自己熟悉标准程序库)
+    - [条款 55：让自己熟悉 Boost](#条款-55让自己熟悉-boost)
 
 <!-- /code_chunk_output -->
 
@@ -4373,6 +4377,143 @@ UML 图就像这样：
 - virtual 继承会增加大小、速度、初始化（及赋值）复杂度等等成本。如果 virtual base classes 不带任何数据，将是最具实用价值的情况。
 - 多重继承的确有正当用途。其中一个情节涉及“public 继承某个 interface class”和 "private继承某个协助实现的 class"的两者组合。
 
+## 杂项讨论
+
+### 条款 53：不要轻忽编译器的警告
+
+许多程序员习惯性地忽略编译器的警告。它们认为，毕竟，如果问题很严重，编译器应该给一个错误信息而非警告信息，不是吗？这种想法对于其他语言相对无害，但在 C++ ,我敢打赌编译器作者对于将会发生的事情比你有更好的领悟。eg:
+
+```c++
+class B{
+public:
+    virtual void f() const;
+};
+
+class D:public B{
+pubic: 
+    virtual void f();
+};
+```
+
+这里，我手上的一个编译器给出了这样的信息：
+
+```highLight
+warning: D::f() hides virtual B::f()
+```
+
+看吧，这个警告信息非常有用的呀。
+
+但，警告信息天生和编译器相依，不同的编译器有不同的警告标准。所以，草率编程然后依赖编译器为你指出错误，并不可取。例如上述发生“函数遮掩”的代码就可能通过另一个编译器，连半句抱怨和抗议也没有。
+
+请记住：
+
+- 严肃对待编译器发出的警告信息。努力在你的编译器的最高警告级别下争取“无任何警告”的荣誉。
+- 不要过渡依赖编译器的报警能力，因为不同的编译器对待事情的态度并不相同。一旦移植到另一个编译器上，你原本依赖的警告信息有可能消失。
+
+### 条款 54：让自己熟悉标准程序库
+
+- STL（Standard Template Library,标准模板库）,覆盖容器、迭代器、算法、函数对象（function objects 如 less、greater）、各种容器【适配器(如 stack,priority_queue)和函数对象适配器(function object adatpers 如 mem_fun,not1)
+- iostream,覆盖用户自定缓冲功能，国际化 I/O ，以及预先定义好的对象 cin,cout,cerr和 clog。
+- 国际化支持，包括多区域能力。想 wchar_t 和 wstring 等类型都对促进 Unicode 有所帮助。
+- 数值处理，包括复数模板(complex)和纯数值数组(valarray)
+- 异常阶级体系(exception hierarchy)。
+- 智能指针
+- std::function,此物得以表示任何 callable entity(可调用物，也就是任何函数或函数对象)
+- [std::bind](https://en.cppreference.com/w/cpp/utility/functional/bind) 绑定器
+- Hash tables,用来实现 set,multiset,map,multimap.
+- 正则表达式 (Regular expression)
+- [std::tuple](https://en.cppreference.com/w/cpp/utility/tuple)
+- std::array
+- [std::mem_fn](https://en.cppreference.com/w/cpp/utility/functional/mem_fn) generates wrapper objects for pointers to members
+
+```c++
+#include <functional>
+#include <iostream>
+ 
+struct Foo {
+    void display_greeting() {
+        std::cout << "Hello, world.\n";
+    }
+    void display_number(int i) {
+        std::cout << "number: " << i << '\n';
+    }
+    int data = 7;
+};
+ 
+int main() {
+    Foo f;
+ 
+    auto greet = std::mem_fn(&Foo::display_greeting);
+    greet(f);
+ 
+    auto print_num = std::mem_fn(&Foo::display_number);
+    print_num(f, 42);
+ 
+    auto access_data = std::mem_fn(&Foo::data);
+    std::cout << "data: " << access_data(f) << '\n';
+}
+```
+
+- [std::reference_wrapper](https://en.cppreference.com/w/cpp/utility/functional/reference_wrapper) ,一个 “让 refefence 的行为更像对象”的设施。它可以造成容器“犹如持有 reference”。而你知道，容器实际上只能持有对象或指针。
+- 随机数生成工具，它大大超越了 rand。
+- 数学特殊函数，包括 Laguerre 多项式、Bessel 函数、完全椭圆积分(complete elliptic integrals),以及更多数学函数。
+- [std::type_traits](https://en.cppreference.com/w/cpp/header/type_traits)，一组 traits classes ，用以提供类型的编译器信息。
+- [std::result_of](https://en.cppreference.com/w/cpp/types/result_of),这是个模板，用来推导函数调用的返回类型。
+
+请记住：
+
+- c++ 标准库的主要机能由 STL 、iostream 、locales 组成。
+- TR1 添加了智能指针、一般化函数指针、hash-based 容器、正则表达式以及另外10个组件的支持。
+- TR1 自身只是一份规范。为获得TR1提供的好处，你需要一个实物。一个好的实物来源是 Boost.
+
+### 条款 55：让自己熟悉 Boost
+
+[boost.org](https://www.boost.org/) 程序库对付的主题非常繁多，区分数是个类目，包括：
+
+- 字符串于文本处理，覆盖具备类型安全（type-safe）的 print-like 格式化动作，正则表达式，以及语汇单元切割(tokenizing)和解析(parsing)。
+- 容器，覆盖“接口与 STL 相似且大小固定”的数组、大小可变的 bitset 以及多维数组。
+- 函数对象和高级编程，覆盖若干被用来作为 TR1 机能基础程序库。其中一个有趣的程序库是 [lambda](https://www.boost.org/doc/libs/1_75_0/doc/html/lambda.html),eg:
+
+```c++
+using namespace boost::lambda;
+
+std::vector<int> v;
+...
+
+std::for_each(v.begin(),v.end()
+        ,std::cout << _1 * 2 + 10 << '\n');
+        // 其中 "_1"是 lambda 程序库针对当前元素
+        //的一个占位符号
+```
+
+- 泛型编程（Generic programming）,覆盖一大组 traits classes
+- 模板元编程（Template metaprogramming,TMP）,覆盖一个正对编译器 assertions 而写的程序库，以及 Boost MPL 程序库。[MPL](https://www.boost.org/doc/libs/1_75_0/libs/mpl/doc/index.html) 提供了极好的东西，其中支持编译器实物 (Compile-time entities)诸如 types 的 STL like 数据结构等等：
+
+```c++
+// 创建一个 list-like 编译期容器，其中收纳三个类型：
+//(float,double,long double),并将此容器命名为 "floats"
+
+typedef boost::mpl::list<float,double,long double> floats;
+
+// 再创建一个编译器用以收纳类型的 list,以 "floats" 内的类型为基础,
+//最前面在加上 "int".新容器取名为 "types"。
+
+typedef boost::mpl::push_front<float,int>::type types;
+```
+
+这样的“类型容器”（常被称为 typelists -- 虽然它们也可以以一个 mpl::vector 或 mpl::list 为基础）开启了一扇大门，通往大范围，火力强大且重要的 TMP 应用程序。
+
+- 数学和数值（Math and numerics），包括有理数、八元数和四元数(octonions and quaternions)、常见的公约数(divisor)和少见的多重运算、随机数
+- 正确性与测试(Correctness and testing),覆盖用来将隐式接口(implicit template interface)形式化的程序库，以及针对“测试优先”编程形态而设计的措施。
+- 数据结构，覆盖类型安全的 unions(存储各具差异之“任何”类型)，以及 tuples 程序库
+- 语言间的支持(Inter-language support),包括允许 C++ 和 python 之间的无缝互操作性(seamless interoperability)。
+- 内存，覆盖 Pool 程序库，用来做出高效率而区块大小固定的分配器，以及多变化的智能指针。另有一个 non-TR1 智能指针是 [scoped_array](https://www.boost.org/doc/libs/1_75_0/libs/smart_ptr/doc/html/smart_ptr.html#scoped_array),那是个 auto_ptr-like 智能指针，用来动态分配数组；
+- 杂项，包括 CRC 校验、日期和时间的处理、在文件系统上来回移动等等。
+
+请记住：
+
+- Boost 是一个社区，也是一个网站。致力于免费、源码开放、同僚复审的 C++ 程序库开发。Boost 在 C++ 标准化过程中扮演深具影响力的角色。
+- Boost 提供许多 TR1 组件实现品，以及其他许多程序库。
 
 - [上一级](README.md)
 - 上一篇 -> [do_while_false的功用](do_while_false.md)
