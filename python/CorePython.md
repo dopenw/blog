@@ -754,4 +754,4 @@ patt = '.+\d+-\d+-\d+'
 对于想要更深入研究正则表达式的读者,建议阅读由 Jeffrey E. F. Friedl.编写的 [Mastering Regular Expressions](http://ww2.ii.uj.edu.pl/~tabor/prII09-10/perl/master.pdf)
 
 - [上一级](README.md)
-- 下一篇 -> [Python核心编程-网络编程](corePythonNet.md)
+- 下一篇 -> [Python核心编程-数据库编程](corePythonDB.md)

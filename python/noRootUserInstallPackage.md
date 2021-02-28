@@ -15,5 +15,5 @@
 
 
 - [上一级](README.md)
-- 上一篇 -> [Python核心编程-网络编程](corePythonNet.md)
+- 上一篇 -> [调试](debug.md)
 - 下一篇 -> [python记录](python_care.md)
