@@ -5,6 +5,8 @@ import time
 import re
 from functools import cmp_to_key
 import platform
+import traceback
+from shutil import copyfile
 
 import logging 
 logging.basicConfig(level=logging.WARN,format = ' %(asctime)s - %(levelname)s- %(message)s')
@@ -95,7 +97,7 @@ def regex_match_replace_img(number, current_time, blog_file_name, config_item):
                     ,config_item['img_src_prefix']
                     , number ,config_item['img_src_suffix']))
     img_des_path = '../images/' + blog_file_img_name
-    os.rename(img_src_path,img_des_path)
+    copyfile(img_src_path,img_des_path)
     logging.debug('src: {} , des: {}'.format(img_src_path , img_des_path))
     return True
 
@@ -194,15 +196,25 @@ if __name__ == "__main__":
     root_path = os.getcwd()
     logging.debug('current work directory {}'.format(root_path))
 
+    can_del_img = True
     for dir in config_item['include_dir']:
         os.chdir('{}/{}'.format(root_path,dir))
         logging.debug('change directory to {}'.format(dir))
 
+        error_files =[]
+
         files = get_dir_file('.')
         for file_name in files:
-            open_blog_clear_tail_links(file_name,blog_map)
+            try:
+                 open_blog_clear_tail_links(file_name,blog_map)
+            except:
+                traceback.print_exc()
+                can_del_img = False
+                error_files.append(file_name)
+
         for file_name in files:
-            if not blog_add_pre_next_links(file_name,blog_map):
+            if file_name not in error_files and \
+                not blog_add_pre_next_links(file_name,blog_map):
                 logging.error('Error !!!!!!!')
 
             
@@ -210,10 +222,11 @@ if __name__ == "__main__":
         os.chdir(root_path)
         blog_map.clear()
 
-    # Delete the original path of the picture 
-    images = get_dir_file(config_item['img_src_dir'])
-    for image in images:
-        if(re.match(config_item['delete_ori_img_regex'],image)):
-            img_full_path = config_item['img_src_dir'] + '/' + image
-            os.remove(img_full_path)
+    if can_del_img:
+        # Delete the original path of the picture 
+        files = get_dir_file(config_item['img_src_dir'])
+        for file in files:
+            if(re.match(config_item['delete_ori_img_regex'],file)):
+                img_full_path = config_item['img_src_dir'] + '/' + file
+                os.remove(img_full_path)
 
