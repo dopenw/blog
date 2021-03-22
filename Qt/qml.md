@@ -155,4 +155,4 @@ qmlscene -I . main.qml
 
 - [上一级](README.md)
 - 上一篇 -> [Qt Creator 的一些配置](projectConfig.md)
-- 下一篇 -> [qwt 简单使用](qwt.md)
+- 下一篇 -> [Qml Book - Meet Qt5 ](qmlBook_1_MeetQt5.md)
