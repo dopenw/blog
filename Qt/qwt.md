@@ -72,5 +72,5 @@ CONFIG+=qwt
 * [QT 画图工具 QWT 和 QwtPolar 在 windows 和 linux 下的编译安装](https://blog.csdn.net/zhouguoqionghai/article/details/46517061)
 
 - [上一级](README.md)
-- 上一篇 -> [Qml Book - Meet Qt5 ](qmlBook_1_MeetQt5.md)
+- 上一篇 -> [《Qml book》 - Quick Starter](qmlBook_4_quickStarter.md)
 - 下一篇 -> [QwtPolar 简单使用](qwtPolar.md)

@@ -1,15 +1,15 @@
-# Qml Book - Meet Qt5 
-
+# 《Qml Book》 - Meet Qt5
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [Qml Book - Meet Qt5](#qml-book-meet-qt5)
+- [《Qml Book》 - Meet Qt5](#qml-book-meet-qt5)
   - [Qt 5 Focus](#qt-5-focus)
   - [Qt 5 Introduction](#qt-5-introduction)
     - [Qt Quick](#qt-quick)
     - [Digesting a User Interface](#digesting-a-user-interface)
+  - [Source code](#source-code)
   - [Qt Modules](#qt-modules)
 
 <!-- /code_chunk_output -->
@@ -17,25 +17,32 @@
 注：该文档为 《Qml Book》的学习文档，详见 [Qml book - Meet Qt 5](https://qmlbook.github.io/ch01-meetqt/meetqt.html)
 
 ## Qt 5 Focus
+
 Qt 5 is a complete refreshing of the very successful Qt 4 release. With Qt 4.8, the Qt 4 release is almost 7 years old. It’s time to make an amazing toolkit even more amazing. Qt 5 is focused on the following:
-* Outstanding Graphics: Qt Quick 2 is based on OpenGL (ES) using a scene graph implementation. The recomposed graphics stack allows a new level of graphics effects combined with an ease of use never seen before in this field.
-* Developer Productivity: QML and JavaScript are the primary means for UI creation. The back-end will be driven by C++. The split between JavaScript and C++ allows a fast iteration for front-end developers concentrating on creating beautiful user interfaces and back-end C++ developers concentrating on stability, performance and extending the runtime.
-* Cross-platform portability: With the consolidated Qt Platform Abstraction, it is now possible to port Qt to a wider range of platforms easier and faster. Qt 5 is structured around the concept of Qt Essentials and Add-ons, which allows OS developer to focus on the essentials modules and leads to a smaller runtime altogether.
+
+- Outstanding Graphics: Qt Quick 2 is based on OpenGL (ES) using a scene graph implementation. The recomposed graphics stack allows a new level of graphics effects combined with an ease of use never seen before in this field.
+- Developer Productivity: QML and JavaScript are the primary means for UI creation. The back-end will be driven by C++. The split between JavaScript and C++ allows a fast iteration for front-end developers concentrating on creating beautiful user interfaces and back-end C++ developers concentrating on stability, performance and extending the runtime.
+- Cross-platform portability: With the consolidated Qt Platform Abstraction, it is now possible to port Qt to a wider range of platforms easier and faster. Qt 5 is structured around the concept of Qt Essentials and Add-ons, which allows OS developer to focus on the essentials modules and leads to a smaller runtime altogether.
 
 ## Qt 5 Introduction
+
 ### Qt Quick
+
 Qt Quick is the umbrella term for the user interface technology used in Qt 5. Qt Quick itself is a collection of several technologies:
-* QML - Markup language for user interfaces
-* JavaScript - The dynamic scripting language
-* Qt C++ - The highly portable enhanced c++ library
+
+- QML - Markup language for user interfaces
+- JavaScript - The dynamic scripting language
+- Qt C++ - The highly portable enhanced c++ library
 
 ![](../images/qmlBook_1_MeetQt5_202103222243_1.png)
 
 ### Digesting a User Interface
+
 Let’s create a simple user interface using Qt Quick, which showcases some aspects of the QML language.
 
 eg:
-```css
+
+```qml
 
 import QtQuick 2.5
 import QtGraphicalEffects 1.0
@@ -115,6 +122,7 @@ Image {
     }
 }
 ```
+
 Note:
 This technique works for every signal, with the naming convention being `on` + `SignalName` in title case. Also, all properties emit a signal when their value changes. For these signals, the naming convention is:
 
@@ -124,9 +132,14 @@ For example, if a `width` property is changed, you can observe it with `onWidthC
 Run it,show:
 ![](../images/qmlBook_1_MeetQt5_202103222243_2.png)
 
+## Source code
+
+[source code](https://qmlbook.github.io/assets/ch01-meetqt-assets.tgz)
+
 ## Qt Modules
-[All Modules](https://doc.qt.io/qt-5/qtmodules.html)
+
+-[All Modules](https://doc.qt.io/qt-5/qtmodules.html)
 
 - [上一级](README.md)
 - 上一篇 -> [QML Tutorial](qml.md)
-- 下一篇 -> [qwt 简单使用](qwt.md)
+- 下一篇 -> [《Qml book》 - Quick Starter](qmlBook_4_quickStarter.md)
