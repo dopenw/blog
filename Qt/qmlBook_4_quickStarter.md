@@ -14,6 +14,8 @@
     - [Text Element](#text-element)
     - [Image Element](#image-element)
     - [MouseArea Element](#mousearea-element)
+  - [Components](#components)
+  - [Simple Transformations](#simple-transformations)
   - [Source code](#source-code)
 
 <!-- /code_chunk_output -->
@@ -355,6 +357,250 @@ To interact with these elements you often will use a `MouseArea`. It’s a recta
 Note:
 
 - For more complex interaction, [Qt Quick Input Handlers](https://doc.qt.io/qt-5/qtquickhandlers-index.html) where introduced with Qt 5.12. They are intended to be used instead of elements such as `MouseArea` and `Flickable` and offer greater control and flexibility. The idea is to handle one interaction aspect in each handler instance instead of centralizing the handling of all events from a given source in a single element, which was the case before.
+
+## Components
+A component is a reusable element and QML provides different ways to create components. Currently, we will look only at the simplest form - a file-based component. A file-based component is created by placing a QML element in a file and give the file an element name (e.g. `Button.qml`). You can use the component like every other element from the QtQuick module, in our case you would use this in your code as `Button` { ... }.
+
+For example, let’s create a rectangle containing a text component and a mouse area. This resembles a simple button and doesn’t need to be more complicated for our purposes.
+
+```qml
+    Rectangle { // our inlined button ui
+        id: button
+        x: 12; y: 12
+        width: 116; height: 26
+        color: "lightsteelblue"
+        border.color: "slategrey"
+        Text {
+            anchors.centerIn: parent
+            text: "Start"
+        }
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                status.text = "Button clicked!"
+            }
+        }
+    }
+
+    Text { // text changes when button was clicked
+        id: status
+        x: 12; y: 76
+        width: 116; height: 26
+        text: "waiting ..."
+        horizontalAlignment: Text.AlignHCenter
+    }
+```
+
+![](../images/qmlBook_4_quickStarter_202103262213_1.png)
+
+Our task is now to extract the button UI in a reusable component. For this, we shortly think about a possible API for our button. You can do this by imagining how someone else should use your button. Here’s what I came up with:
+```qml
+// minimal API for a button
+Button {
+    text: "Click Me"
+    onClicked: { /* do something */ }
+}
+```
+
+I would like to set the `text` using a text property and to implement my own click handler. Also, I would expect the button to have a sensible initial size, which I can overwrite (e.g. with `width: 240` for example).
+
+To achieve this we create a `Button.qml` file and copy our button UI inside. Additionally, we need to export the properties a user might want to change on the root level.
+
+```qml
+// Button.qml
+
+import QtQuick 2.5
+
+Rectangle {
+    id: root
+    // export button properties
+    property alias text: label.text
+    signal clicked
+
+    width: 116; height: 26
+    color: "lightsteelblue"
+    border.color: "slategrey"
+
+    Text {
+        id: label
+        anchors.centerIn: parent
+        text: "Start"
+    }
+    MouseArea {
+        anchors.fill: parent
+        onClicked: {
+            root.clicked()
+        }
+    }
+}
+
+```
+
+We have exported the text and clicked signal on the root level. Typically we name our root element root to make the referencing easier. We use the `alias` feature of QML, which is a way to export properties inside nested QML elements to the root level and make this available for the outside world. It is important to know, that only the root level properties can be accessed from outside this file by other components.
+
+To use our new `Button` element we can simply declare it in our file. So the earlier example will become a little bit simplified.
+```qml
+    Button { // our Button component
+        id: button
+        x: 12; y: 12
+        text: "Start"
+        onClicked: {
+            status.text = "Button clicked!"
+        }
+    }
+
+    Text { // text changes when button was clicked
+        id: status
+        x: 12; y: 76
+        width: 116; height: 26
+        text: "waiting ..."
+        horizontalAlignment: Text.AlignHCenter
+    }
+```
+
+Note:
+- If you want to, you could even go a step further and use an item as a root element. This prevents users to change the color of our designed button and provides us with more control about the exported API. The target should be to export a minimal API. Practically this means we would need to replace the root `Rectangle` with an `Item` and make the rectangle a nested element in the root item.
+
+```qml
+Item {
+    id: root
+    width: 116; height: 26
+
+    property alias text: label.text
+    signal clicked
+
+    Rectangle {
+        anchors.fill parent
+        color: "lightsteelblue"
+        border.color: "slategrey"
+    }
+    ...
+}
+```
+
+## Simple Transformations
+
+A transformation manipulates the geometry of an object. QML Items can, in general, be translated, rotated and scaled. There is a simple form of these operations and a more advanced way.
+
+Let’s start with the simple transformations. Here is our scene as our starting point.
+
+A simple translation is done via changing the `x,y` position. A `rotation` is done using the rotation property. The value is provided in degrees (0 .. 360). A scaling is done using the `scale` property and a value <1 means the element is scaled down and `>1` means the element is scaled up. The rotation and scaling do not change your geometry. The items `x,y` and `width/height` haven’t changed. Just the painting instructions are transformed.
+
+Before we show off the example I would like to introduce a little helper: The `ClickableImage` element. 
+
+```qml
+// ClickableImage.qml
+
+// Simple image which can be clicked
+
+import QtQuick 2.5
+
+Image {
+    id: root
+    signal clicked
+
+    MouseArea {
+        anchors.fill: parent
+        onClicked: root.clicked()
+    }
+}
+```
+
+![](../images/qmlBook_4_quickStarter_202103262213_2.png)
+
+We use our clickable image to present three objects (box, circle, triangle). Each object performs a simple transformation when clicked. Clicking the background will reset the scene.
+
+```qml
+// transformation.qml
+
+
+import QtQuick 2.5
+
+Item {
+    // set width based on given background
+    width: bg.width
+    height: bg.height
+
+    Image { // nice background image
+        id: bg
+        source: "assets/background.png"
+    }
+
+    MouseArea {
+        id: backgroundClicker
+        // needs to be before the images as order matters
+        // otherwise this mousearea would be before the other elements
+        // and consume the mouse events
+        anchors.fill: parent
+        onClicked: {
+            // reset our little scene
+            circle.x = 84
+            box.rotation = 0
+            triangle.rotation = 0
+            triangle.scale = 1.0
+        }
+    }
+
+    ClickableImage {
+        id: circle
+        x: 84; y: 68
+        source: "assets/circle_blue.png"
+        antialiasing: true
+        onClicked: {
+            // increase the x-position on click
+            x += 20
+        }
+    }
+
+    ClickableImage {
+        id: box
+        x: 164; y: 68
+        source: "assets/box_green.png"
+        antialiasing: true
+        onClicked: {
+            // increase the rotation on click
+            rotation += 15
+        }
+    }
+
+    ClickableImage {
+        id: triangle
+        x: 248; y: 68
+        source: "assets/triangle_red.png"
+        antialiasing: true
+        onClicked: {
+            // several transformations
+            rotation += 15
+            scale += 0.05
+        }
+    }
+
+    function _test_transformed() {
+        circle.x += 20
+        box.rotation = 15
+        triangle.scale = 1.2
+        triangle.rotation = -15
+    }
+
+    function _test_overlap() {
+        circle.x += 40
+        box.rotation = 15
+        triangle.scale = 2.0
+        triangle.rotation = 45
+    }
+
+}
+```
+
+![](../images/qmlBook_4_quickStarter_202103262213_3.png)
+
+The circle increments the x-position on each click and the box will rotate on each click. The triangle will rotate and scale the image up on each click, to demonstrate a combined transformation. For the scaling and rotation operation we set `antialiasing: true` to enable anti-aliasing, which is switched off (same as the clipping property `clip`) for performance reasons. In your own work, when you see some rasterized edges in your graphics, then you should probably switch smoothly on.
+
+Note:
+- To achieve better visual quality when scaling images it is recommended to scale images down instead of up. Scaling an image up with a larger scaling factor will result in scaling artifacts (blurred image). When scaling an image you should consider using `` antialiasing: true`` to enable the usage of a higher quality filter.
+- Elements which appear earlier in the code have a lower stacking order (called z-order). If you click long enough on `circle` you will see it moves below `box`. The z-order can also be manipulated by the `z-property` of an Item.
+
+![](../images/qmlBook_4_quickStarter_202103262213_4.png)
 
 ## Source code
 
