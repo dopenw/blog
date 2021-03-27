@@ -16,6 +16,20 @@
     - [MouseArea Element](#mousearea-element)
   - [Components](#components)
   - [Simple Transformations](#simple-transformations)
+  - [Positioning Elements](#positioning-elements)
+    - [Column element](#column-element)
+    - [Row element](#row-element)
+    - [Grid element](#grid-element)
+    - [Flow element](#flow-element)
+    - [Repeater element](#repeater-element)
+  - [Layout Items](#layout-items)
+  - [Input Element](#input-element)
+    - [TextInput](#textinput)
+    - [FocusScope](#focusscope)
+    - [TextEdit](#textedit)
+    - [keys Element](#keys-element)
+  - [Advanced Techniques](#advanced-techniques)
+    - [Performance of QML](#performance-of-qml)
   - [Source code](#source-code)
 
 <!-- /code_chunk_output -->
@@ -359,6 +373,7 @@ Note:
 - For more complex interaction, [Qt Quick Input Handlers](https://doc.qt.io/qt-5/qtquickhandlers-index.html) where introduced with Qt 5.12. They are intended to be used instead of elements such as `MouseArea` and `Flickable` and offer greater control and flexibility. The idea is to handle one interaction aspect in each handler instance instead of centralizing the handling of all events from a given source in a single element, which was the case before.
 
 ## Components
+
 A component is a reusable element and QML provides different ways to create components. Currently, we will look only at the simplest form - a file-based component. A file-based component is created by placing a QML element in a file and give the file an element name (e.g. `Button.qml`). You can use the component like every other element from the QtQuick module, in our case you would use this in your code as `Button` { ... }.
 
 For example, let’s create a rectangle containing a text component and a mouse area. This resembles a simple button and doesn’t need to be more complicated for our purposes.
@@ -394,6 +409,7 @@ For example, let’s create a rectangle containing a text component and a mouse 
 ![](../images/qmlBook_4_quickStarter_202103262213_1.png)
 
 Our task is now to extract the button UI in a reusable component. For this, we shortly think about a possible API for our button. You can do this by imagining how someone else should use your button. Here’s what I came up with:
+
 ```qml
 // minimal API for a button
 Button {
@@ -439,6 +455,7 @@ Rectangle {
 We have exported the text and clicked signal on the root level. Typically we name our root element root to make the referencing easier. We use the `alias` feature of QML, which is a way to export properties inside nested QML elements to the root level and make this available for the outside world. It is important to know, that only the root level properties can be accessed from outside this file by other components.
 
 To use our new `Button` element we can simply declare it in our file. So the earlier example will become a little bit simplified.
+
 ```qml
     Button { // our Button component
         id: button
@@ -459,6 +476,7 @@ To use our new `Button` element we can simply declare it in our file. So the ear
 ```
 
 Note:
+
 - If you want to, you could even go a step further and use an item as a root element. This prevents users to change the color of our designed button and provides us with more control about the exported API. The target should be to export a minimal API. Practically this means we would need to replace the root `Rectangle` with an `Item` and make the rectangle a nested element in the root item.
 
 ```qml
@@ -486,7 +504,7 @@ Let’s start with the simple transformations. Here is our scene as our starting
 
 A simple translation is done via changing the `x,y` position. A `rotation` is done using the rotation property. The value is provided in degrees (0 .. 360). A scaling is done using the `scale` property and a value <1 means the element is scaled down and `>1` means the element is scaled up. The rotation and scaling do not change your geometry. The items `x,y` and `width/height` haven’t changed. Just the painting instructions are transformed.
 
-Before we show off the example I would like to introduce a little helper: The `ClickableImage` element. 
+Before we show off the example I would like to introduce a little helper: The `ClickableImage` element.
 
 ```qml
 // ClickableImage.qml
@@ -597,10 +615,560 @@ Item {
 The circle increments the x-position on each click and the box will rotate on each click. The triangle will rotate and scale the image up on each click, to demonstrate a combined transformation. For the scaling and rotation operation we set `antialiasing: true` to enable anti-aliasing, which is switched off (same as the clipping property `clip`) for performance reasons. In your own work, when you see some rasterized edges in your graphics, then you should probably switch smoothly on.
 
 Note:
-- To achieve better visual quality when scaling images it is recommended to scale images down instead of up. Scaling an image up with a larger scaling factor will result in scaling artifacts (blurred image). When scaling an image you should consider using `` antialiasing: true`` to enable the usage of a higher quality filter.
+
+- To achieve better visual quality when scaling images it is recommended to scale images down instead of up. Scaling an image up with a larger scaling factor will result in scaling artifacts (blurred image). When scaling an image you should consider using ``antialiasing: true`` to enable the usage of a higher quality filter.
 - Elements which appear earlier in the code have a lower stacking order (called z-order). If you click long enough on `circle` you will see it moves below `box`. The z-order can also be manipulated by the `z-property` of an Item.
 
 ![](../images/qmlBook_4_quickStarter_202103262213_4.png)
+
+## Positioning Elements
+
+There are a number of QML elements used to position items. These are called positioners and the following are provided in the QtQuick module `Row`, `Column`, `Grid` and `Flow`. They can be seen showing the same contents in the illustration below.
+
+Before we go into details, let me introduce some helper elements.
+
+```qml
+// RedSquare.qml
+
+import QtQuick 2.5
+
+Rectangle {
+    width: 48
+    height: 48
+    color: "#ea7025"
+    //produce a lighter border color 
+    //based on the fill color
+    border.color: Qt.lighter(color)
+}
+```
+
+### Column element
+
+The [Column element](https://doc.qt.io/qt-5/qml-qtquick-column.html) arranges child items into a column by stacking them on top of each other. The `spacing` property can be used to distance each of the child elements from each other.
+
+```qml
+// column.qml
+
+import QtQuick 2.5
+
+DarkSquare {
+    id: root
+    width: 120
+    height: 240
+
+    Column {
+        id: row
+        anchors.centerIn: parent
+        spacing: 8
+        RedSquare { }
+        GreenSquare { width: 96 }
+        BlueSquare { }
+    }
+}
+```
+
+![](../images/qmlBook_4_quickStarter_202103271803_1.png)
+
+### Row element
+
+The [Row element](https://doc.qt.io/qt-5/qml-qtquick-row.html) places its child items next to each other, either from the left to the right or from the right to the left, depending on the `layoutDirection` property. Again, `spacing` is used to separate child items.
+
+```qml
+// row.qml
+
+import QtQuick 2.5
+
+BrightSquare {
+    id: root
+    width: 400; height: 120
+
+    Row {
+        id: row
+        anchors.centerIn: parent
+        spacing: 20
+        BlueSquare { }
+        GreenSquare { }
+        RedSquare { }
+    }
+}
+```
+
+![](../images/qmlBook_4_quickStarter_202103271803_2.png)
+
+### Grid element
+
+The [Grid element](https://doc.qt.io/qt-5/qml-qtquick-grid.html) arranges its children in a grid, by setting the `rows` and `columns` properties, the number of rows or columns can be constrained. By not setting either of them, the other is calculated from the number of child items. For instance, setting rows to 3 and adding 6 child items will result in 2 columns. The properties `flow` and `layoutDirection` are used to control the order in which the items are added to the grid, while `spacing` controls the amount of space separating the child items.
+
+```qml
+// grid.qml
+
+import QtQuick 2.5
+
+BrightSquare {
+    id: root
+    width: 160
+    height: 160
+
+    Grid {
+        id: grid
+        rows: 2
+        columns: 2
+        anchors.centerIn: parent
+        spacing: 8
+        RedSquare { }
+        RedSquare { }
+        RedSquare { }
+        RedSquare { }
+    }
+
+}
+```
+
+![](../images/qmlBook_4_quickStarter_202103271803_3.png)
+
+### Flow element
+
+[Flow element](https://doc.qt.io/qt-5/qml-qtquick-flow.html) adds its child items in a flow. The direction of the flow is controlled using `flow` and `layoutDirection`. It can run sideways or from the top to the bottom. It can also run from left to right or in the opposite direction. As the items are added in the flow, they are wrapped to form new rows or columns as needed. In order for a flow to work, it must have a width or a height. This can be set either directly, or though anchor layouts.
+
+```qml
+// flow.qml
+
+import QtQuick 2.5
+
+BrightSquare {
+    id: root
+    width: 160
+    height: 160
+
+    Flow {
+        anchors.fill: parent
+        anchors.margins: 20
+        spacing: 20
+        RedSquare { }
+        BlueSquare { }
+        GreenSquare { }
+    }
+}
+```
+
+![](../images/qmlBook_4_quickStarter_202103271803_4.png)
+
+![](../images/qmlBook_4_quickStarter_202103271803_5.png)
+
+![](../images/qmlBook_4_quickStarter_202103271803_6.png)
+
+### Repeater element
+
+[Repeater QML Type](https://doc.qt.io/qt-5/qml-qtquick-repeater.html) works like a for-loop and iterates over a model. In the simplest case a model is just a value providing the number of loops.
+
+```qml
+// repeater.qml
+
+import QtQuick 2.5
+
+DarkSquare {
+    id: root
+    width: 252
+    height: 252
+    property variant colorArray: ["#00bde3", "#67c111", "#ea7025"]
+
+
+    Grid{
+        anchors.fill: parent
+        anchors.margins: 8
+        spacing: 4
+        Repeater {
+            model: 16
+            Rectangle {
+                width: 56; height: 56
+                //using JS math functions
+                property int colorIndex: Math.floor(Math.random()*3)
+                color: root.colorArray[colorIndex]
+                border.color: Qt.lighter(color)
+                Text {
+                    anchors.centerIn: parent
+                    color: "#f0f0f0"
+                    text: "Cell " + index
+                }
+            }
+        }
+    }
+}
+```
+
+![](../images/qmlBook_4_quickStarter_202103271803_7.png)
+
+Note:
+
+- More advanced handling of larger models and kinetic views with dynamic delegates is covered in an own model-view chapter. Repeaters are best used when having a small amount of static data to be presented.
+
+## Layout Items
+
+QML provides a flexible way to layout items using [anchors](https://doc.qt.io/qt-5/qtquick-positioning-anchors.html). The concept of anchoring is part of the `Item` fundamental properties and available to all visual QML elements. Anchors act like a contract and are stronger than competing geometry changes. Anchors are expressions of relativeness, you always need a related element to anchor with.
+
+![](../images/qmlBook_4_quickStarter_202103272119_1.png)
+
+An element has 6 major anchor lines (top, bottom, left, right, horizontalCenter, verticalCenter). Additional there is the baseline anchor for text in Text elements. Each anchor line comes with an offset. In the case of the top, bottom left and right they are called margins. For horizontalCenter, verticalCenter and baseline they are called offsets.
+
+![](../images/qmlBook_4_quickStarter_202103272119_2.png)
+
+- An element fills a parent element
+
+```qml
+        GreenSquare {
+            BlueSquare {
+                width: 12
+                anchors.fill: parent
+                anchors.margins: 8
+                text: '(1)'
+            }
+        }
+```
+
+- An element is left aligned to the parent
+
+```qml
+        GreenSquare {
+            BlueSquare {
+                width: 48
+                y: 8
+                anchors.left: parent.left
+                anchors.leftMargin: 8
+                text: '(2)'
+            }
+        }
+```
+
+- An element left side is aligned to the parent’s right side
+
+```qml
+        GreenSquare {
+            BlueSquare {
+                width: 48
+                anchors.left: parent.right
+                text: '(3)'
+            }
+        }
+```
+
+- Center-aligned elements. `Blue1` is horizontally centered on the parent. `Blue2` is also horizontal centered but on `Blue1` and it’s top is aligned to the `Blue1` bottom line.
+
+```qml
+        GreenSquare {
+            BlueSquare {
+                id: blue1
+                width: 48; height: 24
+                y: 8
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+            BlueSquare {
+                id: blue2
+                width: 72; height: 24
+                anchors.top: blue1.bottom
+                anchors.topMargin: 4
+                anchors.horizontalCenter: blue1.horizontalCenter
+                text: '(4)'
+            }
+        }
+```
+
+- An element is centered on a parent element
+
+```qml
+        GreenSquare {
+            BlueSquare {
+                width: 48
+                anchors.centerIn: parent
+                text: '(5)'
+            }
+        }
+```
+
+- An element is centered with a left-offset on a parent element using horizontal and vertical center lines
+
+```qml
+        GreenSquare {
+            BlueSquare {
+                width: 48
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.horizontalCenterOffset: -12
+                anchors.verticalCenter: parent.verticalCenter
+                text: '(6)'
+            }
+        }
+```
+
+Note:
+
+- Our squares have been enhanced to enable dragging. Try the example and drag around some squares. You will see that (1) can’t be dragged as it’s anchored on all sides, sure you can drag the parent of (1) as it’s not anchored at all. (2) can be vertically dragged as only the left side is anchored. Similar applies to (3). (4) can only be dragged vertically as both squares are horizontally centered. (5) is centered on the parent and as such can’t be dragged, similar applies to (7). Dragging an element means changing their `x,y` position. As anchoring is stronger than geometry changes such as `x,y`, dragging is restricted by the anchored lines. We will see this effect later when we discuss animations.
+
+![](../images/qmlBook_4_quickStarter_202103272119_3.png)
+
+## Input Element
+
+We have already used the [MouseArea](https://doc.qt.io/qt-5/qml-qtquick-mousearea.html) as a mouse input element. Next, we’ll focus on keyboard input. We start off with the text editing elements: [TextInput](https://doc.qt.io/qt-5/qml-qtquick-textinput.html) and [TextEdit](https://doc.qt.io/qt-5/qml-qtquick-textedit.html).
+
+### TextInput
+
+The [TextInput](https://doc.qt.io/qt-5/qml-qtquick-textinput.html) allows the user to enter a line of text. The element supports input constraints such as validator, inputMask, and echoMode.
+
+```qml
+// textinput.qml
+
+import QtQuick 2.5
+
+Rectangle {
+    width: 200
+    height: 80
+    color: "linen"
+
+    TextInput {
+        id: input1
+        x: 8; y: 8
+        width: 96; height: 20
+        focus: true
+        text: "Text Input 1"
+    }
+
+    TextInput {
+        id: input2
+        x: 8; y: 36
+        width: 96; height: 20
+        text: "Text Input 2"
+    }
+}
+```
+
+![](../images/qmlBook_4_quickStarter_202103272119_4.png)
+
+The user can click inside a `TextInput` to change the focus. To support switching the focus by keyboard, we can use the `KeyNavigation`(Tab按键导航) attached property.
+
+```qml
+// textinput2.qml
+
+import QtQuick 2.5
+
+Rectangle {
+    width: 200
+    height: 80
+    color: "linen"
+
+    TextInput {
+        id: input1
+        x: 8; y: 8
+        width: 96; height: 20
+        focus: true
+        text: "Text Input 1"
+        KeyNavigation.tab: input2
+    }
+
+    TextInput {
+        id: input2
+        x: 8; y: 36
+        width: 96; height: 20
+        text: "Text Input 2"
+        KeyNavigation.tab: input1
+    }
+}
+```
+
+We move this piece of code into our own component called TLineEditV1 for reuse.
+
+```qml
+// TLineEditV1.qml
+
+import QtQuick 2.5
+
+Rectangle {
+    width: 96; height: input.height + 8
+    color: "lightsteelblue"
+    border.color: "gray"
+
+    property alias text: input.text
+    property alias input: input
+
+    TextInput {
+        id: input
+        anchors.fill: parent
+        anchors.margins: 4
+        focus: true
+    }
+}
+```
+
+Note
+
+- If you want to export the `TextInput` completely, you can export the element by using `property alias input: input`. The first `input` is the property name, where the 2nd input is the element id.
+
+We rewrite our `KeyNavigation` example with the new `TLineEditV1` component.
+
+```qml
+Rectangle {
+    ...
+    TLineEditV1 {
+        id: input1
+        ...
+    }
+    TLineEditV1 {
+        id: input2
+        ...
+    }
+}
+```
+
+![](../images/qmlBook_4_quickStarter_202103272119_5.png)
+
+And try the tab key for navigation. You will experience the focus does not change to `input2`. The simple use of `focus: true` is not sufficient. The problem arises, that the focus was transferred to the `input2` element the top-level item inside the `TlineEditV1` (our `Rectangle`) received focus and did not forward the focus to the `TextInput`. To prevent this QML offers the `FocusScope`.
+
+### FocusScope
+
+A [focus scope](https://doc.qt.io/qt-5/qml-qtquick-focusscope.html#details) declares that the last child element with focus: true receives the focus if the focus scope receives the focus. So it’s forward the focus to the last focus requesting child element. We will create a 2nd version of our TLineEdit component called TLineEditV2 using the focus scope as the root element.
+
+```qml
+// TLineEditV2.qml
+
+import QtQuick 2.5
+
+FocusScope {
+    width: 96; height: input.height + 8
+    Rectangle {
+        anchors.fill: parent
+        color: "lightsteelblue"
+        border.color: "gray"
+
+    }
+
+    property alias text: input.text
+    property alias input: input
+
+    TextInput {
+        id: input
+        anchors.fill: parent
+        anchors.margins: 4
+        focus: true
+    }
+}
+```
+
+Our example will now look like this:
+
+```qml
+Rectangle {
+    ...
+    TLineEditV2 {
+        id: input1
+        ...
+    }
+    TLineEditV2 {
+        id: input2
+        ...
+    }
+}
+```
+
+Pressing the tab key now successfully switches the focus between the 2 components and the correct child element inside the component is focused.
+
+### TextEdit
+
+The `TextEdit` is very similar to `TextInput` and support a multi-line text edit field. It doesn’t have the text constraint properties as this depends on querying the painted size of the text (`paintedHeight, paintedWidth`). We also create our own component called `TTextEdit` to provide an editing background and use the focus scope for better focus forwarding.
+
+```qml
+// TTextEdit.qml
+
+import QtQuick 2.5
+
+FocusScope {
+    width: 96; height: 96
+    Rectangle {
+        anchors.fill: parent
+        color: "lightsteelblue"
+        border.color: "gray"
+
+    }
+
+    property alias text: input.text
+    property alias input: input
+
+    TextEdit {
+        id: input
+        anchors.fill: parent
+        anchors.margins: 4
+        focus: true
+    }
+}
+```
+
+You can use it like the TLineEdit component:
+
+```qml
+// textedit.qml
+
+import QtQuick 2.5
+
+Rectangle {
+    width: 136
+    height: 120
+    color: "linen"
+
+    TTextEdit {
+        id: input
+        x: 8; y: 8
+        width: 120; height: 104
+        focus: true
+        text: "Text Edit"
+    }
+}
+```
+
+![](../images/qmlBook_4_quickStarter_202103272119_6.png)
+
+### keys Element
+
+The attached property `keys` allows executing code based on certain key presses.For example,to move a square around and scale we can hook into the up,down,left and right keys to translate the element an the plus,minus key to scale the element.
+
+```qml
+// keys.qml
+
+import QtQuick 2.5
+
+DarkSquare {
+    width: 400; height: 200
+
+    GreenSquare {
+        id: square
+        x: 8; y: 8
+    }
+    focus: true
+    Keys.onLeftPressed: square.x -= 8
+    Keys.onRightPressed: square.x += 8
+    Keys.onUpPressed: square.y -= 8
+    Keys.onDownPressed: square.y += 8
+    Keys.onPressed: {
+        switch(event.key) {
+            case Qt.Key_Plus:
+                square.scale += 0.2
+                break;
+            case Qt.Key_Minus:
+                square.scale -= 0.2
+                break;
+        }
+
+    }
+}
+```
+
+![](../images/qmlBook_4_quickStarter_202103272119_7.png)
+
+## Advanced Techniques
+
+
+### Performance of QML
+
+QML and Javascript are interpreted languages. This means that they do not have to be processed by a compiler before being executed. Instead, they are being run inside an execution engine. However, as interpretation is a costly operation various techniques are used to improved performance.
+
+The QML engine uses just-in-time (JIT) compilation to improve performance. It also caches the intermediate output to avoid having to recompile. This works seamlessly for you as a developer. The only trace of this is that files ending with `qmlc` and `jsc` can be found next to the source files.
+
+If you want to avoid the initial start-up penalty induced by the initial parsing you can also pre-compile your QML and Javascript. This requires you to put your code into a Qt resource file and is described in detail in the [Deploying QML Applications](https://doc.qt.io/qt-5/qtquick-deployment.html)#[Compiling QML Ahead of Time](https://doc.qt.io/qt-5/qtquick-deployment.html#ahead-of-time-compilation) chapter in the Qt documentation.
 
 ## Source code
 
