@@ -13,6 +13,7 @@
 * ### [数据结构-图](graph.md)
 * ### [Git 学习笔记](learnGit.md)
 * ### [多线程 VS 多进程](mulThreadAndMulProcesses.md)
+* ### [一些典型的编程题](someAlgotithmProgrammingQuestions.md)
 * ### [排序](sort.md)
 * ### [sqlite 学习](sqlite.md)
 * ### [数据结构（树）](tree.md)

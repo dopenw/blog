@@ -342,4 +342,4 @@ for (i = 0; i < niters; i++)
 
 - [上一级](README.md)
 - 上一篇 -> [Git 学习笔记](learnGit.md)
-- 下一篇 -> [排序](sort.md)
+- 下一篇 -> [一些典型的编程题](someAlgotithmProgrammingQuestions.md)
