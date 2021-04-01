@@ -14,6 +14,7 @@
 * ### [利用 Pandoc 转换文档格式](pandocConvertDoc.md)
 * ### [shadowsocks optimize](shadowsocksOptimize.md)
 * ### [跳过 openGapps 设置向导](skip_opengapps_init.md)
+* ### [一些面试问题](someInterviewQuestions.md)
 * ### [ss+privoxy实现全局代理](ss_privoxy.md)
 * ### [Install ss-libev and config v2ray-plugin on ubuntu](ubuntuInstallSSAndV2rayPlugin.md)
 * ### [v2ray](v2ray.md)
