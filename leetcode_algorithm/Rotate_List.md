@@ -80,6 +80,7 @@ public:
 ```
 
 [source link](https://leetcode.com/problems/rotate-list/discuss/)
+---
 - [上一级](README.md)
 - 上一篇 -> [排列 2](Permutations_II.md)
 - 下一篇 -> [搜索旋转排序数组](Search_in_Rotated_Sorted_Array.md)

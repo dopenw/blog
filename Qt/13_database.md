@@ -1181,6 +1181,7 @@ insertOtherColumns();
 * [qt5-book-code/chap13/](https://github.com/mutse/qt5-book-code/tree/master/chap13)
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [12. 输入与输出](12_inOut.md)
 - 下一篇 -> [14.多线程](14_multiThread.md)

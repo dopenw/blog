@@ -450,6 +450,7 @@ void MyTextEditor::mouseReleaseEvent(QMouseEvent *event)
 * [qt5-book-code/chap09/](https://github.com/mutse/qt5-book-code/tree/master/chap09)
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [8. 二维图形](8_painter.md)
 - 下一篇 -> [10. 项视图类](10_itemViewClass.md)

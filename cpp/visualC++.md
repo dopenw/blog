@@ -319,6 +319,7 @@ Run it:
 * 《VC ++ 深入详解》
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [在使用晚绑定的时候，要注意对基类的析构函数加virtual](vir_del.md)
 - 下一篇 -> [c++ Web 编程](webProgramming.md)

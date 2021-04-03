@@ -3300,6 +3300,7 @@ do Down on TheOther
 * 中介者和观察者是竞争模式。它们之间的区别在于 Observer 通过引入 “observer” 和 “subject” 对象来分发通信，而 Mediator 对象封装了其他对象之间的通信。我们发现制作可重复使用的观察者和 subject 比制作可重复使用的中介者更容易。
 * 另一方面，Mediator 可以利用 Observer 动态注册方法并与其它对象进行通信。
 
+---
 - [上一级](README.md)
 - 上一篇 -> [用户自定义迭代器](createOwnIterator.md)
 - 下一篇 -> [开发注意事项](develop_care_detail.md)

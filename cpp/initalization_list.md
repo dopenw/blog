@@ -56,6 +56,7 @@ int main(int argc, char const *argv[]) {
 }
 
 ```
+---
 - [上一级](README.md)
 - 上一篇 -> [Google c++ test framework](google_test_framework.md)
 - 下一篇 -> [c++ 内部类](inner_class.md)

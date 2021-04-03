@@ -479,6 +479,7 @@ QComboBox:editable {
 ## Link
 * [qt5-book-code/chap19/](https://github.com/mutse/qt5-book-code/tree/master/chap19)
 
+---
 - [上一级](README.md)
 - 上一篇 -> [18. 国际化](18_unicode.md)
 - 下一篇 -> [20. 三维图形](20_3DGraphics.md)

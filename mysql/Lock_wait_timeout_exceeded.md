@@ -55,5 +55,6 @@ SET GLOBAL innodb_lock_wait_timeout = 120;
 [Getting “Lock wait timeout exceeded; try restarting transaction” even though I'm not using a transaction](https://stackoverflow.com/questions/5836623/getting-lock-wait-timeout-exceeded-try-restarting-transaction-even-though-im)
 
 
+---
 - [上一级](README.md)
 - 下一篇 -> [删除数据量较大的表的部分数据](delete_data.md)

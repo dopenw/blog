@@ -94,6 +94,7 @@ string countAndSay(int n) {
 [source link](https://leetcode.com/problems/count-and-say/discuss/)
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [总共有n步楼梯，每次只能爬1步/2步，总共有多少方案爬上楼梯](climbing_stairs.md)
 - 下一篇 -> [两个整数相除](divide_two_integers.md)

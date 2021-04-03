@@ -140,6 +140,7 @@ Run it,show:
 
 -[All Modules](https://doc.qt.io/qt-5/qtmodules.html)
 
+---
 - [上一级](README.md)
 - 上一篇 -> [QML Tutorial](qml.md)
 - 下一篇 -> [《Qml book》 - Quick Starter](qmlBook_4_quickStarter.md)

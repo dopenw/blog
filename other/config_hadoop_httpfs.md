@@ -60,6 +60,7 @@ curl -sS 'http://<HTTPFSHOSTNAME>:14000/webhdfs/v1?op=gethomedirectory&user.name
 ```
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [Atom](atom.md)
 - 下一篇 -> [docker 使用记录（读docker实践记）](docker.md)

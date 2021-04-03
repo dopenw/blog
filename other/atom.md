@@ -197,6 +197,7 @@ $ rpm -ivh 'atom.x86_64.rpm'
 * [How to uninstall Atom text editor on Linux?](https://stackoverflow.com/questions/23621181/how-to-uninstall-atom-text-editor-on-linux)
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [利用 Fusion App 创建个人blog安卓客户端](UseFusionAppCreateBlogApp.md)
 - 下一篇 -> [安装配置hadoop httpfs](config_hadoop_httpfs.md)

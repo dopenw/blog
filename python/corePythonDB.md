@@ -80,6 +80,7 @@ test
 
 详见 [Python SQLite BLOB to Insert and Retrieve file and images](https://pynative.com/python-sqlite-blob-insert-and-retrieve-digital-data/)
 
+---
 - [上一级](README.md)
 - 上一篇 -> [Python 核心编程:正则表达式](CorePython.md)
 - 下一篇 -> [Python核心编程-网络编程](corePythonNet.md)

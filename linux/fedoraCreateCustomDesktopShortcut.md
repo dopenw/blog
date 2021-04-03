@@ -25,6 +25,7 @@ Terminal=false
 ## Link
 * [Desktop shortcut for application launcher in Fedora 23](https://technoref.wordpress.com/2016/01/18/desktop-shortcut-in-fedora-23/)
 
+---
 - [上一级](README.md)
 - 上一篇 -> [virtualbox on fedora 27 fails to load virtualbox Kernel Modules](failsToLoadVirtualBoxKernelModules.md)
 - 下一篇 -> [fedora install cinnamon desktop](fedoraInstallCinnamonDesktop.md)

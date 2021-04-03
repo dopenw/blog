@@ -1719,6 +1719,7 @@ void PrintWindow::printImage(const QImage &image)
 * [qt5-book-code/chap08/](https://github.com/mutse/qt5-book-code/tree/master/chap08)
 * [itemChanged never called on QGraphicsItem](https://stackoverflow.com/questions/8187807/itemchanged-never-called-on-qgraphicsitem)
 
+---
 - [上一级](README.md)
 - 上一篇 -> [7. 事件处理](7_event.md)
 - 下一篇 -> [9. 拖放](9_drag.md)

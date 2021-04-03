@@ -1174,6 +1174,7 @@ If you want to avoid the initial start-up penalty induced by the initial parsing
 
 [source code](https://qmlbook.github.io/assets/ch04-qmlstart-assets.tgz)
 
+---
 - [上一级](README.md)
 - 上一篇 -> [《Qml Book》 - Meet Qt5](qmlBook_1_MeetQt5.md)
 - 下一篇 -> [《Qml Book》 - Fluid Elements](qmlBook_5_FluidElements.md)

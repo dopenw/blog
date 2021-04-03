@@ -1085,6 +1085,7 @@ QString Editor::strippedName(const QString &fullFileName)
 ## Link
 * [qt5-book-code/chap06/](https://github.com/mutse/qt5-book-code/tree/master/chap06)
 
+---
 - [上一级](README.md)
 - 上一篇 -> [5. 创建自定义窗口部件](5_createCustomWidget.md)
 - 下一篇 -> [7. 事件处理](7_event.md)

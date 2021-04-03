@@ -14,6 +14,7 @@ Till now, we have mostly looked at simple graphical elements and how to arrange 
 
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [《Qml book》 - Quick Starter](qmlBook_4_quickStarter.md)
 - 下一篇 -> [qwt 简单使用](qwt.md)

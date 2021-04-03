@@ -34,6 +34,7 @@ export no_proxy=localhost
 6. proxy 支持过滤规则
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [一些面试问题](someInterviewQuestions.md)
 - 下一篇 -> [Install ss-libev and config v2ray-plugin on ubuntu](ubuntuInstallSSAndV2rayPlugin.md)

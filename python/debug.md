@@ -220,6 +220,7 @@ logging.basicConfig(filename='myProgramLog.txt'\
 
 此时，日志信息将写入到文件，屏幕上将不再显示日志信息。
 
+---
 - [上一级](README.md)
 - 上一篇 -> [Python核心编程-网络编程](corePythonNet.md)
 - 下一篇 -> [普通用户安装 python package](noRootUserInstallPackage.md)

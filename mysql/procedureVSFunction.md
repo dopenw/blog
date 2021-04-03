@@ -133,5 +133,6 @@ MariaDB [test]> select function1();
 
 注：
 * [MySQL 的存储过程 procedure 与 函数 function 的区别和使用方法](https://blog.csdn.net/xlxxcc/article/details/52485322)
+---
 - [上一级](README.md)
 - 上一篇 -> [删除数据量较大的表的部分数据](delete_data.md)

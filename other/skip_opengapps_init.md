@@ -13,6 +13,7 @@
 
 [Android Quick Tip: How to Bypass Setup Wizard](http://pocketnow.com/2010/07/12/android-quick-tip-how-to-bypass-touch-the-android-to-begin-video)
 
+---
 - [上一级](README.md)
 - 上一篇 -> [shadowsocks optimize](shadowsocksOptimize.md)
 - 下一篇 -> [一些面试问题](someInterviewQuestions.md)

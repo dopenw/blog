@@ -136,6 +136,7 @@ cout<<a++<<endl; //wrong
 ## const数据成员的初始化
 只能在类的构造函数的初始化列表中进行
 
+---
 - [上一级](README.md)
 - 上一篇 -> [判断浮点数是否相等](compareDoubleFloat.md)
 - 下一篇 -> [c++ 构造函数抛出异常](constructorThrowException.md)

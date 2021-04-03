@@ -236,6 +236,7 @@ systemctl enable SSOther
 * [shadowsocks-libev配置v2ray-plugin](https://jackzhou.co/?p=108)
 * [shadowsocks/v2ray-plugin](https://github.com/shadowsocks/v2ray-plugin)
 
+---
 - [上一级](README.md)
 - 上一篇 -> [ss+privoxy实现全局代理](ss_privoxy.md)
 - 下一篇 -> [v2ray](v2ray.md)

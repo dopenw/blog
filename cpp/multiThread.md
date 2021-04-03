@@ -1372,6 +1372,7 @@ int main(int argc, char const *argv[]) {
 * 我们把假设放松一点，允许显式可重入函数中的一些参数是引用传递的，那么我们就得到一个 隐式可重入的函数，也就是说，如果调用线程小心的传递指向非共享数据的指针，那么它是可重入的。
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [log4cplus 学习笔记](log4cplus.md)
 - 下一篇 -> [mutable的使用](mutable.md)

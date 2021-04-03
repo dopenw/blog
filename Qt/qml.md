@@ -153,6 +153,7 @@ qmlscene -I . main.qml
 ## Link
 * [qt QML Tutorial](https://doc.qt.io/qt-5/qml-tutorial.html)
 
+---
 - [上一级](README.md)
 - 上一篇 -> [Qt Creator 的一些配置](projectConfig.md)
 - 下一篇 -> [《Qml Book》 - Meet Qt5](qmlBook_1_MeetQt5.md)

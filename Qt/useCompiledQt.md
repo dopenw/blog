@@ -28,6 +28,7 @@ Path 添加 "D:\qt5.3.1\msvc2012_x64"
 * [How to build x86 and/or x64 on Windows from command line with CMAKE?](https://stackoverflow.com/questions/28350214/how-to-build-x86-and-or-x64-on-windows-from-command-line-with-cmake)
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [QwtPolar 简单使用](qwtPolar.md)
 - 下一篇 -> [使用 MFCMigrationFramework](useMFCMigrationFramework.md)

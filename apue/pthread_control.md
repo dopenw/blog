@@ -815,5 +815,6 @@ int main(int argc, char const *argv[]) {
 可以使用pread和pwrite来解决并发线程对同一文件进行读、写操作的问题。
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [线程](pthread.md)

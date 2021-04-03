@@ -78,6 +78,7 @@
 - 做人的特质（会问你关于人生、经历、团队合作、成功收获、失败教训等一系列问题）
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [跳过 openGapps 设置向导](skip_opengapps_init.md)
 - 下一篇 -> [ss+privoxy实现全局代理](ss_privoxy.md)

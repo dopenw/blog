@@ -81,6 +81,7 @@ class Solution {
 ```
 
 [source link](https://leetcode.com/problems/powx-n/discuss/)
+---
 - [上一级](README.md)
 - 上一篇 -> [将给定非负整数的vector<int> digits加一，返回加一后的最高位](plus_one.md)
 - 下一篇 -> [从排序的listnode列表中删除重复node](removeDuplicatesFromSortedList.md)

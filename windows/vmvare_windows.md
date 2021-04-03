@@ -27,6 +27,7 @@
           Physical disk partitions are also protected by locks. However, the host operating system is not aware of this locking convention and thus does not respect it. For this reason, VMware strongly recommends that the physical disk for a virtual machine not be installed on the same physical disk as the host operating system.
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [visual studio 创建和使用 DLL 文件](visualStudioCreateUseDLL.md)
 - 下一篇 -> [在windows下开发linux程序需要注意的问题](windows_linux.md)

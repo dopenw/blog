@@ -246,6 +246,7 @@ QT += opengl
 ```
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [19. 自定义外观](19_cutomStyle.md)
 - 下一篇 -> [21. 创建插件](21_createPlugin.md)

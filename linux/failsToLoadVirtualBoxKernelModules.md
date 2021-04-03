@@ -24,6 +24,7 @@ vboxpci: Unknown symbol vfs_write (err 0)
 
 
 [VirtualBox Kernel Module no longer builds under -current kernel update of 17-Nov-2017](https://www.linuxquestions.org/questions/slackware-14/virtualbox-kernel-module-no-longer-builds-under-current-kernel-update-of-17-nov-2017-a-4175617829/)
+---
 - [上一级](README.md)
 - 上一篇 -> [自定义fedora桌面环境](custom_desktop_env.md)
 - 下一篇 -> [fedora create custom desktop shortcut](fedoraCreateCustomDesktopShortcut.md)

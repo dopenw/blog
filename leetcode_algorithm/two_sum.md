@@ -67,5 +67,6 @@ public:
 [solution link](https://leetcode.com/problems/two-sum/solution/)
 
 
+---
 - [上一级](README.md)
 - 上一篇 -> [求平方根](sqrt.md)
