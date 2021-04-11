@@ -155,7 +155,6 @@ def open_blog_clear_tail_links(blog_file,blog_map):
 def blog_add_pre_next_links(blog_file,blog_map):
     if file_is_exists(blog_file):
         out_file=open(blog_file,'a',encoding='UTF-8')
-        out_file.write('---'+config_item['end_of_line_seq'])
         out_file.write('- [上一级](README.md)'+config_item['end_of_line_seq'])
 
         endPos = len(blog_map.keys())

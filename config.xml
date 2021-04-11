@@ -15,10 +15,10 @@
     </include_dir>
     <img>
         <img_src_dir>/home/breap/Pictures</img_src_dir>
-        <img_src_prefix>Selection_00</img_src_prefix>
+        <img_src_prefix>_</img_src_prefix>
         <img_src_suffix>.png</img_src_suffix>
     </img>
     <regex>
-        <delete_ori_img_regex>Selection_.*</delete_ori_img_regex>
+        <delete_ori_img_regex>_.*</delete_ori_img_regex>
     </regex>
 </blog_config>
