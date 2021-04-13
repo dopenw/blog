@@ -73,5 +73,5 @@ CONFIG+=qwt
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [《Qml Book》 - Fluid Elements](qmlBook_5_FluidElements.md)
+- 上一篇 -> [《Qml Book》 - Qt Quick Controls 2](qmlBook_6_quickCtl2.md)
 - 下一篇 -> [QwtPolar 简单使用](qwtPolar.md)

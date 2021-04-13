@@ -28,6 +28,7 @@
 * ### [《Qml Book》 - Meet Qt5](qmlBook_1_MeetQt5.md)
 * ### [《Qml book》 - Quick Starter](qmlBook_4_quickStarter.md)
 * ### [《Qml Book》 - Fluid Elements](qmlBook_5_FluidElements.md)
+* ### [《Qml Book》 - Qt Quick Controls 2](qmlBook_6_quickCtl2.md)
 * ### [qwt 简单使用](qwt.md)
 * ### [QwtPolar 简单使用](qwtPolar.md)
 * ### [编译 vs2012 qt 5.3.1 64 位版本](useCompiledQt.md)
