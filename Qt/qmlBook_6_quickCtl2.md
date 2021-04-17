@@ -258,4 +258,4 @@ Finally, we have looked at the Imagine style that allows you to completely custo
 
 - [上一级](README.md)
 - 上一篇 -> [《Qml Book》 - Fluid Elements](qmlBook_5_FluidElements.md)
-- 下一篇 -> [qwt 简单使用](qwt.md)
+- 下一篇 -> [《Qml Book》 - Model-View-Delegate](qmlBook_7_modelViewDelegate.md)
