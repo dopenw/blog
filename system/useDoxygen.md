@@ -25,6 +25,9 @@ For fedora:
 dnf install doxygen
 ```
 
+在 windows 上安装完成后，若想使用类图等功能，还需安装 [Graphviz - Graph Visualization Software](https://graphviz.org/)
+
+
 ## 创建配置文件，并生成文档
 
 - Creating a configuration file
@@ -56,8 +59,8 @@ doxygen $CONFIG_FILE_NAME
 - [Use the README.md file as main page in Doxygen](https://stackoverflow.com/questions/13368350/use-the-readme-md-file-as-main-page-in-doxygen)
 - [How to use doxygen to create UML class diagrams from C++ source](https://stackoverflow.com/questions/4755913/how-to-use-doxygen-to-create-uml-class-diagrams-from-c-source)
 - [doxygen - Output Formats](https://www.doxygen.nl/manual/output.html)
+- [error using doxygen and graphViz: problems opening map file](https://stackoverflow.com/questions/24158788/error-using-doxygen-and-graphviz-problems-opening-map-file)
 
----
 ---
 - [上一级](README.md)
 - 上一篇 -> [数据结构（树）](tree.md)
