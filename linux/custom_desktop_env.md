@@ -9,6 +9,7 @@
   - [gnome theme](#gnome-theme)
   - [gnome icons](#gnome-icons)
   - [gnome cusor](#gnome-cusor)
+  - [Make fedora Look Like Mac](#make-fedora-look-like-mac)
   - [显示效果](#显示效果)
   - [截屏](#截屏)
   - [系统清理工具](#系统清理工具)
@@ -71,6 +72,42 @@
 1. [Breeze Serie](https://www.gnome-look.org/content/show.php?content=164300)
 
 [youtube link](https://www.youtube.com/watch?v=XKc5DXa8JSs&t=70s)
+
+## Make fedora Look Like Mac
+
+- Install gnome-tweak 
+```sh
+dnf install gnome-tweaks
+```
+- Install a Mac GTK Theme - [McMojave](https://www.gnome-look.org/p/1275087/)
+```sh
+tar -xvf Mojave-dark.tar.xz --directory /usr/share/themes/
+
+tar -xvf Mojave-light.tar.xz --directory /usr/share/themes/
+```
+
+- Install Icon Themes
+```sh
+dnf install la-capitaine-icon-theme
+```
+
+- Add a Desktop Dock - [fedora install Dash to Dock](https://micheleg.github.io/dash-to-dock/download.html)
+
+- Change some settings in gnome-tweak
+  - gnome-tweaks
+    - ->Appearance
+      - -> Applications to Mojave-dark
+      - -> Icons to La-Capitaine 
+      - -> Shell to Mojave-dark
+    - -> Extensions
+      - Enable Dash to dock ,and change some settings
+
+ 
+
+Link:
+
+- [How To Make Ubuntu Look Like Mac (In 5 Steps)](https://www.omgubuntu.co.uk/2017/03/make-ubuntu-look-like-mac-5-steps)
+- [How to Make Fedora 28 Looks Like Mac OS X Mojave](https://manjaro.site/how-to-make-fedora-28-looks-like-mac-os-x-mojave/)
 
 ## 显示效果
 
