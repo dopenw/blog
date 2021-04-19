@@ -14,6 +14,7 @@
   - [截屏](#截屏)
   - [系统清理工具](#系统清理工具)
   - [utilties](#utilties)
+  - [Peek - an animated GIF recorder](#peek-an-animated-gif-recorder)
   - [upgrade fedora26 to fedora27](#upgrade-fedora26-to-fedora27)
   - [fedora 27 install nvidia-driver](#fedora-27-install-nvidia-driver)
   - [youtube downloader](#youtube-downloader)
@@ -22,6 +23,7 @@
     - [List the default kernel](#list-the-default-kernel)
     - [List all the kernel menu entries](#list-all-the-kernel-menu-entries)
     - [Change the default boot entry](#change-the-default-boot-entry-1)
+  - [Link](#link)
 
 <!-- /code_chunk_output -->
 
@@ -123,8 +125,14 @@ Link:
 
 ## 截屏
 
+[Flameshot github](https://github.com/flameshot-org/flameshot)
+
+```sh
+dnf install flameshot
+```
+
 实现快捷截取选择屏幕区域:
-"alter + a" -> "shutter -s -e"
+"Alt + A" -> "flameshot gui"
 
 ## 系统清理工具
 
@@ -149,6 +157,16 @@ Link:
 2. [overgrive](https://www.thefanclub.co.za/overgrive)
 
 [youtube link](https://youtu.be/-rnnhcTqgys)
+
+## Peek - an animated GIF recorder
+
+[Peek - an animated GIF recorder](https://github.com/phw/peek#fedora)
+
+```sh
+dnf install peek
+dnf install ffmpeg
+dnf install gstreamer1-plugins-ugly
+```
 
 ## upgrade fedora26 to fedora27
 
@@ -298,9 +316,9 @@ non linux entry
 
 [Fedora GRUB2 BOOT Loader](https://docs.fedoraproject.org/f26/system-administrators-guide/kernel-module-driver-configuration/Working_with_the_GRUB_2_Boot_Loader.html)
 
+## Link 
 
-
-
+- [Best GIF Recorder Tools for Linux](https://itsfoss.com/best-gif-recorder-linux/)
 
 ---
 - [上一级](README.md)
