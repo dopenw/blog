@@ -1337,4 +1337,4 @@ The delegates used in the views can be static items with properties bound to dat
 
 - [上一级](README.md)
 - 上一篇 -> [《Qml Book》 - Qt Quick Controls 2](qmlBook_6_quickCtl2.md)
-- 下一篇 -> [qwt 简单使用](qwt.md)
+- 下一篇 -> [《Qml Book》 - Canvas Element](qmlBook_9_canvasElement.md)

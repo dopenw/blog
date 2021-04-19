@@ -73,5 +73,5 @@ CONFIG+=qwt
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [《Qml Book》 - Model-View-Delegate](qmlBook_7_modelViewDelegate.md)
+- 上一篇 -> [《Qml Book》 - Canvas Element](qmlBook_9_canvasElement.md)
 - 下一篇 -> [QwtPolar 简单使用](qwtPolar.md)
