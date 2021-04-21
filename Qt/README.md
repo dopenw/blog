@@ -25,6 +25,7 @@
 * ### [解决 qt 程序的依赖项](deployqt.md)
 * ### [Qt Creator 的一些配置](projectConfig.md)
 * ### [QML Tutorial](qml.md)
+* ### [《Qml Book》 - Particle Simulations](qmlBook_10_particleSimulations.md)
 * ### [《Qml Book》 - Meet Qt5](qmlBook_1_MeetQt5.md)
 * ### [《Qml book》 - Quick Starter](qmlBook_4_quickStarter.md)
 * ### [《Qml Book》 - Fluid Elements](qmlBook_5_FluidElements.md)

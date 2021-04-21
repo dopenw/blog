@@ -142,5 +142,5 @@ Run it,show:
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [QML Tutorial](qml.md)
+- 上一篇 -> [《Qml Book》 - Particle Simulations](qmlBook_10_particleSimulations.md)
 - 下一篇 -> [《Qml book》 - Quick Starter](qmlBook_4_quickStarter.md)
