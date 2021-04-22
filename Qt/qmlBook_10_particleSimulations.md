@@ -9,7 +9,7 @@
   - [Simple Simulation](#simple-simulation)
   - [Particle Parameters](#particle-parameters)
   - [Directed Particles](#directed-particles)
-  - [Source code](#source-code)
+  - [Particle Painters](#particle-painters)
   - [Source code](#source-code)
 <!-- /code_chunk_output -->
 
@@ -167,6 +167,7 @@ Rectangle {
 We have seen particles can rotate. But particles can also have a trajectory. The trajectory is specified as the velocity or acceleration of particles defined by a stochastic direction also named a vector space.
 
 There are different vector spaces available to define the velocity or acceleration of a particle:
+
 - [AngleDirection](https://doc.qt.io/qt-5/qml-qtquick-particles-angledirection.html) - a direction that varies in angle
 - [PointDirection](https://doc.qt.io/qt-5/qml-qtquick-particles-pointdirection.html) - a direction that varies in x and y components
 - [TargetDirection](https://doc.qt.io/qt-5/qml-qtquick-particles-targetdirection.html) - a direction towards the target point
@@ -201,6 +202,252 @@ The magnitude is defined in pixels per seconds. As we have ca. 640px to travel 1
 ```
 
 ![](../images/qmlBook_10_particleSimulations_202104212012_4.gif)
+
+So what is then the acceleration doing? The acceleration adds an acceleration vector to each particle, which changes the velocity vector over time. For example, let’s make a trajectory like an arc of stars. For this we change our velocity direction to -45 degree and remove the variations, to better visualize a coherent arc:
+
+```qml
+velocity: AngleDirection {
+    angle: -45
+    magnitude: 100
+}
+```
+
+The acceleration direction shall be 90 degrees (down direction) and we choose one-fourth of the velocity magnitude for this:
+
+```qml
+acceleration: AngleDirection {
+    angle: 90
+    magnitude: 25
+}
+```
+
+The result is an arc going from the center-left to the bottom right.
+
+![](../images/qmlBook_10_particleSimulations_202104212012_5.gif)
+
+Here is the full code of our emitter.
+
+```qml
+    Emitter {
+        id: emitter
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        width: 1; height: 1
+        system: particleSystem
+        emitRate: 10
+        lifeSpan: 6400
+        lifeSpanVariation: 400
+        size: 32
+        velocity: AngleDirection {
+            angle: -45
+            angleVariation: 0
+            magnitude: 100
+        }
+        acceleration: AngleDirection {
+            angle: 90
+            magnitude: 25
+        }
+    }
+```
+
+In the next example we would like that the particles again travel from left to right but this time we use the `PointDirection` vector space.
+
+A `PointDirection` derived its vector space from an x and y component. For example, if you want the particles to travel in a 45-degree vector, you need to specify the same value for x and y.
+
+In our case we want the particles to travel from left-to-right building a 15-degree cone. For this we specify a `PointDirection` as our velocity vector space.
+
+To achieve a traveling velocity of 100 px per seconds we set our x component to 100. For the 15 degrees (which is 1/6th of 90 degrees) we specify an y variation of 100/6:
+
+```qml
+velocity: PointDirection {
+    x: 100
+    y: 0
+    xVariation: 0
+    yVariation: 100/6
+}
+```
+
+The result should be particles traveling in a 15-degree cone from right to left.
+
+![](../images/qmlBook_10_particleSimulations_202104212012_6.gif)
+
+Now coming to our last contender, the `TargetDirection`. The target direction allows us to specify a target point as an x and y coordinate relative to the emitter or an item. When an item has specified the center of the item will become the target point. You can achieve the 15-degree cone by specifying a target variation of 1/6 th of the x target:
+
+```qml
+velocity: TargetDirection {
+    targetX: 100
+    targetY: 0
+    targetVariation: 100/6
+    magnitude: 100
+}
+```
+
+Note
+
+- Target direction are great to use when you have a specific x/y coordinate you want the stream of particles emitted towards.
+
+![](../images/qmlBook_10_particleSimulations_202104212012_7.gif)
+
+Full code:
+
+```qml
+import QtQuick 2.5
+import QtQuick.Particles 2.0
+
+Rectangle {
+    id: root
+    width: 480; height: 240
+    color: "#1F1F1F"
+
+    ParticleSystem {
+        id: particleSystem
+    }
+
+    ImageParticle {
+        source: "assets/star.png"
+        system: particleSystem
+        color: '#FFD700'
+        colorVariation: 0.2
+        rotation: 0
+        rotationVariation: 45
+        rotationVelocity: 15
+        rotationVelocityVariation: 15
+        entryEffect: ImageParticle.Scale
+    }
+
+
+    // M1>>
+    Emitter {
+        id: emitter
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        width: 1; height: 1
+        system: particleSystem
+        emitRate: 10
+        lifeSpan: 6400
+        lifeSpanVariation: 400
+        size: 32
+        velocity: TargetDirection {
+            targetItem: target1
+            targetVariation: 20
+            magnitude: 50
+        }
+        acceleration: TargetDirection {
+            targetItem: target2
+            targetVariation: 20
+            magnitude: 50
+        }
+    }
+    // <<M1
+
+    Rectangle {
+        id: target1
+        width: 40; height: width
+        radius: width/2
+        color: '#FF0000'
+        opacity: 0.5
+
+
+        MouseArea {
+            anchors.fill: parent
+            drag.target: target1
+        }
+    }
+
+    Rectangle {
+        id: target2
+        width: 40; height: width
+        radius: width/2
+        color: '#00FF00'
+        opacity: 0.5
+
+
+        MouseArea {
+            anchors.fill: parent
+            drag.target: target2
+        }
+    }
+
+}
+```
+
+## Particle Painters
+
+Till now we have only used the image based particle painter to visualize particles. Qt comes also with other particle painters:
+
+- [ItemParticle](https://doc.qt.io/qt-5/qml-qtquick-particles-itemparticle.html): delegate based particle painter
+- [CustomParticle](https://doc.qt.io/qt-5/qml-qtquick-particles-customparticle.html): shader based particle painter
+
+The `ItemParticle` can be used to emit QML items as particles. For this, you need to specify your own delegate to the particle.
+
+```qml
+import QtQuick 2.5
+import QtQuick.Particles 2.0
+
+Rectangle {
+    id: root
+    width: 400; height: 400
+    color: "#333333"
+
+    property var images: [
+        "box_blue.png",
+        "box_red.png",
+        "box_green.png",
+        "circle_blue.png",
+        "circle_red.png",
+        "circle_green.png",
+        "triangle_blue.png",
+        "triangle_red.png",
+        "triangle_green.png",
+
+    ]
+
+    // M1>>
+    ParticleSystem {
+        id: particleSystem
+    }
+
+    Emitter {
+        id: emitter
+        anchors.fill: root
+        anchors.margins: 32
+        system: particleSystem
+        emitRate: 4
+        lifeSpan: 2000
+    }
+    // <<M1
+
+
+    // M2>>
+    ItemParticle {
+        id: particle
+        system: particleSystem
+        delegate: itemDelegate
+    }
+    // <<M2
+
+    // M3>>
+    Component {
+        id: itemDelegate
+        Item {
+            id: container
+            width: 32*Math.ceil(Math.random()*3); height: width
+            Image {
+                anchors.fill: parent
+                anchors.margins: 4
+                source: 'assets/'+images[Math.floor(Math.random()*9)]
+            }
+        }
+    }
+    // <<M3
+}
+```
+
+We emit 4 images per second with a lifespan of 4 seconds each. The particles fade automatically in and out.
+
+![](../images/qmlBook_10_particleSimulations_202104212012_8.gif)
+
+For more dynamic cases it is also possible to create an item on your own and let the particle take control of it with `take(item, priority)`. By this, the particle simulation takes control of your particle and handles the item like an ordinary particle. You can get back control of the item by using `give(item)`. You can influence item particles even more by halt their life progression using `freeze(item)` and resume their life using `unfreeze(item)`.
 
 ## Source code
 
