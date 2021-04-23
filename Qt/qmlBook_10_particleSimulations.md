@@ -3,14 +3,24 @@
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
-- [《Qml Book》 - Particle Simulations](#qml-book-particle-simulations)
+
 - [《Qml Book》 - Particle Simulations](#qml-book-particle-simulations)
   - [Concept](#concept)
   - [Simple Simulation](#simple-simulation)
   - [Particle Parameters](#particle-parameters)
   - [Directed Particles](#directed-particles)
   - [Particle Painters](#particle-painters)
+  - [Affecting Particles](#affecting-particles)
+    - [Age](#age)
+    - [Attractor](#attractor)
+    - [Friction](#friction)
+    - [Gravity](#gravity)
+    - [Turbulence](#turbulence)
+    - [Wander](#wander)
+  - [Particle Groups](#particle-groups)
+  - [Summary](#summary)
   - [Source code](#source-code)
+
 <!-- /code_chunk_output -->
 
 注：该文档为 《Qml Book》的学习文档，详见 [Qml book - Particle Simulations](https://qmlbook.github.io/ch10-particles/particles.html)
@@ -448,6 +458,497 @@ We emit 4 images per second with a lifespan of 4 seconds each. The particles fad
 ![](../images/qmlBook_10_particleSimulations_202104212012_8.gif)
 
 For more dynamic cases it is also possible to create an item on your own and let the particle take control of it with `take(item, priority)`. By this, the particle simulation takes control of your particle and handles the item like an ordinary particle. You can get back control of the item by using `give(item)`. You can influence item particles even more by halt their life progression using `freeze(item)` and resume their life using `unfreeze(item)`.
+
+## Affecting Particles
+
+Particles are emitted by the emitter. After a particle was emitted it can’t be changed any more by the emitter. The affectors allows you to influence particles after they have been emitted.
+
+Each type of affector affects particles in a different way:
+
+- [Age](https://doc.qt.io/qt-5/qml-qtquick-particles-age.html) - alter where the particle is in its life-cycle
+- [Attractor](https://doc.qt.io/qt-5/qml-qtquick-particles-attractor.html) - attract particles towards a specific point
+- [Friction](https://doc.qt.io/qt-5/qml-qtquick-particles-friction.html) - slows down movement proportional to the particle’s current velocity
+- [Gravity](https://doc.qt.io/qt-5/qml-qtquick-particles-gravity.html) - set’s an acceleration in an angle
+- [Turbulence](https://doc.qt.io/qt-5/qml-qtquick-particles-turbulence.html) - fluid like forces based on a noise image
+- [Wander](https://doc.qt.io/qt-5/qml-qtquick-particles-wander.html) - randomly vary the trajectory
+- [GroupGoal](https://doc.qt.io/qt-5/qml-qtquick-particles-groupgoal.html) - change the state of a group of a particle
+- [SpriteGoal](https://doc.qt.io/qt-5/qml-qtquick-particles-spritegoal.html) - change the state of a sprite particle
+
+### Age
+
+Allows particle to age faster. the lifeLeft property specified how much life a particle should have left.
+
+```qml
+    Age {
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: 240; height: 120
+        system: particleSystem
+        advancePosition: true
+        lifeLeft: 1200
+        once: true
+        Tracer {}
+    }
+```
+
+In the example, we shorten the life of the upper particles once when they reach the age of affector to 1200 msec. As we have set the advancePosition to true, we see the particle appearing again on a position when the particle has 1200 msecs left to live.
+
+![](../images/qmlBook_10_particleSimulations_202104212012_9.gif)
+
+### Attractor
+
+The attractor attracts particles towards a specific point. The point is specified using `pointX` and `pointY`, which is relative to the attractor geometry. The strength specifies the force of attraction. In our example we let particles travel from left to right. The attractor is placed on the top and half of the particles travel through the attractor. Affector only affect particles while they are in their bounding box. This split allows us to see the normal stream and the affected stream simultaneous.
+
+```qml
+    Attractor {
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: 160; height: 120
+        system: particleSystem
+        pointX: 0
+        pointY: 0
+        strength: 1.0
+        Tracer {}
+    }
+```
+
+It’s easy to see that the upper half of the particles are affected by the attracted to the top. The attraction point is set to top-left (0/0 point) of the attractor with a force of 1.0.
+
+![](../images/qmlBook_10_particleSimulations_202104212012_10.gif)
+
+### Friction
+
+The friction affector slows down particles by a factor until a certain threshold is reached.
+
+```qml
+    Friction {
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: 240; height: 120
+        system: particleSystem
+        factor : 0.8
+        threshold: 25
+        Tracer {}
+    }
+```
+
+In the upper friction area, the particles are slowed down by a factor of 0.8 until the particle reaches 25 pixels per seconds velocity. The threshold act’s like a filter. Particles traveling above the threshold velocity are slowed down by the given factor.
+
+![](../images/qmlBook_10_particleSimulations_202104212012_11.gif)
+
+### Gravity
+
+The gravity affector applies an acceleration In the example we stream the particles from the bottom to the top using an angle direction. The right side is unaffected, where on the left a gravity effect is applied. The gravity is angled to 90 degrees (bottom-direction) with a magnitude of 50.
+
+```qml
+    Gravity {
+        width: 240; height: 240
+        system: particleSystem
+        magnitude: 50
+        angle: 90
+        Tracer {}
+    }
+```
+
+Particles on the left side try to climb up, but the steady applied acceleration towards the bottom drags them into the direction of the gravity.
+
+![](../images/qmlBook_10_particleSimulations_202104212012_12.gif)
+
+### Turbulence
+
+The turbulence affector applies a chaos map of force vectors to the particles. The chaos map is defined by a noise image, which can be defined with the noiseSource property. The `strength` defines how strong the vector will be applied to the particle movements.
+
+```qml
+    Turbulence {
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: 240; height: 120
+        system: particleSystem
+        strength: 100
+        Tracer {}
+    }
+```
+
+In the upper area of the example, particles are influenced by the turbulence. Their movement is more erratic. The amount of erratic deviation from the original path is defined by the strength.
+
+![](../images/qmlBook_10_particleSimulations_202104212012_13.gif)
+
+### Wander
+
+The wander manipulates the trajectory. With the property `affectedParameter` can be specified which parameter (`velocity`, `position` or `acceleration`) is affector by the wander. The pace property specifies the maximum of attribute changes per second. The `xVariance` and `yVariance` specify the influence on x and y component of the particle trajectory.
+
+```qml
+    Wander {
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: 240; height: 120
+        system: particleSystem
+        affectedParameter: Wander.Position
+        pace: 200
+        yVariance: 240
+        Tracer {}
+    }
+```
+
+In the top wander affector particles are shuffled around by random trajectory changes. In this case, the position is changed 200 times per second in the y-direction.
+
+![](../images/qmlBook_10_particleSimulations_202104212012_14.gif)
+
+## Particle Groups
+
+At the beginning of this chapter, we stated particles are in groups, which is by default the empty group (‘’). Using the `GroupGoal` affector is it possible to let the particle change groups. To visualize this we would like to create a small firework, where rockets start into space and explode in the air into a spectacular firework.
+
+![](../images/qmlBook_10_particleSimulations_202104212012_15.gif)
+
+The example is divided into 2 parts. The 1st part called “Launch Time” is concerned to set up the scene and introduce particle groups and the 2nd part called “Let there be fireworks” focuses on the group changes.
+
+Let’s get started!
+
+Launch Time
+
+To get it going we create a typical dark scene:
+
+```qml
+import QtQuick 2.5
+import QtQuick.Particles 2.0
+
+Rectangle {
+    id: root
+    width: 480; height: 240
+    color: "#1F1F1F"
+    property bool tracer: false
+}
+```
+
+The tracer property will be used to switch the tracer scene wide on and off. The next thing is to declare our particle system:
+
+```qml
+ParticleSystem {
+    id: particleSystem
+}
+```
+
+And our two image particles (one for the rocket and one for the exhaust smoke):
+
+```qml
+ImageParticle {
+    id: smokePainter
+    system: particleSystem
+    groups: ['smoke']
+    source: "assets/particle.png"
+    alpha: 0.3
+    entryEffect: ImageParticle.None
+}
+
+ImageParticle {
+    id: rocketPainter
+    system: particleSystem
+    groups: ['rocket']
+    source: "assets/rocket.png"
+    entryEffect: ImageParticle.None
+}
+```
+
+You can see in on the images, they use the groups property to declare to which group the particle belongs. It is enough to just declare a name and an implicit group will be created by Qt Quick.
+
+Now it’s time to emit some rockets into the air. For this, we create an emitter on the bottom of our scene and set the velocity in an upward direction. To simulate some gravity we set an acceleration downwards:
+
+```qml
+Emitter {
+    id: rocketEmitter
+    anchors.bottom: parent.bottom
+    width: parent.width; height: 40
+    system: particleSystem
+    group: 'rocket'
+    emitRate: 2
+    maximumEmitted: 4
+    lifeSpan: 4800
+    lifeSpanVariation: 400
+    size: 32
+    velocity: AngleDirection { angle: 270; magnitude: 150; magnitudeVariation: 10 }
+    acceleration: AngleDirection { angle: 90; magnitude: 50 }
+    Tracer { color: 'red'; visible: root.tracer }
+}
+```
+
+The emitter is in the group ‘rocket’, the same as our rocket particle painter. Through the group name, they are bound together. The emitter emits particles into the group ‘rocket’ and the rocket particle painter will pain them.
+
+For the exhaust, we use a trail emitter, which follows our rocket. It declares an own group called ‘smoke’ and follows the particles from the ‘rocket’ group:
+
+```qml
+TrailEmitter {
+    id: smokeEmitter
+    system: particleSystem
+    emitHeight: 1
+    emitWidth: 4
+    group: 'smoke'
+    follow: 'rocket'
+    emitRatePerParticle: 96
+    velocity: AngleDirection { angle: 90; magnitude: 100; angleVariation: 5 }
+    lifeSpan: 200
+    size: 16
+    sizeVariation: 4
+    endSize: 0
+}
+```
+
+The smoke is directed downwards to simulate the force the smoke comes out of the rocket. The `emitHeight` and `emitWidth` specify the are around the particle followed from where the smoke particles shall be emitted. If this is not specified then they are of the particle followed is taken but for this example, we want to increase the effect that the particles stem from a central point near the end of the rocket.
+
+If you start the example now you will see the rockets fly up and some are even flying out of the scene. As this is not really wanted we need to slow them down before they leave the screen. A friction affector can be used here to slow the particles down to a minimum threshold:
+
+```qml
+Friction {
+    groups: ['rocket']
+    anchors.top: parent.top
+    width: parent.width; height: 80
+    system: particleSystem
+    threshold: 5
+    factor: 0.9
+}
+```
+
+In the friction affector, you also need to declare which groups of particles it shall affect. The friction will slow all rockets, which are 80 pixels downwards from the top of the screen down by a factor of 0.9 (try 100 and you will see they almost stop immediately) until they reach a velocity of 5 pixels per second. As the particles have still an acceleration downwards applied the rockets will start sinking toward the ground after they reach the end of their life-span.
+
+As climbing up in the air is hard work and a very unstable situation we want to simulate some turbulences while the ship is climbing:
+
+```qml
+Turbulence {
+    groups: ['rocket']
+    anchors.bottom: parent.bottom
+    width: parent.width; height: 160
+    system: particleSystem
+    strength: 25
+    Tracer { color: 'green'; visible: root.tracer }
+}
+```
+
+Also, the turbulence needs to declare which groups it shall affect. The turbulence itself reaches from the bottom 160 pixels upwards (until it reaches the border of the friction). They also could overlap.
+
+When you start the example now you will see the rockets are climbing up and then will be slowed down by the friction and fall back to the ground by the still applied downwards acceleration. The next thing would be to start the firework.
+
+![](../images/qmlBook_10_particleSimulations_202104212012_16.gif)
+
+Note
+
+- The image shows the scene with the tracers enabled to show the different areas. Rocket particles are emitted in the red area and then affected by the turbulence in the blue area. Finally, they are slowed down by the friction affector in the green area and start falling again, because of the steady applied downwards acceleration.
+
+Let there be fireworks
+
+To be able to change the rocket into a beautiful firework we need add a ParticleGroup to encapsulate the changes:
+
+```qml
+ParticleGroup {
+    name: 'explosion'
+    system: particleSystem
+}
+```
+
+We change to the particle group using a `GroupGoal` affector. The group goal affector is placed near the vertical center of the screen and it will affect the group ‘rocket’. With the groupGoal property we set the target group for the change to ‘explosion’, our earlier defined particle group:
+
+```qml
+GroupGoal {
+    id: rocketChanger
+    anchors.top: parent.top
+    width: parent.width; height: 80
+    system: particleSystem
+    groups: ['rocket']
+    goalState: 'explosion'
+    jump: true
+    Tracer { color: 'blue'; visible: root.tracer }
+}
+```
+
+The jump property states the change in groups shall be immediately and not after a certain duration.
+
+Note
+
+- In the Qt 5 alpha release we could the duration for the group change not get working. Any ideas?
+
+As the group of the rocket now changes to our ‘explosion’ particle group when the rocket particle enters the group goal area we need to add the firework inside the particle group:
+
+```qml
+// inside particle group
+TrailEmitter {
+    id: explosionEmitter
+    anchors.fill: parent
+    group: 'sparkle'
+    follow: 'rocket'
+    lifeSpan: 750
+    emitRatePerParticle: 200
+    size: 32
+    velocity: AngleDirection { angle: -90; angleVariation: 180; magnitude: 50 }
+}
+```
+
+The explosion emits particles into the ‘sparkle’ group. We will define soon a particle painter for this group. The trail emitter used follows the rocket particle and emits per rocket 200 particles. The particles are directed upwards and vary by 180 degrees.
+
+As the particles are emitted into the ‘sparkle’ group, we also need to define a particle painter for the particles:
+
+```qml
+ImageParticle {
+    id: sparklePainter
+    system: particleSystem
+    groups: ['sparkle']
+    color: 'red'
+    colorVariation: 0.6
+    source: "assets/star.png"
+    alpha: 0.3
+}
+```
+
+The sparkles of our firework shall be little red stars with an almost transparent color to allow some shine effects.
+
+To make the firework more spectacular we also add a second trail emitter to our particle group, which will emit particles in a narrow cone downwards:
+
+```qml
+// inside particle group
+TrailEmitter {
+    id: explosion2Emitter
+    anchors.fill: parent
+    group: 'sparkle'
+    follow: 'rocket'
+    lifeSpan: 250
+    emitRatePerParticle: 100
+    size: 32
+    velocity: AngleDirection { angle: 90; angleVariation: 15; magnitude: 400 }
+}
+```
+
+Otherwise, the setup is similar to the other explosion trail emitter. That’s it.
+
+Here is the final result.
+
+![](../images/qmlBook_10_particleSimulations_202104212012_15.gif)
+
+Here is the full source code of the rocket firework.
+
+```qml
+import QtQuick 2.5
+import QtQuick.Particles 2.0
+
+Rectangle {
+    id: root
+    width: 480; height: 240
+    color: "#1F1F1F"
+    property bool tracer: false
+
+    ParticleSystem {
+        id: particleSystem
+    }
+
+    ImageParticle {
+        id: smokePainter
+        system: particleSystem
+        groups: ['smoke']
+        source: "assets/particle.png"
+        alpha: 0.3
+    }
+
+    ImageParticle {
+        id: rocketPainter
+        system: particleSystem
+        groups: ['rocket']
+        source: "assets/rocket.png"
+        entryEffect: ImageParticle.Fade
+    }
+
+    Emitter {
+        id: rocketEmitter
+        anchors.bottom: parent.bottom
+        width: parent.width; height: 40
+        system: particleSystem
+        group: 'rocket'
+        emitRate: 2
+        maximumEmitted: 8
+        lifeSpan: 4800
+        lifeSpanVariation: 400
+        size: 128
+        velocity: AngleDirection { angle: 270; magnitude: 150; magnitudeVariation: 10 }
+        acceleration: AngleDirection { angle: 90; magnitude: 50 }
+        Tracer { color: 'red'; visible: root.tracer }
+    }
+
+    TrailEmitter {
+        id: smokeEmitter
+        system: particleSystem
+        group: 'smoke'
+        follow: 'rocket'
+        size: 16
+        sizeVariation: 8
+        emitRatePerParticle: 16
+        velocity: AngleDirection { angle: 90; magnitude: 100; angleVariation: 15 }
+        lifeSpan: 200
+        Tracer { color: 'blue'; visible: root.tracer }
+    }
+
+    Friction {
+        groups: ['rocket']
+        anchors.top: parent.top
+        width: parent.width; height: 80
+        system: particleSystem
+        threshold: 5
+        factor: 0.9
+
+    }
+
+    Turbulence {
+        groups: ['rocket']
+        anchors.bottom: parent.bottom
+        width: parent.width; height: 160
+        system: particleSystem
+        strength:25
+        Tracer { color: 'green'; visible: root.tracer }
+    }
+
+
+    ImageParticle {
+        id: sparklePainter
+        system: particleSystem
+        groups: ['sparkle']
+        color: 'red'
+        colorVariation: 0.6
+        source: "assets/star.png"
+        alpha: 0.3
+    }
+
+    GroupGoal {
+        id: rocketChanger
+        anchors.top: parent.top
+        width: parent.width; height: 80
+        system: particleSystem
+        groups: ['rocket']
+        goalState: 'explosion'
+        jump: true
+        Tracer { color: 'blue'; visible: root.tracer }
+    }
+
+    ParticleGroup {
+        name: 'explosion'
+        system: particleSystem
+
+        TrailEmitter {
+            id: explosionEmitter
+            anchors.fill: parent
+            group: 'sparkle'
+            follow: 'rocket'
+            lifeSpan: 750
+            emitRatePerParticle: 200
+            size: 32
+            velocity: AngleDirection { angle: -90; angleVariation: 180; magnitude: 50 }
+        }
+
+        TrailEmitter {
+            id: explosion2Emitter
+            anchors.fill: parent
+            group: 'sparkle'
+            follow: 'rocket'
+            lifeSpan: 250
+            emitRatePerParticle: 100
+            size: 32
+            velocity: AngleDirection { angle: 90; angleVariation: 15; magnitude: 400 }
+        }
+    }
+}
+```
+
+## Summary
+
+Particles are a very powerful and fun way to express graphical phenomena like smoke. firework, random visual elements. The extended API in Qt 5 is very powerful and we have just scratched the surface. There are several elements we haven’t yet played with like sprites, size tables or color tables. Also when the particles look very playful they have a great potential when used wisely to create some eye catcher in any user interface. Using too many particle effects inside a user interface will definitely lead to the impression towards a game. Creating games is also the real strength of the particles.
 
 ## Source code
 
