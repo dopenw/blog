@@ -17,6 +17,7 @@
   - [Peek - an animated GIF recorder](#peek-an-animated-gif-recorder)
   - [upgrade fedora26 to fedora27](#upgrade-fedora26-to-fedora27)
   - [fedora 27 install nvidia-driver](#fedora-27-install-nvidia-driver)
+  - [install kde](#install-kde)
   - [youtube downloader](#youtube-downloader)
     - [merge video and audio](#merge-video-and-audio)
   - [Change the default boot entry](#change-the-default-boot-entry)
@@ -197,6 +198,17 @@ reboot
 [source link](https://rpmfusion.org/Howto/NVIDIA)
 [youtube link](https://www.youtube.com/watch?v=oTUMO7gHmXg)
 
+## install kde 
+
+```sh
+dnf install @kde-desktop-environment
+# for chinese input
+dnf install fcitx*
+```
+
+使用 WhiteSur-dark 主题后效果图如下：
+
+![](../images/custom_desktop_env_202104252136_1.png)
 
 ## youtube downloader
 ```sh
