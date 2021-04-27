@@ -27,6 +27,7 @@
 * ### [QML Tutorial](qml.md)
 * ### [《Qml Book》 - Particle Simulations](qmlBook_10_particleSimulations.md)
 * ### [《Qml Book》 - Multimedia](qmlBook_12_multimedia.md)
+* ### [《Qml Book》 - Networking](qmlBook_13_network.md)
 * ### [《Qml Book》 - Meet Qt5](qmlBook_1_MeetQt5.md)
 * ### [《Qml book》 - Quick Starter](qmlBook_4_quickStarter.md)
 * ### [《Qml Book》 - Fluid Elements](qmlBook_5_FluidElements.md)
