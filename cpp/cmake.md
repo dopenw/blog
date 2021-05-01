@@ -264,10 +264,10 @@ Which function gives better results, sqrt or mysqrt?
 
 #### Full code
 
-- [main CMakeLists.txt full code](../any/cmake/tutorial/Step2/CMakeLists.txt)
+- [CMakeLists.txt full code](../any/cmake/tutorial/Step2/CMakeLists.txt)
 - [TutorialConfig.h.in full code](../any/cmake/tutorial/Step2/TutorialConfig.h.in)
 - [tutorial.cxx full code](../any/cmake/tutorial/Step2/tutorial.cxx)
-- [sub CMakeLists.txt full code](../any/cmake/tutorial/Step2/MathFunctions/CMakeLists.txt)
+- [MathFunctions/CMakeLists.txt full code](../any/cmake/tutorial/Step2/MathFunctions/CMakeLists.txt)
 - more ...
 
 ### Adding Usage Requirements for Library (Step 3)
@@ -313,8 +313,8 @@ Once this is done, run the `cmake` executable or the `cmake-gui` to configure th
 
 #### Full code
 
-- [main CMakeLists.txt full code](../any/cmake/tutorial/Step3/CMakeLists.txt)
-- [sub CMakeLists.txt full code](../any/cmake/tutorial/Step3/MathFunctions/CMakeLists.txt)
+- [CMakeLists.txt full code](../any/cmake/tutorial/Step3/CMakeLists.txt)
+- [MathFunctions/CMakeLists.txt full code](../any/cmake/tutorial/Step3/MathFunctions/CMakeLists.txt)
 - more ...
 
 ### Installing and Testing (Step 4)
@@ -403,8 +403,8 @@ Rebuild the application and then cd to the binary directory and run the [ctest](
 
 #### Full code
 
-- [main CMakeLists.txt full code](../any/cmake/tutorial/Step4/CMakeLists.txt)
-- [sub CMakeLists.txt full code](../any/cmake/tutorial/Step4/MathFunctions/CMakeLists.txt)
+- [CMakeLists.txt full code](../any/cmake/tutorial/Step4/CMakeLists.txt)
+- [MathFunctions/CMakeLists.txt full code](../any/cmake/tutorial/Step4/MathFunctions/CMakeLists.txt)
 - more ...
 
 ### Adding System Introspection (Step 5)
@@ -461,8 +461,8 @@ Which function gives better results now, sqrt or mysqrt?
 
 #### Full code
 
-- [sub CMakeLists.txt full code](../any/cmake/tutorial/Step5/MathFunctions/CMakeLists.txt)
-- [tutorial.cxx full code](../any/cmake/tutorial/Step5/tutorial.cxx)
+- [MathFunctions/CMakeLists.txt full code](../any/cmake/tutorial/Step5/MathFunctions/CMakeLists.txt)
+- [MathFunctions/mysqrt.cxx full code](../any/cmake/tutorial/Step5/MathFunctions/mysqrt.cxx)
 - more ...
 
 ---
