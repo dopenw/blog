@@ -35,6 +35,7 @@
 * ### [《Qml Book》 - Qt Quick Controls 2](qmlBook_6_quickCtl2.md)
 * ### [《Qml Book》 - Model-View-Delegate](qmlBook_7_modelViewDelegate.md)
 * ### [《Qml Book》 - Canvas Element](qmlBook_9_canvasElement.md)
+* ### [《Qml Book》 - Dynamic QML](qmlbook_15_dynamicQml.md)
 * ### [qwt 简单使用](qwt.md)
 * ### [QwtPolar 简单使用](qwtPolar.md)
 * ### [编译 vs2012 qt 5.3.1 64 位版本](useCompiledQt.md)
