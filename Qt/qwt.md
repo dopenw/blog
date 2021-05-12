@@ -73,5 +73,5 @@ CONFIG+=qwt
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [《Qml Book》 - Dynamic QML](qmlbook_15_dynamicQml.md)
+- 上一篇 -> [《Qml Book》 - JavaScript](qmlbook_16_javaScript.md)
 - 下一篇 -> [QwtPolar 简单使用](qwtPolar.md)
