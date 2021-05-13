@@ -389,4 +389,4 @@ The data return from the call function is a JS object with a result, expression 
 
 - [上一级](README.md)
 - 上一篇 -> [《Qml Book》 - Dynamic QML](qmlbook_15_dynamicQml.md)
-- 下一篇 -> [qwt 简单使用](qwt.md)
+- 下一篇 -> [《Qml Book》 - Qt and C++](qmlbook_17_QtAndc++.md)

@@ -73,5 +73,5 @@ CONFIG+=qwt
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [《Qml Book》 - JavaScript](qmlbook_16_javaScript.md)
+- 上一篇 -> [《Qml Book》 - Qt and C++](qmlbook_17_QtAndc++.md)
 - 下一篇 -> [QwtPolar 简单使用](qwtPolar.md)
