@@ -263,4 +263,4 @@ To store directly from within QML these are the major storage types. The real st
 
 - [上一级](README.md)
 - 上一篇 -> [《Qml Book》 - Networking](qmlBook_13_network.md)
-- 下一篇 -> [《Qml Book》 - Meet Qt5](qmlBook_1_MeetQt5.md)
+- 下一篇 -> [《Qml Book》 - Dynamic QML](qmlbook_15_dynamicQml.md)

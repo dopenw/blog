@@ -3,7 +3,6 @@ import os
 import xml.etree.ElementTree as ET
 import time
 import re
-from functools import cmp_to_key
 import platform
 import traceback
 from shutil import copyfile
@@ -40,30 +39,18 @@ def read_config(config_file_path,config_item):
         config_item[cfg.tag]=cfg.text 
         logging.debug("config_item[{}]={}".format(cfg.tag,cfg.text))
 
-def cmp_items(a, b):
-    reg = re.compile('^\d+_')
-    logging.debug('a - {}'.format(a))
-    logging.debug('b - {}'.format(b))
-    a_match = reg.match(a)
-    b_match = reg.match(b)
-    if a_match != None and b_match !=None:
-        num1= int(a_match[0][:-1])
-        num2 = int(b_match[0][:-1])
-        logging.debug('a num - {}'.format(num1))
-        logging.debug('b num - {}'.format(num2))
-        if num1 > num2:
-            return 1
-        elif num1 < num2:
-            return -1
-    elif a_match == None and b_match != None:
-        return 1
-    elif a_match != None and b_match == None:
-        return -1
-    else:
-        if (a<b):
-            return -1
-        elif (a>b):
-            return 1
+# human sorting (also known as natural sorting)
+# https://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside
+def atoi(text):
+    return int(text) if text.isdigit() else text
+
+def natural_keys(text):
+    '''
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    (See Toothy's implementation in the comments)
+    '''
+    return [ atoi(c) for c in re.split(r'(\d+)', text) ]
 
 def get_dir_file(dir_path):
     files = []
@@ -79,7 +66,7 @@ def get_dir_file(dir_path):
             logging.debug('File inside '+ folder_name + ': '+ filename)
             if filename != 'README.md':
                 files.append(filename)
-    ret = sorted(files,key= cmp_to_key(cmp_items))  
+    ret = sorted(files,key= natural_keys)  
     logging.debug('files is {}'.format(files))         
     return ret 
 

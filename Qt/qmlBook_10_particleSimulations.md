@@ -957,5 +957,5 @@ Particles are a very powerful and fun way to express graphical phenomena like sm
 ---
 
 - [上一级](README.md)
-- 上一篇 -> [QML Tutorial](qml.md)
+- 上一篇 -> [《Qml Book》 - Canvas Element](qmlBook_9_canvasElement.md)
 - 下一篇 -> [《Qml Book》 - Multimedia](qmlBook_12_multimedia.md)

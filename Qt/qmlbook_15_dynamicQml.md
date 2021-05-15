@@ -675,5 +675,5 @@ One of the challenges of working with dynamically created items is to keep track
 ---
 
 - [上一级](README.md)
-- 上一篇 -> [《Qml Book》 - Canvas Element](qmlBook_9_canvasElement.md)
+- 上一篇 -> [《Qml Book》 - storage](qmlBook_14_storage.md)
 - 下一篇 -> [《Qml Book》 - JavaScript](qmlbook_16_javaScript.md)
