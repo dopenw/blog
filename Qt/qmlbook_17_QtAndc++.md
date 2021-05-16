@@ -1075,4 +1075,4 @@ Model view programming is one of the hardest tasks in Qt. It is one of the very 
 
 - [上一级](README.md)
 - 上一篇 -> [《Qml Book》 - JavaScript](qmlbook_16_javaScript.md)
-- 下一篇 -> [qwt 简单使用](qwt.md)
+- 下一篇 -> [《Qml Book》 - Extending QML with C++](qmlbook_18_extendingQmlWithc++.md)

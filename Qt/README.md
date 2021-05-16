@@ -38,6 +38,7 @@
 * ### [《Qml Book》 - Dynamic QML](qmlbook_15_dynamicQml.md)
 * ### [《Qml Book》 - JavaScript](qmlbook_16_javaScript.md)
 * ### [《Qml Book》 - Qt and C++](qmlbook_17_QtAndc++.md)
+* ### [《Qml Book》 - Extending QML with C++](qmlbook_18_extendingQmlWithc++.md)
 * ### [qwt 简单使用](qwt.md)
 * ### [QwtPolar 简单使用](qwtPolar.md)
 * ### [编译 vs2012 qt 5.3.1 64 位版本](useCompiledQt.md)
