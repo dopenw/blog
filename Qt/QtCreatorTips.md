@@ -24,5 +24,5 @@
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [21. 创建插件](21_createPlugin.md)
+- 上一篇 -> [23. 平台相关性](23_platformDependencies.md)
 - 下一篇 -> [解决 qt 程序的依赖项](deployqt.md)

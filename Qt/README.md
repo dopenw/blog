@@ -21,6 +21,7 @@
 * ### [19. 自定义外观](19_cutomStyle.md)
 * ### [20. 三维图形](20_3DGraphics.md)
 * ### [21. 创建插件](21_createPlugin.md)
+* ### [23. 平台相关性](23_platformDependencies.md)
 * ### [Qt Creator 使用](QtCreatorTips.md)
 * ### [解决 qt 程序的依赖项](deployqt.md)
 * ### [Qt Creator 的一些配置](projectConfig.md)
