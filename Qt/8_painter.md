@@ -1713,7 +1713,285 @@ void PrintWindow::printImage(const QImage &image)
 * 可以把数据转换为 HTML ,并且使用 Qt 的富文本引擎 [QTextDocument](https://doc.qt.io/qt-5/qtextdocument.html) 进行显示
 * 可以执行绘制并且手动分页
 
-在书中讲述了这两种方法的使用，这里暂时略过这两个实例。
+PrintCtl.h:
+```c++
+#ifndef PRINTCTL_H
+#define PRINTCTL_H
+
+#include <QObject>
+#include <QImage>
+#include <QStringList>
+#include <QPrinter>
+#include <QPainter>
+#include <QFont>
+
+class PrintCtl : public QObject
+{
+    Q_OBJECT
+public:
+    explicit PrintCtl(QObject *parent = nullptr);
+    void printImage(const QImage& image);
+    void printFlowerGuide(const QStringList& entries);
+    void printFlowerGuideCustomPage(const QStringList& entries);
+    void printHtml(const QString& html);
+    QString getSaveFilePath();
+    void paginate(QPainter * painter,QList<QStringList> * pages
+                  ,const QStringList& entries);
+    int entryHeight(QPainter * painter,const QString& entry);
+    void printPages(QPainter * painter,const QList<QStringList>& pages);
+    void printPage(QPainter * painter,const QStringList & entries,int pageNumber);
+    void printBox(QPainter * painter,const QString& str
+                  ,const QFont& font,const QBrush& brush);
+signals:
+
+private:
+     QPrinter m_printer;
+     const int LARGE_GAP=90; // 页面顶部和底部页眉的高度
+     const int MEDIUM_GAP = 100; // （标题+体） 与 下一个(标题+体)之间的距离
+     const int SMALL_GAP = 50; // 文本内容与边框边界的距离
+     QFont m_titleFont;
+     QFont m_bodyFont;
+     QFont m_footerFont;
+};
+
+#endif // PRINTCTL_H
+
+```
+
+PrintCtl.cpp:
+```c++
+#include "PrintCtl.h"
+#include <QPainter>
+#include <QPrintDialog>
+#include <QPrinter>
+#include <QFileDialog>
+#include <QTextDocument>
+#include <QStandardPaths>
+
+PrintCtl::PrintCtl(QObject *parent) : QObject(parent),m_printer(QPrinter::HighResolution)
+{
+    m_printer.setColorMode(QPrinter::Color);
+}
+
+void PrintCtl::printImage(const QImage &image)
+{
+    QPrintDialog printDialog(&m_printer);
+    if(printDialog.exec()){
+        QPainter painter(&m_printer);
+        QRect rect = painter.viewport();
+        QSize size = image.size();
+        size.scale(rect.size(),Qt::KeepAspectRatio);
+        painter.setViewport(rect.x(),rect.y()
+                            ,size.width(),size.height());
+        painter.setWindow(image.rect());
+        painter.drawImage(0,0,image);
+    }
+
+}
+
+// 创建 html 格式内容，并配合QTextDocument 打印
+void PrintCtl::printFlowerGuide(const QStringList &entries)
+{
+    QString html;
+    foreach(QString entry,entries){
+        QStringList fields = entry.split(": ");
+        //QString::toHtmlEscaped(); 用来把特殊字符转换为对应的 html 项
+        QString title = QString(fields[0]).toHtmlEscaped();
+        QString body = QString(fields[1]).toHtmlEscaped();
+        html += QString("<table width=\"\100%\" border=1 cellspacing=0>\n"
+                        "<tr><td bgcolor=\"lightgray\"><font size=\"+1\">"
+                        "<b><i> %1 </i></b></font>\n<tr><td> %2 \n"
+                        "</table>\n<br>\n").arg(title,body);
+    }
+    printHtml(html);
+}
+
+// 更多可控性，可以手动控制页面的布局和绘制
+void PrintCtl::printFlowerGuideCustomPage(const QStringList &entries)
+{
+    QPrintDialog printDialog(&m_printer);
+    if(printDialog.exec()){
+        QPainter painter(&m_printer);
+        QList<QStringList> pages;
+        paginate(&painter,&pages,entries);
+        printPages(&painter,pages);
+    }
+}
+
+void PrintCtl::printHtml(const QString &html)
+{
+    QPrintDialog printDialog(&m_printer);
+    if(printDialog.exec()){
+        QTextDocument textDocument;
+        textDocument.setHtml(html);
+        textDocument.print(&m_printer);
+    }else{
+        m_printer.setOutputFormat(QPrinter::PdfFormat);
+        auto filePath=getSaveFilePath();
+        if(!filePath.isEmpty()){
+            m_printer.setOutputFileName(filePath);
+            QTextDocument textDocument;
+            textDocument.setHtml(html);
+            textDocument.print(&m_printer);
+        }
+
+    }
+
+}
+
+QString PrintCtl::getSaveFilePath()
+{
+    QString ret = QFileDialog::getSaveFileName(
+                nullptr, QObject::tr("Select output file")
+                , QStandardPaths::writableLocation(QStandardPaths::DesktopLocation)
+                         , QObject::tr("PDF Files(*.pdf);;HTML-Files (*.htm *.html)"));
+    return ret;
+}
+
+/**
+ * @brief PrintCtl::paginate 计算哪个条目将要出现在哪一页出现
+ * @param painter
+ * @param pages 每一个 QStringList 保存的是一页中的所有条目
+ * @param entries 原始数据条目
+ */
+void PrintCtl::paginate(QPainter *painter, QList<QStringList> *pages, const QStringList &entries)
+{
+    QStringList currentPage;
+    int pageHeight = painter->window().height() - 2 * LARGE_GAP;
+    int y=0;
+
+    foreach(QString entry,entries){
+        int height=entryHeight(painter,entry);
+        if(y+ height > pageHeight && !currentPage.empty()){
+            pages->append(currentPage);
+            currentPage.clear();
+            y=0;
+        }
+        currentPage.append(entry);
+        y+=height + MEDIUM_GAP;
+    }
+    if(!currentPage.empty()){
+        pages->append(currentPage);
+    }
+}
+
+/**
+ * @brief PrintCtl::entryHeight 计算一个条目的高度（包括页面顶部和底部页眉）
+ * @param painter
+ * @param entry
+ * @return
+ */
+int PrintCtl::entryHeight(QPainter *painter, const QString &entry)
+{
+    QStringList fields = entry.split(": ");
+    QString title = fields[0];
+    QString body = fields[1];
+
+    int textWidth = painter->window().width() - 2 * SMALL_GAP;
+    int maxHeight = painter->window().height();
+
+    painter->setFont(m_titleFont);
+    // QPainter::boundingRect() 来计算一个条目所需的垂直空间。
+    QRect titleRect = painter->boundingRect(0,0,textWidth,maxHeight
+                                            ,Qt::TextWordWrap,title);
+    painter->setFont(m_bodyFont);
+    QRect bodyRect = painter->boundingRect(0,0,textWidth,maxHeight
+                                           ,Qt::TextWordWrap,body);
+    return titleRect.height() + bodyRect.height() + 4 * SMALL_GAP;
+}
+
+void PrintCtl::printPages(QPainter *painter, const QList<QStringList> &pages)
+{
+    // QPrinter::fromPage() 和 QPrinter::toPage() 函数返回被用户选择的页码，或者没有被选中就返回 0
+    int firstPage = m_printer.fromPage() - 1;
+    if(firstPage >= pages.size()){
+        return;
+    }
+    if(firstPage == -1){
+        firstPage =0;
+    }
+    int lastPage = m_printer.toPage() -1;
+    if(lastPage == -1 || lastPage >= pages.size()){
+        lastPage=pages.size()-1;
+    }
+    int numPages = lastPage - firstPage +1;
+    // QPrinter::numCopies() 返回副本的份数
+    for(int i=0;i<m_printer.numCopies();++i){
+        for(int j=0;j<numPages;++j){
+            if(i!=0 || j!=0){
+                m_printer.newPage();
+            }
+            int index=0;
+            if(m_printer.pageOrder() == QPrinter::FirstPageFirst){
+                index = firstPage + j;
+            }else{
+                index = lastPage - j;
+            }
+            printPage(painter,pages[index],index+1);
+        }
+    }
+}
+
+void PrintCtl::printPage(QPainter *painter, const QStringList &entries, int pageNumber)
+{
+    painter->save();
+    painter->translate(0,LARGE_GAP);
+    foreach(QString entry,entries){
+        QStringList fields = entry.split(": ");
+        QString title = fields[0];
+        QString body = fields[1];
+        // 打印标题
+        printBox(painter,title,m_titleFont,Qt::lightGray);
+        // 打印体
+        printBox(painter,body,m_bodyFont,Qt::white);
+        painter->translate(0,MEDIUM_GAP);
+    }
+    painter->restore();
+    // 绘制页编号
+    painter->setFont(m_footerFont);
+    painter->drawText(painter->window()
+                      ,Qt::AlignHCenter | Qt::AlignBottom
+                      ,QString::number(pageNumber));
+}
+
+// 绘制一个框的边缘，然后绘制框里的文本
+void PrintCtl::printBox(QPainter *painter, const QString &str, const QFont &font, const QBrush &brush)
+{
+    painter->setFont(font);
+    int boxWidth = painter->window().width();
+    int textWidth = boxWidth -2*SMALL_GAP;
+    int maxHeight = painter->window().height();
+
+    QRect textRect = painter->boundingRect(SMALL_GAP,SMALL_GAP
+                                           ,textWidth,maxHeight
+                                           ,Qt::TextWordWrap,str);
+    int boxHeight = textRect.height() + 2 * SMALL_GAP;
+
+    painter->setPen(QPen(Qt::black,2.0,Qt::SolidLine));
+    painter->setBrush(brush);
+    painter->drawRect(0,0,boxWidth,boxHeight);
+    painter->drawText(textRect,Qt::TextWordWrap,str);
+    painter->translate(0,boxHeight);
+}
+
+```
+
+部分调用方法：
+```c++
+ QStringList data;
+ PrintCtl print;
+ for(auto i=0;i<10;++i){
+        data<<QString("Daily Information [%1] : Daily Information [1] (or Daily Info for short) is a printed information sheet in Oxford, England, displayed especially around the University colleges and departments, but also in local businesses. It has been in continuous existence since 28 September 1964, mostly as a brightly coloured A2 sheet, with premises originally in Warnborough Road, North Oxford.[2] It provides information on events in and outside of Oxford, as well as reviews and small advertisements."
+                        "Daily Information used to be published daily, as its name implies, but now appears on Tuesdays and Fridays during both university term-time and the vacation. It was founded and then run for 40 years by John Rose (26 April 1925, Tunbridge Wells – 17 December 2004).[3] Daily Info now has a regularly updated associated website from which the printed information is drawn.")
+                        .arg(i);
+    }
+    // 创建 html 格式内容，并配合QTextDocument 打印
+    print.printFlowerGuide(data);
+    // 更多可控性，可以手动控制页面的布局和绘制
+    print.printFlowerGuideCustomPage(data);
+```
+
+
 
 ## Link
 * [qt5-book-code/chap08/](https://github.com/mutse/qt5-book-code/tree/master/chap08)
