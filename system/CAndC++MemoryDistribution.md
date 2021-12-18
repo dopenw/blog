@@ -38,4 +38,4 @@
 
 ---
 - [上一级](README.md)
-- 下一篇 -> [贪心算法](GreedyAlgorithms.md)
+- 下一篇 -> [设计模式 - 可复用面向对象软件的基础](DesignPatternsBook.md)

@@ -1,6 +1,7 @@
 # Categories system
 * ## [home](../README.md)
 * ### [C 和 C++ 的内存分布](CAndC++MemoryDistribution.md)
+* ### [设计模式 - 可复用面向对象软件的基础](DesignPatternsBook.md)
 * ### [贪心算法](GreedyAlgorithms.md)
 * ### [变量名的力量](ThePowerOfVariableName.md)
 * ### [UML 统一建模语言](UML.md)

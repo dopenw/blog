@@ -272,5 +272,5 @@ key: d,huffman: 111
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [C 和 C++ 的内存分布](CAndC++MemoryDistribution.md)
+- 上一篇 -> [设计模式 - 可复用面向对象软件的基础](DesignPatternsBook.md)
 - 下一篇 -> [变量名的力量](ThePowerOfVariableName.md)
