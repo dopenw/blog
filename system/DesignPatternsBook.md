@@ -1,24 +1,28 @@
 # 设计模式 - 可复用面向对象软件的基础
 
-
+---
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [设计模式 - 可复用面向对象软件的基础](#设计模式-可复用面向对象软件的基础)
+- [设计模式 - 可复用面向对象软件的基础](#设计模式---可复用面向对象软件的基础)
   - [第一章 引言](#第一章-引言)
     - [1.1 什么是设计模式](#11-什么是设计模式)
     - [1.2 Smalltalk MVC 中的设计模式](#12-smalltalk-mvc-中的设计模式)
     - [1.3 描述设计模式](#13-描述设计模式)
+    - [1.4 设计默认的编目](#14-设计默认的编目)
+    - [1.5 组织条目](#15-组织条目)
 
 <!-- /code_chunk_output -->
 
-
+---
 
 ## 第一章 引言
 
 ### 1.1 什么是设计模式
+
 一般而言，一个模式有四个基本要素：
+
 - `模式名`(pattern name)，一个助记名，它用一两个词来描述模式的问题、解决方案和效果。
 - `问题`(problem), 描述了应该在何时使用模式。
 - `解决方案`(solution)描述了设计的组成部分、他们之间的相互关系及各自的职责和协作方式。
@@ -26,7 +30,10 @@
 
 本书中的设计模式是 `对用来在特定场景下解决一般设计问题的类和相互通信的对象的描述。`
 
+---
+
 ### 1.2 Smalltalk MVC 中的设计模式
+
 在 [Smalltalk-80](https://en.wikipedia.org/wiki/Smalltalk) 中，类的模型/视图/控制器（Model/view/Controller）三元组(MVC)被用来构建用户界面。透过 MVC 来看设计模式将帮助我们理解 “模式”这一术语的含义。
 
 若不使用 MVC ，用户界界面设计往往将这些对象混在一起，而 MVC 则将它们分离以提高灵活性和复用性。
@@ -40,7 +47,7 @@ MVC 通过建立一个 “订购/通知” 协议来分离视图和模型。视�
 
 MVC 的另一个特征是视图可以嵌套。例如，按钮控制面板可以用一个嵌套了按钮的复杂视图来实现。MVC 用 view 类的子类 -- compositeView 类来支持嵌套视图。
 
-上例反映了可以将组合视图与其构件平等对待的设计，同样，该设计也适用于更一般的问题：将一些对象划为一组，并将该组对象当作一个对象来使用。这个设计被描述成 Composite 模式。 
+上例反映了可以将组合视图与其构件平等对待的设计，同样，该设计也适用于更一般的问题：将一些对象划为一组，并将该组对象当作一个对象来使用。这个设计被描述成 Composite 模式。
 
 MVC 允许你在不改变视图外观的情况下改变视图对用户输入的响应方式。例如，你可能希望改变视图对键盘的响应方式，或希望使用弹出菜单而不是原来的命令键方式。MVC 将响应机制封装在 Controller 对象中。存在着一个 Controller 的类层次结构，使得可以方便地对原有 Controller 做适当改变而创建新的 Controller
 
@@ -48,10 +55,13 @@ View-Controller 关系是 Strategy 模式的一个例子。一个策略是一个
 
 MVC 还使用了其他的设计模式，如：用来指定视图默认控制器的 Factory Method 和用来增加视图滚动的 Decorator 。但是 MVC 的主要关系还是 Observer 、 Composite 和 Strategy 三个设计模式给出的。
 
-### 1.3 描述设计模式 
+---
+
+### 1.3 描述设计模式
 
 我们将用统一的格式描述设计模式，有助于你更容易地学习、比较和使用设计模式。
-- `模式名和分类` 
+
+- `模式名和分类`
 - `意图`
 - `别名`
 - `动机`
@@ -64,6 +74,94 @@ MVC 还使用了其他的设计模式，如：用来指定视图默认控制器�
 - `代码示例`
 - `已知应用`
 - `相关模式`
+
+---
+
+### 1.4 设计默认的编目
+
+从第三章开始的模式目录中包含23个设计模式。如下所示：
+
+- Abstract Factory(3.1): 提供一个创建一系列相关或相互依赖对象的接口，而无须指定它们具体的类。
+- Adapter(4.1): 将一个类的接口转换成客户希望的另外一个接口。Adapter 模式使得原本由于接口不兼容而不能一起工作的那些类可以一起工作。
+- Bridge(4.2): 将抽象部分与它的实现部分分离，使它们都可以独立的变化。
+- Builder(3.2):将一个复杂对象的构建与它的表示分离，使得同样的构建过程可以创建不同的表示。
+- Chain of Responsibility(5.1):解除请求的发送者和接收者之间的耦合，使多个对象都有机会处理这个请求。将这些对象连成一条链，并沿着这条链传递该请求，直到有一个对象处理它。
+- Command(5.2): 将一个请求封装为一个对象，从而使你可用不同的请求对客户进行参数化；对请求排队或记录请求日志，以及支持可取消的操作。
+- Composite(4.3):将对象组合成树形结构以表示“部分--整体”的层次结构。Composite 使得客户对单个对象和组合对象的使用具有一致性。
+- Decorator(4.4):动态地给一个对象添加一些额外的职责。就扩展功能而言，Decorator 模式比生成子类方式更为灵活。
+- Facade(4.5):为子系统中的一组接口提供一个一致的界面，Facade 模式定义了一个高层接口，这个接口使得这一子系统更加容易使用。
+- Factory Method(3.3)：定义一个用于创建对象的接口，让子类决定将哪一个类实例化。Factory Method 使一个类的实例化延迟到其子类。
+- Flyweight(4.6):运用共享技术有效地支持大量细粒度的对象。
+- Interpreter(5.3):给定一个语言，定义它的文法的一种表示，并定义一个解释器，该解释器使用该表示来解释语言中的句子。
+- Iterator(5.4):提供一种方法顺序访问一个聚合对象中的各个元素，而又不需要暴露该对象的内部表示。
+- Mediator(5.5):用一个中介对象来封装一系列的对象交互。中介者使各个对象不用显式地相互调用，从而使其耦合松散，而且可以独立地改变他们之间的交互。
+- Memento(5.6):在不破环封装性的前提下，捕获一个对象的内部状态，并在该对象之外保存这个状态。这样以后就可将该对象恢复到保存的状态。
+- Observer(5.7):定义对象间的一种一对多的依赖关系，以便当一个对象的状态发生改变时，所有依赖于它的对象都得到通知并自动刷新。
+- Prototype(3.4):用原型实例指定创建对象的种类，并且通过拷贝这个原型来创建新的对象。
+- Proxy(4.7):为其他对象提供一个代理以控制对这个对象的访问。
+- Singleton(3.5):保证一个类仅有一个实例，并提供一个访问它的全局访问点。
+- State(5.8):允许一个对象在其内部状态改变时改变它的行为。对象看起来似乎修改了它所属的类。
+- Strategy(5.9):定义一系列的算法，把它们一个个封装起来，并且使它们可相互替换。本模式使得算法的变化可独立于使用它的客户。
+- Template Method(5.10):定义一个操作中的算法的骨架，而将一些步骤延迟到子类中。Template Method 使得子类不改变一个算法的结构即可重定义该算法的某些特定步骤。
+- Vistor(5.11):表示一个作用于某对象结构中的各元素的操作。它使你可以在不改变各元素的类的前提下定义作用于这些元素的新操作。
+
+---
+
+### 1.5 组织条目
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-g6va{background-color:#9b9b9b;border-color:#3166ff;text-align:left;vertical-align:top}
+.tg .tg-6ltk{background-color:#9b9b9b;border-color:#3166ff;text-align:center;vertical-align:top}
+.tg .tg-uko8{border-color:#3166ff;text-align:left;vertical-align:middle}
+.tg .tg-s4wa{border-color:#3166ff;text-align:center;vertical-align:middle}
+</style>
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-g6va" rowspan="2"></th>
+    <th class="tg-g6va" rowspan="2"></th>
+    <th class="tg-6ltk" colspan="3">目的</th>
+  </tr>
+  <tr>
+    <th class="tg-6ltk">创建型</th>
+    <th class="tg-6ltk">结构型</th>
+    <th class="tg-6ltk">行为型</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-uko8" rowspan="2">范围</td>
+    <td class="tg-s4wa">类</td>
+    <td class="tg-s4wa">Factory Method</td>
+    <td class="tg-s4wa">Adapter</td>
+    <td class="tg-s4wa">Interpreter<br>Template Method</td>
+  </tr>
+  <tr>
+    <td class="tg-s4wa">对象</td>
+    <td class="tg-s4wa">Abstract Factory<br>Builder<br>Prototype<br>Singleton</td>
+    <td class="tg-s4wa">Adapter<br>Bridge<br>Composite<br>Decorator<br>Facade<br>Flyweight<br>Proxy</td>
+    <td class="tg-s4wa">Chain of Responsibility<br>Command<br>Iterator<br>Mediator<br>Memento<br>Observer<br>State<br>Strategy<br>Visitor</td>
+  </tr>
+</tbody>
+</table>
+
+我们根据两条准则对模式进行分类。第一条是`目的`准则，即模式是用来完成什么工作的。模式依据其目的可分为：
+
+- 创建型（与对象的创建有关）
+- 结构型（处理类与对象的组合）
+- 行为型模式（对类或对象怎么交互和怎么分配职责进行描述）。
+第二条是`范围`准则，指定模式主要是用于类还是用于对象。`类模式处理类和子类之间的关系，这些关系通过继承建立，是静态的，在编译时便确定下来了`。`对象模式处理对象间的关系,这些关系在运行时是可以变化的，更具动态性。`从某种意义上来说，几乎所有模式都是用继承机制，所以 “类模式”只指那些集中于处理类间关系的模式，而大部分模式都属于对象模式的范畴。
+
+还有一种方式是根据模式的“相关模式”部分所描述的它们怎么互相引用来组织设计模式。如下图所示：
+
+![](../images/DesignPatternsBook_202112251755_1.png)
+
+显然，存在着许多组织设计模式的方法。从多角度去思考模式有助于对它们的功能、差异和应用场合的更深入理解。
 
 ---
 
