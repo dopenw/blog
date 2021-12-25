@@ -109,17 +109,6 @@ MVC 还使用了其他的设计模式，如：用来指定视图默认控制器�
 
 ### 1.5 组织条目
 
-<style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-  overflow:hidden;padding:10px 5px;word-break:normal;}
-.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-  font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
-.tg .tg-g6va{background-color:#9b9b9b;border-color:#3166ff;text-align:left;vertical-align:top}
-.tg .tg-6ltk{background-color:#9b9b9b;border-color:#3166ff;text-align:center;vertical-align:top}
-.tg .tg-uko8{border-color:#3166ff;text-align:left;vertical-align:middle}
-.tg .tg-s4wa{border-color:#3166ff;text-align:center;vertical-align:middle}
-</style>
 <table class="tg">
 <thead>
   <tr>
