@@ -23,6 +23,8 @@
         - [继承和参数化类型的比较](#继承和参数化类型的比较)
       - [1.6.6 关联运行时和编译时的结构](#166-关联运行时和编译时的结构)
       - [1.6.7 设计应支持变化](#167-设计应支持变化)
+    - [1.7 怎样选择设计模式](#17-怎样选择设计模式)
+    - [1.8 怎样使用设计模式](#18-怎样使用设计模式)
 
 <!-- /code_chunk_output -->
 
@@ -338,6 +340,147 @@ eg：下面的图显示了窗口类将它的 Area 操作委托给一个矩形实
    1. `设计模式比框架更抽象`
    2. `设计模式是比框架更小的体系结构元素`
    3. `框架比设计模式更加特例化` 框架总是针对一个特定的应用领域。
+
+---
+
+### 1.7 怎样选择设计模式
+
+这里给出几个不同的方法，以帮助你发现适合你手头问题的设计模式：
+
+- `考虑设计模式是怎样解决设计问题的` 参考[1.6 节](#16-设计模式怎样解决设计问题)的讨论
+- `浏览模式的意图部分` [1.4 节](#14-设计默认的编目) 列出了目录中所有模式的意图部分。通读每个模式的意图，找出和你的问题相关的一个或多个模式。你可以使用 [1.5 节](#15-组织条目)表所显示的分类方法缩小你的搜查范围。
+- `研究模式怎样互相关联` [1.5 节](#15-组织条目)图以图形的方式显示了设计模式之间的关系。这些关系能指导你获得合适的模式或模式组。
+- `研究目的相似的模式` 模式分类描述部分共有三章，一章介绍创建型模式，一章介绍结构型模式，一章介绍行为型模式。每一章以对模式介绍性的评价开始，以一个小节的比较和对照结束。这些小节使你得以洞察具有相似目的的模式之间的共同点和不同点。
+- `检查重新设计的原因` 看一看 [1.6.7 设计应支持变化](#167-设计应支持变化)开始讨论的引起重新设计的各种原因，看看你的问题是否与它们有关，然后再找出哪些模式可以帮助你避免这些会导致重新设计的因素。
+- `考虑你的设计中哪些是可变的` 这个方法与关注引起重新设计的原因刚好相反。它不是考虑什么会迫使你的设计改变，而是考虑你想要什么变化却又不会引起重新设计。最主要的一点是 `封装变化的概念`，这是许多设计模式的主题。下表列出了设计模式允许你独立变化的方面，你可以改变它们而又不会导致重新设计。
+
+<table class="tg" style="undefined;table-layout: fixed; width: 944px">
+<colgroup>
+<col style="width: 119px">
+<col style="width: 206px">
+<col style="width: 619px">
+</colgroup>
+<thead>
+  <tr>
+    <th class="tg-baqh">目的</th>
+    <th class="tg-baqh">设计模式</th>
+    <th class="tg-baqh">可变的方面</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-nrix" rowspan="5">创建</td>
+    <td class="tg-0lax">Abstract Factory</td>
+    <td class="tg-0lax">产品对象家族</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Builder</td>
+    <td class="tg-0lax">如何创建一个组合对象</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Factory Method</td>
+    <td class="tg-0lax">被实例化的子类</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Prototype</td>
+    <td class="tg-0lax">被实例化的类</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Singleton</td>
+    <td class="tg-0lax">一个类的唯一实例</td>
+  </tr>
+  <tr>
+    <td class="tg-nrix" rowspan="7">结构</td>
+    <td class="tg-0lax">Adapter</td>
+    <td class="tg-0lax">对象的接口</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Bridge</td>
+    <td class="tg-0lax">对象的实现</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Composite</td>
+    <td class="tg-0lax">一个对象的结构和组成</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Decorator</td>
+    <td class="tg-0lax">对象的职责，不生成子类</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Facade</td>
+    <td class="tg-0lax">一个子系统的接口</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">FlyWeight</td>
+    <td class="tg-0lax">对象的存储开销</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Proxy</td>
+    <td class="tg-0lax">如何访问一个对象；该对象的位置</td>
+  </tr>
+  <tr>
+    <td class="tg-nrix" rowspan="11">行为</td>
+    <td class="tg-0lax">Chain of Responsibility</td>
+    <td class="tg-cly1">满足一个请求的对象</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Command</td>
+    <td class="tg-0lax">何时、怎样满足一个请求</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Interpreter</td>
+    <td class="tg-0lax">一个语言的文法及解释</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Iterator</td>
+    <td class="tg-0lax">如何遍历、访问一个聚合的各元素</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Mediator</td>
+    <td class="tg-0lax">对象间怎样交互、和谁交互</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Memento</td>
+    <td class="tg-0lax">一个对象中哪些私有信息存放在该对象之外，以及在什么时候进行存储</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Observer</td>
+    <td class="tg-0lax">多个对象依赖于另外一个对象，而这些对象又如何保持一致</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">State</td>
+    <td class="tg-0lax">对象的状态</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Strategy</td>
+    <td class="tg-0lax">算法</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Template Method</td>
+    <td class="tg-0lax">算法中的某些步骤</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">Visitor</td>
+    <td class="tg-0lax">某些可作用于一个（组）对象上的操作，但不修改这些对象的类</td>
+  </tr>
+</tbody>
+</table>
+
+---
+
+### 1.8 怎样使用设计模式
+
+一旦选择了一个设计模式，该怎么使用它呢？这里给出一个有效应用设计模式的循序渐进的方法。
+
+1. `大致浏览一遍模式` 特别注意其适用性部分和效果部分，确定它适合你的问题
+2. `回头研究结构部分、参与者部分和协作部分` 确保你理解这个模式的类和对象以及它们是怎样关联的。
+3. `看代码示例部分，看看这个模式代码形式的具体例子` 研究代码将有助于你实现模式。
+4. `选择模式参与者的名字，使它们在应用上下文中有意义`
+5. `定义类`
+6. `定义模式中专用于应用的操作名称` 这里再次体现出名字一般依赖于应用。使用每一个与操作相关联的责任和协作作为指导。还有，你的名字约定要一致。例如，可以使用 "Create-"前缀统一标记 Factory 方法。
+7. `实现执行模式中责任和协作的操作` 实现部分提供线索指导你进行实现。代码示例部分的例子也能提供帮助。
+
+关于设计模式，如果不提一下它们的使用限制，那么关于怎样使用它们的讨论就是不完整的。设计模式不能够随意使用。通常你通过引入额外的间接层次获得灵活性和可变性的同时，也使设计变得更复杂/或牺牲了一定的性能。一个设计模式只有当它提供的灵活性是真正需要的时候，才有必要使用。当衡量一个模式的得失时，它的效果部分是最能提供帮助的，如[1.7 怎样选择设计模式](#17-怎样选择设计模式)表所示。
 
 ---
 
