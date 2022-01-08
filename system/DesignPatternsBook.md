@@ -494,7 +494,7 @@ eg：下面的图显示了窗口类将它的 Area 操作委托给一个矩形实
 
 这一章将通过设计一个称为 Lexi 的文档编辑器来介绍设计模式的实际应用。
 
-![](../images/DesignPatternsBook_202201082240_1.png)
+![](../images/DesignPatternsBook_202201082240_1.PNG)
 
 ### 2.1 设计问题
 
@@ -533,11 +533,11 @@ eg：下面的图显示了窗口类将它的 Area 操作委托给一个矩形实
 层次结构信息的表述通常是通过一个称为`递归组合`(recursive composition) 的技术来实现的。递归组合可以由较简单的元素逐渐建立复杂的元素。
 eg：
 
-![](../images/DesignPatternsBook_202201082240_2.png)
+![](../images/DesignPatternsBook_202201082240_2.PNG)
 
 其文本和图形递归组合的对象结构如下：
 
-![](../images/DesignPatternsBook_202201082240_3.png)
+![](../images/DesignPatternsBook_202201082240_3.PNG)
 
 这里隐含了两个重要的方面。
 
@@ -578,7 +578,7 @@ class Glyph{
 
 ```
 
-![](../images/DesignPatternsBook_202201082240_4.png)
+![](../images/DesignPatternsBook_202201082240_4.PNG)
 
 ---
 
