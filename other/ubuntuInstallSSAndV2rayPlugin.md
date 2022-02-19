@@ -15,8 +15,8 @@ apt install -y shadowsocks-libev
 apt install wget
 
 # install go 1.13.8
-wget https://dl.google.com/go/go1.13.8.linux-amd64.tar.gz
-sudo tar -C /usr/local -xzf go1.13.8.linux-amd64.tar.gz
+wget https://go.dev/dl/go1.16.5.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 source ~/.profile
 go version
