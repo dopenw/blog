@@ -43,6 +43,11 @@
       - [2.5.1 对象创建的抽象](#251-对象创建的抽象)
       - [2.5.2 工厂和产品类](#252-工厂和产品类)
       - [2.5.3 Abstract Factory 模式](#253-abstract-factory-模式)
+    - [2.6 支持多种窗口系统](#26-支持多种窗口系统)
+      - [2.6.1 是否可以使用 Abstract Factory 模式](#261-是否可以使用-abstract-factory-模式)
+      - [2.6.2 封装实现依赖关系](#262-封装实现依赖关系)
+      - [2.6.3 Window 和 WindowImp](#263-window-和-windowimp)
+      - [2.6.4 Bridge 模式](#264-bridge-模式)
 
 <!-- /code_chunk_output -->
 
@@ -747,6 +752,212 @@ auto sb=guiFactory->CreateScrollBar();
 #### 2.5.3 Abstract Factory 模式
 
 工厂(Factory) 和产品(Product)是 Abstract Factory 模式的主要参与者。该模式描述了怎样在不直接实例化类的情况下创建一系列相关的产品对象。它最适用于产品对象的数目和种类不变，而具体产品系列之间存在不同的情况。
+
+---
+
+### 2.6 支持多种窗口系统
+
+视感只是众多移植问题之一。另一个移植问题是 Lexi 所运行的窗口环境。我们希望 Lexi 可以在尽可能多的窗口系统上运行，这和 Lexi 要支持多个视感标准是同样的道理。
+
+---
+
+#### 2.6.1 是否可以使用 Abstract Factory 模式
+
+乍一看，这似乎又是一个使用 Abstract Factory 模式的情况。但是对窗口系统移植的限制条件与视感的独立性是有极大不同的。
+
+现在我们假设已经有一些不同厂家的类层次结构，每一个类层次对应一个视感标准。当然，这些类层次不太可能有太多兼容之处。因而我们无法给每个窗口组件（滚动条、按钮、菜单等）都创建一个公共抽象产品类。
+
+但是事情还是有换回的余地。像视感标准一样，窗口系统的接口也并非截然不同。因为所有的窗口系统总的来说是做同一件事。我们可对不同的窗口系统做一个统一抽象，再对各窗口系统的实现做一些调整，使之符合公共的接口。
+
+#### 2.6.2 封装实现依赖关系
+
+之前我们介绍了显示一个图元或图元结构的 Window 类。Window 类封装了各窗口系统都要做的一些事情：
+
+- 它们提供了画基本几何图形的操作。
+- 它们能变成图标或还原成窗口
+- 它们能改变自己的大小。
+- 它们能够根据需要画出（或者重画出）窗口内容。例如，当它们由图标还原为窗口时，或它们在屏幕空间上重叠、出界的部分重新显示时，都要重画。
+
+Window 类的窗口功能必须跨越不同的窗口系统。让我们考虑两种极端的观点：
+
+1. `功能的交集` Window 类的接口只提供所有窗口系统共有的功能。
+2. `功能并集` 创建一个合并了所有已有系统的功能的接口。
+
+以上方法都不切实可行，所以我们的设计将采取折中的办法。Window 类将提供一个支持大多数窗口系统的方便的接口。因为 Lexi 直接处理 Window 类，所以它还必须支持 Lexi 的图元。这意味着 Window 接口必须包括让图元可以在窗口中画出自己的基本图形操作集合。下表列出了 Window 类中的一些操作的接口。
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-9wq8{border-color:inherit;text-align:center;vertical-align:middle}
+.tg .tg-c3ow{border-color:inherit;text-align:center;vertical-align:top}
+</style>
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-c3ow">责任</th>
+    <th class="tg-c3ow">操作</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-9wq8" rowspan="6">窗口管理</td>
+    <td class="tg-c3ow">virtual void Redraw()</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">vritual void Raise()</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">virtual void Lower()</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">virtual void Iconify()</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">virtual void Deiconify()</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">...</td>
+  </tr>
+  <tr>
+    <td class="tg-9wq8" rowspan="5">图形</td>
+    <td class="tg-c3ow">virual void DrawLine(...)</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">virtual void DrawRect(...)</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">virtual void DrawPolygon(...)</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">virtual void DrawText(...)</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">...</td>
+  </tr>
+</tbody>
+</table>
+
+类图如下所示：
+
+![](../images/DesignPatternsBook_202202202043_1.png)
+
+现在我们已经为 Lexi 定义了工作的窗口接口，那么真正与平台相关的窗口是从哪里来的？既然我们不能实现自己的窗口系统，那么这个窗口系统抽象必须用目标窗口系统平台来实现。怎样实现？
+
+一种方法是实现 Window 类和他的子类的多个版本，每个版本对应一个窗口平台。
+另一种方式是为每一个窗口层次结构中的类创建特定实现的子类，但这同样会产生我们在试图增加修饰是遇到的子类数目爆炸问题。这两种方法都有另一个缺点：没有在编译以后改变所用窗口系统的灵活性。所以我们不得不保持若干不同的可执行程序。
+
+既然这两种方法都没有吸引力，那么我们还能做些什么呢？我们可以：`对变化的概念进行封装`。我们可以通过简单地传递合适的窗口系统封装对象，给窗口系统配置窗口对象。我们甚至能在运行时配置窗口。
+
+#### 2.6.3 Window 和 WindowImp
+
+我们将定义一个独立的 WindowImp 类来隐藏不同窗口系统的实现。WindowImp 是一个封装了窗口系统相关代码的对象的抽象类。
+
+![](../images/DesignPatternsBook_202202202043_2.png)
+
+1. WindowImp 的子类
+   WindowImp 的子类将用户请求转变成特定窗口系统的操作。
+
+   ```c++
+   void Rectangle::Draw(Window * w){
+     w->DrawRect(_x0,_y0,_x1,_y1);
+   }
+
+   void Window::DrawRect(Coord x0,Coor y0,Coord x1,Coord y1){
+     _imp->DeviceRect(x0,y0,x1,y1);
+   }
+   ```
+
+   XWindowImp 的 DeviceRect 的实现可能如下：
+
+   ```c++
+    void XWindowImp::DeviceRect(Coord x0,Coord y0,Coord x1,Coord y1){
+      int x=round(min(x0,x1));
+      int y=round(min(y0,y1));
+      int w=round(abs(x0-x1));
+      int h=round(abs(y0-y1));
+      XDrawRectangle(_dpy,_winid,_gc,x,y,w,h);
+    }   
+   ```
+
+   PMWindowImp([Presentation Manager](https://en.wikipedia.org/wiki/Presentation_Manager) 的 WindowImp 子类)的 DeviceRect 实现如下所示：
+
+   ```c++
+    void PMWindowImp::DeviceRect(Coord x0,Coord y0,Coord x1,Coord y1){
+      Coord left=min(x0,x1);
+      Coord right=max(x0,x1);
+      Coord bottom=min(y0,y1);
+      Coord top=max(y0,y1);
+
+      PPOINTL point[4];
+      point[0].x=left; point[0].y=top;
+      point[1].x=right; point[1].y=top;
+      point[2].x=right; point[2].y=bottom;
+      point[3].x=left; point[3].y=bottom;
+
+      if(
+          (GpiBeginPath(_hps,1L) == false) ||
+          (GpiSetCurrentPosition(_hps,&point[3]) == false) ||
+          (GpiPolyLine(_hps,4L,point) == GPI_ERROR ) ||
+          (GpiEndPath(_hps) == false)
+        ){
+          // report error
+        }else{
+          GpiStrokePath(_hps,1L,0L);
+        }
+    }
+   ```
+
+2. 用 WindowImp 来配置窗口
+   我们可以使用 Abstract Factory 模式来配置。（当然还有很多种可能）；
+
+   ```c++
+    class WindowSystemFactory{
+      public:
+        virtual WindowImp * CreateWindowImp()=0;
+        virtual ColorImp * CreateColorImp()=0;
+        virtual FontImp * CreateFontImp()=0;
+
+        ...
+    }   
+   ```
+
+   现在我们可以为每一个窗口系统定义一个具体的工厂：
+
+   ```c++
+    class PMWindowSystemFactory:public WindowSystemFactory{
+      public:
+        WindowImp * CreateWindowImp() override{
+          return new PMWindowImp;
+        }
+        ...
+    }   
+    class XWindowSystemFactory:public WindowSystemFactory{
+      public:
+        WindowImp * CreateWindowImp() override{
+          return new XWindowImp;
+        }
+        ...
+    }   
+   ```
+
+   Window 基类的构造函数能使用 WindowSystemFactory 接口和合适的窗口就系统的 WindowImp 来初始化成员变量 _imp:
+
+   ```c++
+    Window::Window(){
+      _imp = windowSystemFactory->CreateWindowImp();
+    }   
+   ```
+
+#### 2.6.4 Bridge 模式
+
+WindowImp 类定义了一个公共窗口系统设施的接口，但它的设计是受不同于 Window 接口的限制条件驱动的。应用程序员不直接处理 WindowImp 的接口，它们只处理 Window 对象。
+Window 类是针对应用程序员的，而 WindowImp 接口时针对窗口系统的。将窗口功能分离到 Window 和 WindowImp 类层次中，这样我们可以独立实现这些接口。这些类层次的对象合作实现 Lexi 无须修改就能运行在多窗口系统的目标。
+Window 和 WindowImp 的关系是 Bridge 模式的一个例子。Bridge 模式的目的就是允许分离的类层次一起工作，即使它们是独立演化的。我们的设计准则使我们创建了两个分离的类层次，一个支持窗口的逻辑概念，另一个描述了窗口的不同实现。Bridge 模式允许我们保持和加强我们对窗口的逻辑抽象，而不触及窗口系统相关的代码；反之也是一样。
+
+---
 
 - [上一级](README.md)
 - 上一篇 -> [C 和 C++ 的内存分布](CAndC++MemoryDistribution.md)
