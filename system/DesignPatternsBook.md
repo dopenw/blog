@@ -48,6 +48,12 @@
       - [2.6.2 封装实现依赖关系](#262-封装实现依赖关系)
       - [2.6.3 Window 和 WindowImp](#263-window-和-windowimp)
       - [2.6.4 Bridge 模式](#264-bridge-模式)
+    - [2.7 用户操作](#27-用户操作)
+      - [2.7.1 封装一个请求](#271-封装一个请求)
+      - [2.7.2 Command类及其子类](#272-command类及其子类)
+      - [2.7.3 撤销和重做](#273-撤销和重做)
+      - [2.7.4 命令历史记录](#274-命令历史记录)
+      - [2.7.5 Command 模式](#275-command-模式)
 
 <!-- /code_chunk_output -->
 
@@ -785,15 +791,6 @@ Window 类的窗口功能必须跨越不同的窗口系统。让我们考虑两�
 
 以上方法都不切实可行，所以我们的设计将采取折中的办法。Window 类将提供一个支持大多数窗口系统的方便的接口。因为 Lexi 直接处理 Window 类，所以它还必须支持 Lexi 的图元。这意味着 Window 接口必须包括让图元可以在窗口中画出自己的基本图形操作集合。下表列出了 Window 类中的一些操作的接口。
 
-<style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-  overflow:hidden;padding:10px 5px;word-break:normal;}
-.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-  font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
-.tg .tg-9wq8{border-color:inherit;text-align:center;vertical-align:middle}
-.tg .tg-c3ow{border-color:inherit;text-align:center;vertical-align:top}
-</style>
 <table class="tg">
 <thead>
   <tr>
@@ -956,6 +953,62 @@ Window 类的窗口功能必须跨越不同的窗口系统。让我们考虑两�
 WindowImp 类定义了一个公共窗口系统设施的接口，但它的设计是受不同于 Window 接口的限制条件驱动的。应用程序员不直接处理 WindowImp 的接口，它们只处理 Window 对象。
 Window 类是针对应用程序员的，而 WindowImp 接口时针对窗口系统的。将窗口功能分离到 Window 和 WindowImp 类层次中，这样我们可以独立实现这些接口。这些类层次的对象合作实现 Lexi 无须修改就能运行在多窗口系统的目标。
 Window 和 WindowImp 的关系是 Bridge 模式的一个例子。Bridge 模式的目的就是允许分离的类层次一起工作，即使它们是独立演化的。我们的设计准则使我们创建了两个分离的类层次，一个支持窗口的逻辑概念，另一个描述了窗口的不同实现。Bridge 模式允许我们保持和加强我们对窗口的逻辑抽象，而不触及窗口系统相关的代码；反之也是一样。
+
+---
+
+### 2.7 用户操作
+
+Lexi 需要支持一些用户操作。比如你可以输入和删除文本，移动插入点，通过指向、单击选择文本区域，也可以在文档中输入文字。另一些功能是通过 Lexi 的下拉菜单、按钮和快捷键来间接得到的。 ...
+
+Lexi 为这些用户操作提供不同的界面。但是我们不希望一个特定的用户操作就关联一个特定的用户界面。再说，这些操作是用不同的类来实现的。我们想要访问这些功能，但又不希望在用户界面的它的实现之间建立过多的依赖关系。否则，最终我们得到的是紧耦合的实现，它难以理解、扩充和维护。更复杂的是我们希望 Lexi 能对大多数功能支持撤销和重做操作。
+很明显对用户操作的支持渗透到了应用中。我们所面临的挑战在于提出一个简单、可扩充的机制来满足所有这些要求。
+
+#### 2.7.1 封装一个请求
+
+从设计者的角度来看，一个下拉菜单仅仅是包含了其他图元的又一种图元。下拉菜单和其他有子女的图元的差别在于大多数菜单中的图元会响应鼠标点击而做一些操作。
+
+让我们假设这些做事情的图元是一个被称为 MenuItem 的 Glygh 子类的实例，并且它们做一些事情来响应客户的请求。
+我们可以为每一个用户定义一个 MenuItem 的子类，然后为每一个子类编码区执行请求。但这并不是正确的方法，我们并不需要为每个请求定义一个 MenuItem 子类，正如我们并不需要为每一个下拉菜单的文本字符串定义一个子类。我们应该使用对象来参数化 MenuItem 。我们可以通过继承扩充和复用请求实现。我们也可以保存状态和实现撤销/重做功能。这里是另一个封装变化概念的例子，即封装请求，我们将在 Command 对象中封装每一个请求。
+
+#### 2.7.2 Command类及其子类
+
+首先我们定义一个 Command 抽象类，以提供发送请求的接口。
+
+![](../images/DesignPatternsBook_202202222147_1.png)
+
+![](../images/DesignPatternsBook_202202222147_2.png)
+
+#### 2.7.3 撤销和重做
+
+在交互应用中撤销和重做(Undo/Redo)能力是很重要的。为了撤销和重做一个命令，我们在 Command 接口中增加 Unexecute 操作。另外为了决定一个命令是否可以撤销，我们还会给 Command 接口增加一个抽象的 Reversible 操作，它返回 Boolean 值。
+
+#### 2.7.4 命令历史记录
+
+支持任意层次的撤销和重做命令的最后一步是定义一个`命令历史记录`(command history)或已执行命令的列表（或已被撤销的一些命令）。
+
+![](../images/DesignPatternsBook_202202261547_1.png)
+
+要撤销最近的命令，我们调用最右的 Command 对象的 Unexecute 操作，如下图所示：
+
+![](../images/DesignPatternsBook_202202261547_2.png)
+
+对最近命令调用 Unexecute 之后，我们将 “当前的” 线左移一个 Command 对象的距离。如果用户再次选择撤销操作，则下一个最近发送的命令以相同的方式被撤销，我们可以看到如下图所示的状态。
+
+![](../images/DesignPatternsBook_202202261547_3.png)
+
+要重做一个刚刚被撤销的命令，我们只需做上面的逆过程。在“当前的”线右边的命令是以后可以被重做的命令。重做刚被撤销的命令时，我们调用紧靠 “当前的”线右边的 Command 对象的 Execute ：
+
+![](../images/DesignPatternsBook_202202261547_4.png)
+
+然后我们将“当前的”线前移，以便接下来的重做能够调用下一个 Command 对象：
+
+![](../images/DesignPatternsBook_202202261547_5.png)
+
+当然，如果接下来的操作不是重做而是撤销，那么“当前的”线左边的命令将被撤销。这样当需要从错误中恢复时，用户能有效及时地撤销和重做命令。
+
+#### 2.7.5 Command 模式
+
+Lexi 的命令是 Command 模式的应用。该模式描述了怎样封装请求，也描述了一致的发送请求的命令，它允许你配置客户端以处理不同请求。
 
 ---
 
