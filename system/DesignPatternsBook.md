@@ -54,6 +54,16 @@
       - [2.7.3 撤销和重做](#273-撤销和重做)
       - [2.7.4 命令历史记录](#274-命令历史记录)
       - [2.7.5 Command 模式](#275-command-模式)
+    - [2.8 拼写检查和断字处理](#28-拼写检查和断字处理)
+      - [2.8.1 访问分散的信息](#281-访问分散的信息)
+      - [2.8.2 封装访问和遍历](#282-封装访问和遍历)
+      - [2.8.3 Iterator 类及其子类](#283-iterator-类及其子类)
+      - [2.8.4 Iterator 模式](#284-iterator-模式)
+      - [2.8.5 遍历和遍历过程中的操作](#285-遍历和遍历过程中的操作)
+      - [2.8.6 封装分析](#286-封装分析)
+      - [2.8.7 Visitor 类及其子类](#287-visitor-类及其子类)
+      - [2.8.8 Vistor 模式](#288-vistor-模式)
+    - [2.9  小结](#29--小结)
 
 <!-- /code_chunk_output -->
 
@@ -1009,6 +1019,240 @@ Lexi 为这些用户操作提供不同的界面。但是我们不希望一个特
 #### 2.7.5 Command 模式
 
 Lexi 的命令是 Command 模式的应用。该模式描述了怎样封装请求，也描述了一致的发送请求的命令，它允许你配置客户端以处理不同请求。
+
+---
+
+### 2.8 拼写检查和断字处理
+
+最后一个设计问题设计文本分析，这里特别指的是拼写错误的检查和良好格式所需的连字符连接点。
+我们要尽量避免将功能和文档结构紧密耦合，此时这个目标甚至被格式化设计时更重要。
+事实上这个难题可以分为两部分：
+
+1. 访问需要分析的信息，而它们时被分散在文档结构的图元中的；
+2. 分析这些信息。
+
+#### 2.8.1 访问分散的信息
+
+许多分析要求逐字检查文本，而我们需要分析的文本时分散在图元对象的层次结构中的。为了检查这种结构的文本，我们需要一种访问机制以知道数据结构中所保存的图元对象。另外我们的访问机制还必须能适应不同的数据结构。
+
+#### 2.8.2 封装访问和遍历
+
+假如我们的图元接口使用一个整数索引让客户引用子图元。图元抽象的一个重要作用时隐藏了存储其子图元的数据结构，我们可以在不影响其他类的情况下改变图元类的数据结构。
+因而，只有图元自己知道它所使用的数据结构。可以有这样的推论：图元接口不应该偏重于某个数据结构。
+
+我们可以给 Glyph 的接口增加如下的抽象操作来支持这种方法：
+
+```c++
+  enum Traversal{
+    CHILDREN, // 只遍历图元的直接子图元
+    PREORDER, // 以先序方式遍历整个结构
+    POSTORDER, // 以后序方式遍历整个结构
+    INORDER
+  }
+
+  void First(Traversal kind);
+  void Next();
+  bool IsDone();
+  Glyph * GetCurrent();
+  void Insert(Glygh *);
+```
+
+使用方法如下：
+
+```c++
+  Glyph * g;
+  for(g->First(PREORDER);!g->IsDone();g->Next()){
+    Glyph * current = g->GetCurrent();
+
+    //do some analysis 
+  }
+```
+
+但是该方法仍然有一些问题。举个例子，它在不扩展枚举值或增加新的操作的条件下不能支持新的遍历方式。
+再一个强调，一个好的解决方案是封装那些变化的概念，在本例中我们指的是访问和遍历机制。我们引入一类称为 `迭代器`(Iterator) 的对象，它们的目的是定义这些机制的不同集合。
+
+#### 2.8.3 Iterator 类及其子类
+
+使用抽象类 Iterator 为访问和遍历定义一个通用的接口。具体子类如 `ArrayIterator`和 `ListIterator`负责实现该接口，以提供对数组和列表的访问；而 `PreOrderIterator`和 `PostOrderIterator` 以及类似的类负责在指定结构上实现不同的遍历方式。
+
+![](../images/DesignPatternsBook_202202271749_1.png)
+
+Iterator 接口提供 First、Next 和 IsDone 操作来控制遍历。ListIterator 类实现的 First 操作指向列表的第一个元素；Next 前进到列表的下一个元素；IsDone 返回列表指针是否指向列表范围以外；CurrentItem 返回 Iterator 所指的图元。ArrayIterator 类的实现类似，只不过它是针对一个图元数组。
+
+现在我们无须知道具体表示也能访问一个图元结构的子女：
+
+```c++
+Glygh * g;
+Iterator<Glyph *> * i = g->CreateIterator();
+
+for(i->First();!i->IsDone();i->Next()){
+  Glygh * child = i->CurrentItem();
+
+  //do something with current child 
+}
+```
+
+在 缺省情况下 CreateIterator 返回一个 NullIterator 实例。 NullIterator 是一个退化的 Iterator,它适用于叶子图元，即没有子图元的图元。NullIterator 的 IsDone 操作返回 true。
+
+一个有子女的图元子类将重载 CreateIterator,返回不同 Iterator 子类的一个实例，eg：
+
+```c++
+Iterator<Glygh *>* Row::CreateIterator(){
+  return new ListIterator<Glygh *>(_children);
+}
+```
+
+#### 2.8.4 Iterator 模式
+
+Iterator 模式描述了那些支持访问和遍历对象的技术，它不仅可以用于组合结构，也可用于集合。该模式抽象了遍历算法，对客户隐藏了它所遍历对象的内部结构。Iterator 模式再一次说明了怎样封装变化的概念，有助于我们获得灵活性和复用性。尽管如此，迭代问题的复杂性还是令人吃惊的，Iterator 模式包含的细微差别和权衡比我们这里考虑的更多。
+
+#### 2.8.5 遍历和遍历过程中的操作
+
+现在我们有了遍历图元结构的方法，可以进行拼写检查和支持连字符。这两种分析都涉及遍历过程中的信息积累。
+为了得到更多的灵活性和复用性，我们应当将分析和遍历分开，那么将分析责任放到什么地方呢？我们知道有许多种分析需要做，，每一种分析将在不同的遍历点做不同的事情。因此，不同的分析过程必然是分析不同的图元。
+
+因而一个给定的分析必须能区别不同种类的图元。很明显的一种做法是将分析能力放到图元类本身。但麻烦的是我们每增加一种新的分析，都必须改变每一个图元类。某些情况下可以使这个问题简化：为 Glygh 类中的抽象操作补充一个缺省的实现。
+
+然而即使缺省实现可以减少需要修改的类的数目，一个隐含的问题依然存在：随着新的分析功能的增加，Glygh 的接口会变得越来越大。众多的分析操作会逐渐模糊基本的 Glygh 接口，从而很难看出图元的主要目的是定义和结构化那些有外观和形状的对象 - 这些接口完全被淹没了。
+
+#### 2.8.6 封装分析
+
+所有迹象表明，我们需要在一个独立对象中封装分析方法。我们可以将一个给定的分析封装在一个类中，并把该类的实例和合适的 Iterator 结合来使用。
+
+![](../images/DesignPatternsBook_202202271749_2.png)
+
+该方法的基本问题在于：分析对象怎样才能不使用类型检查或强制类型转换也能正常对待各种不同的图元。我们不希望 SpellingChecker 包含类似如下的代码：
+
+```c++
+  void SpellingChecker::Check(Glyph * glyph){
+    Character * c;
+    Row * r;
+    Image * i;
+    if(c = dynamic_cast<Character *>(glyph)){
+      // analyze the character 
+    }else if (r = dynamic_cast<Row *>(glyph)){
+      // prepare to analyze r's children ;
+    }else if(i = dynamic_cast<Image *>(glyph)){
+      // do nothing 
+    }
+  }
+```
+
+这段代码相当拙劣。它依赖于比较高深的像类型的安全转换这样的能力，并且难以扩展。
+那么我们如何避免这种不成熟的方式呢？我们可以在每一个 Glygh 子类中定义 CheckMe：
+
+```c++
+void GlyphSubclassCheckMe(SpellingChecker& checker){
+  checker.CheckGlyphSubclass(this);
+}
+```
+
+SpellingChecker 类的接口包含每一个 Glygh 子类的类似于 CheckGlyphSubclass 的操作：
+
+```c++
+class SpellingChecker{
+public: 
+  SpellingChecker();
+
+  virtual void CheckCharacter(Character * );
+  virtual void CheckRow(Row * );
+  virtual void CheckImage(Image *);
+
+  // ... and so forth 
+  List<char *>& GetMisspellings();
+
+protected:
+  virtual bool IsMisspelled(const char *);
+private:
+  char _currentWord[MAX_WORD_SIZE];
+  List<char *> _misspellings;
+};
+```
+
+SpellingChecker 的检查字符图元的操作可能如下所示：
+
+```c++
+void SpellingChecker::CheckCharacter(Character * c){
+  const char ch=c->GetCharCode();
+
+  if(isalpha(ch)){
+    // append alphabetic character to _currentWord 
+  }else{
+    // we hit a nonalphabetic character
+
+    if(IsMisspelled(_currentWord)) {
+      // add _currentWord to _misspellings
+      _misspellings.append(strdup(_currentWord));
+    }
+
+    _currentWord[0]='\0';
+    //reset _currentWord to check next word 
+  }
+}
+```
+
+现在，我们以拼写检查器为参数调用每个图元的 CheckMe 操作，从而实现对图元结构的遍历。这使得拼写检查器 SpellingChecker 可以有效区分每个图元，并不断推进检查器以检查下面的内容：
+
+```c++
+SpellingChecker spellingChecker;
+Composition * c;
+
+// ...
+
+Glygh * g;
+PreOrderIterator i(c);
+
+for(i.First();!i.IsDone();i.Next()){
+  g=i.CurrentItem;
+  g->CheckMe(spellingChecker);
+}
+```
+
+下面交互图展示了字符图元和 spellingChecker 对象是怎样协同工作的：
+
+![](../images/DesignPatternsBook_202202271749_3.png)
+
+这种方法适合与找出拼写错误，但怎样才能帮助我们去支持多种分析呢？看上去有点像我们每增加一种新的分析，就不得不为 Glygh 及其子类增加一个类似于 CheckMe(SpellingChecker &) 的操作。但是没有理由说我们不能给所有分析类型一个相同的接口。我们应能够用一个通用参数、与分析无关的操作来替代像 CheckMe(SpellingChecker &) 这种表示特定分析的操作。
+
+#### 2.8.7 Visitor 类及其子类
+
+我们使用术语`访问者`(Visitor) 来泛指在遍历过程中“访问”被遍历对象并做适当操作的一类对象。本例中我们使用一个 Vistor 类来定义一个用来访问结构中的图元的抽象接口：
+
+```c++
+class Visitor{
+public:
+  virtual void VisitCharacter(Character * ){}
+  virtual void VisitRow(Row * ){}
+  virtual void VisitImage(Image * ){} 
+
+  // ... and so forth 
+};
+```
+
+Visitor 的具体子类做不同的分析，例如：我们可以用一个 SpellingCheckingVisitor 子类来检查拼写；用 HyphenationVistor 子类做连字符分析。SpellingCheckingVisitor 可以像上面的 SpellingChecker 那样实现，只是操作名要反映通用的 Visitor 的接口。 例如，CheckCharacter 应该改成 VisitCharacter。
+
+既然 CheckMe 对于访问者并不合适，因为访问者不检查任何东西，那么我们就使用一个更加通用的名字：Accept。其参数也应该改为 Vistor &,以反映它能接受任何一个访问者这一事实。现在定义一个新的分析只需要定义一个新的 Vistor 子类 --- 我们无须触及任何图元。通过在 Glygh 及其子类中增加这一操作，我们就可以支持以后的所有分析方法。
+
+#### 2.8.8 Vistor 模式
+
+我们这里所描述的是一个 Vistor 模式的应用。该模式允许对图元结构的分析数目不受限制地增加而不必改变图元类本身。访问者类地另一个优点是它不局限于像图元结构这样地组合者，也适用于其他任何对象结构，包括集合、列表，甚至无环有向图。
+
+### 2.9  小结
+
+我们在 Lexi 的设计中使用了 8 种不同的模式：
+
+- Composite 表示文档的物理结构
+- Strategy 允许不同的格式化算法
+- Decorator 修饰用户界面
+- Abstract Factory 支持多种视感标准
+- Bridge 允许多个窗口平台
+- Command 支持撤销用户操作
+- Iterator 访问和遍历对象结构
+- Vistor 允许无限扩充分析能力而又不会使文档结构的实现复杂化。
+
+以上这些设计要点都不仅仅局限于像 Lexi 这样的文档编辑应用。事实上，很多重要的应用都可以使用这些模式处理不同的事情。一个财务分析应用可能使用 Composite 模式定义由多种类型子文件夹组成的投资文件夹。一个编译程序可能使用 Strategy 模式来 考虑不同目标机上的寄存器分配方案。图形用户界面的应用可能至少要用到 Decorator 和 Command 模式。
+
+在学习其他设计模式的时候，你要考虑怎样才能把它们用在 Lexi 中。最好能考虑在你自己的设计中怎样使用它们。
 
 ---
 
