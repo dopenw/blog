@@ -64,6 +64,7 @@
       - [2.8.7 Visitor 类及其子类](#287-visitor-类及其子类)
       - [2.8.8 Vistor 模式](#288-vistor-模式)
     - [2.9  小结](#29--小结)
+  - [第三章 创建型模式](#第三章-创建型模式)
 
 <!-- /code_chunk_output -->
 
@@ -1255,6 +1256,127 @@ Visitor 的具体子类做不同的分析，例如：我们可以用一个 Spell
 在学习其他设计模式的时候，你要考虑怎样才能把它们用在 Lexi 中。最好能考虑在你自己的设计中怎样使用它们。
 
 ---
+
+## 第三章 创建型模式
+
+创建型设计模式抽象了实例化过程。它们帮助一个系统独立于如何创建、组合和表示它们的那些对象。一个类创建型模式使用继承改变被实例化的类，而一个对象创建型将实例化委托给另一个对象。
+
+随着系统演化得越来越依赖于对象组合而不是类继承，创建型模式变得更为重要。
+
+在这些模式中由两个不断出现的主旋律：
+
+1. 它们都将关于该系统使用哪些具体的类的信息封装起来。
+2. 它们隐藏了这些类的实例是如何被创建和放在一起的。
+整个系统关于这些对象所知道的是由抽象类所定义的接口。因此，创建型模式在 `什么` 被创建、`谁` 创建它、它是`怎样`被创建的，以及`何时`创建等方面给予你很大的灵活性。
+
+创建型模式紧密相关，我们将所有5个模式一起研究以突出它们的相似点和差异点。我们将举一个通用的例子 ---- 为一个电脑游戏创建一个迷宫 --- 来说明它们的实现。这个迷宫和游戏将随着各种模式不同而略有区别。
+
+我们将忽略迷宫中的许多细节以及一个游戏迷宫有多少个游戏者。我们仅关注是怎样创建的。我们将一个迷宫定义为一系列房间，一个房间知道它的邻居；可能的邻居要么是一个房间，要么是一堵墙或者是到另一个房间的一扇门。
+
+类 Room 、 Door 和 Wall 定义了我们所有的例子中用到的构件。我们仅定义这些类中对创建一个迷宫起重要作用的那部分。
+每一个房间有四面，我们这样定义：f
+
+```c++
+enum Direction{
+  North,
+  South,
+  East,
+  West
+};
+```
+
+类 MapSite 是所有迷宫组件的公共抽象类。
+
+![](../images/DesignPatternsBook_202203082208_1.png)
+
+```c++
+class MapSite{
+  public:
+  /* Enter 为更复杂的游戏操作提供了一个简单基础。例如，如果你在一个房间中说：“向东走”，游戏只能简单
+  地确定直接在东边的是哪一个 MapSite 并对它调用 Enter。特定子类的 Enter 操作将计算出是你的位置发生
+  改变，还是你会碰壁。在一个真正的游戏中，Enter 将移动者对象作为一个参数。*/
+    virtual void Enter()=0;
+};
+
+class Room:public MapSite{
+public:
+  Room(int roomNo);
+  MapSite * GetSide(Direction ) const;
+  void SetSide(Direction,MapSite *);
+  virtual void Enter();
+private:
+  MapSite * _sides[4];
+  int _roomNumber;
+};
+
+class Wall:public MapSite{
+public:
+  Wall();
+  virtual void Enter();
+};
+
+class Door:public MapSite{
+public:
+  Door(Room * = nullptr,Room * = nullptr);
+  virtual void Enter();
+  Room * OtherSideFrom(Room *);
+private:
+  Room * _room1;
+  Room * _room2;
+  bool _isOpen;
+};
+
+//我们不仅要知道迷宫的各个部分，还要定义一个用来表示房间集合的 Maze(迷宫) 类。
+
+class Maze{
+public:
+  Maze();
+  void AddRoom(Room * );
+  Room * RoomNo(int) const;
+private:
+  // ...
+};
+```
+
+我们定义一个用来创建迷宫的类 MazeGame。一个简单直接的方法是使用一系列操作将构建增加到迷宫中，然后连接它们。
+
+```c++
+Maze * MazeGame::CreateMaze(){
+  Maze * aMaze = new Maze;
+  Room * r1 = new Room(1);
+  Room * r2 = new Room(2);
+  Door * theDoor = new Door(r1,r2);
+
+  aMaze->AddRoom(r1);
+  aMaze->AddRoom(r2);
+
+  r1->SetSide(Direction::North,new Wall);
+  r1->SetSide(Direction::East,theDoor);
+  r1->SetSide(Direction::South ,new Wall);
+  r1->SetSide(Direction::West,new Wall);
+
+  r2->SetSide(Direction::North,new Wall);
+  r2->SetSide(Direction::East,new Wall);
+  r2->SetSide(Direction::South,new Wall);
+  r2->SetSide(Direction::West,theDoor);
+
+  return aMaze;
+}
+```
+
+考虑到这个函数所做的是创建一个有两个房间的迷宫，它是相当复杂的。这个成员函数的真正问题不在于它的大小而在于它 `不灵活`.它对迷宫的布局进行硬编码。
+创建型模式可以让这个设计`更灵活`，但未必会更小。它们将便于修改定义迷宫构件的类。
+创建型模式提供了多种不同方法，从实例化它们的代码中除去对这些具体类的显示式引用。
+
+- 如果CreateMaze 调用虚函数而不是构造器来创建它需要的房间、墙壁和门，那么你可以创建一个 MazeGame 的子类并重定义这些虚函数，从而改变被实例化的类。这一方法是 Factory Method 模式的一个例子。
+- 如果传递一个对象给 CreateMaze 作为参数创建房间、墙壁和门，那么你可以传递不同的参数来改变房间、墙壁和门的类。这是 Abstract Factory 模式的一个例子。
+- 如果传递一个对象给 CreateMaze ，这个对象可以在它所创建的迷宫中使用增加房间墙壁和门的操作来全面创建一个新的迷宫，那么你可以使用继承来改变迷宫的一些部分或迷宫的建造方式。这是 Builder 模式的一个例子。
+- 如果 CreateMaze 由多种原型的房间、墙壁和门对象参数化，它复制并将这些对象增加到迷宫中，那么你可以用不同对象替换这些原型对象以改变迷宫的构成。这是 Prototype 模式的一个例子。
+
+剩下的创建型模式 Singleton 可以保证每个游戏中仅有一个迷宫而且所有的游戏对象都可以迅速访问它。
+
+---
+
 
 - [上一级](README.md)
 - 上一篇 -> [C 和 C++ 的内存分布](CAndC++MemoryDistribution.md)
