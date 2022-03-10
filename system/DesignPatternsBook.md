@@ -5,7 +5,7 @@
 
 <!-- code_chunk_output -->
 
-- [设计模式 - 可复用面向对象软件的基础](#设计模式---可复用面向对象软件的基础)
+- [设计模式 - 可复用面向对象软件的基础](#设计模式-可复用面向对象软件的基础)
   - [第一章 引言](#第一章-引言)
     - [1.1 什么是设计模式](#11-什么是设计模式)
     - [1.2 Smalltalk MVC 中的设计模式](#12-smalltalk-mvc-中的设计模式)
@@ -63,8 +63,21 @@
       - [2.8.6 封装分析](#286-封装分析)
       - [2.8.7 Visitor 类及其子类](#287-visitor-类及其子类)
       - [2.8.8 Vistor 模式](#288-vistor-模式)
-    - [2.9  小结](#29--小结)
+    - [2.9  小结](#29-小结)
   - [第三章 创建型模式](#第三章-创建型模式)
+    - [3.1 Abstract Factory (抽象工厂) -- 对象创建型模式](#31-abstract-factory-抽象工厂-对象创建型模式)
+      - [1. 意图](#1-意图)
+      - [2. 别名](#2-别名)
+      - [3. 动机](#3-动机)
+      - [4. 适用性](#4-适用性)
+      - [5. 结构](#5-结构)
+      - [6. 参与者](#6-参与者)
+      - [7. 协作](#7-协作)
+      - [8. 效果](#8-效果)
+      - [9. 实现](#9-实现)
+      - [10. 代码示例](#10-代码示例)
+      - [11. 已知应用](#11-已知应用)
+      - [12. 相关模式](#12-相关模式)
 
 <!-- /code_chunk_output -->
 
@@ -1377,6 +1390,168 @@ Maze * MazeGame::CreateMaze(){
 
 ---
 
+### 3.1 Abstract Factory (抽象工厂) -- 对象创建型模式
+
+#### 1. 意图
+
+提供一个接口以创建相关或相互依赖的对象，而无须指定他们具体的类。
+
+#### 2. 别名
+
+Kit
+
+#### 3. 动机
+
+考虑一个支持多种视感(look-and-feel)标准的用户界面工具包，例如 Motif 和 Presentation Manager。
+不同的视感风格为诸如滚动条、窗口和按钮等用户界面“窗口组件”定义不同的外观和行为。为保证视感风格标准的可移植性，一个应用不应该为一个特定的视感外观硬编码它的窗口组件。在整个应用中实例化特定视感风格的窗口组件类将使得以后很难改变视感风格。
+为解决这一问题，我们可以定义一个抽象的 WidgetFactory 类。
+
+![](../images/DesignPatternsBook_202203092227_1.png)
+
+每一种视感标准都对应于一个具体的 WidgetFactory 子类。WidgetFactory 也增强了具体窗口组件类之间的依赖关系。
+
+#### 4. 适用性
+
+在以下情况下使用 Abstract 模式：
+
+- 一个系统要独立于它的产品的创建、组合和表示。
+- 一个系统要由多个产品系列中的一个来配置。
+- 要强调一系列相关的产品对象的设计以便进行联合使用。
+- 提供一个产品类库，但只想显示它们的接口而不是实现。
+
+#### 5. 结构
+
+此模式的结构如下图所示：
+
+![](../images/DesignPatternsBook_202203102051_1.png)
+
+#### 6. 参与者
+
+- AbstractFactory(WidgetFactory)
+  - 声明一个创建抽象产品对象的操作接口 。
+- ConcreteFactory(MotifWidgetFactory、PMWidgetFactory)
+  - 实现创建具体产品对象的操作。
+- AbstractProduct(Window、ScrollBar)
+  - 为一类产品对象声明一个接口。
+- ConcreteProduct(MotifWindow、MotifScrollBar)
+  - 定义一个将被相应的工厂创建的产品对象
+  - 实现 AbstractProduct 接口
+- Client
+  - 仅使用 AbstractFactory 和 AbstractProduct 类声明的接口。
+
+#### 7. 协作
+
+- 通常在运行时创建一个 ConcreteFactory 类的实例。这一具体的工厂创建具有特定实现的产品对象。为创建不同的产品对象，客户应使用不同的具体工厂。
+- AbstractFactory 将产品对象的创建延迟到它的 ConcreteFactory 子类。
+
+#### 8. 效果
+
+AbstractFactory 模式有以下优点和缺点：
+
+1. 它分离了具体的类。
+2. 它使得易于交换产品系列。
+3. 它有利于产品的一致性。
+4. 难以支持新种类的产品
+
+#### 9. 实现
+
+下面是实现 AbstractFactory 模式的一些有用技术：
+
+1. 将工厂作为单件
+2. 创建产品
+3. 定义可扩展的工厂
+
+#### 10. 代码示例
+
+我们这里以创建迷宫构件为例：
+
+```c++
+class MazeFactory{
+public:
+  MazeFactory();
+
+  virtual Maze * MakeMaze() const{
+    return new Maze;
+  } 
+  virtual Wall * MakeWall() const{
+    return new Wall;
+  }
+  virtual Room * MakeRoom(int n) const{
+    return new Room(n);
+  }
+  virtual Door * MakeDoor(Room * r1,Room *r2) const{
+    return new Door(r1,r2);
+  }
+
+};
+
+// 新版本的 CreateMaze
+Maze * MazeGame::CreateMaze (MazeFactory & factory){
+  Maze * aMaze = factory.MakeMaze();
+  Room * r1 = factory.MakeRoom(1);
+  Room * r2 = factory.MakeRoom(2);
+  Door * theDoor = factory.MakeDoor(r1,r2);
+
+  aMaze->AddRoom(r1);
+  aMaze->AddRoom(r2);
+
+  r1->SetSide(Direction::North,new Wall);
+  r1->SetSide(Direction::East,theDoor);
+  r1->SetSide(Direction::South ,new Wall);
+  r1->SetSide(Direction::West,new Wall);
+
+  r2->SetSide(Direction::North,new Wall);
+  r2->SetSide(Direction::East,new Wall);
+  r2->SetSide(Direction::South,new Wall);
+  r2->SetSide(Direction::West,theDoor);
+
+  return aMaze;
+}
+
+
+// 一个创建施了魔法的迷宫的工厂 
+class EnchantedMazeFactory:public MazeFactory{
+public:
+  EnchantedMazeFactory();
+
+  virtual Room * MakeRoom(int n) const{
+    return new EnchantedRoom(n,CastSpell());
+  }
+
+  virtual Door * MakeDoor(Room * r1,Room * r2) const {
+    return new DoorNeedingSpell(r1,r2);
+  }
+protected:
+  Spell * CastSpell() const;
+};
+
+// 爆炸工厂  
+...
+Wall * BombedMazeFactory::MakeWall() const{
+  return new BombedWall;
+}
+
+Room * BombedMazeFactory::MakeRoom(int n) const{
+  return new RoomWithABomb(n);
+}
+
+// create it 
+MazeGame game;
+BombedMazeFactory factory;
+game.CreateMaze(factory);
+
+```
+
+#### 11. 已知应用
+
+[ET++](https://dl.acm.org/doi/abs/10.1145/62084.62089#:~:text=ET%2B%2B%20is%20an%20object,a%20homogeneous%20and%20extensible%20system.) 使用 Abstract Factory 模式达到在不同窗口系统间的可移植性。
+
+#### 12. 相关模式
+
+AbstractFactory 类通常用工厂方法(Factory Method)实现，但他们也可以用 Prototype 实现。
+一个具体的工厂通常是一个单件(Singleton)。
+
+---
 
 - [上一级](README.md)
 - 上一篇 -> [C 和 C++ 的内存分布](CAndC++MemoryDistribution.md)
