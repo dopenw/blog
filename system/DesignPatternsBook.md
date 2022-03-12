@@ -78,6 +78,18 @@
       - [10. 代码示例](#10-代码示例)
       - [11. 已知应用](#11-已知应用)
       - [12. 相关模式](#12-相关模式)
+    - [3.2 Builder (生成器) --- 对象创建型模式](#32-builder-生成器-对象创建型模式)
+      - [1. 意图](#1-意图-1)
+      - [2. 动机](#2-动机)
+      - [3. 适用性](#3-适用性)
+      - [4. 结构](#4-结构)
+      - [5. 参与者](#5-参与者)
+      - [6. 协作](#6-协作)
+      - [7. 效果](#7-效果)
+      - [8. 实现](#8-实现)
+      - [9. 代码示例](#9-代码示例)
+      - [10. 已知应用](#10-已知应用)
+      - [11. 相关模式](#11-相关模式)
 
 <!-- /code_chunk_output -->
 
@@ -1513,7 +1525,7 @@ Maze * MazeGame::CreateMaze (MazeFactory & factory){
 class EnchantedMazeFactory:public MazeFactory{
 public:
   EnchantedMazeFactory();
-
+其
   virtual Room * MakeRoom(int n) const{
     return new EnchantedRoom(n,CastSpell());
   }
@@ -1550,6 +1562,221 @@ game.CreateMaze(factory);
 
 AbstractFactory 类通常用工厂方法(Factory Method)实现，但他们也可以用 Prototype 实现。
 一个具体的工厂通常是一个单件(Singleton)。
+
+### 3.2 Builder (生成器) --- 对象创建型模式
+
+#### 1. 意图
+
+将一个复杂的构建与它的表示分离，使得同样的构建过程可以创建不同的表示。
+
+#### 2. 动机
+
+一个 RTF（Rich Text Format）文档交换格式的阅读器应能将 RTF 转换为多种文本格式。
+
+一个解决办法是用一个可以将 RTF 转换成另一种文本表示的 TextConvert 对象来配置这个 RTFReader 类。
+
+![](../images/DesignPatternsBook_202203122123_1.png)
+
+Builder 模式描述了所有这些关系。每一个转换器类在该模式中被称为 `生成器`(Builder),而阅读器则称为`导向器`(director)。
+
+#### 3. 适用性
+
+在以下情况下使用 Builder 模式：
+
+- 当创建复杂对象的算法应该独立于该对象的组成部分以及它们的装配方式时。
+- 到构造过程必须允许被构造对象有不同表示时。
+
+#### 4. 结构
+
+此模式的结构如下图所示：
+
+![](../images/DesignPatternsBook_202203122123_2.png)
+
+#### 5. 参与者
+
+- Builder(TextConvert)
+  - 为创建一个 Product 对象的各个部件指定抽象接口。
+- ConcreteBuilder(ASCIIConvert、TexConvert、TextWidgetConvert)
+  - 实现 Builder 的接口以构造和转配该产品的各个部件
+  - 定义并跟踪它所创建的表示。
+  - 提供一个检索产品的接口（例如，GetASCIIText 和 GetTextWidget）。
+- Director(RTFReader)
+  - 构造一个使用 Builder 接口的对象。
+- Product (ASCIIText、TeXText、TextWidget)
+  - 表示被构造的复杂对象。ConcreteBuilder 创建该产品的内部表示并定义它的装配过程。
+  - 包含定义组成部件的类，包括将这些部件转配成最终产品的接口。
+
+#### 6. 协作
+
+客户创建 Director 对象，并用它想要的 Builder 对象进行配置。
+
+- 一旦生成产品部件，导向器就会通知生成器。
+- 生成器处理导向器的请求，并将部件添加到该产品中。
+- 客户从生成器中检索该产品。
+
+交互图如下：
+
+![](../images/DesignPatternsBook_202203122123_3.png)
+
+#### 7. 效果
+
+- `它使你可以改变一个产品的内部表示`
+- `它将构造代码和表示代码分开`
+- `它使你可对构造过程进行更精细的控制`
+
+#### 8. 实现
+
+通常有一个抽象的 Builder 类为导向器可能要求创建的每一个构件定义一个操作。这些操作缺省情况下什么都不做。一个 ConcreteBuilder 类对它有兴趣创建的构件重定义这些操作。
+这里是其他一些要考虑的问题：
+
+1. `装配和构造接口`
+2. `为什么产品没有抽象类`
+3. `在 Builder 中缺省的方法为空`
+
+#### 9. 代码示例
+
+```c++
+class MazeBuilder{
+public:
+  virtual void BuildMaze(){}
+  virtual void BuildRoom(int room){}
+  virtual void BuildDorr(int roomFrom,int roomTo) {} 
+
+  virtual Maze * GetMaze() {return nullptr;}
+protected:
+  MazeBuilder();
+};
+
+Maze * MazeGame::CreateMaze(MazeBuilder& builder){
+  builder.BuildMaze();
+
+  builder.BuildRoom(1);
+  builder.BuildRoom(2);
+  builder.BuildDoor(1,2);
+
+  return builder.GetMaze();
+}
+
+
+// 一个简单迷宫的实现 
+class StandardMazeBuilder:public MazeBuilder{
+public:
+  StandardMazeBuilder();
+
+  void BuildMaze() override;
+  void BuildRoom(int room) override;
+  void BuildDoor(int roomFrom,int roomTo) override;
+
+  Maze * GetMaze() override;
+private:
+  Direction CommonWall(Room * ,Room *);
+  Maze * _currentMaze;
+};
+
+Void StandardMazeBuilder::BuildMaze(){
+  _currentMaze=new Maze;
+}
+
+Maze * StandardMazeBuilder::GetMaze(){
+  return _currentMaze;
+}
+
+void StandardMazeBuilder::BuildRoom(int n){
+  if(!_currentMaze->RoomNo(n)){
+    Room * room=new Room(n);
+    _currentMaze->AddRoom(room);
+
+    room->SetSide(Direction::North,new Wall);
+    room->SetSide(Direction::South,new wall);
+    room->SetSide(Direction::East,new wall);
+    room->SetSide(Direction::West,new wall);
+  }
+}
+
+void StandardMazeBuilder::BuildDoor(int n1,int n2){
+  Room * r1 = _currentMaze->RoomNo(n1);
+  Room * r2 = _currentMaze->RoomNo(n2);
+  Door * d = new Door(r1,r2);
+
+  r1->SetSide(CommonWall(r1,r2),d);
+  r2->SetSide(CommonWall(r2,r1),d);
+}
+
+// 创建迷宫如下：
+Maze * maze;
+MazeGame game;
+StandardMazeBuilder builder;
+
+game.CreateMaze(builder);
+maze = builder.GetMaze();
+
+
+// 一个 不创建迷宫，它仅仅对已被创建的不同种类的构件进行计数 
+
+class CountingMazeBuilder:public MazeBuilder{
+public:
+  CountingMazeBuilder();
+
+  void BuildMaze() override;
+  void BuildRoom(int room) override;
+  void BuildDoor(int roomFrom,int roomTo) override;
+  virtual void AddWall(int ,Direction);
+
+  void GetCounts(int&,int&) const;
+private:
+  int _doors;
+  int _rooms;
+};
+
+CountingMazeBuilder::CountingMazeBuilder(){
+  _rooms=_doors=0;
+}
+
+void CountingMazeBuilder::BuildRoom(int){
+  _rooms++;
+}
+
+void CountingMazeBuilder::BuildDoor(int,int){
+  _doors++;
+}
+
+void CountingMazeBuilder::GetCounts(int &rooms,int& doors) const {
+  rooms=_rooms;
+  doors=_doors;
+}
+
+
+// 创建迷宫如下：
+Maze * maze;
+MazeGame game;
+CountingMazeBuilder builder;
+
+game.CreateMaze(builder);
+int rooms,doors;
+builder.GetCount(rooms,doors);
+
+std::cout<<"The maze has "
+  <<rooms<<" rooms and "
+  <<doors<<" doors"<<std::endl;
+
+```
+
+#### 10. 已知应用
+
+RTF 转换器应用来自 [ET++](https://dl.acm.org/doi/abs/10.1145/62084.62089#:~:text=ET%2B%2B%20is%20an%20object,a%20homogeneous%20and%20extensible%20system.) 它的文本生成模板使用一个生成器处理以 RTF 格式存储的文本。
+
+生成器在 Smalltalk-80 中是一个通用模式：
+
+- 编译子系统中的 Parse 类是一个 Director,它以一个 ProgramNodeBuilder 对象作为参数。
+- ClassBuilder 是一个生成器，Class 使用它为自己创建子类。
+- ByteCodeStream 是一个生成器，它将一个被编译了的方法创建为字节数组。
+
+自适应通信环境(Adaptive Communications Environment) 中的服务配置者(Service Configurator) 框架使用生成器来构造运行时动态连接到服务器的网络服务构件.
+
+#### 11. 相关模式
+
+Abstract Factory 与 Builder 相似,因为它也可以创建复杂对象.主要的区别是 Builder 模式着重于一步步构造一个复杂对象.而 Abstract Factory 着重于多个系列的产品对象(简单的或是复杂的).Builder 在最后一步返回产品,而对于 Abstract Factory 来说,产品是立即返回的.
+Composite 通常是用 Builder 生成的.
 
 ---
 
