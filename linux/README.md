@@ -1,5 +1,6 @@
 # Categories linux
 * ## [home](../README.md)
+* ### [Install Ubuntu Gnome Desktop on android ](androidInstalUbuntu.md)
 * ### [fedora install boostnote](boostnote.md)
 * ### [Build openGapps from github](buildOpengapps.md)
 * ### [理解chroot](chroot.md)
