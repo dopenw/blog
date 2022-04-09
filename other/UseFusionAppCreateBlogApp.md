@@ -82,4 +82,4 @@ bubble bubble-disabled,container,clearfix,reponav-wrapper lh-default,Header js-d
 
 ---
 - [上一级](README.md)
-- 下一篇 -> [Atom](atom.md)
+- 下一篇 -> [install VS Code in an Android Device](androidRunVsCode.md)
