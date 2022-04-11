@@ -99,6 +99,10 @@
       - [6. 参与者](#6-参与者-1)
       - [7. 协作](#7-协作-1)
       - [8. 效果](#8-效果-1)
+      - [9. 实现](#9-实现-1)
+      - [10. 代码示例](#10-代码示例-1)
+      - [11. 已知应用](#11-已知应用-1)
+      - [12. 相关模式](#12-相关模式-1)
 
 <!-- /code_chunk_output -->
 
@@ -1789,14 +1793,18 @@ Composite 通常是用 Builder 生成的.
 
 ---
 
-### 3.3 Factory Method (工厂方法) --- 对象创建型模式 
+### 3.3 Factory Method (工厂方法) --- 对象创建型模式
+
 #### 1. 意图
+
 定义一个用于创建对象的接口,让子类决定实例化哪一个类.Factory Method 使一个类的实例化延迟到其子类。
 
 #### 2. 别名
+
 虚构造器(virtual constructor).
 
 #### 3. 动机
+
 框架使用抽象定义和维护对象之间的关系.这些对象的创建通常也由框架负责.
 
 Factory Method 模式提供了一个解决方案.它封装了哪个 Document 子类将被创建的信息并将这些信息从该框架中分离出来,如下图所示.
@@ -1804,37 +1812,41 @@ Factory Method 模式提供了一个解决方案.它封装了哪个 Document 子
 ![](../images/DesignPatternsBook_202204102156_1.png)
 
 #### 4. 适用性
+
 在下列情况下可以使用 Factory Method 模式:
+
 - 当一个类不知道它所必须创建的对象的类的时候  
 - 当一个类希望由它的子类来指定它所创建的对象的时候.
 - 当类将创建对象的职责委托给多个帮助子类中的某一个,并且你希望将哪一个帮助子类是代理者这一信息局部化的时候.
 
-#### 5. 结构 
+#### 5. 结构
 
 ![](../images/DesignPatternsBook_202204102156_2.png)
 
-#### 6. 参与者 
+#### 6. 参与者
+
 - Product(Document)
   - 定义工厂方法所创建的对象的接口。
 - ConcreteProduct(MyDocument)
-  - 实现 Product 接口 
+  - 实现 Product 接口
 - Creator(Application)
   - 声明工厂方法,该方法返回一个 Product 类型的对象. Creator 也可以定义一个工厂方法的缺省实现,它返回一个缺省的 ConcreteProduct 对象。
   - 可以调用工厂方法以创建一个 Product 对象。
 - ConcreteCreator(MyApplication)
   - 重定义工厂方法以返回一个 ConcreteProduct 实例。
 
-#### 7. 协作 
+#### 7. 协作
+
 - Creator 依赖于它的子类来定义工厂方法,所以它返回一个适当的 ConcreteProduct 实例。
 
-
-#### 8. 效果 
+#### 8. 效果
 
 工厂方法不再将与特定应用有关的类绑定到你的代码中.代码仅处理 Product 接口,因此它可以与用户定义的任何 ConcreteProduct 类一起使用。
 
 工厂方法的一个潜在缺点在于，客户可能仅仅为了创建一个特定的 ConcreteProduct 对象，就不得不创建 Creator 子类。当 Creator 子类不是必需的时，客户现在必然要处理类演化的其他方面。但是当客户无论如何必需创建 Creator 子类时，创建子类也是可行的。
 
 下面是 Factory Method 模式的另外两种效果：
+
 1. `为子类提供钩子(hook)` 用工厂方法在一个类的内部创建对象通常比直接创建对象更灵活。Factory Method 给子类一个钩子以提供对象的扩展版本。
 2. `连接平行的类层次`
   当一个类将它的一些职责委托给一个独立的类的时候，就产生了平行类层次。考虑可以被交互操纵的图形，也就是说，可以用鼠标对它们进行伸展、移动或者旋转。实现这样一些交互并不总是那么容易，它通常需要存储和更新在给定时刻记录操纵状态的信息，这个状态仅仅在操纵时需要。因此它不需要被保存在图形对象中。此外，当用户操纵图形时，不同的图形有不同的行为。例如，将直线图形拉长可能会产生一个端点被移动的效果，而伸展文本图形则可能会改变行距。
@@ -1845,6 +1857,178 @@ Factory Method 模式提供了一个解决方案.它封装了哪个 Document 子
   Figure 类提供了一个 CreateManipulator 工厂方法，它使得客户可以创建一个与 Figure 相对应的 Manipulator 。Figure 子类重定义该方法以返回一个合适的 Manipulator 子类实例。作为一个选择，Figure 类可以实现 CreateManipulator 以返回一个默认的 Manipulator 实例，而 Figure 子类可以只是继承这个缺省实现。这样的 Figure 类不需要相应的 Manipulator 子类 -- 因此该层次只是部分平行的。
 
   注意工厂方法是怎样定义两个类层次之间的连接的。它将哪些类应一同工作的信息局部化了。
+
+#### 9. 实现
+
+当应用 Factory Method 模式时要考虑下面一些问题：
+
+- `主要有两种不同的情况`
+  - Creator 类是一个抽象类并且不提供它所声明的工厂方法的实现;
+  - Creator 是一个具体的类并且为工厂方法提供一个缺省的实现。
+- `参数化工厂方法` 该模式的另一种情况使得工厂方法可以创建多种产品。工厂方法采用一个标识要被创建的对象种类的参数。eg:
+
+```c++
+class Creator{
+public:
+  virtual Product * Create(ProductId);
+};
+
+Product * Creator::Create(ProductId id){
+  if( MINE == id){
+    return new MyProduct;
+  }
+  if(YOURS == id){
+    return new YourProduct;
+  }
+  ...
+
+  return nullptr;
+
+}
+
+```
+
+重定义一个参数化的工厂方法使你可以简单而有选择性地扩展或改变一个 Creator 生产的产品。eg：
+
+```c++
+Product * Creator::MyCreate(ProductId id){
+  if( YOURS == id){
+    return new MyProduct;
+  }
+  if(MINE == id){
+    return new YourProduct;
+  }
+  // switched YOURS and MINE
+  if( THEIRS == id){
+    return new TheirProduct;
+  }
+
+  return Creator::Create(id); // called if all others fail
+
+}
+```
+
+- `使用模板以避免创建子类` 正如我们已经提及的，工厂方法另一个潜在的问题是它们可能仅为了创建适当的 Product 对象而迫使你创建 Creator 子类。在 C++ 中另一个解决方法是提供 Creator 的一个模板子类，它使用 Product 类作为模板参数：
+
+```c++
+class Creator{
+public: 
+  virtual Product * CreateProduct() = 0;
+};
+
+template<class TheProduct>
+class StandardCreator:public Creator{
+public:
+  virtual Product * CreateProduct();
+};
+
+template <class TheProduct>
+Product * StandardCreator<TheProduct>::CreateProduct(){
+  return new TheProduct;
+}
+
+class MyProduct:public Product{
+public:
+  MyProduct();
+  //...
+};
+
+StandardCreator<MyProduct> myCreator;
+// create product 
+auto p = myCreator.CreateProduct();
+```
+
+- `命名约定` 使用命名约定是一个好习惯，它可以清楚地说明你正在使用工厂方法。
+
+#### 10. 代码示例
+
+```c++
+
+// 工厂方法，提供一些缺省的实现
+class MazeGame{
+public:
+  Maze * CreateMaze();
+
+  // factory methods
+
+  virtual Maze * MakeMaze() const{
+    return new Maze;
+  }
+  virtual Room * MakeRoom(int n) const{
+    return new Room(n);
+  }
+  virtual Wall * MakeWall() const{
+    return new Wall;
+  }
+  virtual Door * MakeDoor(Room * r1, Room * r2) const{
+    return new Door(r1,r2);
+  }
+  Maze * CreateMaze();
+};
+
+Maze * MazeGame::CreateMaze(){
+  Maze * aMaze = MakeMaze();
+
+  Room * r1 = MakeRoom(1);
+  Room * r2 = MakeRoom(2);
+  Door * theDoor = MakeDoor(r1,r2);
+
+  aMaze->AddRoom(r1);
+  aMaze->AddRoom(r2);
+
+  r1->SetSide(Direction::North,MakeWall());
+  r1->SetSide(Direction::East,theDoor);
+  r1->SetSide(Direction::South,MakeWall());
+  r1->SetSide(Direction::West,MakeWall());
+
+  r2->SetSide(Direction::North,MakeWall());
+  r2->SetSide(Direction::East,MakeWall());
+  r2->SetSide(Direction::South,MakeWall());
+  r2->SetSide(Direction::West,theDoor);
+}
+
+// 子类化 MazeGame 以支持创建更多的产品
+
+class BombedMazeGame:public MazeGame{
+public:
+  BombedMazeGame();
+
+  virtual Wall * MakeWall const override{
+    return new BombedWall;
+  }
+
+  virtual Room * MakeRoom(int n) const override{
+    return new RoomWithABomb(n);
+  }
+};
+
+class EnchantedMazeGame:public MazeGame{
+public:
+  EnchantedMazeGame();
+
+  virtual Room * MakeRoom(int n) const override{
+    return new EnchantedRoom(n,CastSpell());
+  }
+
+  virtual Door * MakeDoor(Room * r1,Room * r2) const override{
+    return new DoorNeedingSpell(r1,r2);
+  }
+
+protected:
+  Spell * CastSpell() const;
+}
+
+```
+
+#### 11. 已知应用
+
+工厂方法主要用于工具包和框架中。前面的文档例子是 MacApp 和 ET++ 中的一个典型应用。操纵器的例子来自 Unidraw 。
+
+#### 12. 相关模式
+
+Abstract factory 经常用工厂方法来实现。 Abstract Factory 模式中动机一节的例子也对 Factory Method 进行了说明。
+工厂方法通常在 Template Method 中被调用。
+Prototype 不需要创建 Creator 的子类。但是，它们通常要求一个针对 Product 类的 Initialize 操作。Creator 使用 Initialize 来初始化对象，而 Factory Method 不需要这样的操作。
 
 ---
 
