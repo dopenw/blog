@@ -103,6 +103,18 @@
       - [10. 代码示例](#10-代码示例-1)
       - [11. 已知应用](#11-已知应用-1)
       - [12. 相关模式](#12-相关模式-1)
+    - [3.4 Prototype (原型) --- 对象创建型模式](#34-prototype-原型-对象创建型模式)
+      - [1. 意图](#1-意图-3)
+      - [2. 动机](#2-动机-1)
+      - [3. 适用性](#3-适用性-1)
+      - [4. 结构](#4-结构-1)
+      - [5.参与者](#5参与者)
+      - [6. 协作](#6-协作-1)
+      - [7. 效果](#7-效果-1)
+      - [8. 实现](#8-实现-1)
+      - [9. 代码示例](#9-代码示例-1)
+      - [10. 已知应用](#10-已知应用-1)
+      - [11. 相关模式](#11-相关模式-1)
 
 <!-- /code_chunk_output -->
 
@@ -2029,6 +2041,183 @@ protected:
 Abstract factory 经常用工厂方法来实现。 Abstract Factory 模式中动机一节的例子也对 Factory Method 进行了说明。
 工厂方法通常在 Template Method 中被调用。
 Prototype 不需要创建 Creator 的子类。但是，它们通常要求一个针对 Product 类的 Initialize 操作。Creator 使用 Initialize 来初始化对象，而 Factory Method 不需要这样的操作。
+
+### 3.4 Prototype (原型) --- 对象创建型模式
+
+#### 1. 意图
+
+用原型实例指定创建对象的种类，并且通过拷贝这个原型来创建新的对象。
+
+#### 2. 动机
+
+你可以通过定制一个通用的图形编辑器框架以及增加一些表示音符、休止符和五线谱的新对象来构造一个乐谱编辑器。这个编辑器框架可能有一个工具选择版用于将这些音乐对象加到乐谱中。这个选择模板可能还包括选择、移动和其他操纵音乐对象的工具。用户可以点击四分音符工具并使用它将四分音符加到乐谱中，或者可以使用移动工具在五线谱上上下移动一个音符，从而改变它的音调。
+
+我们假定该框架为音符和五线谱这样的图形构件提供了一个抽象的 Graphic 类。此外，为定义选择板中的那些工具，还提供了一个抽象类 Tool.该框架还为一些创建图像对象实例并将它们加入文档中的工具预定了一个 GraphicTool 子类。
+
+但 GraphicTool 给框架设计者带来一个问题。音符和五线谱的类特定于我们的应用，而 GraphicTool 类确属于框架。 GraphicTool 不知道如何创建我们的音乐类的实例，并将它们添加到乐谱中。我们可以为每一种音乐对象创建一个 GraphicTool 的子类。但这样会产生大量的子类，这些子类仅仅在它们所初始化的音乐对象的类别上有所不同。我们知道对象组合是比创建子类更灵活的一种选择。问题是，该框架怎样用它来参数化 GraphicTool 的实例，而这些实例是由 Graphic 类所支持创建的。
+
+解决办法是让 GraphicTool 通过拷贝或者“克隆”一个 Graphic 子类的实例来创建新的 Graphic,我们称这个实例为一个 `原型`。 GraphicTool 将它应该克隆和添加到文档中的原型作为参数。如果所有 Graphic 子类都支持 Clone 操作，那么 GraphicTool 可以克隆所有种类的 Graphic ，如下图所示：
+
+![](../images/DesignPatternsBook_202204162053_1.png)
+
+因此在我们的音乐编辑器中，用于创建一个音乐对象的每一种工具都是一个用不同原型进行初始化的 GraphicTool 实例。通过克隆一个音乐对象的原型并将这个克隆添加到乐谱中，每个 GraphicTool 实例都会产生一个音乐对象。
+
+我们甚至可以进一步使用 Prototype 模式来减少类的数目。我们使用不同的类来表示。
+
+#### 3. 适用性
+
+当一个系统应该独立于它的产品创建、构成和表示时，要使用 Prototype 模式 ;以及
+
+- 当要实例化的类在运行时刻指定时，例如，通过动态装载或者
+- 为了避免创建一个与产品层次平行的工厂类层次时;或者
+- 当一个类的实例只能有几个不同状态组合中的一种时。建立相应数目的原型并克隆它们可能比每次用合适的状态手工实例化该类更方便一些。
+
+#### 4. 结构
+
+![](../images/DesignPatternsBook_202204162053_2.png)
+
+#### 5.参与者
+
+- Prototype (Graphic)
+  - 声明一个克隆自身的接口。
+- ConcretePrototype(Staff,WholeNote,HalfNote)
+  - 实现一个克隆自身的操作。
+- PrototypeClient (GraphicTool)
+  - 让一个原型克隆自身从而创建一个新的对象。
+
+#### 6. 协作
+
+- 客户请求一个原型克隆自身。
+
+#### 7. 效果
+
+Prototype 有许多和 Abstract Factory 和 Builder 一样的效果;它对客户隐藏了具体的产品类，因此减少了客户知道的名字的数目。此外，这些模式使客户无需改变即使用与特定应用相关的类。
+下面列出了 Prototype 模式的另外一些优点：
+
+- 运行时刻增加和删除产品  
+- 改变值以指定新对象
+- 改变结构以支持新对象。例如电路设计编辑器就是由子电路来构造的。
+  我们仅需将这个子电路作为一个原型增加到可用的电路元素选择板中。只要复合电路对象将 Clone 实现为一个深拷贝(deep copy),具有不同结构的电路就是原型了。
+- 减少子类的构造
+- 用类动态配置应用
+
+#### 8. 实现
+
+当实现原型时，要考虑下面一些问题：
+
+- 使用一个原型管理器
+  原型管理器是一个关联存储器，它返回一个与给定关键字相匹配的原型。它有一些操作可以用来通过关键字注册原型和解除注册。客户可以在运行时更改甚或浏览这个注册表。这使得客户无需编写代码就可以扩展并得到系统清单。
+- 实现克隆操作
+- 初始化克隆对象
+
+#### 9. 代码示例
+
+```c++
+class MazePrototypeFactory:public MazeFactory{
+public:
+  MazePrototypeFactory(Maze * ,Wall * ,Room * ,Door *);
+
+  virtual Maze * MakeMaze() const;
+  virtual Room * MakeRoom(int) const;
+  virtual Wall * MakeWall() const;
+  virtual Door * MakeDoor(Room *,Room *) const;
+
+private:
+  Maze * _prototypeMaze;
+  Room * _prototypeRoom;
+  Wall * _PrototypeWall;
+  Door * _prototypeDoor;
+};
+
+MazePrototypeFactory::MazePrototypeFactory(Maze * m,Wall * w,Room *r,Door *d){
+  _prototypeMaze=m;
+  _prototypeRoom=r;
+  _PrototypeWall=w;
+  _prototypeDoor=d;
+}
+
+Wall * MazePrototypeFactory::MakeWall() const{
+  return _PrototypeWall->Clone();
+}
+
+Door * MazePrototypeFactory::MakeDoor(Room * r1,Room * r2) const {
+  Door * door = _prototypeDoor->Clone();
+  door->Initialize(r1,r2);
+  return door;
+}
+```
+
+```c++
+// create Maze example
+MazeGame game;
+MazePrototypeFactory simpleMazeFactory(new Maze,new Wall,new Room,new Door);
+
+Maze * maze=game.CreateMaze(simpleMazeFactory);
+
+// Use difference prototype set 
+MazePrototypeFactory bombedMazeFactory(new Maze,new BombedWall,new RoomWithABomb,new Door);
+```
+
+```c++
+class Door:public MapSite{
+public:
+  Door();
+  Door(const Door&);
+  virtual void Initialize(Room *,Room *);
+  virtual Door* Clone() const;
+  virtual void Enter();
+  Room * OtherSideFrom(Room *);
+private:
+  Room * _room1;
+  Room * _room2;
+};
+
+Door::Door(const Door& other){
+  _room1=other._room1;
+  _room2=other._room2;
+}
+
+void Door:Initialize(Room * r1,Room * r2){
+  _room1=r1;
+  _room2=r2;
+}
+
+Door * Door::Clone() const{
+  return new Door(*this);
+}
+```
+
+```c++
+class BombedWall::public Wall{
+public:
+  BombedWall();
+  BombedWall(const BombedWall&);
+
+  virtual Wall * Clone() const;
+  bool HasBomb();
+private:
+  bool _bomb;
+};
+
+BombedWall::BombedWall(const BombedWall& other):Wall(other){
+  _bomb=other._bomb;
+}
+
+Wall * BombedWall::Clone() const{
+  return new BombedWall(*this);
+}
+```
+
+#### 10. 已知应用
+
+- Ivan Sutherland 的 [Sketchpad](https://en.wikipedia.org/wiki/Sketchpad) 系统中。
+- etgdb - 一个基于 ET++ 的调试器前端，它为不同的行导向调试器提供了一个点触式接口。
+- Mode Composer 中的 “交互技术库” (interaction technique library) 存储了支持多种交互的对象的原型。
+
+#### 11. 相关模式
+
+正如我们在这一章结尾所讨论的那样，Prototype 和 Abstract Factory 模式在某种方面是相互竞争的。但是它们也可以一起使用。Abstract Factory 可以存储一个被克隆的原型的集合，并且返回产品对象。
+大量使用 Composite 和 Decorator 模式的设计通常也可从 Prototype 模式处获益。
 
 ---
 
