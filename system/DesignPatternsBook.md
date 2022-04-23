@@ -115,6 +115,19 @@
       - [9. 代码示例](#9-代码示例-1)
       - [10. 已知应用](#10-已知应用-1)
       - [11. 相关模式](#11-相关模式-1)
+    - [3.5 Singleton(单件) --- 对象创建型模式](#35-singleton单件-对象创建型模式)
+      - [1. 意图](#1-意图-4)
+      - [2. 动机](#2-动机-2)
+      - [3. 适用性](#3-适用性-2)
+      - [4. 结构](#4-结构-2)
+      - [5. 参与者](#5-参与者-1)
+      - [6. 协作](#6-协作-2)
+      - [7. 效果](#7-效果-2)
+      - [8. 实现](#8-实现-2)
+      - [9. 代码实例](#9-代码实例)
+      - [10. 已知应用](#10-已知应用-2)
+      - [11. 相关模式](#11-相关模式-2)
+    - [3.6 创建形模式的讨论](#36-创建形模式的讨论)
 
 <!-- /code_chunk_output -->
 
@@ -2218,6 +2231,184 @@ Wall * BombedWall::Clone() const{
 
 正如我们在这一章结尾所讨论的那样，Prototype 和 Abstract Factory 模式在某种方面是相互竞争的。但是它们也可以一起使用。Abstract Factory 可以存储一个被克隆的原型的集合，并且返回产品对象。
 大量使用 Composite 和 Decorator 模式的设计通常也可从 Prototype 模式处获益。
+
+### 3.5 Singleton(单件) --- 对象创建型模式
+
+#### 1. 意图
+
+保证一个类仅有一个实例，并提供一个访问它的全局访问点。
+
+#### 2. 动机
+
+对一些类，只有一个实例是很重要的。
+
+#### 3. 适用性
+
+在下面的情况下可以使用 Singleton 模式：
+
+- 当类只能有一个实例而且客户可以从一个众所周知的访问点访问它时。
+- 当这个唯一实例应该是通过子类化可扩展的，并且客户应该无需更改代码就能使用一个扩展的实例时。
+
+#### 4. 结构
+
+![](../images/DesignPatternsBook_202204232106_1.png)
+
+#### 5. 参与者
+
+- Singleton
+  - 定义一个 Instance 操作，允许客户访问它的唯一实例。
+  - 可能负责创建它自己的唯一实例。
+
+#### 6. 协作
+
+- 客户只能通过 Singleton 的Instance操作访问一个 Singleton 的实例。
+
+#### 7. 效果
+
+Singleton 模式有许多优点：
+
+- 对唯一实例的受控访问
+- 缩小名空间
+- 允许对操作和表示的精化
+- 允许可变数目的实例
+- 比类操作更灵活
+
+#### 8. 实现
+
+下面是使用 Singleton 模式所要考虑的实现问题：
+
+- 保证一个唯一的实例
+
+```c++
+class Singleton{
+public:
+  static Singleton* Instance();
+protected:
+  Singleton();
+private:
+  static Singleton* _instance;
+};
+
+
+Singleton * Singleton::_instance= nullptr;
+Singleton * Singleton::Instance(){
+  if(nullptr == _instance){
+    _instance=new Singleton;
+  }
+  return _instance;
+}
+```
+
+- 创建 Singleton 类的子类
+  主要问题与其说是定义子类不如说是建立它的唯一实例，这样客户就可以使用它。方法1：使用环境变量决定要使用那个单件；方法二：将 Instance 的实现从父类中分离出来并将它放入子类。
+
+  一个更为灵活的方法是使用一个`单件注册表`(registry of singleton)。可能的 Singleton 类的集合不是由 Instance 定义的，Singleton 类可以根据名字在一个众所周知的注册表中注册它们的单件实例。
+  这个注册表在字符串名字和单件之间建立映射。当 Instance 需要一个单件时，它参考注册表，根据名字请求单件。
+
+  ```c++
+  class Singleton{
+  public:
+    static void Register(const char * name,Singleton *);
+    static Singleton * Instance();
+  protected:
+    static Singleton * Lookup(const char * name);
+  private:
+    static Singleton* _instance;
+    static List<NameSingletonPair>* _registry; 
+  };
+
+  // 我们假定一个环境变量指定了所需要的单件的名字。
+  Singleton * Singleton::Instance(){
+    if(nullptr == _instance){
+      const char * singletonName = getenv("SINGLETON");
+      // user or environment supplies this at startup 
+
+      _instance = Lookup(singletonName);
+      // Lookup return nullptr if there's no such singleton 
+    }
+    return _instance;
+  }
+  ```
+
+  使用方法:
+
+  ```c++
+    MySingleton::MySingleton(){
+      // ... 
+      Singleton::Register("MySingleton",this);
+    }  
+
+    // 定义变量，保证调用该类的构造函数注册实例
+    static MySingleton theSingleton;
+  ```
+
+---
+
+#### 9. 代码实例
+
+```c++
+class MazeFactory{
+public:
+  static MazeFactory * Instance();
+
+  // existing interface goes here 
+protected:
+  MazeFactory();
+private:
+  static MazeFactory* _instance;
+};
+
+MazeFactory * MazeFactory::_instance = nullptr;
+
+MazeFactory* MazeFactory::Instance(){
+  if(nullptr == _instance){
+    const char * mazeStyle = getenv("MAZESTRYLE");
+
+    if(0 == strcmp(mazeStyle,"bombed")){
+      _instance = new BombedMazeFactory;
+    }else if(0 == strcmp(mazeStyle,"enchanted")){
+      _instance = new EnchantedMazeFactory;
+    }
+
+    // ... other possible subclasses
+
+    else {
+      _instance = new MazeFactory;
+    }
+  }
+  return _instance;
+}
+```
+
+#### 10. 已知应用
+
+InterViews 用户界面工具箱使用 Singleton 模式在其他类中访问 Session 和 WidgetKit 类的唯一实例。
+
+#### 11. 相关模式
+
+很多模式可以使用 Singleton 模式实现。参见 Abstract Factory,Builder和 Prototype。
+
+### 3.6 创建形模式的讨论
+
+用一个系统创建的那些对象的类对系统进行参数化有两种方法。一种是生成创建对象的类的子类（Factory Method模式）。这种方式的主要缺点是，仅为了改变产品类，就可能需要创建一个新的子类。这样的改变可能是级联的。例如，如果产品的创建者本身是一个工厂方法创建的，那么你也必须重定义它的创建者。
+
+另一种对系统进行参数化的方法更多的依赖于对象复合：定义一个对象负责明确该产品对象的类，并将它作为该系统的参数。这是 Abstract Factory,Builer,Prototype 模式的关键特征。所有这三个模式都涉及到创建一个新的负责该产品对象的 “工厂对象”。Abstract Factory 由这个工厂对象产生多个类的对象。Builder 由这个对象使用一个相对复杂的协议，逐步创建一个复杂产品。Prototype 由该工厂对象通过拷贝原型对象来创建产品对象。在这种情况下，因为原型负责返回产品对象，所以工厂对象和原型是同一个对象。
+
+考虑在 Prototype 模式中描绘的绘图编辑器框架。可以有多种方法通过产品类来参数化 GraphicTool ：
+
+- 使用 Factory Method 模式，将为选择版板中的每个 Graphic 的子类创建一个 GraphicTool 的子类。GraphicTool 将有一个 NewGraphic 操作，每个 GraphicTool 的子类都会重定义它。
+- 使用 Abstract Factory 模式，将有一个 GraphicsFactory 类层次对应于每个 Graphic 的子类。在这种情况每个工厂仅创建一个产品：CircleFactory 将创建 Circle ，LineFactory 将创建 Line,等等。GraphicTool 将创建合适种类 Graphic 的工厂作为参数。
+- 使用 Prototype 模式，每个 Graphic 的子类将实现 Clone 操作，并且 GraphicTool 将以它所创建的 Graphic 的原型作为参数。
+
+究竟哪一种模式最好取决于诸多因素。在我们的绘图编辑器框架中，第一眼看来，Factory Method 模式是最简单的。它易于定义一个新的 GraphicTool 的子类，并且仅当选择板被定义的时候，GraphicTool 的实例才被创建。它的主要缺点在于 GraphicToo 子类数目的激增，并且他们都没有做很多事情。
+
+Abstract Factory 并没有很大的改进，因为它需要一个同样庞大的 GraphicsFactory 类层次。只有当早已存在一个 GraphicsFactory 类层次时，Abstract Factory 才比 Factory Method 更好一点 --- 或是因为编译器自动提供（像在 Smalltalk 或是 Objective C 中）或是因为系统的其他部分需要这个 GraphicFactory 类层次。
+
+总的来说，Prototype 模式对绘图编辑器框架可能是最好的，因为它仅需要为每个 Graphics 类实现一个 Clone 操作。这就减少了类的数目，并且 Clone 可以用于其他目的而不仅仅是纯粹的实例化（例如 ，一个 Duplicate 菜单操作）。
+
+Factory Method 使一个设计可以定制且只略微有一些复杂。其他设计模式需要新的类，而 Factory Method 只需要一个新的操作。人们通常将 Factory Method 作为一种标准的创建对象的方法。但是当被实例化的类根本不发生变化或当实例化出现在子类可以很容易重定义的操作中（比如初始化操作中）时，这就并不必要了。
+
+使用 Abstract Factory,Prototype 或 Builer 的设计甚至比使用 Factory Method 的那些设计更灵活，但它们也更加复杂。通常，设计以使用 Factory Method 开始，并且当设计者发现需要更大的灵活性时，设计便会向其他创建者模式演化。但你在设计标准之间进行权衡的时候，了解多个模式可以给你提供更多的选择余地。
 
 ---
 
