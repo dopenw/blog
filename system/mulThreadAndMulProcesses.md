@@ -342,5 +342,5 @@ for (i = 0; i < niters; i++)
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [Git 学习笔记](learnGit.md)
+- 上一篇 -> [Learn git branch](learnGitBranch.md)
 - 下一篇 -> [一些典型的编程题](someAlgotithmProgrammingQuestions.md)
