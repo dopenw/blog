@@ -126,9 +126,9 @@ def open_blog_clear_tail_links(blog_file,blog_map):
             search_ret = re.search(reg4,tmp_line)
             number = search_ret.group()
             if regex_match_replace_img(number,current_time,blog_file,config_item):
-                out_file.write('![](../images/{}_{}_{}.png){}'.format(
-                    blog_file[0:len(blog_file)-3],current_time,number,
-                    config_item['end_of_line_seq']))
+                out_file.write('![](../images/{}_{}_{}{}){}'.format(
+                    blog_file[0:len(blog_file)-3],current_time,number
+                    ,config_item['img_src_suffix'],config_item['end_of_line_seq']))
                 continue
         if '[上一级]' in str(tmp_line):
             break
