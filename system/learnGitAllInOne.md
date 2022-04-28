@@ -41,6 +41,8 @@
     - [子模块](#子模块)
     - [高级操作](#高级操作)
       - [使用 git filter-branch](#使用-git-filter-branch)
+        - [使用 git filter-branch 的例子](#使用-git-filter-branch-的例子)
+        - [filter-branch 的诱惑](#filter-branch-的诱惑)
       - [git rev-list](#git-rev-list)
       - [数据块的交互式暂存](#数据块的交互式暂存)
       - [恢复遗失的提交](#恢复遗失的提交)
@@ -501,7 +503,22 @@ Git 通过子模块来解决这个问题。 子模块允许你将一个 Git 仓�
 
 #### 使用 git filter-branch
 
-[git filter-branch](https://git-scm.com/docs/git-filter-branch)
+[git filter-branch](https://git-scm.com/docs/git-filter-branch) 是一个通用的分支操作命令，可以通过自定义命令来利用它操作不同的 git 对象，从而重写分支上的提交。一些过滤器可以对 “提交” 起作用，一些对 “树对象” 和 目录结构起作用，还有一些则可以操作 git 环境。
+是不是听起来挺有用的但是又挺危险的？
+很好！
+可能你也想到了，强大的功能伴随着巨大的责任。`它具有改写整个版本库提交历史的潜能，如果对一个已经对外发布供大家克隆和使用的版本库执行此命令，将会给使用该版本库的其他人带来无尽的苦恼。`和所有的 rebase 操作一样，提交历史记录会改变。执行此命令后，之前克隆来的所有版本库都应该作为过时的。
+
+##### 使用 git filter-branch 的例子
+
+- 使用 git filter-branch 删除文件（彻底删除，就像这个文件从来没有在这个版本库中存在的那样）
+  - 可使用 `--tree-filter` 或 `--index-filter`
+  - 如果这个文件曾经移动或者改过名字，可以使用 `git log --name-only --follow --all - file` 来找出它们。
+- 使用 filter-branch 编辑提交信息
+  - 可使用 `--msg-filter`
+
+##### filter-branch 的诱惑
+
+我们需要从这条 Git 命令的名字上理解它的作用：它是用来过滤分支的。首先，git file-branch 命令用来作用域一个分支或引用。然而，它同样可以作用于多个分支和引用。在很多场景中，需要把 filter-branch 操作作用于所有分支，从而覆盖全版本库。要实现这样的操作，可以在命令后面添加 `--all`。
 
 #### git rev-list
 
