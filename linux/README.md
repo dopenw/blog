@@ -8,6 +8,7 @@
 * ### [在 Linux 上搭建ARM应用程序开发环境](createArmDebugEnv.md)
 * ### [Create git server](createGitServer.md)
 * ### [ctl + alt + f3 login incorrect](ctrl_alt_f3_login_incorrect.md)
+* ### [自定义 Manjaro 环境 ](customManjaroEnv.md)
 * ### [自定义fedora桌面环境](custom_desktop_env.md)
 * ### [virtualbox on fedora 27 fails to load virtualbox Kernel Modules](failsToLoadVirtualBoxKernelModules.md)
 * ### [fedora create custom desktop shortcut](fedoraCreateCustomDesktopShortcut.md)
