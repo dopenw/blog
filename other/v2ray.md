@@ -3,11 +3,12 @@
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [v2ray](#v2ray)
-	* [下载安装](#下载安装)
-	* [编辑配置文件](#编辑配置文件)
-	* [运行 v2ray](#运行-v2ray)
-	* [Link](#link)
+- [v2ray](#v2ray)
+  - [下载安装](#下载安装)
+  - [编辑配置文件](#编辑配置文件)
+  - [运行 v2ray](#运行-v2ray)
+  - [遇到的问题](#遇到的问题)
+  - [Link](#link)
 
 <!-- /code_chunk_output -->
 [v2ray/v2ray-core](https://github.com/v2ray/v2ray-core)
@@ -97,12 +98,19 @@ systemctl status v2ray # 查看 v2ray 运行状态
 systemctl enable v2ray # 设置为开机启动
 ```
 
+## 遇到的问题 
+
+1. 注意两端的时间要一致，比如 客户端时间为 11.12 ，服务端时间为 11.14 ,则不能正常工作。
+
+
 ## Link
 * [v2ray手册](https://www.v2ray.com/)
 * [白话文教程/VMess](https://toutyrater.github.io/basic/vmess.html)
+* [ windows下正常，Archlinux下不能正常代理 #1050](https://github.com/v2ray/v2ray-core/issues/1050)
 
 
 ---
+
 - [上一级](README.md)
 - 上一篇 -> [Install ss-libev and config v2ray-plugin on ubuntu](ubuntuInstallSSAndV2rayPlugin.md)
 - 下一篇 -> [vsCode ](vsCode.md)
