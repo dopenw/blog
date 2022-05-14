@@ -128,6 +128,20 @@
       - [10. 已知应用](#10-已知应用-2)
       - [11. 相关模式](#11-相关模式-2)
     - [3.6 创建形模式的讨论](#36-创建形模式的讨论)
+  - [第四章 结构型模式](#第四章-结构型模式)
+    - [4.1 Adapter（适配器） - 类对象结构型模式](#41-adapter适配器-类对象结构型模式)
+      - [1. 意图](#1-意图-5)
+      - [2. 别名](#2-别名-2)
+      - [3. 动机](#3-动机-2)
+      - [4. 适用性](#4-适用性-2)
+      - [5. 结构](#5-结构-2)
+      - [6. 参与者](#6-参与者-2)
+      - [7. 协作](#7-协作-2)
+      - [8. 效果](#8-效果-2)
+      - [9. 实现](#9-实现-2)
+      - [10. 代码示例](#10-代码示例-2)
+      - [11. 已知应用](#11-已知应用-2)
+      - [12. 相关模式](#12-相关模式-2)
 
 <!-- /code_chunk_output -->
 
@@ -2409,6 +2423,214 @@ Abstract Factory 并没有很大的改进，因为它需要一个同样庞大的
 Factory Method 使一个设计可以定制且只略微有一些复杂。其他设计模式需要新的类，而 Factory Method 只需要一个新的操作。人们通常将 Factory Method 作为一种标准的创建对象的方法。但是当被实例化的类根本不发生变化或当实例化出现在子类可以很容易重定义的操作中（比如初始化操作中）时，这就并不必要了。
 
 使用 Abstract Factory,Prototype 或 Builer 的设计甚至比使用 Factory Method 的那些设计更灵活，但它们也更加复杂。通常，设计以使用 Factory Method 开始，并且当设计者发现需要更大的灵活性时，设计便会向其他创建者模式演化。但你在设计标准之间进行权衡的时候，了解多个模式可以给你提供更多的选择余地。
+
+---
+
+## 第四章 结构型模式
+
+结构型模式涉及到如何组合类和对象以获得更大的结构。结构型模式采用继承机制来组合接口或实现。
+
+- 一般来说，适配器使得一个接口(adaptee 的接口)与其他接口兼容，从而给出了多个不同接口的统一抽象。为此，类适配器对一个 adaptee 类进行私有继承。这样，适配器就可以用 adaptee 的接口表示它的接口。
+- Composite 模式是结构型模式的一个实例。它描述了如何构造一个类层次式结构，这一结构由两种类型的对象（基元对象和组合对象）所对应的类组成。其中的组合对象使得你可以组合基元对象以及其他的组合对象，从而形成任意的复杂结构。
+- 在 Proxy 模式中，proxy 对象作为其他对象的一个方便的替代或占位符。它的使用可以有多种实现。Proxy 模式还提供了对对象的一些特有性质的一定程度上的简接访问，从而可以限制、增强或修改这些性质。
+- Flyweight 模式为了共享对象定义了一个结构。至少有两个原因要求对象共享：效率和一致性。
+- Facade 模式则描述了如何使用单个对象表示整个子系统。模式中的 facade 用来表示一组对象，facade 的职责是将消息转发给它所表示的对象。
+- Bridge 模式将对象的抽象和其实现分离，从而可以独立地改变它们。
+- Decorator 模式描述了如何动态地为对象添加职责。该模式采用递归方式组合对象，从而允许你添加任意多的对象职责。
+
+### 4.1 Adapter（适配器） - 类对象结构型模式
+
+#### 1. 意图
+
+将一个类的接口转换成客户希望的另外一个接口。
+
+#### 2. 别名
+
+包装器 Wrapper。
+
+#### 3. 动机
+
+有时，为复用而设计的工具箱类不能够被复用的原因仅仅是因为它的接口与专业应用领域所需要的接口不匹配。
+
+例如，有一个绘图编辑器，这个编辑器允许用户绘制和排列基本图元生成图表和图片。图形对象的接口由一个称为 Shape 的抽象类定义。绘图编辑器为每一种图形对象定义了一个 Shape 的子类： LineShape 类对应于直线，PolygonShape 类对应于多边形，等等。
+
+对于可以显示和编辑文本的 TextShape 的子类来说，实现比较困难。如果有一个 TextView 提供了该功能，那我们可以复用这个 TextView 类以实现 TextShape 类，但是工具箱的设计者当时并没有考虑 Shape 的存在，因此 TextView 和 Shape 对象不能互换。
+
+我们可以定义一个 TextShape 类，由它来适配 TextView 的接口和 Shape 的接口。我们可以用两种方法做这件事：
+
+1. 继承 Shape类的接口和 TextView 的实现
+2. 将一个TextView 实例作为 TextShape 的组成部分，并且使用 TextView 的接口实现 TextShape。 这两种方法对应于 Adapter 模式的类和对象版本。我们将 TextShape 称之为适配器 Adapter。
+
+![](../images/DesignPatternsBook_202205141849_1.png)
+
+#### 4. 适用性
+
+以下情况使用 Adapter 模式：
+
+- 你想要使用一个已经存在的类，而它的接口不符合你的需求
+- 你想创建一个可以复用的类，该类可以与其他不相关的类或不可预见的类协同工作。
+- （仅使用于对象 Adapter）你想要使用一些已经存在的子类，但是不可能对每一个都进行子类化以匹配它们的接口。对象适配器可以适配它的父类接口。
+
+#### 5. 结构
+
+类适配器使用多重继承对一个接口与另一个接口进行匹配，如下图所示：
+
+![](../images/DesignPatternsBook_202205141849_2.png)
+
+对象匹配器依赖于对象组合，如下图所示：
+
+![](../images/DesignPatternsBook_202205141849_3.png)
+
+#### 6. 参与者
+
+- Target（Shape）
+  - 定义 Client 使用的与特定领域相关的接口。
+- Client（DrawingEditor）
+  - 与符合条件 Target 接口的对象协同
+- Adaptee（TextView）
+  - 定义一个已经存在的接口，这个接口需要适配。
+- Adapter（TextShape）
+  - 对 Adaptee 的接口与 Target 接口进行适配。
+
+#### 7. 协作
+
+- Client 在 Adapter 实例上调用一些操作。接着适配器用 Adaptee的操作实现这个请求。
+
+#### 8. 效果
+
+类适配器和对象适配器有不同权衡。类适配器：
+
+- 用一个具体的 Adapter 类对 Adaptee 和 Target 进行匹配。结果是当我们想要匹配一个类以及所有它的子类时，类 Adapter 将不能胜任工作。
+- 使得 Adapter 可以重定义 Adaptee 的部分行为。
+- 仅仅引入一个对象，并不需要额外的指针以间接得到 adaptee。
+
+对象适配器则：
+
+- 允许一个 Adapter 与多个 Adaptee。Adapter 也可以一次给所有的 Adaptee 添加功能。
+- 使得重定义 Adaptee 的行为比较困难。这就需要生成 Adaptee 的子类并且使得 Adapte 引用这个子类而不是引用 Adaptee 本身。
+
+使用Adapter模式时需要考虑的其他一些因素有：
+
+- Adapter 的匹配程度。
+- 可插入的Adapter - 当其他的类使用一个类时，如果所需的假定条件越少，这个类就更具可复用性。
+- 使用双向适配器提供透明操作
+考虑一个双向适配器，它将图形编辑器框架 Unidraw 与约束求解工具箱QOCA集成起来。这两个系统都有一些类，这些类显式地表示变量。
+![](../images/DesignPatternsBook_202205141849_4.png)
+
+#### 9. 实现
+
+尽管 Adapter 模式的实现方式通常简单直接，但是仍需要注意以下一些问题：
+
+1. 使用 C++ 实现适配器类 在使用C++ 实现适配器类时，Adapter 类应该采用公共方式继承 Target 类，并且私有方式继承 Adaptee 类。因此，Adapter 类应该是 Target 的子类型，但不是 Adaptee 的子类型。
+2. 可插入的适配器
+首先为 Adaptee 找到一个 “窄” 接口，即可用于适配的最小操作集。
+对于窄接口，有以下三种实现途径：
+
+- 使用抽象操作
+- 使用代理对象
+- 参数化适配器
+
+#### 10. 代码示例
+
+```c++
+class Shape{
+public:
+  Shape();
+  virtual void BoundingBox(Point& bottomLeft,Point& topRight )const;
+  virtual Manipulator * CreateManipulator() const;
+};
+
+class TextView{
+public:
+  TextView();
+  void GetOrigin(Coord& x,Coord& y) const;
+  void GetExtent(Coord& width,Coord& height) const;
+  virtual bool IsEmpty() const;
+};
+```
+
+类适配器采用多重继承适配接口。通常 C++ 这样做：用公共方式继承
+接口；用私有方式继承接口实现。
+
+```c++
+class TextShape:public Shape,private TextView{
+public:
+  TextShape();
+
+  virtual void BoundingBox(Point& bottomLeft,Point& topRight )const;
+  virtual Manipulator * CreateManipulator() const;
+  virtual bool IsEmpty() const;
+};
+
+void TextShape::BoundingBox(Point& bottomLeft,Point& topRight )const{
+  Coord bottom,left,width,height;
+
+  GetOrigin(bottom,left);
+  GetExtent(width,height);
+
+  bottomLeft = Point(bottom,left);
+  topRight=Point(bottom + height,left + width);
+}
+
+bool TextShape::IsEmpty() const{
+  return TextView::IsEmpty();
+}
+
+Manipulator * TextShape::CreateManipulator() const{
+  return new TextManipulator(this);
+}
+```
+
+对象适配器采用对象组合的方法将具有不同接口的类组合在一起。
+
+```c++
+class TextShape:public Shape{
+public:
+  TextShape(TextView *);
+
+  virtual void BoundingBox(Point& bottomLeft,Point& topRight )const;
+  virtual Manipulator * CreateManipulator() const;
+  virtual bool IsEmpty() const;
+private:
+  TextView * _text;
+};
+
+TextShape::TextView(TextView * t){
+  _text=t;
+}
+
+void TextShape::BoundingBox(Point& bottomLeft,Point& topRight )const{
+  Coord bottom,left,width,height;
+
+  _text->GetOrigin(bottom,left);
+  _text->GetExtent(width,height);
+
+  bottomLeft = Point(bottom,left);
+  topRight=Point(bottom + height,left + width);
+}
+
+bool TextShape::IsEmpty() const{
+  return _text->IsEmpty();
+}
+
+Manipulator * TextShape::CreateManipulator() const{
+  return new TextManipulator(this);
+}
+```
+
+将这段代码与类适配器的相应代码进行比较，可以看出编写对象适配器代码相对麻烦一些，但是它比较灵活。
+
+#### 11. 已知应用
+
+- ET++ Draw
+- InterView2
+- NeXT - AppKit
+
+#### 12. 相关模式
+
+- 模式 Bridge 的结构与对象适配器类似，但是 Bridge 模式的出发点不同；Bridge 目的是将接口部分和实现部分分离，从而对它们可以较为容易也相对独立的加以改变。而 Adapter 则意味着改变一个已有对象的接口。
+- Decorator 模式增强了其他对象的功能而同时又不改变它的接口。因此 Decorator 对应用程序的透明性比适配器要好。结果是 Decorator 支持递归组合，而纯粹使用适配器是不可能实现这一点的。
+- 模式 Proxy 在不改变它的接口的条件下，为另一个对象定义了一个代理。
 
 ---
 
