@@ -142,6 +142,19 @@
       - [10. 代码示例](#10-代码示例-2)
       - [11. 已知应用](#11-已知应用-2)
       - [12. 相关模式](#12-相关模式-2)
+    - [4.2 Bridge (桥接) - 对象结构型模式](#42-bridge-桥接-对象结构型模式)
+      - [1. 意图](#1-意图-6)
+      - [2. 别名](#2-别名-3)
+      - [3. 动机](#3-动机-3)
+      - [4. 适用性](#4-适用性-3)
+      - [5. 结构](#5-结构-3)
+      - [6. 参与者](#6-参与者-3)
+      - [7. 协作](#7-协作-3)
+      - [8. 效果](#8-效果-3)
+      - [9. 实现](#9-实现-3)
+      - [10. 代码示例](#10-代码示例-3)
+      - [11. 已知应用](#11-已知应用-3)
+      - [12. 相关模式](#12-相关模式-3)
 
 <!-- /code_chunk_output -->
 
@@ -2631,6 +2644,247 @@ Manipulator * TextShape::CreateManipulator() const{
 - 模式 Bridge 的结构与对象适配器类似，但是 Bridge 模式的出发点不同；Bridge 目的是将接口部分和实现部分分离，从而对它们可以较为容易也相对独立的加以改变。而 Adapter 则意味着改变一个已有对象的接口。
 - Decorator 模式增强了其他对象的功能而同时又不改变它的接口。因此 Decorator 对应用程序的透明性比适配器要好。结果是 Decorator 支持递归组合，而纯粹使用适配器是不可能实现这一点的。
 - 模式 Proxy 在不改变它的接口的条件下，为另一个对象定义了一个代理。
+
+### 4.2 Bridge (桥接) - 对象结构型模式
+
+#### 1. 意图
+
+将抽象部分与它的实现部分分离，使它们可以独立的变化。
+
+#### 2. 别名
+
+Handle/Body
+
+#### 3. 动机
+
+当一个抽象可能有多个实现时，通常用继承来协调它们。抽象类定义对该抽象的接口，而具体的子类则用不同的方式加以实现。但是此方法有时不够灵活。继承机制将抽象部分与它的实现部分固定在一起，使得难以对抽象部分独立地进行修改、扩充和重用。
+让我们考虑再一个用户界面工具箱中，一个可移植的 Window 抽象部分的实现。例如，这一抽象部分应该允许用户开发一些在 X Window system 和 IBM 的 Presentation Manager(PM) 系统中都可以使用的应用程序。运用继承机制，我们可以定义 Windows 抽象类和它的两个子类 XWindow 与  PMWindow ，由它们分别实现不同平台上的 Window 界面。但是继承机制有两个不足之处：
+
+1. 扩展 Window 抽象使之适用于不同种类的窗口或新系统很不方便。
+2. 继承机制使得客户代码与平台相关。
+客户在创建窗口时应该不涉及到其具体实现部分。仅仅是窗口的实现部分依赖于应用运行的平台。这样客户代码在创建窗口时就不应涉及到特定的平台。
+
+Bridge 模式解决以上问题的方法是，将 Window 抽象和它的实现部分分别放在独立的类层次结构中。其中一个类层次结构针对窗口接口 (Window,IconWindow,TransientWindow)，另外一个独立的类层次结构针对平台相关的窗口实现部分，这个类层次结构的根类为 WindowImp。
+
+对 Window 子类的所有操作都是用  WindowImp 接口中的抽象操作实现的。这就将窗口的抽象与系统平台相关的实现部分分离开来。因此，我们将 Window 与 WindowImp 之间的关系称为桥接，因为它在抽象类与它的实现之间起到了桥梁作用，使它们可以独立地变化。
+
+![](../images/DesignPatternsBook_202205211825_1.png)
+
+#### 4. 适用性
+
+- 你不希望在抽象和它的实现部分之间有一个固定的绑定关系。
+- 类的抽象以及它的实现都应该可以通过生成子类的方法加以扩充。
+- 对一个抽象的实现部分的修改应对客户不产生影响，即客户的代码不必重新编译。
+- （C++）你想对客户完全隐藏抽象的实现部分。
+- 正如在意图一节的第一个类图中所示的那样，有许多类要生成。这样一种类层次结构说明你必须将一个对象分解成两个部分。Rumbaugh 称这种类层次结构为 "嵌套的普化" (nested generalizations)。
+- 你想在多个对象间共享实现（可能是引用计数），但同时要求客户并不知道这一点。一个简单的例子便是 Coplien 的 string 类，在这个类中多个对象共享同一个字符串表示 (StringRep)。
+
+#### 5. 结构
+
+![](../images/DesignPatternsBook_202205211825_2.png)
+
+#### 6. 参与者
+
+- Abstract(Window)
+  - 定义抽象类的接口
+  - 维护一个指向 Implementor 类型对象的指针。
+- RefinedAbstraction (IconWindow)
+  - 扩充由 Abstraction 定义的接口
+- Implementor（WindowImp）
+  - 定义实现类的接口，该接口不一定要与 Abstraction 的接口完全一致；事实上这两个接口可以完全不同。一般来讲，Implementor 仅提供基本操作，而 Abstraction 则定义了基于这些基本操作的较高层次的操作。
+- ConcreteImplementor (XWindowImp,PMWindowImp)
+  - 实现 Implementor 接口并定义它的具体实现。
+
+#### 7. 协作
+
+- Abstraction 将 Client 的请求转发给它的 Implementor 对象。
+
+#### 8. 效果
+
+优点：
+
+- 分离接口及其实现部分
+- 提高可扩充性
+- 对客户隐藏实现细节
+
+#### 9. 实现
+
+- 仅有一个 Implementor 在仅有一个实现的时候，没有必要创建一个抽象的  Implementor 类。这是 Bridge 模式的退化情况；
+- 创建正确的 Implementor 对象 当村在多个 Implementor 类的时候，可以通过传递给构造器的参数确定实例化哪一个类。
+- 共享 Implementor 对象 Coplien 阐明了如何用 C++ 常用的 Handle/Body 方法在多个对象间共享一些实现。eg:
+
+```c++
+Handle& Handle::operator=(const Handle& other){
+  other._body->Ref();
+  _body->Unref();
+
+  if(0 == _body_RefCount()){
+    delete _body;
+  }
+
+  _body = other._body;
+
+  return * this;
+}
+```
+
+- 采用多重继承机制 在 C++ 中使用多重继承机制将抽象接口和它的实现部分结合起来。但是由于这种方法依赖静态继承，它将实现与接口固定不变的绑定在一起。因此不可能使用多重继承的方法实现真正的 Bridge 模式 - 至少 C++ 不行。
+
+#### 10. 代码示例
+
+```c++
+class Window{
+public:
+  Window(View * Contents);
+
+  //requests handled by window 
+  virtual void DrawContents();
+
+  virtual void Open();
+  virtual void Close();
+  virtual void Iconify();
+  virtual void Deiconify();
+
+  // requests forwarded to implementation 
+  virtual void SetOrigin(const Point& at);
+  virtual void SetExtent(const Point& extent);
+  virtual void Raise();
+  virtual void Lower();
+  virtual void DrawLine(const Point& ,const Point& );
+  virtual void DrawRect(const Point& ,const Point& );
+  virtual void DrawPolygon(const Point[],int n);
+  virtual void DrawText(const char * ,const Point&);
+
+protected:
+  WindowImp * GetWindowImp();
+  View * GetView();
+private:
+  WindowImp * _imp;
+  View * _contents; // the window's contents 
+};
+
+WindowImp * Window::GetWindowImp(){
+  if(nullptr == _imp){
+    _imp= WindowSystemFactory::Instance()->MakeWindowImp();
+  }
+  return _imp;
+}
+
+class WindowImp{
+public:
+  virtual void ImpTop()=0;
+  virtual void ImpBottom()=0;
+  virtual void ImpSetExtent(const Point&)=0;
+  virtual void ImpSetOrigin(const Point&)=0;
+
+  virtual void DeviceRect(Coord,Coord,Coord,Coord)=0;
+  virtual void DeviceText(const char*,Coord,Coord)=0;
+  virtual void DeviceBitmap(const char *,Coord,Coord)=0;
+
+  // lots more functions for drawing on windows ... 
+protected:
+  WindowImp();
+};
+
+class ApplicationWindow:public Window{
+public:
+  // ...
+  virtual void DrawContents(){
+    GetView()->DrawOn(this);
+  }
+};
+
+class IconWindow:public Window{
+public:
+  // ...
+  virtual void DrawContents(){
+    WindowImp * imp = GetWindowImp();
+    if(imp){
+      imp->DeviceBitmap(_bitmapName,0.0,0.0);
+    }
+  }
+private:
+  const char * _bitmapName;
+};
+
+void Window::DrawRect(const Point& p1,const Point& p2){
+  WindowImp * imp = GetWindowImp();
+  imp->DeviceBitmap(p1.x(),p1.y(),p2.x(),p2.y());
+}
+```
+
+具体的 WindowImp 子类可支持不同的窗口系统.
+
+```c++
+class XWindowImp:public WindowImp{
+public:
+  XWindowImp();
+
+  virtual void DeviceRect(Coord,Coord,Coord,Coord);
+  // remainder of public interface ...
+private:
+  // lots of X window system-specific state,including 
+  Display * _dpy;
+  Drawable _winid; // window id 
+  GC _gc; // window graphic context 
+};
+
+class PMWindowImp:public WindowImp{
+public:
+  PMWindowImp();
+
+  virtual void DeviceRect(Coord,Coord,Coord,Coord);
+  // remainder of public interface ...
+private:
+  // lots of PM window system-specific state,including 
+  HPS _hps;
+};
+
+void XWindowImp::DeviceRect(Coord x0,Coord x1,Coord x2,Coord x3){
+  int x=round(min(x0,x1));
+  int y=round(min(y0,y1));
+  int w=round(abs(x0-x1));
+  int h=round(abs(y0-y1));
+  XDrawRectangle(_dpy,_winid,_gc,x,y,w,h);
+}
+
+void PMWindowImp::DeviceRect(Coord x0,Coord x1,Coord x2,Coord x3){
+  Coord left=min(x0,x1);
+  Coord right=max(x0,x1);
+  Coord bottom=min(y0,y1);
+  Coord top=max(y0,y1);
+
+  PPOINTL point[4];
+  point[0].x=left; point[0].y=top;
+  point[1].x=right; point[1].y=top;
+  point[2].x=right; point[2].y=bottom;
+  point[3].x=left; point[3].y=bottom;
+
+  if(
+      (GpiBeginPath(_hps,1L) == false) ||
+      (GpiSetCurrentPosition(_hps,&point[3]) == false) ||
+      (GpiPolyLine(_hps,4L,point) == GPI_ERROR ) ||
+      (GpiEndPath(_hps) == false)
+    ){
+      // report error
+    }else{
+      GpiStrokePath(_hps,1L,0L);
+    }
+}
+
+```
+
+#### 11. 已知应用
+
+- ET++
+- Coplien 和 Stroustrup 都提及 Handle 类并给出了一些例子。这些例子集中处理一些内存管理问题，例如共享字符床表达式以及支持大小可变的对象等。我们主要关心它怎样支持对一个抽象和它的实现进行独立地扩展。
+- libg++[Lea88] 类库定义了一些类用于实现公共的数据结构，例如 Set LinkedSet HashSet LinkedList 和 HashTable 。
+- NeXT‘s AppKit 在图像生成和显示中使用了 Bridge 模式。
+
+#### 12. 相关模式
+
+- AbstractFactory 模式可以用来创建和配置一个特定的 Bridge 模式。
+- Adapter 模式用来帮助无关的类协同工作，它通常在设计完成之后被使用。然而，Bridge 模式则在系统开始时就被使用，它使得抽象接口和实现部分可以独立进行改变。
 
 ---
 
