@@ -273,4 +273,4 @@ key: d,huffman: 111
 ---
 - [上一级](README.md)
 - 上一篇 -> [设计模式 - 可复用面向对象软件的基础](DesignPatternsBook.md)
-- 下一篇 -> [变量名的力量](ThePowerOfVariableName.md)
+- 下一篇 -> [极客时间 - 软件工程之美（宝玉）- 学习笔记](TheBeautyOfSoftwareEngineering.md)
