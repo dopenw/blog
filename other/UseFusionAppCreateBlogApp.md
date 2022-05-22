@@ -1,18 +1,17 @@
-# 利用 Fusion App 创建个人blog安卓客户端
+<!-- 利用 Fusion App 创建个人blog安卓客户端 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [利用 Fusion App 创建个人blog安卓客户端](#利用-fusion-app-创建个人blog安卓客户端)
-	* [Fusion App 简介](#fusion-app-简介)
-	* [手机浏览器预览](#手机浏览器预览)
-	* [创建一个顶栏模板](#创建一个顶栏模板)
-	* [添加启动网页](#添加启动网页)
-	* [添加网页控制](#添加网页控制)
-	* [添加侧滑栏](#添加侧滑栏)
-		* [设置项目点击事件](#设置项目点击事件)
-	* [打包安装 MyBlog](#打包安装-myblog)
+- [Fusion App 简介](#fusion-app-简介)
+- [手机浏览器预览](#手机浏览器预览)
+- [创建一个顶栏模板](#创建一个顶栏模板)
+- [添加启动网页](#添加启动网页)
+- [添加网页控制](#添加网页控制)
+- [添加侧滑栏](#添加侧滑栏)
+  - [设置项目点击事件](#设置项目点击事件)
+- [打包安装 MyBlog](#打包安装-myblog)
 
 <!-- /code_chunk_output -->
 

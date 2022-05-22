@@ -1,11 +1,10 @@
-# do_while_false的功用
+<!-- do_while_false的功用 -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [do_while_false的功用](#do_while_false的功用)
-	* [用法一](#用法一)
-	* [用法二](#用法二)
+- [用法一](#用法一)
+- [用法二](#用法二)
 
 <!-- /code_chunk_output -->
 

@@ -1,4 +1,4 @@
-# fedora install boostnote
+<!-- fedora install boostnote -->
 
 [Boostnote official](https://boostnote.io/)
 
@@ -37,5 +37,5 @@ rpm -ivh boostnote.rpm
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [Install Ubuntu Gnome Desktop on android ](androidInstalUbuntu.md)
+- 上一篇 -> [Install Ubuntu Gnome Desktop on android](androidInstalUbuntu.md)
 - 下一篇 -> [Build openGapps from github](buildOpengapps.md)

@@ -1,18 +1,17 @@
-# Boost file system
+<!-- Boost file system -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [Boost file system](#boost-file-system)
-	* [Sample 1: 简单使用](#sample-1-简单使用)
-		* [编译生成可执行文件](#编译生成可执行文件)
-	* [Sample 2：使用 directory_iterator输出目录下的(文件和目录)](#sample-2使用-directory_iterator输出目录下的文件和目录)
-		* [使用 recursive_directory_iterator 递归输出](#使用-recursive_directory_iterator-递归输出)
-	* [Sample 3：排序目录里面的(文件和目录)](#sample-3排序目录里面的文件和目录)
-	* [Sample 4: path 类的一些方法](#sample-4-path-类的一些方法)
-	* [Sample 5:create directory](#sample-5create-directory)
-	* [在 IDE 中使用 boost 库](#在-ide-中使用-boost-库)
-	* [Link](#link)
+- [Sample 1: 简单使用](#sample-1-简单使用)
+  - [编译生成可执行文件](#编译生成可执行文件)
+- [Sample 2：使用 directory_iterator输出目录下的(文件和目录)](#sample-2使用-directory_iterator输出目录下的文件和目录)
+  - [使用 recursive_directory_iterator 递归输出](#使用-recursive_directory_iterator-递归输出)
+- [Sample 3：排序目录里面的(文件和目录)](#sample-3排序目录里面的文件和目录)
+- [Sample 4: path 类的一些方法](#sample-4-path-类的一些方法)
+- [Sample 5:create directory](#sample-5create-directory)
+- [在 IDE 中使用 boost 库](#在-ide-中使用-boost-库)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

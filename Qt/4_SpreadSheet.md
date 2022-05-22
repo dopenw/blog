@@ -1,20 +1,19 @@
-# 4. 实现应用程序的功能
+<!-- 4. 实现应用程序的功能 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [4. 实现应用程序的功能](#4-实现应用程序的功能)
-  - [中央窗口部件](#中央窗口部件)
-  - [子类化 QTableWidget](#子类化-qtablewidget)
-  - [用到的一些重要的类](#用到的一些重要的类)
-  - [spreadsheet.h:](#spreadsheeth)
-  - [Spreadsheet.cpp](#spreadsheetcpp)
-  - [子类化 QTableWidgetItem](#子类化-qtablewidgetitem)
-    - [Cell.h](#cellh)
-    - [Cell.cpp](#cellcpp)
-    - [evalExpression 函数说明](#evalexpression-函数说明)
-  - [Link](#link)
+- [中央窗口部件](#中央窗口部件)
+- [子类化 QTableWidget](#子类化-qtablewidget)
+- [用到的一些重要的类](#用到的一些重要的类)
+- [spreadsheet.h:](#spreadsheeth)
+- [Spreadsheet.cpp](#spreadsheetcpp)
+- [子类化 QTableWidgetItem](#子类化-qtablewidgetitem)
+  - [Cell.h](#cellh)
+  - [Cell.cpp](#cellcpp)
+  - [evalExpression 函数说明](#evalexpression-函数说明)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

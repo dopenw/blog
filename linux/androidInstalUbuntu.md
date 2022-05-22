@@ -1,12 +1,11 @@
-# Install Ubuntu Gnome Desktop on android 
+<!-- Install Ubuntu Gnome Desktop on android  -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [Install Ubuntu Gnome Desktop on android](#install-ubuntu-gnome-desktop-on-android)
-  - [Link](#link)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

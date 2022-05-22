@@ -1,4 +1,4 @@
-# 求x的n次方
+<!-- 求x的n次方 -->
 
 Implement pow(x, n).
 

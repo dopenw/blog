@@ -1,12 +1,11 @@
-# C 和 C++ 的内存分布
+<!-- #C 和 C++ 的内存分布 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [C 和 C++ 的内存分布](#c-和-c-的内存分布)
-	* [C 内存分布](#c-内存分布)
-	* [C++中内存分布](#c中内存分布)
+- [C 内存分布](#c-内存分布)
+- [C++中内存分布](#c中内存分布)
 
 <!-- /code_chunk_output -->
 

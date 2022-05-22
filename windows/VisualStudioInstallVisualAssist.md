@@ -1,15 +1,14 @@
-# Visual studio 安装 Visual Assist
+<!-- Visual studio 安装 Visual Assist -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [Visual studio 安装 Visual Assist](#visual-studio-安装-visual-assist)
-	- [Visual Assist 概览](#visual-assist-概览)
-	- [crack visual Assist](#crack-visual-assist)
-	- [VisualStudio 2008 install visual assist](#visualstudio-2008-install-visual-assist)
-	- [使用 Trial-Reset40 重置试用期](#使用-trial-reset40-重置试用期)
-	- [Link](#link)
+- [Visual Assist 概览](#visual-assist-概览)
+- [crack visual Assist](#crack-visual-assist)
+- [VisualStudio 2008 install visual assist](#visualstudio-2008-install-visual-assist)
+- [使用 Trial-Reset40 重置试用期](#使用-trial-reset40-重置试用期)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

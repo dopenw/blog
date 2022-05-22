@@ -1,4 +1,4 @@
-# Put functions into vector and execute
+<!-- Put functions into vector and execute -->
 
 [std::function](http://en.cppreference.com/w/cpp/utility/functional/function)
 

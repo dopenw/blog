@@ -1,23 +1,22 @@
-# 《Qml Book》 - Extending QML with C++
+<!-- 《Qml Book》 - Extending QML with C++ -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [《Qml Book》 - Extending QML with C++](#qml-book-extending-qml-with-c)
-  - [Understanding the QML Run-time](#understanding-the-qml-run-time)
-  - [Plugin Content](#plugin-content)
-  - [Creating the plugin](#creating-the-plugin)
-  - [FileIO Implementation](#fileio-implementation)
-  - [Using FileIO](#using-fileio)
-    - [The Application Window](#the-application-window)
-    - [Using Actions](#using-actions)
-    - [Formatting the Table](#formatting-the-table)
-    - [Reading Data](#reading-data)
-    - [Writing Data](#writing-data)
-    - [Finishing Touch](#finishing-touch)
-  - [Summary](#summary)
-  - [Source code](#source-code)
+- [Understanding the QML Run-time](#understanding-the-qml-run-time)
+- [Plugin Content](#plugin-content)
+- [Creating the plugin](#creating-the-plugin)
+- [FileIO Implementation](#fileio-implementation)
+- [Using FileIO](#using-fileio)
+  - [The Application Window](#the-application-window)
+  - [Using Actions](#using-actions)
+  - [Formatting the Table](#formatting-the-table)
+  - [Reading Data](#reading-data)
+  - [Writing Data](#writing-data)
+  - [Finishing Touch](#finishing-touch)
+- [Summary](#summary)
+- [Source code](#source-code)
 
 <!-- /code_chunk_output -->
 

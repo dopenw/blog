@@ -1,13 +1,12 @@
-# 使用 visual studio 遇到的一些问题
+<!-- 使用 visual studio 遇到的一些问题 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [使用 visual studio 遇到的一些问题](#使用-visual-studio-遇到的一些问题)
-  - [error Please #define _AFXDLL or do not use /MD[d]](#error-please-define-_afxdll-or-do-not-use-mdd)
-  - [VS调试 不会命中断点，源代码与原始版本不同](#vs调试-不会命中断点源代码与原始版本不同)
+- [error Please #define _AFXDLL or do not use /MD[d]](#error-please-define-_afxdll-or-do-not-use-mdd)
+- [VS调试 不会命中断点，源代码与原始版本不同](#vs调试-不会命中断点源代码与原始版本不同)
 
 <!-- /code_chunk_output -->
 

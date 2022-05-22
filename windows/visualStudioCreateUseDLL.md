@@ -1,18 +1,17 @@
-# visual studio 创建和使用 DLL 文件
+<!-- visual studio 创建和使用 DLL 文件 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [visual studio 创建和使用 DLL 文件](#visual-studio-创建和使用-dll-文件)
-	* [创建 DLL 文件](#创建-dll-文件)
-	* [将执行文件链接到到 DLL](#将执行文件链接到到-dll)
-		* [隐式链接](#隐式链接)
-		* [显式链接](#显式链接)
-	* [利用 Dependency Walker 查看依赖关系](#利用-dependency-walker-查看依赖关系)
-	* [将 vs2008 DLL project update vs2010 DLL project](#将-vs2008-dll-project-update-vs2010-dll-project)
-	* [Process Monitor](#process-monitor)
-	* [参考链接](#参考链接)
+- [创建 DLL 文件](#创建-dll-文件)
+- [将执行文件链接到到 DLL](#将执行文件链接到到-dll)
+  - [隐式链接](#隐式链接)
+  - [显式链接](#显式链接)
+- [利用 Dependency Walker 查看依赖关系](#利用-dependency-walker-查看依赖关系)
+- [将 vs2008 DLL project update vs2010 DLL project](#将-vs2008-dll-project-update-vs2010-dll-project)
+- [Process Monitor](#process-monitor)
+- [参考链接](#参考链接)
 
 <!-- /code_chunk_output -->
 

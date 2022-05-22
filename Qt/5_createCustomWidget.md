@@ -1,21 +1,20 @@
-# 5. 创建自定义窗口部件
+<!-- 5. 创建自定义窗口部件 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [5. 创建自定义窗口部件](#5-创建自定义窗口部件)
-  - [自定义 Qt 窗口部件](#自定义-qt-窗口部件)
-    - [HexSpinBox.h](#hexspinboxh)
-    - [HexSpinBox.cpp](#hexspinboxcpp)
-  - [子类化 QWidget](#子类化-qwidget)
-    - [IconEditor.h](#iconeditorh)
-    - [IconEditor.cpp](#iconeditorcpp)
-  - [在 Qt 设计师中集成自定义窗口部件](#在-qt-设计师中集成自定义窗口部件)
-  - [双缓冲](#双缓冲)
-    - [Plotter.h](#plotterh)
-    - [Plotter.cpp](#plottercpp)
-  - [Link](#link)
+- [自定义 Qt 窗口部件](#自定义-qt-窗口部件)
+  - [HexSpinBox.h](#hexspinboxh)
+  - [HexSpinBox.cpp](#hexspinboxcpp)
+- [子类化 QWidget](#子类化-qwidget)
+  - [IconEditor.h](#iconeditorh)
+  - [IconEditor.cpp](#iconeditorcpp)
+- [在 Qt 设计师中集成自定义窗口部件](#在-qt-设计师中集成自定义窗口部件)
+- [双缓冲](#双缓冲)
+  - [Plotter.h](#plotterh)
+  - [Plotter.cpp](#plottercpp)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

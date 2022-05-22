@@ -1,24 +1,23 @@
-# 4.基本TCP套接字编程
+<!-- 4.基本TCP套接字编程 -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [4.基本TCP套接字编程](#4基本tcp套接字编程)
-	* [socket函数](#socket函数)
-		* [基本tcp客户/服务器程序的套接字示意图](#基本tcp客户服务器程序的套接字示意图)
-		* [socket函数的family常值](#socket函数的family常值)
-		* [socket函数的type常值](#socket函数的type常值)
-		* [socket函数AF_INET或者AF_INET6的protocol常值](#socket函数af_inet或者af_inet6的protocol常值)
-	* [connect function](#connect-function)
-	* [bind function](#bind-function)
-	* [listen函数](#listen函数)
-		* [不同的backlog值时已排队连接的实际数目](#不同的backlog值时已排队连接的实际数目)
-	* [accept function](#accept-function)
-		* [显示客户IP地址和端口号的时间获取服务器程序](#显示客户ip地址和端口号的时间获取服务器程序)
-	* [并发服务器](#并发服务器)
-	* [close 函数](#close-函数)
-	* [getsockname 和 getpeername](#getsockname-和-getpeername)
-	* [习题](#习题)
+- [socket函数](#socket函数)
+  - [基本tcp客户/服务器程序的套接字示意图](#基本tcp客户服务器程序的套接字示意图)
+  - [socket函数的family常值](#socket函数的family常值)
+  - [socket函数的type常值](#socket函数的type常值)
+  - [socket函数AF_INET或者AF_INET6的protocol常值](#socket函数af_inet或者af_inet6的protocol常值)
+- [connect function](#connect-function)
+- [bind function](#bind-function)
+- [listen函数](#listen函数)
+  - [不同的backlog值时已排队连接的实际数目](#不同的backlog值时已排队连接的实际数目)
+- [accept function](#accept-function)
+  - [显示客户IP地址和端口号的时间获取服务器程序](#显示客户ip地址和端口号的时间获取服务器程序)
+- [并发服务器](#并发服务器)
+- [close 函数](#close-函数)
+- [getsockname 和 getpeername](#getsockname-和-getpeername)
+- [习题](#习题)
 
 <!-- /code_chunk_output -->
 

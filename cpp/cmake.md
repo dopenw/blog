@@ -1,27 +1,26 @@
-# CMake
+<!-- CMake -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [CMake](#cmake)
-  - [CMake Tutorial](#cmake-tutorial)
-    - [Introduction](#introduction)
-    - [A Basic Starting Point (Step 1)](#a-basic-starting-point-step-1)
-      - [Adding a Version Number and Configured Header File](#adding-a-version-number-and-configured-header-file)
-      - [Specify the C++ Standard](#specify-the-c-standard)
-      - [Build and Test](#build-and-test)
-      - [Full code](#full-code)
-    - [Adding a Library (Step 2)](#adding-a-library-step-2)
-      - [Full code](#full-code-1)
-    - [Adding Usage Requirements for Library (Step 3)](#adding-usage-requirements-for-library-step-3)
-      - [Full code](#full-code-2)
-    - [Installing and Testing (Step 4)](#installing-and-testing-step-4)
-      - [Install Rules](#install-rules)
-      - [Testing Support](#testing-support)
-      - [Full code](#full-code-3)
-    - [Adding System Introspection (Step 5)](#adding-system-introspection-step-5)
-      - [Full code](#full-code-4)
+- [CMake Tutorial](#cmake-tutorial)
+  - [Introduction](#introduction)
+  - [A Basic Starting Point (Step 1)](#a-basic-starting-point-step-1)
+    - [Adding a Version Number and Configured Header File](#adding-a-version-number-and-configured-header-file)
+    - [Specify the C++ Standard](#specify-the-c-standard)
+    - [Build and Test](#build-and-test)
+    - [Full code](#full-code)
+  - [Adding a Library (Step 2)](#adding-a-library-step-2)
+    - [Full code](#full-code-1)
+  - [Adding Usage Requirements for Library (Step 3)](#adding-usage-requirements-for-library-step-3)
+    - [Full code](#full-code-2)
+  - [Installing and Testing (Step 4)](#installing-and-testing-step-4)
+    - [Install Rules](#install-rules)
+    - [Testing Support](#testing-support)
+    - [Full code](#full-code-3)
+  - [Adding System Introspection (Step 5)](#adding-system-introspection-step-5)
+    - [Full code](#full-code-4)
 
 <!-- /code_chunk_output -->
 

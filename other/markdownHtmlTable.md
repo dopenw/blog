@@ -1,15 +1,14 @@
-# markdown 嵌入 HTML table，让其具有更多的特性
+<!-- markdown 嵌入 HTML table，让其具有更多的特性 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [markdown 嵌入 HTML table，让其具有更多的特性](#markdown-嵌入-html-table让其具有更多的特性)
-	* [生成合并了单元格的 HTML table](#生成合并了单元格的-html-table)
-	* [使用在线工具编辑 HTML table](#使用在线工具编辑-html-table)
-	* [借助另外一个online tools，简化前面的步骤(合二为一)](#借助另外一个online-tools简化前面的步骤合二为一)
-	* [将编辑好的 HTML table 复制到 md 文件](#将编辑好的-html-table-复制到-md-文件)
-	* [参考链接](#参考链接)
+- [生成合并了单元格的 HTML table](#生成合并了单元格的-html-table)
+- [使用在线工具编辑 HTML table](#使用在线工具编辑-html-table)
+- [借助另外一个online tools，简化前面的步骤(合二为一)](#借助另外一个online-tools简化前面的步骤合二为一)
+- [将编辑好的 HTML table 复制到 md 文件](#将编辑好的-html-table-复制到-md-文件)
+- [参考链接](#参考链接)
 
 <!-- /code_chunk_output -->
 

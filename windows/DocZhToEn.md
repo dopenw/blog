@@ -1,11 +1,10 @@
-# 将中文docx文档转换为英文文档
+<!-- 将中文docx文档转换为英文文档 -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [将中文docx文档转换为英文文档](#将中文docx文档转换为英文文档)
-	* [使用 office 2016 自带的翻译功能](#使用-office-2016-自带的翻译功能)
-	* [利用 google doc 网页版提供的翻译功能](#利用-google-doc-网页版提供的翻译功能)
+- [使用 office 2016 自带的翻译功能](#使用-office-2016-自带的翻译功能)
+- [利用 google doc 网页版提供的翻译功能](#利用-google-doc-网页版提供的翻译功能)
 
 <!-- /code_chunk_output -->
 

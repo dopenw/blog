@@ -1,4 +1,4 @@
-# fedora create custom desktop shortcut
+<!-- fedora create custom desktop shortcut -->
 
 1. Go to the location
 ```sh

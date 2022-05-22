@@ -1,23 +1,22 @@
-# 2.传输层：TCP、UDP、SCTP
+<!-- 2.传输层：TCP、UDP、SCTP -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [2.传输层：TCP、UDP、SCTP](#2传输层tcp-udp-sctp)
-	* [概述](#概述)
-	* [总图](#总图)
-	* [传输控制协议（TCP）](#传输控制协议tcp)
-		* [RTT(往返时间)](#rtt往返时间)
-		* [TCP连接的建立和终止](#tcp连接的建立和终止)
-			* [三路握手](#三路握手)
-			* [TCP选项](#tcp选项)
-			* [TCP连接终止](#tcp连接终止)
-			* [TCP状态转换图](#tcp状态转换图)
-	* [TCP数据传输不同于UDP之处](#tcp数据传输不同于udp之处)
-	* [TIME_WAIT状态](#time_wait状态)
-	* [SCTP](#sctp)
-	* [端口号](#端口号)
-	* [缓冲区大小及限制](#缓冲区大小及限制)
+- [概述](#概述)
+- [总图](#总图)
+- [传输控制协议（TCP）](#传输控制协议tcp)
+  - [RTT(往返时间)](#rtt往返时间)
+  - [TCP连接的建立和终止](#tcp连接的建立和终止)
+    - [三路握手](#三路握手)
+    - [TCP选项](#tcp选项)
+    - [TCP连接终止](#tcp连接终止)
+    - [TCP状态转换图](#tcp状态转换图)
+- [TCP数据传输不同于UDP之处](#tcp数据传输不同于udp之处)
+- [TIME_WAIT状态](#time_wait状态)
+- [SCTP](#sctp)
+- [端口号](#端口号)
+- [缓冲区大小及限制](#缓冲区大小及限制)
 
 <!-- /code_chunk_output -->
 

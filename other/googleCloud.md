@@ -1,4 +1,4 @@
-# google cloud 使用
+<!-- google cloud 使用 -->
 
 ## 设置防火墙
 NETWORKING->VPC Network->Filewall rules

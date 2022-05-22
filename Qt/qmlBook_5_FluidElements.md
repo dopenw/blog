@@ -1,19 +1,18 @@
-# 《Qml Book》 - Fluid Elements
+<!-- 《Qml Book》 - Fluid Elements -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [《Qml Book》 - Fluid Elements](#qml-book---fluid-elements)
-  - [Animations](#animations)
-    - [Animation Elements](#animation-elements)
-    - [Applying Animations](#applying-animations)
-    - [Easing Curves](#easing-curves)
-    - [Grouped Animations](#grouped-animations)
-  - [States and Transitions](#states-and-transitions)
-    - [States](#states)
-    - [Transitions](#transitions)
-  - [Source code](#source-code)
+- [Animations](#animations)
+  - [Animation Elements](#animation-elements)
+  - [Applying Animations](#applying-animations)
+  - [Easing Curves](#easing-curves)
+  - [Grouped Animations](#grouped-animations)
+- [States and Transitions](#states-and-transitions)
+  - [States](#states)
+  - [Transitions](#transitions)
+- [Source code](#source-code)
 
 <!-- /code_chunk_output -->
 

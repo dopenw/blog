@@ -1,13 +1,12 @@
-# fedora install cinnamon desktop
+<!-- fedora install cinnamon desktop -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [fedora install cinnamon desktop](#fedora-install-cinnamon-desktop)
-	* [Cinnamon](#cinnamon)
-	* [Install cinnamon desktop](#install-cinnamon-desktop)
-	* [Add chinese input](#add-chinese-input)
+- [Cinnamon](#cinnamon)
+- [Install cinnamon desktop](#install-cinnamon-desktop)
+- [Add chinese input](#add-chinese-input)
 
 <!-- /code_chunk_output -->
 

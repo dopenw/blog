@@ -1,16 +1,15 @@
-# Create git server
+<!-- Create git server -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [Create git server](#create-git-server)
-	* [Install git](#install-git)
-	* [Create git user](#create-git-user)
-	* [Add your ssh key to the accesss list](#add-your-ssh-key-to-the-accesss-list)
-	* [Initialize Git repository](#initialize-git-repository)
-	* [Disable shell login](#disable-shell-login)
-	* [Link](#link)
+- [Install git](#install-git)
+- [Create git user](#create-git-user)
+- [Add your ssh key to the accesss list](#add-your-ssh-key-to-the-accesss-list)
+- [Initialize Git repository](#initialize-git-repository)
+- [Disable shell login](#disable-shell-login)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

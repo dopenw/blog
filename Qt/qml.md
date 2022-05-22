@@ -1,16 +1,15 @@
-# QML Tutorial
+<!-- QML Tutorial -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [QML Tutorial](#qml-tutorial)
-  - [QML](#qml)
-  - [Basic Types](#basic-types)
-  - [QML Components](#qml-components)
-  - [States and Transitions](#states-and-transitions)
-  - [Link](#link)
+- [QML](#qml)
+- [Basic Types](#basic-types)
+- [QML Components](#qml-components)
+- [States and Transitions](#states-and-transitions)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

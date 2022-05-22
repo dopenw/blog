@@ -1,18 +1,17 @@
-# 16. XML
+<!-- 16. XML -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [16. XML](#16-xml)
-  - [使用 QXmlStreamReader 读取 XML](#使用-qxmlstreamreader-读取-xml)
-  - [用 DOM 读取 XML](#用-dom-读取-xml)
-  - [使用 SAX 读取 XML](#使用-sax-读取-xml)
-  - [写入 XML](#写入-xml)
-    - [使用 QXmlStreamWriter](#使用-qxmlstreamwriter)
-    - [DOM](#dom)
-    - [手动生成](#手动生成)
-  - [Link](#link)
+- [使用 QXmlStreamReader 读取 XML](#使用-qxmlstreamreader-读取-xml)
+- [用 DOM 读取 XML](#用-dom-读取-xml)
+- [使用 SAX 读取 XML](#使用-sax-读取-xml)
+- [写入 XML](#写入-xml)
+  - [使用 QXmlStreamWriter](#使用-qxmlstreamwriter)
+  - [DOM](#dom)
+  - [手动生成](#手动生成)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

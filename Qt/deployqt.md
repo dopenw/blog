@@ -1,13 +1,14 @@
-# 解决 qt 程序的依赖项
+<!-- 解决 qt 程序的依赖项 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [解决 qt 程序的依赖项](#解决-qt-程序的依赖项)
-  - [Windows](#windows)
-  - [Linux](#linux)
-  - [Link](#link)
+- [Windows](#windows)
+  - [Qt5](#qt5)
+  - [Qt4](#qt4)
+- [Linux](#linux)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

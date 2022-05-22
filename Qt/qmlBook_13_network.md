@@ -1,28 +1,27 @@
-# 《Qml Book》 - Networking
+<!-- 《Qml Book》 - Networking -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [《Qml Book》 - Networking](#qml-book-networking)
-  - [Serving UI via HTTP](#serving-ui-via-http)
-    - [Networked Components](#networked-components)
-  - [Templating](#templating)
-  - [HTTP Requests](#http-requests)
-  - [Flickr Calls](#flickr-calls)
-  - [Local files](#local-files)
-  - [REST API](#rest-api)
-    - [Read Request](#read-request)
-    - [Read Entry](#read-entry)
-    - [Update Entry](#update-entry)
-    - [Delete Entry](#delete-entry)
-    - [Client REST](#client-rest)
-  - [Authentication using OAuth](#authentication-using-oauth)
-  - [Web Sockets](#web-sockets)
-    - [WS Server](#ws-server)
-    - [WS Client](#ws-client)
-  - [Summary](#summary)
-  - [Source code](#source-code)
+- [Serving UI via HTTP](#serving-ui-via-http)
+  - [Networked Components](#networked-components)
+- [Templating](#templating)
+- [HTTP Requests](#http-requests)
+- [Flickr Calls](#flickr-calls)
+- [Local files](#local-files)
+- [REST API](#rest-api)
+  - [Read Request](#read-request)
+  - [Read Entry](#read-entry)
+  - [Update Entry](#update-entry)
+  - [Delete Entry](#delete-entry)
+  - [Client REST](#client-rest)
+- [Authentication using OAuth](#authentication-using-oauth)
+- [Web Sockets](#web-sockets)
+  - [WS Server](#ws-server)
+  - [WS Client](#ws-client)
+- [Summary](#summary)
+- [Source code](#source-code)
 
 <!-- /code_chunk_output -->
 

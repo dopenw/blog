@@ -1,15 +1,14 @@
-# vsCode 
+<!-- vsCode  -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [vsCode](#vscode)
-  - [简介](#简介)
-  - [设置自动换行](#设置自动换行)
-  - [常用插件推荐](#常用插件推荐)
-  - [Link](#link)
+- [简介](#简介)
+- [设置自动换行](#设置自动换行)
+- [常用插件推荐](#常用插件推荐)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

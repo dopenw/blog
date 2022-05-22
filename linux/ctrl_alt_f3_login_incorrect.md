@@ -1,4 +1,4 @@
-# ctl + alt + f3 login incorrect
+<!-- ctl + alt + f3 login incorrect -->
 
 当切换到tty3命令行时，使用外接键盘的小键盘（开启状态）输入用户密码，一直提示login incorrect
 
@@ -10,4 +10,4 @@
 ---
 - [上一级](README.md)
 - 上一篇 -> [Create git server](createGitServer.md)
-- 下一篇 -> [自定义 Manjaro 环境 ](customManjaroEnv.md)
+- 下一篇 -> [自定义 Manjaro 环境](customManjaroEnv.md)

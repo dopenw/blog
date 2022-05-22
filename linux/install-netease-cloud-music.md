@@ -1,4 +1,4 @@
-# fedora install netease cloud music
+<!-- fedora install netease cloud music -->
 
 1. Download netease cloud music .deb file
 [Download](https://music.163.com/#/download)

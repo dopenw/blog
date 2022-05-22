@@ -1,20 +1,19 @@
-# 8. 二维图形
+<!-- 8. 二维图形 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [8. 二维图形](#8-二维图形)
-  - [用 QPainter 绘图](#用-qpainter-绘图)
-  - [坐标系统转换](#坐标系统转换)
-    - [OvenTimer.h](#oventimerh)
-    - [OvenTimer.cpp](#oventimercpp)
-  - [用 QImage 高质量绘图](#用-qimage-高质量绘图)
-  - [基于项的图形视图](#基于项的图形视图)
-    - [图标编辑器](#图标编辑器)
-    - [CityScape](#cityscape)
-  - [打印](#打印)
-  - [Link](#link)
+- [用 QPainter 绘图](#用-qpainter-绘图)
+- [坐标系统转换](#坐标系统转换)
+  - [OvenTimer.h](#oventimerh)
+  - [OvenTimer.cpp](#oventimercpp)
+- [用 QImage 高质量绘图](#用-qimage-高质量绘图)
+- [基于项的图形视图](#基于项的图形视图)
+  - [图标编辑器](#图标编辑器)
+  - [CityScape](#cityscape)
+- [打印](#打印)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

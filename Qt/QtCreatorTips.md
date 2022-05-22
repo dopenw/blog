@@ -1,12 +1,11 @@
-# Qt Creator 使用
+<!-- Qt Creator 使用 -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [Qt Creator 使用](#qt-creator-使用)
-  - [使用 code format -> ClangFormat](#使用-code-format---clangformat)
-  - [Link](#link)
+- [使用 code format -> ClangFormat](#使用-code-format-clangformat)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

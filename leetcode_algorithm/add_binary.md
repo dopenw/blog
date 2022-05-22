@@ -1,4 +1,4 @@
-# 相加2进制字符串
+<!-- 相加2进制字符串 -->
 
 Given two binary strings, return their sum (also a binary string).
 

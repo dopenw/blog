@@ -1,11 +1,10 @@
-# ZeroMQ
+<!-- ZeroMQ -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [ZeroMQ](#zeromq)
   - [简介](#简介)
   - [Programming with ZeroMQ](#programming-with-zeromq)
   - [ZeroMQ Socket Types](#zeromq-socket-types)

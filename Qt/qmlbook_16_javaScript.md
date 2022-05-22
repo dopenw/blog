@@ -1,15 +1,14 @@
-# 《Qml Book》 - JavaScript
+<!-- 《Qml Book》 - JavaScript -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [《Qml Book》 - JavaScript](#qml-book-javascript)
-  - [Browser/HTML vs QtQuick/QML](#browserhtml-vs-qtquickqml)
-  - [The Language](#the-language)
-  - [JS Objects](#js-objects)
-  - [Creating a JS Console](#creating-a-js-console)
-  - [Source code](#source-code)
+- [Browser/HTML vs QtQuick/QML](#browserhtml-vs-qtquickqml)
+- [The Language](#the-language)
+- [JS Objects](#js-objects)
+- [Creating a JS Console](#creating-a-js-console)
+- [Source code](#source-code)
 
 <!-- /code_chunk_output -->
 

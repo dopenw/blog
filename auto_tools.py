@@ -100,7 +100,7 @@ def write_base_markdown(config_file,blog_map,categories):
 
 
 def open_blog_clear_tail_links(blog_file,blog_map):
-    reg1=('(.*#.*)')
+    reg1=('.*<!--\s*(.*?)\s*-->.*')
     reg2=('[^# ].+')
     reg3=('.*addimage.*\\d+')
     reg4=('\\d+')
@@ -115,8 +115,8 @@ def open_blog_clear_tail_links(blog_file,blog_map):
         found = re.match(reg1,tmp_line)
         only_get_one_blog_name += 1
         if found and (1 == only_get_one_blog_name):
-            search_ret = re.search(reg2,tmp_line)
-            tmp = search_ret.group()
+            search_ret = re.search(reg1,tmp_line)
+            tmp = search_ret.group(1)
             blog_map[blog_file]=tmp 
             out_file.write(tmp_line)
             continue

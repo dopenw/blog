@@ -1,12 +1,11 @@
-# Qt Creator 的一些配置
+<!-- Qt Creator 的一些配置 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [Qt Creator 的一些配置](#qt-creator-的一些配置)
-  - [.pro 工程文件的相关设置](#pro-工程文件的相关设置)
+- [.pro 工程文件的相关设置](#pro-工程文件的相关设置)
 
 <!-- /code_chunk_output -->
 

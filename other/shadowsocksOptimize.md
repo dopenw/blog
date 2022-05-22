@@ -1,15 +1,14 @@
-# shadowsocks optimize
+<!-- shadowsocks optimize -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [shadowsocks optimize](#shadowsocks-optimize)
-	* [enable bbr](#enable-bbr)
-	* [optimize kernel](#optimize-kernel)
-	* [open TCP Fast Open](#open-tcp-fast-open)
-	* [select encrypt_method](#select-encrypt_method)
-	* [link](#link)
+- [enable bbr](#enable-bbr)
+- [optimize kernel](#optimize-kernel)
+- [open TCP Fast Open](#open-tcp-fast-open)
+- [select encrypt_method](#select-encrypt_method)
+- [link](#link)
 
 <!-- /code_chunk_output -->
 

@@ -1,10 +1,9 @@
-# log4cplus 学习笔记
+<!-- log4cplus 学习笔记 -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [log4cplus 学习笔记](#log4cplus-学习笔记)
-	* [使用配置文件将不同level 的日志输出到不同的文件中](#使用配置文件将不同level-的日志输出到不同的文件中)
+- [使用配置文件将不同level 的日志输出到不同的文件中](#使用配置文件将不同level-的日志输出到不同的文件中)
 
 <!-- /code_chunk_output -->
 

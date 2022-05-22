@@ -1,14 +1,13 @@
-# Octave 的简单使用
+<!-- Octave 的简单使用 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [Octave 的简单使用](#octave-的简单使用)
-  - [安装 GNU Octave](#安装-gnu-octave)
-  - [一个简单的 FFT demo](#一个简单的-fft-demo)
-  - [Link](#link)
+- [安装 GNU Octave](#安装-gnu-octave)
+- [一个简单的 FFT demo](#一个简单的-fft-demo)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

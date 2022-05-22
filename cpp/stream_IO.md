@@ -1,15 +1,14 @@
-# 以stream完成I/O
+<!-- 以stream完成I/O -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [以stream完成I/O](#以stream完成io)
-	* [1. I/O stream 的共通基础](#1-io-stream-的共通基础)
-		* [1.1 stream对象](#11-stream对象)
-		* [1.2 stream class](#12-stream-class)
-		* [1.3 全局的stream对象](#13-全局的stream对象)
-		* [1.4 将标准stream重定向](#14-将标准stream重定向)
+- [1. I/O stream 的共通基础](#1-io-stream-的共通基础)
+  - [1.1 stream对象](#11-stream对象)
+  - [1.2 stream class](#12-stream-class)
+  - [1.3 全局的stream对象](#13-全局的stream对象)
+  - [1.4 将标准stream重定向](#14-将标准stream重定向)
 
 <!-- /code_chunk_output -->
 

@@ -1,16 +1,15 @@
-# 7. 事件处理
+<!-- 7. 事件处理 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [7. 事件处理](#7-事件处理)
-  - [重新实现事件处理器](#重新实现事件处理器)
-    - [Ticker.h](#tickerh)
-    - [Ticker.cpp](#tickercpp)
-  - [安装事件过滤器](#安装事件过滤器)
-  - [处理密集时的响应保持](#处理密集时的响应保持)
-  - [Link](#link)
+- [重新实现事件处理器](#重新实现事件处理器)
+  - [Ticker.h](#tickerh)
+  - [Ticker.cpp](#tickercpp)
+- [安装事件过滤器](#安装事件过滤器)
+- [处理密集时的响应保持](#处理密集时的响应保持)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

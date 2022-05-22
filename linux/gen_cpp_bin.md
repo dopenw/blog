@@ -1,4 +1,4 @@
-# 自动编译并运行cpp程序shell脚本
+<!-- 自动编译并运行cpp程序shell脚本 -->
 
 ```sh
 #/bin/bash

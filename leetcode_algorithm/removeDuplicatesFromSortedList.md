@@ -1,4 +1,4 @@
-# 从排序的listnode列表中删除重复node
+<!-- 从排序的listnode列表中删除重复node -->
 
 
 Given a sorted linked list, delete all duplicates such that each element appear only once.

@@ -1,13 +1,12 @@
-# 19. 自定义外观
+<!-- 19. 自定义外观 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [19. 自定义外观](#19-自定义外观)
-  - [使用 Qt 样式表](#使用-qt-样式表)
-    - [Candy 样式](#candy-样式)
-  - [Link](#link)
+- [使用 Qt 样式表](#使用-qt-样式表)
+  - [Candy 样式](#candy-样式)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

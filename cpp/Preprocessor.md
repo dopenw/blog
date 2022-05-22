@@ -1,15 +1,14 @@
-# C++ Preprocessor
+<!-- C++ Preprocessor -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [C++ Preprocessor](#c-preprocessor)
-	* [Preprocessor](#preprocessor)
-	* [Sample 1](#sample-1)
-	* [Sample 2](#sample-2)
-	* [Sample 3](#sample-3)
-	* [Sample 4](#sample-4)
+- [Preprocessor](#preprocessor)
+- [Sample 1](#sample-1)
+- [Sample 2](#sample-2)
+- [Sample 3](#sample-3)
+- [Sample 4](#sample-4)
 
 <!-- /code_chunk_output -->
 

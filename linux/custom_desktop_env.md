@@ -1,30 +1,29 @@
-# 自定义fedora桌面环境
+<!-- 自定义fedora桌面环境 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [自定义fedora桌面环境](#自定义fedora桌面环境)
-  - [gnome shell extensions](#gnome-shell-extensions)
-  - [gnome theme](#gnome-theme)
-  - [gnome icons](#gnome-icons)
-  - [gnome cusor](#gnome-cusor)
-  - [Make fedora Look Like Mac](#make-fedora-look-like-mac)
-  - [显示效果](#显示效果)
-  - [截屏](#截屏)
-  - [系统清理工具](#系统清理工具)
-  - [utilties](#utilties)
-  - [Peek - an animated GIF recorder](#peek-an-animated-gif-recorder)
-  - [upgrade fedora26 to fedora27](#upgrade-fedora26-to-fedora27)
-  - [fedora 27 install nvidia-driver](#fedora-27-install-nvidia-driver)
-  - [install kde](#install-kde)
-  - [youtube downloader](#youtube-downloader)
-    - [merge video and audio](#merge-video-and-audio)
-  - [Change the default boot entry](#change-the-default-boot-entry)
-    - [List the default kernel](#list-the-default-kernel)
-    - [List all the kernel menu entries](#list-all-the-kernel-menu-entries)
-    - [Change the default boot entry](#change-the-default-boot-entry-1)
-  - [Link](#link)
+- [gnome shell extensions](#gnome-shell-extensions)
+- [gnome theme](#gnome-theme)
+- [gnome icons](#gnome-icons)
+- [gnome cusor](#gnome-cusor)
+- [Make fedora Look Like Mac](#make-fedora-look-like-mac)
+- [显示效果](#显示效果)
+- [截屏](#截屏)
+- [系统清理工具](#系统清理工具)
+- [utilties](#utilties)
+- [Peek - an animated GIF recorder](#peek-an-animated-gif-recorder)
+- [upgrade fedora26 to fedora27](#upgrade-fedora26-to-fedora27)
+- [fedora 27 install nvidia-driver](#fedora-27-install-nvidia-driver)
+- [install kde](#install-kde)
+- [youtube downloader](#youtube-downloader)
+  - [merge video and audio](#merge-video-and-audio)
+- [Change the default boot entry](#change-the-default-boot-entry)
+  - [List the default kernel](#list-the-default-kernel)
+  - [List all the kernel menu entries](#list-all-the-kernel-menu-entries)
+  - [Change the default boot entry](#change-the-default-boot-entry-1)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 
@@ -334,5 +333,5 @@ non linux entry
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [自定义 Manjaro 环境 ](customManjaroEnv.md)
+- 上一篇 -> [自定义 Manjaro 环境](customManjaroEnv.md)
 - 下一篇 -> [virtualbox on fedora 27 fails to load virtualbox Kernel Modules](failsToLoadVirtualBoxKernelModules.md)

@@ -1,6 +1,6 @@
 # Categories system
 * ## [home](../README.md)
-* ### [C 和 C++ 的内存分布](CAndC++MemoryDistribution.md)
+* ### [#C 和 C++ 的内存分布](CAndC++MemoryDistribution.md)
 * ### [设计模式 - 可复用面向对象软件的基础](DesignPatternsBook.md)
 * ### [贪心算法](GreedyAlgorithms.md)
 * ### [极客时间 - 软件工程之美（宝玉）- 学习笔记](TheBeautyOfSoftwareEngineering.md)
@@ -20,6 +20,6 @@
 * ### [排序](sort.md)
 * ### [sqlite 学习](sqlite.md)
 * ### [数据结构（树）](tree.md)
-* ### [使用 doxygen  ](useDoxygen.md)
+* ### [使用 doxygen](useDoxygen.md)
 * ### [用户模式和内核模式](userModeAndKernelMode.md)
                            step by step

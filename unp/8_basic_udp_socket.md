@@ -1,27 +1,26 @@
-# 8.基本UDP套接字编程
+<!-- 8.基本UDP套接字编程 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [8.基本UDP套接字编程](#8基本udp套接字编程)
-	* [概述](#概述)
-	* [recvfrom和sendto函数](#recvfrom和sendto函数)
-	* [UDP回射服务器程序：main函数](#udp回射服务器程序main函数)
-	* [UDP回射服务器程序：dg_echo函数](#udp回射服务器程序dg_echo函数)
-	* [UDP回射客户程序：main函数](#udp回射客户程序main函数)
-	* [UDP回射客户程序：dg_cli函数](#udp回射客户程序dg_cli函数)
-	* [数据报丢失](#数据报丢失)
-	* [验证接收到的响应](#验证接收到的响应)
-	* [服务器进程未运行](#服务器进程未运行)
-	* [UDP的connect函数](#udp的connect函数)
-		* [给一个UDP套接字多次调用connect](#给一个udp套接字多次调用connect)
-		* [性能](#性能)
-	* [dg_cli函数(修订版)](#dg_cli函数修订版)
-	* [UDP缺乏流量控制](#udp缺乏流量控制)
-	* [UDP中的外出接口的确定](#udp中的外出接口的确定)
-	* [使用select函数的TCP和UDP回射服务器程序](#使用select函数的tcp和udp回射服务器程序)
-	* [部分习题](#部分习题)
+- [概述](#概述)
+- [recvfrom和sendto函数](#recvfrom和sendto函数)
+- [UDP回射服务器程序：main函数](#udp回射服务器程序main函数)
+- [UDP回射服务器程序：dg_echo函数](#udp回射服务器程序dg_echo函数)
+- [UDP回射客户程序：main函数](#udp回射客户程序main函数)
+- [UDP回射客户程序：dg_cli函数](#udp回射客户程序dg_cli函数)
+- [数据报丢失](#数据报丢失)
+- [验证接收到的响应](#验证接收到的响应)
+- [服务器进程未运行](#服务器进程未运行)
+- [UDP的connect函数](#udp的connect函数)
+  - [给一个UDP套接字多次调用connect](#给一个udp套接字多次调用connect)
+  - [性能](#性能)
+- [dg_cli函数(修订版)](#dg_cli函数修订版)
+- [UDP缺乏流量控制](#udp缺乏流量控制)
+- [UDP中的外出接口的确定](#udp中的外出接口的确定)
+- [使用select函数的TCP和UDP回射服务器程序](#使用select函数的tcp和udp回射服务器程序)
+- [部分习题](#部分习题)
 
 <!-- /code_chunk_output -->
 

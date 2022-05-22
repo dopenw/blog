@@ -1,4 +1,4 @@
-# 有效数独
+<!-- 有效数独 -->
 
 Determine if a Sudoku is valid, according to: Sudoku Puzzles - The Rules.
 

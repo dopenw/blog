@@ -1,4 +1,4 @@
-# 利用 enterprise architect 从源代码生成类图
+<!-- 利用 enterprise architect 从源代码生成类图 -->
 
 [enterprise architect](http://sparxsystems.com/products/ea/)
 

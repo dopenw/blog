@@ -1,4 +1,4 @@
-# ss+privoxy实现全局代理
+<!-- ss+privoxy实现全局代理 -->
 
 privoxy仅支持 http、https 协议
 

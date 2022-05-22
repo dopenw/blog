@@ -1,15 +1,14 @@
-# Build openGapps from github
+<!-- Build openGapps from github -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [Build openGapps from github](#build-opengapps-from-github)
-	* [Install git and lzip](#install-git-and-lzip)
-	* [Install android build tools and set $PATH](#install-android-build-tools-and-set-path)
-	* [Install JDK and set $PATH](#install-jdk-and-set-path)
-	* [Download open Gapps from github](#download-open-gapps-from-github)
-	* [Build arm64-8.1-full](#build-arm64-81-full)
-	* [Link](#link)
+- [Install git and lzip](#install-git-and-lzip)
+- [Install android build tools and set $PATH](#install-android-build-tools-and-set-path)
+- [Install JDK and set $PATH](#install-jdk-and-set-path)
+- [Download open Gapps from github](#download-open-gapps-from-github)
+- [Build arm64-8.1-full](#build-arm64-81-full)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

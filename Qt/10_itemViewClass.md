@@ -1,23 +1,22 @@
-# 10. 项视图类
+<!-- 10. 项视图类 -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [10. 项视图类](#10-项视图类)
-  - [使用项视图的简便类](#使用项视图的简便类)
-    - [FlowChartSymbolPicker](#flowchartsymbolpicker)
-    - [CoordinateSetter](#coordinatesetter)
-    - [SettingsViewer](#settingsviewer)
-  - [使用预定义模型](#使用预定义模型)
-    - [TeamLeadersDialog](#teamleadersdialog)
-    - [DirectoryViewer](#directoryviewer)
-    - [ColorNameDialog](#colornamedialog)
-  - [实现自定义模型](#实现自定义模型)
-    - [CurrencyModel](#currencymodel)
-    - [CityModel](#citymodel)
-    - [Boolean Parser](#boolean-parser)
-  - [实现自定义委托](#实现自定义委托)
-  - [Link](#link)
+- [使用项视图的简便类](#使用项视图的简便类)
+  - [FlowChartSymbolPicker](#flowchartsymbolpicker)
+  - [CoordinateSetter](#coordinatesetter)
+  - [SettingsViewer](#settingsviewer)
+- [使用预定义模型](#使用预定义模型)
+  - [TeamLeadersDialog](#teamleadersdialog)
+  - [DirectoryViewer](#directoryviewer)
+  - [ColorNameDialog](#colornamedialog)
+- [实现自定义模型](#实现自定义模型)
+  - [CurrencyModel](#currencymodel)
+  - [CityModel](#citymodel)
+  - [Boolean Parser](#boolean-parser)
+- [实现自定义委托](#实现自定义委托)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

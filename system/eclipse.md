@@ -1,12 +1,11 @@
-# Eclipse IDE
+<!-- Eclipse IDE -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [Eclipse IDE](#eclipse-ide)
-	* [Import CMake project to eclipse](#import-cmake-project-to-eclipse)
-		* [Debug Cmake project](#debug-cmake-project)
-	* [Link](#link)
+- [Import CMake project to eclipse](#import-cmake-project-to-eclipse)
+  - [Debug Cmake project](#debug-cmake-project)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

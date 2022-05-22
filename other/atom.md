@@ -1,32 +1,32 @@
-# Atom
+<!-- Atom -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [Atom](#atom)
-	* [Atom 简介](#atom-简介)
-	* [优秀的插件](#优秀的插件)
-		* [atom-beautify](#atom-beautify)
-		* [ask-stack](#ask-stack)
-		* [atom-clock](#atom-clock)
-		* [atom-html-preview](#atom-html-preview)
-		* [goto-definition](#goto-definition)
-		* [highlight-selected](#highlight-selected)
-		* [language-lua](#language-lua)
-		* [linter-XXX](#linter-xxx)
-		* [markdown-preview-enhanced](#markdown-preview-enhanced)
-		* [minimap](#minimap)
-		* [minimap-highlight-selected](#minimap-highlight-selected)
-		* [minimap-linter](#minimap-linter)
-		* [platformio-ide-terminal](#platformio-ide-terminal)
-		* [symbols-tree-view](#symbols-tree-view)
-		* [file-icons](#file-icons)
-		* [docblockr](#docblockr)
-		* [highlight-line](#highlight-line)
-	* [设置代理](#设置代理)
-	* [一键安装](#一键安装)
-	* [Link](#link)
+- [Atom 简介](#atom-简介)
+- [优秀的插件](#优秀的插件)
+  - [atom-beautify](#atom-beautify)
+  - [ask-stack](#ask-stack)
+  - [atom-clock](#atom-clock)
+  - [atom-html-preview](#atom-html-preview)
+  - [goto-definition](#goto-definition)
+  - [highlight-selected](#highlight-selected)
+  - [language-lua](#language-lua)
+  - [linter-XXX](#linter-xxx)
+  - [markdown-preview-enhanced](#markdown-preview-enhanced)
+  - [minimap](#minimap)
+  - [minimap-highlight-selected](#minimap-highlight-selected)
+  - [minimap-linter](#minimap-linter)
+  - [platformio-ide-terminal](#platformio-ide-terminal)
+  - [symbols-tree-view](#symbols-tree-view)
+  - [file-icons](#file-icons)
+  - [docblockr](#docblockr)
+  - [highlight-line](#highlight-line)
+- [设置代理](#设置代理)
+- [一键安装](#一键安装)
+- [在 redora 上重装 atom](#在-redora-上重装-atom)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

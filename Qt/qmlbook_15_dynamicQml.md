@@ -1,21 +1,20 @@
-# 《Qml Book》 - Dynamic QML
+<!-- 《Qml Book》 - Dynamic QML -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [《Qml Book》 - Dynamic QML](#qml-book-dynamic-qml)
-  - [Loading Components Dynamically](#loading-components-dynamically)
-    - [Connecting Indirectly](#connecting-indirectly)
-    - [Binding Indirectly](#binding-indirectly)
-  - [Creating and Destroying Objects](#creating-and-destroying-objects)
-    - [Dynamically Loading and Instantiating Items](#dynamically-loading-and-instantiating-items)
-      - [Incubating Components](#incubating-components)
-    - [Dynamically Instantiating Items from Text](#dynamically-instantiating-items-from-text)
-    - [Managing Dynamically Created Elements](#managing-dynamically-created-elements)
-  - [Tracking Dynamic Objects](#tracking-dynamic-objects)
-  - [Summary](#summary)
-  - [Source code](#source-code)
+- [Loading Components Dynamically](#loading-components-dynamically)
+  - [Connecting Indirectly](#connecting-indirectly)
+  - [Binding Indirectly](#binding-indirectly)
+- [Creating and Destroying Objects](#creating-and-destroying-objects)
+  - [Dynamically Loading and Instantiating Items](#dynamically-loading-and-instantiating-items)
+    - [Incubating Components](#incubating-components)
+  - [Dynamically Instantiating Items from Text](#dynamically-instantiating-items-from-text)
+  - [Managing Dynamically Created Elements](#managing-dynamically-created-elements)
+- [Tracking Dynamic Objects](#tracking-dynamic-objects)
+- [Summary](#summary)
+- [Source code](#source-code)
 
 <!-- /code_chunk_output -->
 

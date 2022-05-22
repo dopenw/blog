@@ -1,4 +1,4 @@
-# Install ss-libev and config v2ray-plugin on ubuntu
+<!-- Install ss-libev and config v2ray-plugin on ubuntu -->
 
 ```sh
 #!/bin/bash

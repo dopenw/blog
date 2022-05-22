@@ -1,4 +1,4 @@
-# 生成括号
+<!-- 生成括号 -->
 
 Given n pairs of parentheses, write a function to generate all combinations of well-formed parentheses.
 

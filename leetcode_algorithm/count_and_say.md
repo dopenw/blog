@@ -1,4 +1,4 @@
-# 统计字符串的相同字符个数，并输出（count-char）
+<!-- 统计字符串的相同字符个数，并输出（count-char） -->
 
 The count-and-say sequence is the sequence of integers with the first five terms as following:
 

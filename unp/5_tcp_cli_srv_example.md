@@ -1,28 +1,27 @@
-# 5.TCP客户/服务器程序示例
+<!-- 5.TCP客户/服务器程序示例 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [5.TCP客户/服务器程序示例](#5tcp客户服务器程序示例)
-	* [概述](#概述)
-	* [服务器程序](#服务器程序)
-		* [退出函数](#退出函数)
-	* [客户端程序](#客户端程序)
-	* [链接器如何解析多重定义的全局符号](#链接器如何解析多重定义的全局符号)
-	* [tcpdump](#tcpdump)
-		* [Wireshark](#wireshark)
-	* [netstat](#netstat)
-	* [posix信号处理](#posix信号处理)
-		* [POSIX 信号语义](#posix-信号语义)
-	* [处理SIGCHLD信号](#处理sigchld信号)
-	* [处理被中断的系统调用](#处理被中断的系统调用)
-	* [wait和waitpid函数](#wait和waitpid函数)
-	* [服务器进程终止](#服务器进程终止)
-	* [SIGPIPE信号](#sigpipe信号)
-	* [服务器主机崩溃](#服务器主机崩溃)
-	* [服务器主机崩溃后重启](#服务器主机崩溃后重启)
-	* [服务器主机关机](#服务器主机关机)
+- [概述](#概述)
+- [服务器程序](#服务器程序)
+  - [退出函数](#退出函数)
+- [客户端程序](#客户端程序)
+- [链接器如何解析多重定义的全局符号](#链接器如何解析多重定义的全局符号)
+- [tcpdump](#tcpdump)
+  - [Wireshark](#wireshark)
+- [netstat](#netstat)
+- [posix信号处理](#posix信号处理)
+  - [POSIX 信号语义](#posix-信号语义)
+- [处理SIGCHLD信号](#处理sigchld信号)
+- [处理被中断的系统调用](#处理被中断的系统调用)
+- [wait和waitpid函数](#wait和waitpid函数)
+- [服务器进程终止](#服务器进程终止)
+- [SIGPIPE信号](#sigpipe信号)
+- [服务器主机崩溃](#服务器主机崩溃)
+- [服务器主机崩溃后重启](#服务器主机崩溃后重启)
+- [服务器主机关机](#服务器主机关机)
 
 <!-- /code_chunk_output -->
 

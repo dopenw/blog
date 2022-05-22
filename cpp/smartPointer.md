@@ -1,19 +1,18 @@
-# 智能指针
+<!-- 智能指针 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [智能指针](#智能指针)
-	* [智能指针错误用法](#智能指针错误用法)
-	* [Class unique_ptr](#class-unique_ptr)
-		* [使用 unique_ptr](#使用-unique_ptr)
-		* [移转 unique_ptr 的拥有权](#移转-unique_ptr-的拥有权)
-		* [对付 Array](#对付-array)
-		* [使用自定义的 deleter](#使用自定义的-deleter)
-	* [class shared_ptr](#class-shared_ptr)
-		* [对付 array](#对付-array-1)
-		* [shared_ptr 环形指向](#shared_ptr-环形指向)
+- [智能指针错误用法](#智能指针错误用法)
+- [Class unique_ptr](#class-unique_ptr)
+  - [使用 unique_ptr](#使用-unique_ptr)
+  - [移转 unique_ptr 的拥有权](#移转-unique_ptr-的拥有权)
+  - [对付 Array](#对付-array)
+  - [使用自定义的 deleter](#使用自定义的-deleter)
+- [class shared_ptr](#class-shared_ptr)
+  - [对付 array](#对付-array-1)
+  - [shared_ptr 环形指向](#shared_ptr-环形指向)
 
 <!-- /code_chunk_output -->
 

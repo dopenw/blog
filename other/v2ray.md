@@ -1,14 +1,13 @@
-# v2ray
+<!-- v2ray -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [v2ray](#v2ray)
-  - [下载安装](#下载安装)
-  - [编辑配置文件](#编辑配置文件)
-  - [运行 v2ray](#运行-v2ray)
-  - [遇到的问题](#遇到的问题)
-  - [Link](#link)
+- [下载安装](#下载安装)
+- [编辑配置文件](#编辑配置文件)
+- [运行 v2ray](#运行-v2ray)
+- [遇到的问题](#遇到的问题)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 [v2ray/v2ray-core](https://github.com/v2ray/v2ray-core)
@@ -113,4 +112,4 @@ systemctl enable v2ray # 设置为开机启动
 
 - [上一级](README.md)
 - 上一篇 -> [Install ss-libev and config v2ray-plugin on ubuntu](ubuntuInstallSSAndV2rayPlugin.md)
-- 下一篇 -> [vsCode ](vsCode.md)
+- 下一篇 -> [vsCode](vsCode.md)

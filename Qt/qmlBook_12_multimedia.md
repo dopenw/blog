@@ -1,18 +1,17 @@
-# 《Qml Book》 - Multimedia
+<!-- 《Qml Book》 - Multimedia -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [《Qml Book》 - Multimedia](#qml-book-multimedia)
-  - [Playing Media](#playing-media)
-  - [Sound Effects](#sound-effects)
-  - [Video Streams](#video-streams)
-  - [Capturing Images](#capturing-images)
-  - [Advanced Techniques](#advanced-techniques)
-    - [Using a Playlist](#using-a-playlist)
-  - [Summary](#summary)
-  - [Source code](#source-code)
+- [Playing Media](#playing-media)
+- [Sound Effects](#sound-effects)
+- [Video Streams](#video-streams)
+- [Capturing Images](#capturing-images)
+- [Advanced Techniques](#advanced-techniques)
+  - [Using a Playlist](#using-a-playlist)
+- [Summary](#summary)
+- [Source code](#source-code)
 
 <!-- /code_chunk_output -->
 

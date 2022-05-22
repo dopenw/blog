@@ -1,12 +1,11 @@
-# 23. 平台相关性
+<!-- 23. 平台相关性 -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [23. 平台相关性](#23-平台相关性)
-  - [连接本地的应用程序编程接口](#连接本地的应用程序编程接口)
-  - [Link](#link)
+- [连接本地的应用程序编程接口](#连接本地的应用程序编程接口)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

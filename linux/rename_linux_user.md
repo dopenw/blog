@@ -1,4 +1,4 @@
-# 更改linux用户名
+<!-- 更改linux用户名 -->
 
 ## method 1:
 1. "ctrl + alt + f3",login root

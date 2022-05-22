@@ -1,16 +1,15 @@
-# 《Qml Book》 - Qt Quick Controls 2
+<!-- 《Qml Book》 - Qt Quick Controls 2 -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [《Qml Book》 - Qt Quick Controls 2](#qml-book-qt-quick-controls-2)
-  - [Introduction to Controls](#introduction-to-controls)
-  - [An Image Viewer](#an-image-viewer)
-    - [The Desktop Version](#the-desktop-version)
-  - [The Imagine Style](#the-imagine-style)
-  - [Summary](#summary)
-  - [Source code](#source-code)
+- [Introduction to Controls](#introduction-to-controls)
+- [An Image Viewer](#an-image-viewer)
+  - [The Desktop Version](#the-desktop-version)
+- [The Imagine Style](#the-imagine-style)
+- [Summary](#summary)
+- [Source code](#source-code)
 
 <!-- /code_chunk_output -->
 

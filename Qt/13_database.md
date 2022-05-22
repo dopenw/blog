@@ -1,17 +1,16 @@
-# 13. 数据库
+<!-- 13. 数据库 -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [13. 数据库](#13-数据库)
-  - [连接和查询](#连接和查询)
-  - [查看表](#查看表)
-  - [使用窗体编辑记录](#使用窗体编辑记录)
-  - [在表中显示数据](#在表中显示数据)
-  - [other](#other)
-    - [为有主键且具有 AUTOINCREMENT 的表添加行](#为有主键且具有-autoincrement-的表添加行)
-    - [为 QSqlTableModel 添加数据库表中不存在的列](#为-qsqltablemodel-添加数据库表中不存在的列)
-  - [Link](#link)
+- [连接和查询](#连接和查询)
+- [查看表](#查看表)
+- [使用窗体编辑记录](#使用窗体编辑记录)
+- [在表中显示数据](#在表中显示数据)
+- [other](#other)
+  - [为有主键且具有 AUTOINCREMENT 的表添加行](#为有主键且具有-autoincrement-的表添加行)
+  - [为 QSqlTableModel 添加数据库表中不存在的列](#为-qsqltablemodel-添加数据库表中不存在的列)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

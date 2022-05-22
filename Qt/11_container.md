@@ -1,18 +1,17 @@
-# 11. 容器类
+<!-- 11. 容器类 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [11. 容器类](#11-容器类)
-  - [连续容器](#连续容器)
-    - [隐含共享是如何工作的](#隐含共享是如何工作的)
-  - [关联容器](#关联容器)
-  - [通用算法](#通用算法)
-  - [字符串、字节数和 QVariant](#字符串-字节数和-qvariant)
-    - [QString](#qstring)
-    - [QByteArray](#qbytearray)
-    - [QVariant](#qvariant)
+- [连续容器](#连续容器)
+  - [隐含共享是如何工作的](#隐含共享是如何工作的)
+- [关联容器](#关联容器)
+- [通用算法](#通用算法)
+- [字符串、字节数和 QVariant](#字符串-字节数和-qvariant)
+  - [QString](#qstring)
+  - [QByteArray](#qbytearray)
+  - [QVariant](#qvariant)
 
 <!-- /code_chunk_output -->
 

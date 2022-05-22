@@ -1,4 +1,4 @@
-# 安装配置hadoop httpfs
+<!-- 安装配置hadoop httpfs -->
 
 * [安装配置hadoop httpfs](#安装配置hadoop-httpfs)
 	* [1. Configure HttpFS](#1-configure-httpfs)

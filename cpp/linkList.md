@@ -1,13 +1,12 @@
-# 链表
+<!-- 链表 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [链表](#链表)
-	* [单链表](#单链表)
-	* [双链表](#双链表)
-	* [参考链接](#参考链接)
+- [单链表](#单链表)
+- [双链表](#双链表)
+- [参考链接](#参考链接)
 
 <!-- /code_chunk_output -->
 

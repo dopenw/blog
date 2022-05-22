@@ -1,13 +1,12 @@
-# 3. 创建主窗口
+<!-- 3. 创建主窗口 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [3. 创建主窗口](#3-创建主窗口)
-  - [子类化 QMainWindow](#子类化-qmainwindow)
-  - [程序启动画面](#程序启动画面)
-  - [Link](#link)
+- [子类化 QMainWindow](#子类化-qmainwindow)
+- [程序启动画面](#程序启动画面)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

@@ -1,18 +1,17 @@
-# 小米路由器 1 mini 搞机篇
+<!-- 小米路由器 1 mini 搞机篇 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [小米路由器 1 mini 搞机篇](#小米路由器-1-mini-搞机篇)
-	* [下载 openwrt SDK](#下载-openwrt-sdk)
-	* [搭建科学上网利器](#搭建科学上网利器)
-		* [编译 dns-forward](#编译-dns-forward)
-		* [编译 openwrt-dist-luc](#编译-openwrt-dist-luc)
-		* [编译 Shadowsocks-libev](#编译-shadowsocks-libev)
-		* [安装 openwrt package](#安装-openwrt-package)
-		* [dns-forwarder 设置](#dns-forwarder-设置)
-		* [设置示例](#设置示例)
+- [下载 openwrt SDK](#下载-openwrt-sdk)
+- [搭建科学上网利器](#搭建科学上网利器)
+  - [编译 dns-forward](#编译-dns-forward)
+  - [编译 openwrt-dist-luc](#编译-openwrt-dist-luc)
+  - [编译 Shadowsocks-libev](#编译-shadowsocks-libev)
+  - [安装 openwrt package](#安装-openwrt-package)
+  - [dns-forwarder 设置](#dns-forwarder-设置)
+  - [设置示例](#设置示例)
 
 <!-- /code_chunk_output -->
 
@@ -165,4 +164,4 @@ config dnsmasq
 ```
 ---
 - [上一级](README.md)
-- 上一篇 -> [vsCode ](vsCode.md)
+- 上一篇 -> [vsCode](vsCode.md)

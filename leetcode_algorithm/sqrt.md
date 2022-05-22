@@ -1,4 +1,4 @@
-# 求平方根
+<!-- 求平方根 -->
 
 Implement int sqrt(int x).
 

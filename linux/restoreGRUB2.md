@@ -1,4 +1,4 @@
-# linux 恢复 GRUB2
+<!-- linux 恢复 GRUB2 -->
 
 ## 创建 fedora 启动盘
 

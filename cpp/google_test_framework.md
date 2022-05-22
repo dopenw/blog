@@ -1,25 +1,24 @@
-# Google c++ test framework
+<!-- Google c++ test framework -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [Google c++ test framework](#google-c-test-framework)
-	* [Install gtest](#install-gtest)
-	* [Basic Assertions](#basic-assertions)
-	* [Binary Comparison](#binary-comparison)
-	* [String Comparison](#string-comparison)
-	* [Floating-Point Comparison](#floating-point-comparison)
-	* [Create test project](#create-test-project)
-	* [Run test project](#run-test-project)
-	* [Run gtest sample unit test](#run-gtest-sample-unit-test)
-	* [Test Fixtures](#test-fixtures)
-		* [reuse test fixture](#reuse-test-fixture)
-	* [Interface tests](#interface-tests)
-		* [TestWithParam](#testwithparam)
-		* [Test code relying on some global flag variables](#test-code-relying-on-some-global-flag-variables)
-	* [Custom google test](#custom-google-test)
-		* [Implement a primitive leak checker.](#implement-a-primitive-leak-checker)
+- [Install gtest](#install-gtest)
+- [Basic Assertions](#basic-assertions)
+- [Binary Comparison](#binary-comparison)
+- [String Comparison](#string-comparison)
+- [Floating-Point Comparison](#floating-point-comparison)
+- [Create test project](#create-test-project)
+- [Run test project](#run-test-project)
+- [Run gtest sample unit test](#run-gtest-sample-unit-test)
+- [Test Fixtures](#test-fixtures)
+  - [reuse test fixture](#reuse-test-fixture)
+- [Interface tests](#interface-tests)
+  - [TestWithParam](#testwithparam)
+  - [Test code relying on some global flag variables](#test-code-relying-on-some-global-flag-variables)
+- [Custom google test](#custom-google-test)
+  - [Implement a primitive leak checker.](#implement-a-primitive-leak-checker)
 
 <!-- /code_chunk_output -->
 

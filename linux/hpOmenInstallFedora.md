@@ -1,12 +1,11 @@
-# 惠普暗影精灵4安装fedora 28
+<!-- 惠普暗影精灵4安装fedora 28 -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [惠普暗影精灵4安装fedora 28](#惠普暗影精灵4安装fedora-28)
-	* [为什么写这个文章?](#为什么写这个文章)
-	* [安装 fedora](#安装-fedora)
-	* [链接](#链接)
+- [为什么写这个文章?](#为什么写这个文章)
+- [安装 fedora](#安装-fedora)
+- [链接](#链接)
 
 <!-- /code_chunk_output -->
 

@@ -1,13 +1,12 @@
-# wxWidget
+<!-- wxWidget -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [wxWidget](#wxwidget)
-	* [在linux下编译安装 wxWidget](#在linux下编译安装-wxwidget)
-	* [hello world example](#hello-world-example)
-	* [Link](#link)
+- [在linux下编译安装 wxWidget](#在linux下编译安装-wxwidget)
+- [hello world example](#hello-world-example)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

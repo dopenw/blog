@@ -1,14 +1,13 @@
-# 《Qml Book》 - storage
+<!-- 《Qml Book》 - storage -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [《Qml Book》 - storage](#qml-book-storage)
-  - [Settings](#settings)
-  - [Local Storage - SQL](#local-storage-sql)
-  - [Other Storage APIs](#other-storage-apis)
-  - [Source code](#source-code)
+- [Settings](#settings)
+- [Local Storage - SQL](#local-storage-sql)
+- [Other Storage APIs](#other-storage-apis)
+- [Source code](#source-code)
 
 <!-- /code_chunk_output -->
 

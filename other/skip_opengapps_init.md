@@ -1,4 +1,4 @@
-# 跳过 openGapps 设置向导
+<!-- 跳过 openGapps 设置向导 -->
 
 卡刷了 openGapps 和 omni rom 后，初始状态下不能正常跳过谷歌开机验证
 

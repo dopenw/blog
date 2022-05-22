@@ -1,4 +1,4 @@
-# 在windows下开发linux程序需要注意的问题
+<!-- 在windows下开发linux程序需要注意的问题 -->
 1. windows和linux的文件换行符是不一样，windows:CRLF,linux:LF,附Wikipedia
 
         In computing, a newline, also known as a line ending, end of line (EOL), or line break, is a special character or sequence of characters signifying the end of a line of text and the start of a new line. The actual codes representing a newline vary across operating systems, which can be a problem when exchanging text files between systems with different newline representations.

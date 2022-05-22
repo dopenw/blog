@@ -1,20 +1,19 @@
-# sqlite 学习
+<!-- sqlite 学习 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [sqlite 学习](#sqlite-学习)
-	* [sqlite 官网](#sqlite-官网)
-	* [tutorialspoint sqlite](#tutorialspoint-sqlite)
-	* [Cross-platform open source sqlite gui](#cross-platform-open-source-sqlite-gui)
-	* [sqlite 简介](#sqlite-简介)
-	* [sqlite 特征](#sqlite-特征)
-	* [sqlite help](#sqlite-help)
-	* [sqlite Format output](#sqlite-format-output)
-	* [sqlite 语法](#sqlite-语法)
-	* [sqlite c/c++](#sqlite-cc)
-	* [参考链接](#参考链接)
+- [sqlite 官网](#sqlite-官网)
+- [tutorialspoint sqlite](#tutorialspoint-sqlite)
+- [Cross-platform open source sqlite gui](#cross-platform-open-source-sqlite-gui)
+- [sqlite 简介](#sqlite-简介)
+- [sqlite 特征](#sqlite-特征)
+- [sqlite help](#sqlite-help)
+- [sqlite Format output](#sqlite-format-output)
+- [sqlite 语法](#sqlite-语法)
+- [sqlite c/c++](#sqlite-cc)
+- [参考链接](#参考链接)
 
 <!-- /code_chunk_output -->
 

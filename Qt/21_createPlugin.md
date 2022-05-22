@@ -1,11 +1,10 @@
-# 21. 创建插件
+<!-- 21. 创建插件 -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [21. 创建插件](#21-创建插件)
-  - [利用插件扩展 Qt](#利用插件扩展-qt)
-  - [Link](#link)
+- [利用插件扩展 Qt](#利用插件扩展-qt)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

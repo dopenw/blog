@@ -1,25 +1,24 @@
-# 《Qml Book》 - Qt and C++
+<!-- 《Qml Book》 - Qt and C++ -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [《Qml Book》 - Qt and C++](#qml-book-qt-and-c)
-  - [The QObject](#the-qobject)
-  - [Build Systems](#build-systems)
-    - [QMake](#qmake)
-    - [CMake](#cmake)
-  - [Common Qt Classes](#common-qt-classes)
-    - [QString](#qstring)
-    - [Sequential Containers](#sequential-containers)
-    - [Associative Containers](#associative-containers)
-    - [File IO](#file-io)
-    - [More Classes](#more-classes)
-  - [Models in C++](#models-in-c)
-    - [A simple model](#a-simple-model)
-    - [More Complex Data](#more-complex-data)
-    - [Dynamic Data](#dynamic-data)
-  - [Source code](#source-code)
+- [The QObject](#the-qobject)
+- [Build Systems](#build-systems)
+  - [QMake](#qmake)
+  - [CMake](#cmake)
+- [Common Qt Classes](#common-qt-classes)
+  - [QString](#qstring)
+  - [Sequential Containers](#sequential-containers)
+  - [Associative Containers](#associative-containers)
+  - [File IO](#file-io)
+  - [More Classes](#more-classes)
+- [Models in C++](#models-in-c)
+  - [A simple model](#a-simple-model)
+  - [More Complex Data](#more-complex-data)
+  - [Dynamic Data](#dynamic-data)
+- [Source code](#source-code)
 
 <!-- /code_chunk_output -->
 

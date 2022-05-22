@@ -1,4 +1,4 @@
-# Vmvare_window使用问题及解决方法
+<!-- Vmvare_window使用问题及解决方法 -->
 1. 注销windows后，虚拟机未正常关机，vmvare提示：
 ```
 此虚拟机似乎正在使用中。

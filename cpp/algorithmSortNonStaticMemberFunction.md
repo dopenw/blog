@@ -1,14 +1,13 @@
-# problem sorting using member function as comparator
+<!-- problem sorting using member function as comparator -->
 
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [problem sorting using member function as comparator](#problem-sorting-using-member-function-as-comparator)
-	* [doCompare must be static](#docompare-must-be-static)
-	* [std::sort with a non-static compare method](#stdsort-with-a-non-static-compare-method)
-	* [Link](#link)
+- [doCompare must be static](#docompare-must-be-static)
+- [std::sort with a non-static compare method](#stdsort-with-a-non-static-compare-method)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

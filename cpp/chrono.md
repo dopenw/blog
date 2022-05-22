@@ -1,18 +1,17 @@
-# Clock 和 Timer
+<!-- Clock 和 Timer -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [Clock 和 Timer](#clock-和-timer)
-  - [chrono 程序库概览](#chrono-程序库概览)
-    - [duration](#duration)
-    - [clock（时钟） 和 Timepoint（时间点）](#clock时钟-和-timepoint时间点)
-      - [clock](#clock)
-      - [timepoint](#timepoint)
-    - [C 和 POSIX 提供的 Date/Time 函数](#c-和-posix-提供的-datetime-函数)
-      - [timepoint 与 日历时间的转换](#timepoint-与-日历时间的转换)
-    - [以计时器停滞线程](#以计时器停滞线程)
+- [chrono 程序库概览](#chrono-程序库概览)
+  - [duration](#duration)
+  - [clock（时钟） 和 Timepoint（时间点）](#clock时钟-和-timepoint时间点)
+    - [clock](#clock)
+    - [timepoint](#timepoint)
+  - [C 和 POSIX 提供的 Date/Time 函数](#c-和-posix-提供的-datetime-函数)
+    - [timepoint 与 日历时间的转换](#timepoint-与-日历时间的转换)
+  - [以计时器停滞线程](#以计时器停滞线程)
 
 <!-- /code_chunk_output -->
 

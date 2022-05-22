@@ -1,4 +1,4 @@
-# 总共有n步楼梯，每次只能爬1步/2步，总共有多少方案爬上楼梯
+<!-- 总共有n步楼梯，每次只能爬1步/2步，总共有多少方案爬上楼梯 -->
 
 
 You are climbing a stair case. It takes n steps to reach to the top.

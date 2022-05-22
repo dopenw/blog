@@ -1,20 +1,19 @@
-# 《Qml Book》 - Canvas Element
+<!-- 《Qml Book》 - Canvas Element -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [《Qml Book》 - Canvas Element](#qml-book-canvas-element)
-  - [Convenient API](#convenient-api)
-  - [Gradients](#gradients)
-  - [Shadows](#shadows)
-  - [Images](#images)
-  - [Transformation](#transformation)
-  - [Composition Modes](#composition-modes)
-  - [Pixel Buffers](#pixel-buffers)
-  - [Canvas Paint](#canvas-paint)
-  - [Porting from HTML5 Canvas](#porting-from-html5-canvas)
-  - [Source code](#source-code)
+- [Convenient API](#convenient-api)
+- [Gradients](#gradients)
+- [Shadows](#shadows)
+- [Images](#images)
+- [Transformation](#transformation)
+- [Composition Modes](#composition-modes)
+- [Pixel Buffers](#pixel-buffers)
+- [Canvas Paint](#canvas-paint)
+- [Porting from HTML5 Canvas](#porting-from-html5-canvas)
+- [Source code](#source-code)
 
 <!-- /code_chunk_output -->
 

@@ -1,17 +1,16 @@
-# qwt 简单使用
+<!-- qwt 简单使用 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [qwt 简单使用](#qwt-简单使用)
-  - [qwt 简介](#qwt-简介)
-  - [编译和安装](#编译和安装)
-    - [Windows](#windows)
-  - [创建环境变量](#创建环境变量)
-  - [构建 qwt 应用](#构建-qwt-应用)
-  - [Link](#link)
+- [qwt 简介](#qwt-简介)
+- [编译和安装](#编译和安装)
+  - [Windows](#windows)
+- [创建环境变量](#创建环境变量)
+- [构建 qwt 应用](#构建-qwt-应用)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

@@ -1,30 +1,29 @@
-# 《Qml Book》 - Model-View-Delegate
+<!-- 《Qml Book》 - Model-View-Delegate -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [《Qml Book》 - Model-View-Delegate](#qml-book-model-view-delegate)
-  - [Concept](#concept)
-  - [Basic Models](#basic-models)
-  - [Dynamic Views](#dynamic-views)
-    - [Orientation](#orientation)
-    - [Keyboard Navigation and Highlighting](#keyboard-navigation-and-highlighting)
-    - [Header and Footer](#header-and-footer)
-    - [The GridView](#the-gridview)
-  - [Delegate](#delegate)
-    - [Animating Added and Removed Items](#animating-added-and-removed-items)
-    - [Shape-Shifting Delegates](#shape-shifting-delegates)
-  - [Advanced Techniques](#advanced-techniques)
-    - [The PathView](#the-pathview)
-    - [Table Models](#table-models)
-    - [A Model from XML](#a-model-from-xml)
-    - [Lists with Sections](#lists-with-sections)
-    - [The ObjectModel](#the-objectmodel)
-    - [Models with Actions](#models-with-actions)
-    - [Tuning Performance](#tuning-performance)
-  - [Summary](#summary)
-  - [Source code](#source-code)
+- [Concept](#concept)
+- [Basic Models](#basic-models)
+- [Dynamic Views](#dynamic-views)
+  - [Orientation](#orientation)
+  - [Keyboard Navigation and Highlighting](#keyboard-navigation-and-highlighting)
+  - [Header and Footer](#header-and-footer)
+  - [The GridView](#the-gridview)
+- [Delegate](#delegate)
+  - [Animating Added and Removed Items](#animating-added-and-removed-items)
+  - [Shape-Shifting Delegates](#shape-shifting-delegates)
+- [Advanced Techniques](#advanced-techniques)
+  - [The PathView](#the-pathview)
+  - [Table Models](#table-models)
+  - [A Model from XML](#a-model-from-xml)
+  - [Lists with Sections](#lists-with-sections)
+  - [The ObjectModel](#the-objectmodel)
+  - [Models with Actions](#models-with-actions)
+  - [Tuning Performance](#tuning-performance)
+- [Summary](#summary)
+- [Source code](#source-code)
 
 <!-- /code_chunk_output -->
 

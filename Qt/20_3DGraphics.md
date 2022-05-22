@@ -1,11 +1,10 @@
-# 20. 三维图形
+<!-- 20. 三维图形 -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [20. 三维图形](#20-三维图形)
-  - [使用 OpenGL 绘图](#使用-opengl-绘图)
+- [使用 OpenGL 绘图](#使用-opengl-绘图)
 
 <!-- /code_chunk_output -->
 

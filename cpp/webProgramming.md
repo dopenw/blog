@@ -1,32 +1,31 @@
-# c++ Web 编程
+<!-- c++ Web 编程 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [c++ Web 编程](#c-web-编程)
-	* [CGI（通用网关接口）](#cgi通用网关接口)
-	* [网页浏览](#网页浏览)
-	* [CGI 架构图](#cgi-架构图)
-	* [安装 Web 服务器](#安装-web-服务器)
-	* [Web 服务器配置](#web-服务器配置)
-	* [helloWorld CGI](#helloworld-cgi)
-	* [HTTP/HTTPS 协议](#httphttps-协议)
-		* [请求方法](#请求方法)
-	* [CGI 环境变量](#cgi-环境变量)
-		* [列出所有的CGI变量](#列出所有的cgi变量)
-	* [C ++ CGI库](#c-cgi库)
-		* [简单的 FORM 例子](#简单的-form-例子)
-			* [GET Method](#get-method)
-			* [POST Method](#post-method)
-			* [将复选框数据传递给CGI程序](#将复选框数据传递给cgi程序)
-			* [将单选按钮数据传递给CGI程序](#将单选按钮数据传递给cgi程序)
-			* [将文本区域数据传递给CGI程序](#将文本区域数据传递给cgi程序)
-			* [将下拉框数据传递给CGI程序](#将下拉框数据传递给cgi程序)
-			* [在CGI中使用Cookie](#在cgi中使用cookie)
-			* [设置Cookie](#设置cookie)
-			* [检索Cookies](#检索cookies)
-			* [文件上传示例](#文件上传示例)
+- [CGI（通用网关接口）](#cgi通用网关接口)
+- [网页浏览](#网页浏览)
+- [CGI 架构图](#cgi-架构图)
+- [安装 Web 服务器](#安装-web-服务器)
+- [Web 服务器配置](#web-服务器配置)
+- [helloWorld CGI](#helloworld-cgi)
+- [HTTP/HTTPS 协议](#httphttps-协议)
+  - [请求方法](#请求方法)
+- [CGI 环境变量](#cgi-环境变量)
+  - [列出所有的CGI变量](#列出所有的cgi变量)
+- [C ++ CGI库](#c-cgi库)
+  - [简单的 FORM 例子](#简单的-form-例子)
+    - [GET Method](#get-method)
+    - [POST Method](#post-method)
+    - [将复选框数据传递给CGI程序](#将复选框数据传递给cgi程序)
+    - [将单选按钮数据传递给CGI程序](#将单选按钮数据传递给cgi程序)
+    - [将文本区域数据传递给CGI程序](#将文本区域数据传递给cgi程序)
+    - [将下拉框数据传递给CGI程序](#将下拉框数据传递给cgi程序)
+    - [在CGI中使用Cookie](#在cgi中使用cookie)
+    - [设置Cookie](#设置cookie)
+    - [检索Cookies](#检索cookies)
+    - [文件上传示例](#文件上传示例)
 
 <!-- /code_chunk_output -->
 

@@ -1,16 +1,15 @@
-# fedora install SS libev
+<!-- fedora install SS libev -->
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-* [fedora install SS libev](#fedora-install-ss-libev)
-	* [Install SS libev shell script](#install-ss-libev-shell-script)
-	* [Create shadowsocks.service](#create-shadowsocksservice)
-	* [为其他区域网设备提供代理服务](#为其他区域网设备提供代理服务)
-		* [linux](#linux)
-		* [windows](#windows)
-		* [在其他设备设置](#在其他设备设置)
-	* [Link](#link)
+- [Install SS libev shell script](#install-ss-libev-shell-script)
+- [Create shadowsocks.service](#create-shadowsocksservice)
+- [为其他区域网设备提供代理服务](#为其他区域网设备提供代理服务)
+  - [linux](#linux)
+  - [windows](#windows)
+  - [在其他设备设置](#在其他设备设置)
+- [Link](#link)
 
 <!-- /code_chunk_output -->
 

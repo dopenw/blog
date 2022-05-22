@@ -1,14 +1,13 @@
-# 17. 提供在线帮助
+<!-- 17. 提供在线帮助 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 <!-- code_chunk_output -->
 
-- [17. 提供在线帮助](#17-提供在线帮助)
-  - [工具提示、状态提示和 "What's This?"帮助](#工具提示-状态提示和-whats-this帮助)
-  - [利用 Web 浏览器提供在线帮助](#利用-web-浏览器提供在线帮助)
-  - [将 QTextBrowser 作为简单的帮助引擎](#将-qtextbrowser-作为简单的帮助引擎)
-  - [使用 Qt Assistant 提供强大的在线帮助](#使用-qt-assistant-提供强大的在线帮助)
+- [工具提示、状态提示和 "What's This?"帮助](#工具提示-状态提示和-whats-this帮助)
+- [利用 Web 浏览器提供在线帮助](#利用-web-浏览器提供在线帮助)
+- [将 QTextBrowser 作为简单的帮助引擎](#将-qtextbrowser-作为简单的帮助引擎)
+- [使用 Qt Assistant 提供强大的在线帮助](#使用-qt-assistant-提供强大的在线帮助)
 
 <!-- /code_chunk_output -->
 
