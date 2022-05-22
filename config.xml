@@ -1,20 +1,20 @@
 <blog_config>
     <include_dir>
         <item>cpp</item>
-        <item>linux</item>
-        <item>mysql</item>
-        <item>python</item>
-        <item>windows</item>
-        <item>apue</item>
-        <item>leetcode_algorithm</item>
-        <item>other</item>
-        <item>java</item>
-        <item>unp</item>
         <item>Qt</item>
         <item>system</item>
+        <item>leetcode_algorithm</item>
+        <item>linux</item>
+        <item>python</item>
+        <item>other</item>
+        <item>apue</item>
+        <item>unp</item>
+        <item>windows</item>
+        <item>java</item>
+        <item>mysql</item>
     </include_dir>
     <img>
-        <img_src_dir>/home/breap/Pictures</img_src_dir>
+        <img_src_dir>~/Pictures</img_src_dir>
         <img_src_prefix>_</img_src_prefix>
         <img_src_suffix>.png</img_src_suffix>
     </img>

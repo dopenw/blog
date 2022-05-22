@@ -5,6 +5,7 @@ import time
 import re
 import platform
 import traceback
+import copy 
 from shutil import copyfile
 
 import logging 
@@ -174,6 +175,18 @@ def blog_add_pre_next_links(blog_file,blog_map):
                 ,config_item['end_of_line_seq']))
     return True 
 
+def write_main_readme(all_blog_map):
+    out_file = open("README.md",'w',encoding='UTF-8')
+    out_file.write('## 编程笔记、读书笔记、博客 ... '+config_item['end_of_line_seq'])
+    for dir in all_blog_map.items():
+        out_file.write('### 类别 : [{}](./{}/README.md){}'.format(dir[0],dir[0],config_item['end_of_line_seq']))
+        for item in dir[1].items():
+            out_file.write('- [{}](./{}/{}){}'.format(item[1],dir[0],item[0],config_item['end_of_line_seq']))
+
+    out_file.write(config_item['end_of_line_seq'])
+    out_file.write(config_item['end_of_line_seq'])
+    out_file.write('                           step by step')
+
 
 if __name__ == "__main__":
     global config_item
@@ -183,6 +196,7 @@ if __name__ == "__main__":
     root_path = os.getcwd()
     logging.debug('current work directory {}'.format(root_path))
 
+    all_blog_map = {}
     can_del_img = True
     for dir in config_item['include_dir']:
         os.chdir('{}/{}'.format(root_path,dir))
@@ -207,8 +221,10 @@ if __name__ == "__main__":
             
         write_base_markdown("README.md",blog_map,dir)
         os.chdir(root_path)
+        all_blog_map[dir]=copy.deepcopy(blog_map)
         blog_map.clear()
 
+    write_main_readme(all_blog_map)
     if can_del_img:
         # Delete the original path of the picture 
         files = get_dir_file(config_item['img_src_dir'])
