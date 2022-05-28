@@ -14,7 +14,7 @@
         <item>mysql</item>
     </include_dir>
     <img>
-        <img_src_dir>~/Pictures</img_src_dir>
+        <img_src_dir>/home/breap/Pictures</img_src_dir>
         <img_src_prefix>_</img_src_prefix>
         <img_src_suffix>.png</img_src_suffix>
     </img>
