@@ -166,6 +166,18 @@
     - [9. 代码示例](#9-代码示例-2)
     - [10. 已知应用](#10-已知应用-3)
     - [11. 相关模式](#11-相关模式-3)
+  - [4.4 Decorator - 对象结构型模式](#44-decorator-对象结构型模式)
+    - [1. 意图](#1-意图-8)
+    - [2. 别名](#2-别名-4)
+    - [3. 动机](#3-动机-4)
+    - [4. 适用性](#4-适用性-4)
+    - [6. 参与者](#6-参与者-4)
+    - [7. 协作](#7-协作-4)
+    - [8. 效果](#8-效果-4)
+    - [9. 实现](#9-实现-4)
+    - [10. 代码示例](#10-代码示例-4)
+    - [11. 已知应用](#11-已知应用-4)
+    - [12. 相关模式](#12-相关模式-4)
 
 <!-- /code_chunk_output -->
 
@@ -3082,6 +3094,163 @@ Decorator 模式经常与 Composite 模式一起使用。当装饰和组合一�
 Flyweight 让你共享组件，但不再引用它们的父部件。
 Iterator 可用来遍历 Composite.
 Visitor 将本来应该分布在 Composite 和 Leaf 类中的操作和行为局部化。
+
+## 4.4 Decorator - 对象结构型模式
+
+### 1. 意图
+
+动态地给一个对象添加一些额外的职责。就增加功能来说，Decorator 模式比生成子类更为灵活。
+
+### 2. 别名
+
+包装器 Wrapper
+
+### 3. 动机
+
+有时我们希望给某个对象而不是整个类添加一些功能。例如，一个图形用户界面工具箱允许你对任意一个用户界面组件添加一些特性，例如边框，或是一些行为，例如窗口滚动。
+使用继承机制是添加功能的一种有效 途径，但这种方法不够灵活。
+一种较为灵活的方式是将组件嵌入另一个对象中，由这个对象添加边框。我们称这个嵌入的对象为装饰。这个装饰与它所装饰的组件接口一致，因此对使用该组件的客户透明。它将客户请求转发给该组件，并且可能在转发前后执行一些额外的动作（例如画一个边框）。透明性使得你可以递归的嵌套多个装饰，从而可以添加任意多的功能，如下图所示。
+
+![](../images/DesignPatternsBook_202206032215_1.png)
+
+![](../images/DesignPatternsBook_202206032215_2.png)
+
+![](../images/DesignPatternsBook_202206032215_3.png)
+
+### 4. 适用性
+
+- 在不影响其他对象的情况下，以动态、透明的方式给单个对象添加职责。
+- 处理那些可以撤销的职责。
+- 当不能采用生成子类的方法进行扩充时。一种情况是，可能有大量独立的扩展，为支持每一种组合将产生大量的子类，使得子类数目呈爆炸性增长。另一种情况可能是因为类定义被隐藏，或类定义不能用于生成子类。
+
+![](../images/DesignPatternsBook_202206032215_4.png)
+
+### 6. 参与者
+
+- Component （VisualComponent）
+  - 定义一个对象接口，可以给这些对象动态地添加职责
+- ConcreteComponent （TextView）
+  - 定义一个对象，可以给这个对象添加一些职责
+- Decorator
+  - 维持一个指向 Component 对象的指针，并定义一个与 Component 接口一致的接口。
+- ConcreteDecorator（BorderDecoator，ScrollDecorator）
+  - 向组件添加职责
+
+### 7. 协作
+
+Decorator 将请求转发给它的 Component 对象，并有可能在转发请求前后执行一些附加的动作。
+
+### 8. 效果
+
+该模式至少有两个主要的优点和两个缺点：
+
+1. 比静态继承更灵活
+2. 避免在层次结构高层的类有太多的特征
+3. Decorator 与它的 Component 不一样 Decorator 是一个透明的包装。如果我们从对象标识的观点出发，一个被装饰了的组件与这个组件是有差别的，因此，使用装饰时不应该依赖对象标识。
+4. 有许多小对象
+
+### 9. 实现
+
+使用 Decorator 模式应该注意以下几点：
+
+1. 接口的一致性 装饰对象的接口必须与它所装饰的 Component 的接口是一致的。
+2. 省略抽象的 Decorator 类  当你需要添加一个职责时，没有必要定义抽象 Decorator 类。你通常需要处理现存的类层次结构而不是设计一个新系统，这时你可以把 Decorator 向 Component 转发请求的职责合并到 ConcreteComponent 中 。
+3. 保持 Component 类的简单性
+4. 改变对象外壳与对象内核 我们可以将 Decorator 看作一个对象的外壳，它可以改变这个对象的行为。另外一种方法是改变对象的内核。例如，Strategy 就是一个用于改变内核的很好的模式。
+当 Component 模式原本就很庞大的时候，使用 Decorator 的代价太高，Strategy 模式相对更好一些。在 Strategy 模式中，组件将它的一些行为转发给一个独立的策略对象，我们可以替换 Strategy 对象，从而改变或扩充组件的功能。
+由于 Decorator 模式仅从外部改变组件，因此组件无需对它的装饰任何了解；也就是说，这些装饰对该组件是透明的，如下图所示：
+
+![](../images/DesignPatternsBook_202206032215_5.png)
+
+在 Strategy 模式中，Component 组件本身知道可能进行哪些扩充，因此它必须引用并维护相应的策略，如下图所示：
+
+![](../images/DesignPatternsBook_202206032215_6.png)
+
+### 10. 代码示例
+
+```c++
+class VisualComponent{
+public:
+  VisualComponent();
+
+  virtual void Draw();
+  virtual void Resize();
+  // ...
+};
+
+class Decorator:public VisualComponent{
+public:
+  Decorator(VisualComponent *);
+
+  virtual void Draw();
+  virtual void Resize();
+  // ...
+private:
+  VisualComponent * _component;
+};
+
+void Decorator::Draw(){
+  _component->Draw();
+}
+
+void Decorator::Resize(){
+  _component->Resize();
+}
+
+class BorderDecoator::public Decorator{
+public:
+  BorderDecoator(VisualComponent *,int borderWidth);
+
+  virtual void Draw();
+private:
+  void DrawBorder(int);
+private:
+  int _width;
+};
+
+void BorderDecorator::Draw(){
+  Decorator::Draw();
+  DrawBorder(_width);
+}
+
+```
+
+现在我们组合这些类的实例以提供不同的装饰效果，以下代码展示了如何使用 Decorator 创建一个具有边界的可滚动 TextView。
+
+首先我们将一个可视组件放入窗口对象中。假设 Window 类为此已经提供了一个 SetContents 操作:
+
+```c++
+void Window::SetContents(VisualComponent * contents){
+  // ...
+}
+
+```
+
+示例：
+
+```c++
+Window * window = new Window;
+TextView * textView = new TextView;
+
+// TextView 是一个 VisualComponent
+window->SetContents(TextView);
+
+//我们想要一个有边界的可以滚动的 TextView ，可以这样 
+window->SetContents(
+  new BorderDecorator(new ScrollDecorator(textView),1)
+);
+```
+
+### 11. 已知应用
+
+许多面向对象的用户界面工具箱使用装饰为窗口组件添加图形装饰，例如 InterViews,ET++，ObjectWorks\Smalltalk 类库。
+但是 Decorator 模式不仅仅局限于图形用户界面，基于 ET++ 的 streaming 类也使用了该模式。
+
+### 12. 相关模式
+
+- Adapter 模式： Decorator 模式不同于 Adapter 模式，因为装饰仅改变对象的职责而不改变它的接口；而适配器将给对象一个全新的接口。
+- Composite 模式： 可以将装饰视为一个退化的、仅有一个组件的组合。然而，装饰仅给对象添加一些额外的职责 - 它的目的不在于对象聚集。
+- Strategy 模式： 用一个装饰你可以改变对象的外表；而 Strategy 模式使得你可以改变对象的内核。这就是改变对象的两种途径。
 
 ---
 
