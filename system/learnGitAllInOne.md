@@ -94,7 +94,14 @@ Git 有三个比较重要的概念：
 
 1. `工作目录`
 2. `索引`（用来暂存(stage)、收集或者修改）
-3. `对象库`
+3. `版本库`: 工作区有一个隐藏目录 .git，这个不算工作区，而是 Git 的版本库。
+
+下面这个图展示了工作区、版本库中的暂存区和版本库之间的关系：
+
+![](../images/learnGitAllInOne_202206032225_1.png)
+
+注：图中的 objects 标识的区域为 Git 的对象库，实际位于 ".git/objects" 目录下，里面包含了创建的各种对象及内容。 
+
 
 当使用 Git 来管理代码时，会在工作目录下编辑，在索引中积累修改，然后把索引中累积的修改作为一次性的变更来提交。
 
@@ -761,6 +768,7 @@ git config --global rerere.enabled true
 - [How to grep Git commit diffs or contents for a certain word](https://stackoverflow.com/questions/1337320/how-to-grep-git-commit-diffs-or-contents-for-a-certain-word)
 - [7.3 Git 工具 - 贮藏与清理](https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E8%B4%AE%E8%97%8F%E4%B8%8E%E6%B8%85%E7%90%86)
 - [github - gitster/git](https://github.com/gitster/git)
+- [Git 工作区、暂存区和版本库](https://www.runoob.com/git/git-workspace-index-repo.html)
 
 ---
 
