@@ -178,6 +178,18 @@
     - [10. 代码示例](#10-代码示例-4)
     - [11. 已知应用](#11-已知应用-4)
     - [12. 相关模式](#12-相关模式-4)
+  - [4.5 Facade（外观） - 对象结构型模式](#45-facade外观-对象结构型模式)
+    - [1. 意图](#1-意图-9)
+    - [2. 动机](#2-动机-4)
+    - [3. 适用性](#3-适用性-4)
+    - [4. 结构](#4-结构-3)
+    - [5. 参与者](#5-参与者-3)
+    - [6. 协作](#6-协作-4)
+    - [7. 效果](#7-效果-4)
+    - [8. 实现](#8-实现-4)
+    - [9. 代码示例](#9-代码示例-3)
+    - [10. 已知应用](#10-已知应用-4)
+    - [11. 相关模式](#11-相关模式-4)
 
 <!-- /code_chunk_output -->
 
@@ -3251,6 +3263,222 @@ window->SetContents(
 - Adapter 模式： Decorator 模式不同于 Adapter 模式，因为装饰仅改变对象的职责而不改变它的接口；而适配器将给对象一个全新的接口。
 - Composite 模式： 可以将装饰视为一个退化的、仅有一个组件的组合。然而，装饰仅给对象添加一些额外的职责 - 它的目的不在于对象聚集。
 - Strategy 模式： 用一个装饰你可以改变对象的外表；而 Strategy 模式使得你可以改变对象的内核。这就是改变对象的两种途径。
+
+## 4.5 Facade（外观） - 对象结构型模式
+
+### 1. 意图
+
+对子系统中的一组接口提供一个一致的界面，Facade 模式定义了一个高层接口，这个接口使得这一子系统更加容易使用。
+
+### 2. 动机
+
+将一个系统划分成若干个子系统有利于降低系统的复杂性。一个常见的设计目标是使子系统间的通信和相互依赖关系达到最小。达到该目标的途径之一就是引入一个外观对象，它为子系统中较一般的设施提供了一个单一而简单的界面。
+
+![](../images/DesignPatternsBook_202206111534_1.png)
+
+例如有一个编程环境，它允许应用程序访问它的编译子系统。这个编译子系统包含了若干个类，如 Scanner,Parser,ProgramNode,BytecodeStream和 ProgramNodeBuilder，用于实现这一编译器有些特殊应用程序需要直接访问这些类，但是大多数编译器的用户并不关心语法分析和代码生成这样的细节；他们只是希望编译一些代码。对这些用户，编译子系统中那些功能强大但层次较低的接口只会使他们的任务复杂化。
+
+为了提供一个高层的接口并且对客户屏蔽这些类，编译子系统还包括一个 Complier 类。这个类定义了一个编译器功能统一接口。Complier 类是一个外观，它为用户提供了一个单一而简单的子系统接口。它无需完全隐藏编译功能的那些类，即可将它们结合在一起。编译器的外观可方便大多数程序员使用，同时对少数懂得如何使用底层功能的人，它并不隐藏这些功能，如下图所示：
+
+![](../images/DesignPatternsBook_202206111534_2.png)
+
+### 3. 适用性
+
+- 当你要为一个复杂子系统提供一个简单接口时。
+- 客户程序与抽象类的实现部分之间存在着很大的依赖性。引入 Facade 将这个子系统与客户以及其他的子系统分离，可以提高子系统的独立性和可移植性。
+- 当你需要构建一个层次接口的子系统时，使用 Facade 模式定义子系统中每层的入口点。如果子系统之间使相互依赖的，你可以让它们仅仅通过 Facade 进行通讯，从而简化了它们之间的依赖关系。
+
+### 4. 结构
+
+![](../images/DesignPatternsBook_202206111534_3.png)
+
+### 5. 参与者
+
+- Facade (Complier)
+  - 知道哪些子系统类负责处理请求
+  - 将客户的请求代理给适当的子系统对象。
+- Subsystem classes (Scanner,Parser,ProgramNode 等)
+  - 实现子系统的功能
+  - 处理由 Facade 对象指派的任务
+  - 没有 facade 的任何相关信息；即没有指向 facade 的指针。
+
+### 6. 协作
+
+- 客户程序通过发送请求给 facade 的方式与子系统通讯，Facade 将这些消息转发给适当的子系统对象。尽管是子系统中的有关对象在做实际工作，但 Facade 模式本身也必须将它的接口转换成子系统的接口。
+- 使用 Facade 的客户程序不需要直接访问子系统对象。
+
+### 7. 效果
+
+优点：
+
+- 它对客户屏蔽子系统组件，因而减少了客户处理的对象的数目并使得子系统使用起来更加方便。
+- 它实现了子系统与客户之间的松耦合关系，而子系统内部的功能组件往往是紧耦合的。
+- 如果应用需要，它并不限制它们使用子系统类。因此你可以在系统易用性和通用性之间加以选择。
+
+### 8. 实现
+
+需要注意以下几点：
+
+- 降低客户 - 子系统之间的耦合度
+- 公共子系统类与私有子系统类
+  - 子系统的公共接口包含所有的客户程序可以访问的类；私有接口仅用于对子系统进行扩充。
+
+### 9. 代码示例
+
+让我们仔细观察如何在一个编译器子系统中使用 Facade
+编译子系统定义了一个 ByteCodeStream 类，它实现了一个 Bytecode 对象流。Bytecode 对象封装一个字节码，这个字节码可用于指定机器指令。该子系统中还定义了一个 Token 类，它封装了编程语言中的标识符。
+
+Scanner 类接收字符流并产生一个标识符流，一次产生一个标识符(token)。
+
+```c++
+class Scanner{
+public:
+  Scanner(istream&);
+  virtual ~Scanner();
+
+  virtual Token& Scan();
+
+private:
+  istream _inputStream;
+};
+```
+
+用 ProgramNodeBuilder,Parser 类由Scanner 生成的标识符构建一棵语法分析树。
+
+```c++
+class Parser{
+public:
+  Parser();
+  virtual ~Parser();
+
+  virual void Parse(Scanner&,ProgramNodeBuilder&);
+};
+```
+
+Parse 回调 ProgramNodeBuilder 逐步建立语法分析树，这些类遵循 Builder 模式进行交互操作。
+
+```c++
+class ProgramNodeBuilder{
+public:
+  ProgramNodeBuilder();
+
+  virtual ProgramNode * NewVariable{
+    const char* variableName
+  ) const;
+
+  virtual ProgramNode * NewAssignmeng(
+    ProgramNode * variable,ProgramNode * expression
+  )const;
+
+  virtual ProgramNode * NewReturnStatement(
+    ProgramNode * value
+  )const;
+
+  virtual ProgramNode* NewCondition(
+    ProgramNode * condition,
+    ProgramNode * truePart,ProgramNode * falsePart
+  )const;
+
+  // ... 
+
+  ProgramNode * GetRootNode();
+private:
+  ProgramNode * _node;
+};
+```
+
+语法分析树由 ProgramNode 子类的实例构成。ProgramNode 层次结构是 Composite 模式的一个应用实例。ProgramNode 定义了一个接口用于操作程序节点和它的子节点(如果有的话)。
+
+```c++
+class ProgramNode{
+public:
+  virtual void GetSourcePosition(int& line,int& index);
+  // ... 
+
+  // child manipulation 
+  virtual void Add(ProgramNode*);
+  virtual void Remove(ProgramNode*);
+
+  // ... 
+
+  virtual void Traverse(CodeGenerator&);
+
+protected:
+  ProgramNode();
+};
+```
+
+Traverse 操作以一个 CodeGenerator 对象为参数， ProgramNode 子类使用这个对象产生机器代码，机器代码格式为 ByteCodeStream中的 Bytecode 对象。其中 CodeGenerator 类是一个访问者。
+
+```c++
+class CodeGenerator{
+public:
+  virtual void Visit(StatementNode *);
+  virtual void Visit(ExpressionNode *);
+  // ... 
+
+protected:
+  CodeGenerator(ByteCodeStream&);
+
+protected:
+  ByteCodeStream& _output;
+};
+```
+
+例如 CodeGenerator 类有两个子类 StackMachineCodeGenerator 和 RISCCodeGenerator,分别为不同的硬件体系结构生成机器代码。
+
+ProgramNode 的每一个子类在实现 Traverse 时，对它的 ProgramNode 子对象调用 Traverse 。每个子类依次对它的子节点做同样的动作，这样一直递归下去。例如，ExpressionNode 像这样定义 Traverse:
+
+```c++
+void ExpressionNode::Traverse(CodeGenerator& cg){
+  cg.Visit(this);
+
+  ListIterator<ProgramNode *> i(_children);
+
+  for(i.First();!i.IsDone（）；i.Next()){
+    i.CurrentItem()->Traverse(cg);
+  }
+}
+```
+
+我们上述讨论的类构成了编译子系统，现在我们引入 Complier 类，Complier 类是一个 Facade,它将所有部件集成一起。 Complier 提供了一个简单的接口用于为特定的机器编译源代码并生成可执行代码。
+
+```c++
+class Complier{
+public:
+  Complier();
+
+  virtual void Complie(istream&,BytecodeStream&);
+};
+
+void Complier::Complie(istream& input,BytecodeStream& output){
+  Scanner scanner(input);
+  ProgramNodeBuilder builder;
+  Parser parser;
+
+  parser.Parse(scanner,builder);
+
+  RISCCodeGenerator generator(output);
+  ProgramNode * parseTree = builder.GetRootNode();
+  parseTree->Traverse(generator);
+}
+```
+
+上面的实现在代码中股定了要使用的代码生成器的种类，因此程序员不需要指定目标机的结构。在仅有一种目标机的情况下，这是合理的。如果有多种目标机，我们可能希望改变 Compiler 构造函数使之能接受 CodeGenerator 为参数，这样程序员可以在实例化 Compiler 时指定要使用的生成器。编译器的 facade 还可以增加参数化以增加系统的灵活性，但是这并非 Facade 模式的主要任务，它的主要任务时为一般情况简化接口。
+
+### 10. 已知应用
+
+- ET++
+- Choices 操作系统
+![](../images/DesignPatternsBook_202206111534_4.png)
+
+### 11. 相关模式
+
+- AbstractFactory 模式可以与 Facade 模式一起使用以提供一个接口，这一接口可用来以一种子系统独立的方式创建子系统对象。AbstractFactory 也可以代替 Facade 模式隐藏那些与平台相关的类。
+
+- Mediator 模式与 Facade 模式的相似之处是，它抽象了一些已有的类的功能。然而，Mediator 的目的是对同事之间的任意通讯进行抽象，通常集中不属于任何单个对象的功能。Mediator 的同事对象知道中介者并与它通信，而不是直接与其他同类对象通信。相对而言，Facade 模式仅对子系统对象的接口进行抽象，从而使它们更容易使用；它并不定义新功能，子系统也不知道 facade 的存在。
+
+- 通常来讲，仅需要一个 Facade 对象，因此 Facade 对象通常属于 Singleton 模式。
 
 ---
 
