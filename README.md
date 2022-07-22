@@ -188,6 +188,7 @@
 - [安装配置hadoop httpfs](./other/config_hadoop_httpfs.md)
 - [docker 使用记录（读docker实践记）](./other/docker.md)
 - [fedora install SS libev](./other/fedoraInstallSS.md)
+- [查找书籍并发送到 kindle](./other/findBook2Kindle.md)
 - [c/c++面试](./other/find_a_job.md)
 - [google cloud 使用](./other/googleCloud.md)
 - [google Tips](./other/google_search_tips.md)

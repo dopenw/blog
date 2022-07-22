@@ -186,4 +186,4 @@ forward-socks5 / 127.0.0.1:1080
 ---
 - [上一级](README.md)
 - 上一篇 -> [docker 使用记录（读docker实践记）](docker.md)
-- 下一篇 -> [c/c++面试](find_a_job.md)
+- 下一篇 -> [查找书籍并发送到 kindle](findBook2Kindle.md)

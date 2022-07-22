@@ -6,6 +6,7 @@
 * ### [安装配置hadoop httpfs](config_hadoop_httpfs.md)
 * ### [docker 使用记录（读docker实践记）](docker.md)
 * ### [fedora install SS libev](fedoraInstallSS.md)
+* ### [查找书籍并发送到 kindle](findBook2Kindle.md)
 * ### [c/c++面试](find_a_job.md)
 * ### [google cloud 使用](googleCloud.md)
 * ### [google Tips](google_search_tips.md)
