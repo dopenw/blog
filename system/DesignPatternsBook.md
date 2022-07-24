@@ -190,6 +190,18 @@
     - [9. 代码示例](#9-代码示例-3)
     - [10. 已知应用](#10-已知应用-4)
     - [11. 相关模式](#11-相关模式-4)
+  - [4.6 FlyWeight (享元) ---  对象结构型模式](#46-flyweight-享元-对象结构型模式)
+    - [1. 意图](#1-意图-10)
+    - [2. 动机](#2-动机-5)
+    - [3. 适用性](#3-适用性-5)
+    - [4. 结构](#4-结构-4)
+    - [5. 参与者](#5-参与者-4)
+    - [6. 协作](#6-协作-5)
+    - [7. 效果](#7-效果-5)
+    - [8. 实现](#8-实现-5)
+    - [9. 代码实例](#9-代码实例-1)
+    - [10 . 已知应用](#10-已知应用-5)
+    - [11. 相关模式](#11-相关模式-5)
 
 <!-- /code_chunk_output -->
 
@@ -3479,6 +3491,246 @@ void Complier::Complie(istream& input,BytecodeStream& output){
 - Mediator 模式与 Facade 模式的相似之处是，它抽象了一些已有的类的功能。然而，Mediator 的目的是对同事之间的任意通讯进行抽象，通常集中不属于任何单个对象的功能。Mediator 的同事对象知道中介者并与它通信，而不是直接与其他同类对象通信。相对而言，Facade 模式仅对子系统对象的接口进行抽象，从而使它们更容易使用；它并不定义新功能，子系统也不知道 facade 的存在。
 
 - 通常来讲，仅需要一个 Facade 对象，因此 Facade 对象通常属于 Singleton 模式。
+
+## 4.6 FlyWeight (享元) ---  对象结构型模式
+
+### 1. 意图
+
+运用共享技术有效地支持大量细粒度的对象。
+
+### 2. 动机
+
+有些程序得益于在其整个设计过程中采用对象技术，但简单化的实现代价极大。
+例如，大多数文档编辑器的实现都有文本格式化和编辑功能，这些功能在一定程度上是模块化的。面向对象的文档编辑器通常使用对象来表示嵌入的部分，例如表格和图形。尽管用对象来表示文档中的每个字符会极大地提高应用程序的灵活性，但是这些编辑器通常并不这样做。字符和嵌入成分可以在绘制和格式化时统一处理，从而在不影响其他功能的情况下能对应用程序进行扩展，支持新的字符集。应用程序的对象结构可以模拟文档的物理结构。下图显示了一个文档编辑器怎样使用对象来表示字符。
+
+![](../images/DesignPatternsBook_202207242123_1.png)
+
+但这种设计的缺点在于代价太大。即使是一个中等大小的文档也可能要求成百上千字的字符对象，这会耗费大量内存，产生难以接受的运行开销。FlyWeight 模式描述了如何共享对象，使得可以细粒度地使用它们而无需高昂的代价。
+
+FlyWeight 是一个共享对象，它可以同时在多个场景(context)中使用，并且在每个场景中 FlyWeight 都可以作为一个独立的对象 - 这一点与非共享对象的实例没有区别。FlyWeight 不能对它所运行的场景作出任何假设，这里关键的概念是 `内部状态`和 `外部状态`之间的区别。内部状态存储于 FlyWeight 中，它包含了 FlyWeight 场景的信息，这些信息使得 FlyWeight 可以被共享 。而外部状态取决于 FlyWeight 场景，并根据场景变化，因此不可共享。用户对象负责在必要的时候将外部状态传递给 FlyWeight。
+
+FlyWeight 模式对那些因为数量太大而难以用对象表示的概念或实体进行建模。例如，文档编辑器可以为字母表中的每一个字母创建一个 FlyWeight。 每个 FlyWeight 存储一个字符代码，但它在文档中的位置和排版风格可以在字符出现时由正文排版算法和使用的格式化命令决定。字符代码是内部状态，而其他的信息则是外部状态。
+逻辑上，文档中的给定字符每次出现都有一个对象与其对应，如下图所示：
+
+![](../images/DesignPatternsBook_202207242123_2.png)
+
+然而，物理上每个字符共享一个 FlyWeight 对象，而这个对象出现在文档结构中的不同地方。一个特定字符对象的每次出现都指向同一个实例，这个实例位于 FlyWeight 对象的共享池中。
+这些对象的类结构如下图所示。Glyph 是图形对象的抽象类，其中有些对象可能是 FlyWeight。基于外部状态的那些操作将外部状态作为参数传递给它们。例如，Draw 和 Insersects 在执行之前，必须知道 glyph 所在的场景。
+
+![](../images/DesignPatternsBook_202207242123_3.png)
+
+![](../images/DesignPatternsBook_202207242123_4.png)
+
+表示字母 ‘a’ 的 flyweight 只存储相应的字符代码；它不需要存储字符的位置或字体。用户提供与场景相关的信息，根据此信息 flyweight 绘制出它自己。
+
+### 3. 适用性
+
+flyweight 模式的有效性很大程度上取决于如何使用它以及在何处使用它。当以下情况都成立时使用 flyweight 模式：
+
+- 一个应用程序使用了大量的对象。
+- 完全由于使用大量的对象，造成很大的存储开销。
+- 对象的大多数状态都可变为外部状态。
+- 如果删除对象的外部状态，那么可以用相对较少的共享对象取代很多组对象。
+- 应用程序不依赖于对象标识。由于 flyweight 对象可以被共享，对于概念上明显有别的对象，标识测试将返回真值。
+
+### 4. 结构
+
+![](../images/DesignPatternsBook_202207242123_5.png)
+
+下面的对象图说明了如何共享 flyweight。
+
+![](../images/DesignPatternsBook_202207242123_6.png)
+
+### 5. 参与者
+
+- FlyWeight（Glyph）
+  - 描述一个接口，通过这个接口 flyweight 可以接受并作用于外部状态。
+- ConcreteFlyweight(Character)
+  - 实现 flyweight 接口，并为内部状态（如果有的话）增加存储空间。ConcreteFlyweight 对象必须是可享的。它所存储的状态必须是内部的；即，它必须独立于 ConcreteFlyweight 对象的场景。
+- UnsharedConcreteFlyweight（Row，Column）
+  - 并非所有的 FlyWeight 子类都需要被共享。Flyweight 接口使共享称为可能，但它并不强制共享。在 FlyWeight 对象结构的某些层次，UnsharedConcreteFlyweight（Row，Column） 对象通常将 ConcreteFlyweight 对象作为子节点（Row和 Column 就是这样）。
+- FlyWeightFactory
+  - 创建并管理 flyweight 对象。
+  - 确保合理地共享 flyweight .当用户请求一个 flyweight 时，FlyWeightFactory 对象提供一个已创建的实例或者创建一个（如果不存在的话）。
+- Client
+  - 维持一个对 flyweight 的引用。
+  - 计算或存储一个（多个） flyweight 的外部状态。
+
+### 6. 协作
+
+- Flyweight 执行时所需的状态必定时内部的或外部的。内部状态存储于 ConcreteFlyweight 对象之中；而外部对象则有 Client 对象存储或计算。当用户调用 flyweight 对象的操作时，将该状态传递给它。
+- 用户不应直接对 ConcreteFlyweight 类进行实例化，而只能从 FlyWeightFactory 对象得到 ConcreteFlyweight 对象，这可以保证对它们适当地进行共享。
+
+### 7. 效果
+
+使用 flyweight 模式时，传输、查找和/或计算机外部状态都会产生运行时的开销，尤其当 flyweight 原先被存储为内部状态时。然而，空间上的节省抵消了这些开销。共享的 flyweight 越多，空间节省也就越大。
+
+存储节约由以下几个因素决定：
+
+- 因为共享，实例总数减少的数目
+- 对象内部状态的平均数目
+- 外部状态是计算的还是存储的
+
+共享的 FlyWeight 越多，存储节约也就越多。
+
+FlyWeight 模式经常和 Composite 模式结合起来表示一个层次结构，这一层次式结构是一个共享叶节点的图。共享的结果是，FlyWeight 的叶节点不能存储指向父节点的指针。而父节点的指针将传给 FlyWeight 作为它的外部状态的一部分。这对于该层次结构中对象之间相互通讯的方式将产生很大的影响。
+
+### 8. 实现
+
+在实现 FlyWeight 模式时，注意以下几点：
+
+- `删除外部状态`    该模式的可用性在很大程度上取决于是否容易识别外部状态并将它从共享对象中删除。如果不同种类的外部状态和共享前对象的数目相同的话，删除外部状态不会降低存储消耗。理想的情况是，外部状态可以由一个单独的对象结构计算得到，且该结构的存储要求非常小。
+  - 例如，在我们的文档编辑器中，我们可以用一个单独的结构存储排版布局信息，而不是存储每一个字符对象的字体和类型信息，布局图保持了带有相同排版信息的字符的运行轨迹。当某个字符绘制自己的时候，作为绘图遍历的副作用它接收排版信息。因为通常文档使用的字体和类型数量有限，将该信息作为外部信息来存储，要比内部存储高效得多。
+
+- `管理共享对象`    因为对象是共享的，用户不能直接对它进行实例化，因此 FlyWeightFactory 可以帮助用户查找某个特定的 Flyweight 对象。
+
+### 9. 代码实例
+
+```c++
+class Glygh{
+public:
+  virtual ~Glygh();
+  virual void Draw(Window * ,GlyphContext&);
+
+  virtual void setFont(Font * ,GlyphContext&);
+  virtual Font * GetFont(GlyphContext&);
+
+  virtual void First(GlyphContext&);
+  virtual void Next(GlyphContext&);
+  virtual bool IsDone(GlyphContext&);
+  virtual Glyph * Cureent(GlyphContext&);
+
+  virtual void Insert(Glygh * ,GlyphContext&);
+  virtual void Remove(GlyphContext&);
+
+protected:
+  Glygh();
+};
+```
+
+Character 存储一个字符代码：
+
+```c++
+class character:public Glygh{
+public:
+  character(char);
+
+  virtual void Draw(Window * ,GlyphContext&);
+private:
+  char _charcode;
+};
+```
+
+为了避免给每一个 Glyph 的字体属性都分配空间，我们可以将该属性外部存储于 GlyphContext 对象中。GlyphContext 是一个外部状态的存储库，它维持 Glyph 与字体（以及其他一些可能的图形属性）之间一种简单的映射关系。
+
+```c++
+class GlyphContext{
+public:
+  GlyphContext();
+  virtual ~GlyphContext();
+  
+  virtual void Next(int step = 1);
+  virtual void Insert (int quantity = 1);
+
+  virtual Font * GetFont();
+  virtual void SetFont(Font * ,int span = 1);
+private:
+  int _index;
+  BTree * _fonts;
+};
+```
+
+GlyghContext::GetFocus 将索引作为 BTree 结构的关键字，BTree 结构存储 glyph 到字体的映射。树中的每个节点都标有字符串的长度，而它给这个字符串字体信息。树中的叶节点指向一种字体，而内部的字符串分成了很多子字符串，每一个对应一种子节点。
+
+内部节点定义 Glyph 索引的范围。但字体改变或者在 Glyph 结构中添加或删除 Glyph 时，BTree将相应地被更新。例如，假定我们遍历到索引 102，以下代码将单词 “except” 的每个字符的
+
+![](../images/DesignPatternsBook_202207242123_7.png)
+
+字体设置为它周围的正文字体（即，Time 12 字体，12-point Times Roman 的一个实例）：
+
+![](../images/DesignPatternsBook_202207242123_8.png)
+
+```c++
+GlyghContext gc;
+Font * times12 = new Font("Times-Roman-12");
+Font * timesItalic12 = new Font("Times-Italic-12");
+// ...
+
+gc.SetFont(times12,6);
+```
+
+新 BTree 结构如下图所示（黑体显示变化）：
+
+![](../images/DesignPatternsBook_202207242123_9.png)
+
+假设我们要在单词 "expect" 前用 12-point Times Italic 字体添加一个单词 “Don't " 。假定gc仍旧在索引位置 102，以下代码通知gc 这个事件：
+
+```c++
+gc.Insert(6);
+gc.SetFont(timesItalic12,6);
+```
+
+BTree 变为：
+
+![](../images/DesignPatternsBook_202207242123_10.png)
+
+这棵树相对于 Glyph 结构较小。这将使得存储耗费较小，同时也不会过多的增加查询时间。
+
+FlyWeightFactory 是我们需要的最后一个对象，它负责创建 Glyph 并确保对它们进行合理共享。GlyphFactory 类将实例化 Character 和其他类型 的 Glygh。我们只共享 Character 对象；组合的  Glyph 要小得多，并且它们的重要状态必定时内部的。
+
+```c++
+const int NCHARCODES = 128;
+
+class GlyphFactory{
+public:
+  GlyphFactory();
+  virtual ~ GlyphFactory();
+  virtual Character * CreateCharacter(char);
+  virtual Row * CreateRow();
+  virtual Column * CreateColumn();
+  //...
+
+private:
+  Character * _character[NCHARCODES];
+};
+
+GlyphFactory::GlyphFactory(){
+  for(auto i=0;i<NCHARCODES;++i){
+    _character=nullptr;
+  }
+}
+
+Character * GlyphFactory::CreateCharacter(char c){
+  if(!_character[c]){
+    _character[c] = new Character(c);
+  }
+  return _character[c];
+}
+
+Row * GlyphFactory::CreateRow(){
+  return new Row;
+}
+
+Column * GlyphFactory::CreateColumn(){
+  return new Column;
+}
+
+```
+
+### 10 . 已知应用
+
+FlyWeight 的概念最先是在 InterView 3.0 中提出并作为一种设计技术得到研究。它的开发者构建了一个强大的文档编辑器 Doc，作为 flyweight 概念的论证。Doc 使用符号对象来标识文档中的每一个字符。编辑器为每一个特定类型的字符创建一个 Glyph 实例；所以，一个字符的内部状态包括字符代码和类型信息（类型表和索引）。这意味着只有位置时外部状态，这就使得 Doc 运行很快。文档由类 Document 表示，它同时也是一个 FlyWeightFactory。对 Doc 的测试表明共享 Flyweight 字符是高效的。通常，一个包含 180 000 个字符的文档只要求分配大约 480 个字符对象。
+
+ET++ 使用 Flyweight 来支持视觉风格独立性。
+
+- 若每个 widget 类都有一个 Layout 类与之对应，使用单独的 Layout 对象会使用户界面对象成倍增加，因为对每个用户界面对象，都会有一个附加的 Layout 对象。为了避免这种开销，可用 FlyWeight 实现 Layout 对象。用 Flyweight 的效果很好，因为它们主要处理行为定义，而且很容易将一些较小的外部状态传递给它们，它们需要用这些状态安排一个对象的位置或者对它进行绘制。
+- 对象 Layout 由 Look 对象创建和管理。Look 类是一个 Abstract Factory ，它用 GetButtonLayout 和 GetMenuBarLayout 这样的操作来检索一个特定的 Layout 对象。对于每一个视觉风格标准，都有一个相应的 Look 子类提供相应的 Layout 对象。
+
+### 11. 相关模式
+
+FlyWeight 模式通常和 Composite 模式结合起来，用共享叶结点的有向无环图实现一个逻辑上的层次结构。
+
+通常，最好用 FlyWeight 实现 State 和 Strategy 对象。
 
 ---
 
