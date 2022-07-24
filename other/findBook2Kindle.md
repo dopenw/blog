@@ -36,9 +36,10 @@
 - [9个免费电子书下载网站，实现电子书自由](https://zhuanlan.zhihu.com/p/444880913)
 - [How to read EPUB books on your Kindle](https://www.digitaltrends.com/mobile/how-to-read-epub-books-on-your-kindle/#:~:text=Kindle%20supports%20Amazon's%20proprietary%20format,allow%20you%20to%20do%20this.)
 - [如何彻底解决 Kindle 电子书封面显示为“暂无图片”的问题](https://bookfere.com/post/986.html)
-- [Fix Kindle Ebook Cover：电子书封面缩略图修复工具](https://bookfere.com/post/994.html)- [上一级](README.md)
+- [Fix Kindle Ebook Cover：电子书封面缩略图修复工具](https://bookfere.com/post/994.html)
 
 ---
 
+- [上一级](README.md)
 - 上一篇 -> [fedora install SS libev](fedoraInstallSS.md)
 - 下一篇 -> [c/c++面试](find_a_job.md)
