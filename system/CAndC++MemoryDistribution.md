@@ -1,4 +1,4 @@
-<!-- #C 和 C++ 的内存分布 -->
+<!-- C 和 C++ 的内存分布 -->
 
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->

@@ -3816,5 +3816,5 @@ text->Insert(new ImageProxy("anImageFileName"));
 ---
 
 - [上一级](README.md)
-- 上一篇 -> [#C 和 C++ 的内存分布](CAndC++MemoryDistribution.md)
+- 上一篇 -> [C 和 C++ 的内存分布](CAndC++MemoryDistribution.md)
 - 下一篇 -> [贪心算法](GreedyAlgorithms.md)
