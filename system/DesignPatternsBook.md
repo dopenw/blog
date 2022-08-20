@@ -77,6 +77,7 @@
   - [4.4 Decorator](#44-decorator)
   - [4.5 Facade（外观）](#45-facade外观)
   - [4.6 FlyWeight (享元)](#46-flyweight-享元)
+  - [4.7 Proxy (代理)](#47-proxy-代理)
 
 <!-- /code_chunk_output -->
 
@@ -3606,6 +3607,211 @@ ET++ 使用 Flyweight 来支持视觉风格独立性。
 FlyWeight 模式通常和 Composite 模式结合起来，用共享叶结点的有向无环图实现一个逻辑上的层次结构。
 
 通常，最好用 FlyWeight 实现 State 和 Strategy 对象。
+
+## 4.7 Proxy (代理)
+
+**1. 意图**
+为其他对象提供一种代理以控制对这个对象的访问。
+
+**2. 别名**
+Surrogate
+
+**3.动机**
+对一个对象进行访问控制的一个原因是为了只有在我们确实需要这个对象时才对它进行创建和初始化。我们考虑一个可以在文档中嵌入图形对象的文档编辑器。有些图形对象（如大型光缆图像）的创建开销很大。但是打开文档必须很迅速，因此我们在打开文档时应避免一次性创建所有开销很大的对象。因为并非所有这些对象在文档中都同时可见，所以也没有必要同时创建这些对象。
+这一限制条件意味着，对于每一个开销很大的对象，应该根据需要进行创建，当一个图像变为可见时会产生这样的需要。但是在文档中我们用什么来代替这个图像呢？我们又如何才能隐藏需要创建图像这一事实，从而不会使得编辑器的实现复杂化呢？
+问题的解决方案时使用另一种对象，及图像 Proxy，替代那个真正的图像。
+
+![](../images/DesignPatternsBook_202208202037_1.png)
+
+以下的类图更详细地阐述了这个例子。
+文档编辑器通过抽象的 Graphic 类定义的接口访问嵌入的图像。ImageProxy 是那些根据需要创建的图像的类。ImageProxy 还存储了这个图像的边框以及真正的Image 实例的指引，直到代理实例化真正的图像时，这个指引才有效。
+
+![](../images/DesignPatternsBook_202208202037_2.png)
+
+**4. 适用性**
+在需要用比较通用和复杂的对象指针代替简单的指针的时候，使用 Proxy 模式。常见情况：
+1. `远程代理` 为一个对象在不同的地址空间提供局部代表。
+2. `虚代理` 根据需要创建开销很大的对象。
+3. `保护代理` 控制对原始对象的访问。保护代理用于对象应该有不同的访问权限的时候。
+4. `智能指引` 取代了简单的指针，它在访问对象时执行一些附加操作。
+
+**5. 结构**
+
+![](../images/DesignPatternsBook_202208202037_3.png)
+
+![](../images/DesignPatternsBook_202208202037_4.png)
+
+**6. 参与者**
+- Proxy(ImageProxy)
+  - 保存一个引用使得代理可以访问实体。若 RealSubject 和 Subject 的接口相同，Proxy 会引用 Subject。
+  - 提供一个与 Subject 的接口相同的接口，这样代理就可以用来替代实体。
+  - 控制对实体的存取，并可能负责创建和删除它。
+  - 其他功能依赖于代理的类型
+- Subject (Graphic)
+  - 定义 RealSubject 和 Proxy 的共用接口，这样就在任何使用 RealSubject 的地方都可以使用 Proxy。 
+- RealSubject(Image)
+  - 定义 Proxy所代表的实体。
+
+**7. 协作**
+- 代理根据其种类，在适当的时候向 RealSubject 转发请求。
+  
+**8. 效果**
+Proxy 模式在访问对象时引入了一定程度的间接性。根据代理的类型，附加的间接性有多种用途：
+1. Remote Proxy 可以隐藏一个对象存在于不同地址空间的事实。
+2. Virtual Proxy 可以进行最优化，例如根据要求创建对象。
+3. Protection Proxies 和 Smart Reference 都允许在访问一个对象时有一些附加的内务处理(Housekeeping task)。
+   Proxy 模式还可以对用户隐藏另一种称为 copy-on-write 的优化方式，该优化与根据需要创建对象有关。例如 [Qt 的容器](https://doc.qt.io/qt-6/implicit-sharing.html)
+
+**9. 实现**
+Proxy 模式可以利用以下一些语言特性：
+1. 重载 C++ 中的存取运算符。这一点可以用于实现某些种类的代理；代理的作用就像一个指针。
+```c++
+class Image;
+exter Image * LoadAnImageFile(const char *);
+
+class ImagePtr{
+public:
+  ImagePtr(const char * imageFile);
+  Virtual ~ImagePtr();
+
+  virual Image * operator->();
+  Virtual Image& operator*();
+private:
+  Image * LoadImage();
+  Image * _image;
+  const char * _imageFile;
+};
+
+//...
+
+ImagePtr image("anImageFileName");
+image->Draw(Point(50,100));
+
+```
+2. 使用 Smalltalk 中的doesNotUnderstand Smalltalk 提供一个 hook 方法可以用来自动转发请求。当用户向接收者发送一个消息，但是这个接收者并没有相关方法的时候，Smalltalk 调用方法 doesNotUnderstand:amessge。Proxy 类可以重定义 doesNotUnderstand 以便向它的实体转发这个消息。
+3. Proxy 并不总是需要知道实体的类型
+
+**10.代码示例**
+
+1. virtual Proxy 
+```c++
+class Graphic{
+public:
+  virtual ~Graphic();
+
+  virtual void Draw(const Point& at)=0;
+  virtual void HandleMouse(Event& event)=0;
+
+  virtual const Point& GetExtent()=0;
+
+  virtual void Load(istream& from) =0;
+  virtual void Save(ostream& to)=0;
+protected:
+  Graphic();
+};
+
+class Image:public Graphic{
+public:
+  Image(const char * file); //loads image from a file 
+  virtual ~Image();
+
+  virtual void Draw(const Point& at);
+  virtual void HandleMouse(Event& event);
+
+  virtual const Point& GetExtent();
+
+  virtual void Load(istream& from);
+  virtual void Save(ostream& to);
+private:
+  // ...
+};
+
+class ImageProxy:public Graphic{
+public:
+  ImageProxy(const char* imageFile);
+  virtual ~ImageProxy();
+
+  virtual void Draw(const Point& at);
+  virtual void HandleMouse(Event& event);
+
+  virtual const Point& GetExtent();
+
+  virtual void Load(istream& from);
+  virtual void Save(ostream& to);
+protected:
+  Image * GetImage();
+private:
+  Image * _image;
+  Point _extent;
+  char * _fileName;
+
+};
+
+ImageProxy::ImageProxy(const char * fileName{
+  _fileName=strdup(fileName);
+  _extent = Point::Zero;
+  _image = nullptr;
+}
+
+Image * ImageProxy::GetImage(){
+  if(nullptr == _image){
+    _image = new Image(_fileName);
+  }
+  return _image;
+}
+
+const Point& ImageProxy::GetExtent(){
+  if(Point::Zero == _extent){
+    _extent=GetImage()->GetExtent();
+  }
+  return _extent;
+}
+
+void ImageProxy::Draw(const Point& at){
+  GetImage()->Draw(at);
+}
+
+void ImageProxy::HandleMouse(Event& event){
+  GetImage()->HandleMouse(event);
+}
+
+void ImageProxy::Save(ostream& to){
+  to << _extent << _fileName;
+}
+
+void ImageProxy::Load (istream& from){
+  from >> _extent >> _fileName;
+}
+
+class TextDocument{
+public:
+  TextDocument();
+
+  void Insert(Graphic*);
+  // ...
+};
+
+
+TextDocument * text = new TextDocument;
+// ... 
+text->Insert(new ImageProxy("anImageFileName"));
+
+```
+
+2. 使用 doesNotUnderstand 的 Proxy  在 Smalltalk 中，你可以定义超类为 nil 的类，同时定义 doesNotUnderstand: 方法处理消息，这样构建一些通用的代理。
+... 
+
+
+**11. 已知应用**
+- 动机一节中 virtual proxy 的例子来自于 ET++ 的文本构建块类。
+- NEXTSTEP 使用代理作为可分布对象的本地代表，当客户请求远程对象时，服务器为这些对象创建代理。
+
+**12. 相关模式**
+
+- Adapter : 适配器 Adapter 为它所适配的对象提供了一个不同的接口。相反，代理提供了与它的实体相同的接口。然而，用于访问保护的代理可能会拒绝执行实体会执行的操作，因此，它的接口实际上可能只是实体接口的一个子集。
+- Decorator: 尽管 Decorator 的实现部分与代理相似，但 Decorator 的目的不一样。Decorator 为对象添加一个或多个功能，而代理则控制对对象的访问。
+- 代理的实现与 Decorator 的实现类似，但是在相似的程度上有所差别。Protection Proxy 的实现可能与 Decorator 的实现差不多。另一方面，Remote Proxy 不包含对实体的直接引用，而只是一个间接引用，如“主机 ID，主机上的局部地址”。virtual Proxy 开始的时候使用一个间接引用，例如一个文件名，但最终将获取并使用一个直接引用。
+
 
 ---
 
