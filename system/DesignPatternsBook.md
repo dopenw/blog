@@ -62,7 +62,7 @@
     - [2.8.6 封装分析](#286-封装分析)
     - [2.8.7 Visitor 类及其子类](#287-visitor-类及其子类)
     - [2.8.8 Vistor 模式](#288-vistor-模式)
-  - [2.9  小结](#29--小结)
+  - [2.9  小结](#29-小结)
 - [第三章 创建型模式](#第三章-创建型模式)
   - [3.1 Abstract Factory (抽象工厂)](#31-abstract-factory-抽象工厂)
   - [3.2 Builder (生成器)](#32-builder-生成器)
@@ -78,9 +78,11 @@
   - [4.5 Facade（外观）](#45-facade外观)
   - [4.6 FlyWeight (享元)](#46-flyweight-享元)
   - [4.7 Proxy (代理)](#47-proxy-代理)
-  - [4.8  结构型模式的讨论](#48--结构型模式的讨论)
+  - [4.8  结构型模式的讨论](#48-结构型模式的讨论)
     - [4.8.1 Adapter 和 Bridge](#481-adapter-和-bridge)
     - [4.8.2 Composite ,Decorator 和 Proxy](#482-composite-decorator-和-proxy)
+- [第 5 章 行为模式](#第-5-章-行为模式)
+  - [5.1 Chain Of Responsibility (职责连)](#51-chain-of-responsibility-职责连)
 
 <!-- /code_chunk_output -->
 
@@ -1554,7 +1556,7 @@ game.CreateMaze(factory);
 AbstractFactory 类通常用工厂方法(Factory Method)实现，但他们也可以用 Prototype 实现。
 一个具体的工厂通常是一个单件(Singleton)。
 
-## 3.2 Builder (生成器) 
+## 3.2 Builder (生成器)
 
 **1. 意图**
 
@@ -1771,7 +1773,7 @@ Composite 通常是用 Builder 生成的.
 
 ---
 
-## 3.3 Factory Method (工厂方法) 
+## 3.3 Factory Method (工厂方法)
 
 **1. 意图**
 
@@ -2008,7 +2010,7 @@ Abstract factory 经常用工厂方法来实现。 Abstract Factory 模式中动
 工厂方法通常在 Template Method 中被调用。
 Prototype 不需要创建 Creator 的子类。但是，它们通常要求一个针对 Product 类的 Initialize 操作。Creator 使用 Initialize 来初始化对象，而 Factory Method 不需要这样的操作。
 
-## 3.4 Prototype (原型) 
+## 3.4 Prototype (原型)
 
 **1. 意图**
 
@@ -2185,7 +2187,7 @@ Wall * BombedWall::Clone() const{
 正如我们在这一章结尾所讨论的那样，Prototype 和 Abstract Factory 模式在某种方面是相互竞争的。但是它们也可以一起使用。Abstract Factory 可以存储一个被克隆的原型的集合，并且返回产品对象。
 大量使用 Composite 和 Decorator 模式的设计通常也可从 Prototype 模式处获益。
 
-## 3.5 Singleton(单件) 
+## 3.5 Singleton(单件)
 
 **1. 意图**
 
@@ -2812,7 +2814,7 @@ void PMWindowImp::DeviceRect(Coord x0,Coord x1,Coord x2,Coord x3){
 - AbstractFactory 模式可以用来创建和配置一个特定的 Bridge 模式。
 - Adapter 模式用来帮助无关的类协同工作，它通常在设计完成之后被使用。然而，Bridge 模式则在系统开始时就被使用，它使得抽象接口和实现部分可以独立进行改变。
 
-## 4.3 Composite (组合) 
+## 4.3 Composite (组合)
 
 **1. 意图**
 
@@ -2998,7 +3000,7 @@ Flyweight 让你共享组件，但不再引用它们的父部件。
 Iterator 可用来遍历 Composite.
 Visitor 将本来应该分布在 Composite 和 Leaf 类中的操作和行为局部化。
 
-## 4.4 Decorator 
+## 4.4 Decorator
 
 **1. 意图**
 
@@ -3371,7 +3373,7 @@ void Complier::Complie(istream& input,BytecodeStream& output){
 
 - 通常来讲，仅需要一个 Facade 对象，因此 Facade 对象通常属于 Singleton 模式。
 
-## 4.6 FlyWeight (享元) 
+## 4.6 FlyWeight (享元)
 
 **1. 意图**
 
@@ -3633,6 +3635,7 @@ Surrogate
 
 **4. 适用性**
 在需要用比较通用和复杂的对象指针代替简单的指针的时候，使用 Proxy 模式。常见情况：
+
 1. `远程代理` 为一个对象在不同的地址空间提供局部代表。
 2. `虚代理` 根据需要创建开销很大的对象。
 3. `保护代理` 控制对原始对象的访问。保护代理用于对象应该有不同的访问权限的时候。
@@ -3645,21 +3648,24 @@ Surrogate
 ![](../images/DesignPatternsBook_202208202037_4.png)
 
 **6. 参与者**
+
 - Proxy(ImageProxy)
   - 保存一个引用使得代理可以访问实体。若 RealSubject 和 Subject 的接口相同，Proxy 会引用 Subject。
   - 提供一个与 Subject 的接口相同的接口，这样代理就可以用来替代实体。
   - 控制对实体的存取，并可能负责创建和删除它。
   - 其他功能依赖于代理的类型
 - Subject (Graphic)
-  - 定义 RealSubject 和 Proxy 的共用接口，这样就在任何使用 RealSubject 的地方都可以使用 Proxy。 
+  - 定义 RealSubject 和 Proxy 的共用接口，这样就在任何使用 RealSubject 的地方都可以使用 Proxy。
 - RealSubject(Image)
   - 定义 Proxy所代表的实体。
 
 **7. 协作**
+
 - 代理根据其种类，在适当的时候向 RealSubject 转发请求。
   
 **8. 效果**
 Proxy 模式在访问对象时引入了一定程度的间接性。根据代理的类型，附加的间接性有多种用途：
+
 1. Remote Proxy 可以隐藏一个对象存在于不同地址空间的事实。
 2. Virtual Proxy 可以进行最优化，例如根据要求创建对象。
 3. Protection Proxies 和 Smart Reference 都允许在访问一个对象时有一些附加的内务处理(Housekeeping task)。
@@ -3667,7 +3673,9 @@ Proxy 模式在访问对象时引入了一定程度的间接性。根据代理�
 
 **9. 实现**
 Proxy 模式可以利用以下一些语言特性：
+
 1. 重载 C++ 中的存取运算符。这一点可以用于实现某些种类的代理；代理的作用就像一个指针。
+
 ```c++
 class Image;
 exter Image * LoadAnImageFile(const char *);
@@ -3691,12 +3699,14 @@ ImagePtr image("anImageFileName");
 image->Draw(Point(50,100));
 
 ```
+
 2. 使用 Smalltalk 中的doesNotUnderstand Smalltalk 提供一个 hook 方法可以用来自动转发请求。当用户向接收者发送一个消息，但是这个接收者并没有相关方法的时候，Smalltalk 调用方法 doesNotUnderstand:amessge。Proxy 类可以重定义 doesNotUnderstand 以便向它的实体转发这个消息。
 3. Proxy 并不总是需要知道实体的类型
 
 **10.代码示例**
 
-1. virtual Proxy 
+1. virtual Proxy
+
 ```c++
 class Graphic{
 public:
@@ -3802,10 +3812,10 @@ text->Insert(new ImageProxy("anImageFileName"));
 ```
 
 2. 使用 doesNotUnderstand 的 Proxy  在 Smalltalk 中，你可以定义超类为 nil 的类，同时定义 doesNotUnderstand: 方法处理消息，这样构建一些通用的代理。
-... 
-
+...
 
 **11. 已知应用**
+
 - 动机一节中 virtual proxy 的例子来自于 ET++ 的文本构建块类。
 - NEXTSTEP 使用代理作为可分布对象的本地代表，当客户请求远程对象时，服务器为这些对象创建代理。
 
@@ -3815,11 +3825,12 @@ text->Insert(new ImageProxy("anImageFileName"));
 - Decorator: 尽管 Decorator 的实现部分与代理相似，但 Decorator 的目的不一样。Decorator 为对象添加一个或多个功能，而代理则控制对对象的访问。
 - 代理的实现与 Decorator 的实现类似，但是在相似的程度上有所差别。Protection Proxy 的实现可能与 Decorator 的实现差不多。另一方面，Remote Proxy 不包含对实体的直接引用，而只是一个间接引用，如“主机 ID，主机上的局部地址”。virtual Proxy 开始的时候使用一个间接引用，例如一个文件名，但最终将获取并使用一个直接引用。
 
+## 4.8  结构型模式的讨论
 
-## 4.8  结构型模式的讨论 
 你可能已经注意到了结构型之间的相似性，尤其是它们的参与者和协作之间的相似性。在本节中，我们将对比这些结构型模式，使你对它们各自的优点有所了解。
 
 ### 4.8.1 Adapter 和 Bridge
+
 Adapter 模式和 Bridge 模式有一些共同特征。它们都给另一个对象提供了一定程度的间接性，因而有利于系统的灵活性。它们都涉及到从自身以外的一个接口向这个对象转发请求。
 
 这些模式的不同之处主要在于它们各自的用途。Adapter 模式主要是为了解决两个已有接口之间不匹配的问题。它不考虑这些接口时怎样实现的，也不考虑它们各自可能会如何演化。这种方式不需要对两个独立设计的类中的任一个进行重新设计，就能够使它们协同工作。另一方面，Bridge 模式则对抽象接口与它的 （可能是多个）实现部分进行桥接。虽然这一模式允许你修改实现它的类，它仍然为用户提供了一个稳定的接口。Bridge 模式也会在系统演化时适应新的实现。
@@ -3828,7 +3839,7 @@ Adapter 模式和 Bridge 模式有一些共同特征。它们都给另一个对�
 
 你可能认为 facade 是另一组对象的适配器。但这种解释忽视了一个事实：即 Facade 定义一个新的接口，而 Adapter 则复用一个原有的接口。记住，适配器使两个已有的接口协同工作，而不是定义一个全新的接口。
 
-### 4.8.2 Composite ,Decorator 和 Proxy 
+### 4.8.2 Composite ,Decorator 和 Proxy
 
 Composite 模式和 Decorator 模式具有类似的结构图，这说明它们都基于递归组合来组织可变数目的对象。这一共同点可能会使你认为，Decorator 对象是一个退化的 Composite ，但这一观点没有领会 Decorator 模式要点。相似点仅止于递归组合，同样，这是因为两个模式的目的不同。
 
@@ -3843,6 +3854,276 @@ Decorator 旨在使你能够不需要生成子类即可给对象添加职责。�
 在 Proxy 模式中，实体定义了关键功能，而 Proxy 提供（或拒绝）对它的访问。在 Decorator 模式中，组件仅提供了部分功能，而一个或多个 Decorator 负责完成其他功能。Decorator 模式适用于编译时不能（至少不方便）确定对象的全部功能的情况。这种开放性使递归组合成为 Decorator 模式中必不可少的部分。而在 Proxy 模式中则不是这样的，因为Proxy 模式强调一种关系(Proxy 与它的实体之间的关系)，这种关系可以静态的表达。
 
 模式之间的差异非常重要，因为它们针对面向对象设计过程中一些特定的经常发生问题的解决方法。但这并不意味着这些模式不能结合使用。可以设想一个 Proxy-Decorator,它可以给 Proxy 添加功能，或是一个 Decorator-proxy 用来修饰一个远程对象。尽管这种混用可能有用（我们手边还没有现成的例子），但它们可以分割成一些有用的模式。
+
+---
+
+# 第 5 章 行为模式
+
+行为模式涉及到算法和对象间职责的分配。行为模式不仅描述对象或类的模式，还描述它们之间的通信模式。这些模式刻划了在运行时难以追踪的复杂的控制流。它们将你的注意力从控制流转移到对象间的联系方式上来。
+
+`行为类模式`使用继承机制在类间分派行为。本章包括两个这样的模式：
+
+1. Template Method 较为简单和常用
+2. Interpreter ，将一个文法表示为一个类层次，并实现一个解释器作为这些类的实例上的一个操作。
+
+`行为对象模式`使用对象复合而不是继承。一些行为对象模式描述了一组对等的对象怎样相互协作以完成其中任一个对象都无法单独完成的任务。这里的一个重要的问题是对等的对象如何互相了解对方。对等对象可以保持显式的对对方的引用，但那会增加它们的偶合度。在极端情况下，每一个对象都要了解所有其他的对象。Mediator 在对等对象间引入一个 mediator 对象以避免这种情况的出现。mediator 提供了松耦合所需的间接性。
+
+Chain of Responsibility 提供更松的耦合。它让你通过一条对象链隐式的向一个对象发送请求。根据运行时刻情况任一候选者都可以响应相应的请求。候选者的数目是任意的，你可以在运行时刻决定哪些候选者参与到链中。
+
+Observer 模式定义并保持对象间的依赖关系。典型的 Observer 的例子是 Smalltalk 中的 模型/视图/控制器，其中一旦模型的状态发生变化，模型中的所有视图都会得到通知。
+
+其他的行为对象模式常将行为封装在一个对象中并将请求指派给它。Strategy 模式将算法封装在对象中，这样可以方便地指定和改变一个对象所使用的算法。Command 模式将请求封装在对象中，这样它就可以作为参数来传递，也可以被存储在历史列表中，或者以其他方式使用。 State 模式封装一个对象的状态，使得当这个对象的状态对象变化时，该对象可以改变它的行为。Visitor 封装分布于多个类之间的行为，而 Iterator 则抽象了访问和遍历一个集合中的对象的方式。
+
+## 5.1 Chain Of Responsibility (职责连)
+
+**1. 意图**
+
+使多个对象都有机会处理请求，从而避免请求的发送者和接受者之间的耦合关系。将这些对象链成一条链，并沿着这条链传递该请求，知道有一个对象处理它为止。
+**2. 动机**
+考虑一个图形用户界面的上下文有关的帮助机制。用户在界面的任一部分上点击就可以得到帮助信息，所提供的帮助依赖于点击的是界面的哪一部分以及其上下文。例如，对话框中的按钮帮助信息就可能和主窗口中类似的按钮不同。如果对那一部分界面没有特定的帮助信息，那么帮助系统应该显示一个关于当前上下文的较一般的帮助信息 --- 比如说，整个对话框。
+
+因此很自然的，应根据普遍性即从最特殊到最普遍的顺序来组织帮助信息。而且，很明显，在这些用户界面对象中会有一个对象来处理帮助请求；至于是哪一个对象则取决于上下文以及可用的帮助具体到何种程度。
+
+我们要有一个中方法将提交帮助请求的对象与可能提供帮助信息的对象解耦。Chain Of Responsibility 将告诉我们应该怎样做。
+这一模式的想法是，给多个对象处理一个请求的机会，从而解耦发送者和接受者。该请求沿对象链传递直至其中一个对象处理它，如图所示：
+
+![](../images/DesignPatternsBook_202209041828_1.png)
+
+从第一个对象开始，链中收到的请求对象要么亲自处理它，要么转发给链中的下一个候选者。提交请求的对象并不明确知道哪一个对象将会处理它 --- 我们说该请求有一个隐式的接受者。
+
+要沿着链转发请求，并保证接受者为隐式的，每个链上的对象都有一致的处理请求和访问链上`后继者`的接口。例如帮助系统可定义一个带有相应的 HandleHelp 操作的 HelpHandler 类。HelpHandler 可为所有候选对象类的父类，或者它可被定义为一个混入类。这样想处理帮助请求的类就可将 HelpHandler 作为其一个父类，如下图。
+
+按钮、对话框，和应用类都使用 HelpHandler 操作哦来处理帮助请求。HelpHandler 的 HandleHelp 操作缺省的是将请求转发给后继。子类可重定义这一操作以在适当的情况下提供帮助；否则它们可使用缺省实现转发该请求。
+
+![](../images/DesignPatternsBook_202209041828_2.png)
+
+**3. 适用性**
+
+- 有多个对象可以处理一个请求，哪个对象处理该请求运行时刻自动确定。
+- 你想在不明确指定接受者的情况下，向多个对象中的一个提交一个请求。
+- 可处理一个请求的对象集合应被动态指定。
+
+**4. 结构**
+
+![](../images/DesignPatternsBook_202209041828_3.png)
+
+![](../images/DesignPatternsBook_202209041828_4.png)
+
+**5. 参与者**
+
+- Handler （如 HelpHandler）
+  - 定义一个处理请求的接口。
+  - （可选） 实现后继链。
+- ConcreteHandler （如 PritButton 和 PrintDialog）
+  - 处理它所负责的请求
+  - 可访问它的后继者
+  - 如果可处理该请求，就处理之；否则将该请求转发给它的后继者。
+
+- Client
+  - 向链上的具体处理者（ConcreteHandler） 对象提交请求。
+
+**6. 协作**
+
+- 当客户提交一个请求时，请求沿链传递直至有一个 ConcreteHandler 对象负责处理它。
+
+**7. 效果**
+优缺点：
+
+- `降低耦合度` 该模式使得一个对象无需知道是其他哪个对象处理其请求。对象仅需知道该请求会被“正确”地处理。接受者和发送者都没有对方的明确信息，且链中的对象不需要知道链的结构。
+结果是，职责链可简化对象的相互连接。它们仅需要保持一个指向后继者的引用，而不需要保持它所有的候选接受者的引用。
+- `增强了给对象指派职责的灵活性` 你可以通过在运行时刻对该链进行动态的增加或修改来增加或改变处理一个请求的那些职责。你可以将这种机制与静态的特例化处理对象的继承机制结合起来使用。
+- `不保证被接受` 既然一个请求没有明确的接收者，那么就不能保证它一定会被处理。
+
+**8. 实现**
+要考虑的实现问题：
+
+1. 实现后继者链
+   - 定义新的链接（通常在 Handler 中定义，但也可由 ConcreteHandlers 来定义）
+    - 使用已有的链接。
+2. `连接后继者` 如果没有已有的引用可定义一个链，那么你必须自己引入它们。这种情况下 Handler 不仅定义该请求的接口，通常也维护后继链接。这样 Handler 就提供了 HandleRequest 的缺省实现：HandleRequest 向后继者（如果有的话）转发请求。如果 ConcreteHandler 子类对该请求不感兴趣，它不需重新定义转发操作，因为它的缺省实现进行无条件的转发。
+
+```c++
+class HelpHandler{
+public:
+  HelpHandler(HelpHandler * s):_successor(s){}
+  virtual void HandleHelp();
+private:
+  HelpHandler * _successor;
+};
+
+void HelpHandler::HandleHelp{
+  if(_successor){
+    _successor->HandleHelp();
+  }
+}
+```
+
+3. `表示请求` 可以有不同的方法表示请求。
+    - 最简单的形式，比如在HandleHelp 的例子中，请求是一个硬编码的操作调用。这个简单安全，但你只能转发 Handler 类定义的固定的一组请求。
+    - 使用一个处理函数，这个函数以一个请求码为参数。
+      - 为了更灵活更安全，我们可以使用独立的请求对象来封装请求参数。Request 类可明确地描述请求，而新类型的请求可用它的子类来定义。
+
+    ```c++
+    void Handler::HanleRequest(Request * theRequest){
+      switch(theRequest->GetKind()){
+        case Help:
+          //cast argument to appropriate type 
+          HandleHelp((HelpRequest * ) theRequest);
+          break;
+        case Print:
+          HandlePrint((PrintRequest *) theRequest);
+          // ... 
+          break; 
+        default:
+          // ... 
+          break; 
+      }
+    }
+
+    class ExtendedHandler:public Handler{
+    public:
+      virtual void HandleRequest(Request * theRequest);
+      // ... 
+    };
+
+    void ExtendedHandler::HandleRequest(Request * theRequest){
+      switch(theRequest->GetKind()){
+        case Preview:
+          // handle the preview request 
+          break;
+        default:
+          // let handler handle other requests
+          Handler::HandleRequest(theRequest);
+      }
+    }
+    ```
+
+**9. 代码示例**
+
+下面的例子举例说明了在一个像前面描述的在线帮助系统中，职责链是如何处理请求的。帮助请求是一个显式的操作。我们将使用在窗口组件层次中的已有父构件引用来在链中的窗口组件间传递请求，并且我们将在 Handler 类中定义一个引用以在链中的非窗口组件间传递帮助请求。
+
+```c++
+typedef int Topic ;
+const Topic NO_HELP_TOPIC = -1;
+
+class HelpHandler{
+public:
+  HelpHandler(HelpHandler * = nullptr,Topic = NO_HELP_TOPIC);
+  virual bool HasHelp();
+  virual void SetHandler(HelpHandler*,Topic);
+  virual void HandleHelp();
+private:
+  HelpHandler * _successor;
+  Topic _ topic;
+};
+
+HelpHandler::HelpHandler(HelpHandler * h,Topict):
+_successor(h),_topic(t){
+
+}
+
+bool HelpHandler::HasHelp(){
+  return _topic != NO_HELP_TOPIC;
+}
+
+void HelpHandler::HandleHelp(){
+  if(_successor){
+    _successor->HandleHelp();
+  }
+}
+
+class Widget:public HelpHandler{
+protected:
+  Widget(Widget * parent,Topic t = NO_HELP_TOPIC);
+private:
+  Widget * _parent;
+};
+
+Widget::Widget(Widget * w,Topic t):HelpHandler(w,t){
+  _paretn=w;
+};
+
+class Button:public Widget{
+public:
+  Button(Widget * parent,Topic t = NO_HELP_TOPIC);
+
+  virtual void HandleHelp();
+};
+
+Button::Button(Widget * h,Topic t):Widget(h,t){
+
+}
+
+void Button::HandleHelp(){
+  if(HasHelp()){
+    // offer help on the button 
+  }else{
+    HelpHandler::HandleHelp();
+  }
+}
+
+
+class Dialog:public Widget{
+public:
+  Button(HelpHandler * h,Topic t = NO_HELP_TOPIC);
+
+  virtual void HandleHelp();
+};
+
+Dialog::Dialog(HelpHandler * h,Topic t):Widget(nullptr){
+  SetHandler(h,t);
+}
+
+void Dialog::HandleHelp(){
+  if(HasHelp()){
+    // offer help on the dialog 
+  }else{
+    HelpHandler::HandleHelp();
+  }
+}
+
+class Application:public HelpHandler{
+public:
+  Application(Topic t):HelpHandler(nullptr,t){}
+
+  virtual void HandleHelp();
+};
+
+void Application::HandleHelp(){
+  // show a list of help topics
+}
+
+```
+
+下面代码创建并连接这些对象.
+
+```c++
+const Topic PRINT_TOPIC = 1;
+const Topic PAPER_ORIENTATION_TOPIC = 2;
+const Topic APPLICATION_TOPIC = 3;
+
+Application * application = new Application(APPLICATION_TOPIC);
+Dialog * dialog = new Dialog(application,PRINT_TOPIC);
+Button * button = new Button(dialog,PAPER_ORIENTATION_TOPIC);
+```
+
+我们可对链上的任意对象调用 HandleHelp 以触发相应的帮助请求。eg：
+
+```c++
+button->HandleHelp();
+```
+
+在这种情况下，按钮会立即处理该请求。注意任何 HelpHandler 类都可作为 Dialog 的后继者。此外，它的后继者可以被动态地改变。因此不管对话框被用在何处，你都可以得到它正确的与上下文的关系。
+
+**10. 已知应用**
+许多类库使用职责链模式处理用户事件。对 Handler 类它们使用不同的名字，但思想是一样的：当用户点击鼠标或按键盘，一个事件产生并沿链传播。MacApp 和 ET++ 称之为 “事件处理者”，Symantec 的 TCL 库称之为 “Bureaucrat”，而 NeXT 的 AppKit 命名为 “Responder”。
+
+图形编辑器框架 Unidraw 定义了 Command 对象，它封装了发给 Component 和 ComponentView 对象的请求。一个构件或构件视图可解释为一个命令以进行一个操作，这里“命令”就是请求。这对应于在实现一节中描述的 “对象作为请求” 的方法。构件和构件视图可以组织为层次式的结构。一个构件或构件视图可将命令解释转发给它的父构件，而父构件依次可将它转发给它的父构件，如此类推，就形成了一个职责链。
+
+ET++ 使用职责链来处理图形的更新。当一个图形必须更新它的外观的一部分时，调用 InvalidateRect 操作。一个图形对象自己不能处理 InvalidateRect ，因为它对它的上下文了解不够。例如，一个图形对象可被包装在一些类似滚动条或放大器的对象中，这些对象变换它的坐标系统。那就是说，对象可被滚动或放大以至它有一部分在视区外。因此缺省的 InvalidateRect 的实现转发请求给包装的容器对象。转发链中的最后一个对象是一个窗口(Window) 实例。当窗口收到请求时，保证失效矩形被正确变换。窗口通知窗口系统接口并请求更新，从而处理 InvalidateRect。
+
+**11. 相关模式**
+职责链常与 Composite 一起使用。这种情况下，一个构件的父构件可作为它的后继。
 
 ---
 
