@@ -83,6 +83,7 @@
     - [4.8.2 Composite ,Decorator 和 Proxy](#482-composite-decorator-和-proxy)
 - [第 5 章 行为模式](#第-5-章-行为模式)
   - [5.1 Chain Of Responsibility (职责连)](#51-chain-of-responsibility-职责连)
+  - [5.2 command(命令)](#52-command命令)
 
 <!-- /code_chunk_output -->
 
@@ -4124,6 +4125,238 @@ ET++ 使用职责链来处理图形的更新。当一个图形必须更新它的
 
 **11. 相关模式**
 职责链常与 Composite 一起使用。这种情况下，一个构件的父构件可作为它的后继。
+
+## 5.2 command(命令)
+
+**1. 意图**
+
+将一个请求封装成一个对象，从而使你可用不同的请求对客户进行参数化；对请求排队或记录请求日志，以及支持可撤销的操作。
+
+**2.别名**
+
+动作（Action），事务（Transaction）
+
+**3.动机**
+
+有时必须向某对象提交请求，但并不知道关于被请求的操作或请求的接受者的任何信息。例如，用户界面工具箱包括按钮和菜单这样的对象，它们执行请求响应用户输入。但工具箱不能显式的在按钮或者菜单中实现该请求，因为只有使用工具箱的应用知道该由哪个对象做哪个操作。而工具箱的设计者无法知道请求的接受者或执行的操作。
+
+命令模式通过将请求本身变成一个对象来使工具箱对象可向未指定的应用对象提出请求。这一模式的关键是一个抽象的 Command 类。其简单的形式是一个抽象的Execute 操作。具体的 Command 子类将接受者作为其一个实例变量，并实现 Execute 操作，指定接受者采取的动作。而接受者有执行该请求所需的具体信息。
+
+![](../images/DesignPatternsBook_202209121857_1.png)
+
+Command 子类里存放者请求的接受者，而 Excute 操作将调用该接受者的一个或多个操作。
+
+例如，PasteCommand 支持从剪贴板向一个文档（Document）粘贴正文。
+
+![](../images/DesignPatternsBook_202209121857_2.png)
+
+OpenCommand 的 Excute 操作却有所不同：它提示用户输入一个文档名，创建一个相应的文档对象，将其作为接收者的应用对象中，并打开该文档。
+
+![](../images/DesignPatternsBook_202209121857_3.png)
+
+有时一个 MenuItem 需要执行一系列的命令。我们还可以创建一个 MacroCommand 类，让其执行一个命令序列。
+
+![](../images/DesignPatternsBook_202209121857_4.png)
+
+请注意这些例子中 Command 模式是怎样解耦调用操作的对象和具有执行该操作所需信息的哪个对象的。这使得我们在设计用户界面时拥有很大的灵活性。
+
+**4.适用性**
+
+- 像上面讨论的 MenuItem 对象那样，抽象出待执行的动作以参数化某对象。你可用工程语言中的回调函数来表达这种参数化机制。Command 模式是回调机制的一个面向对象的替代品。
+- 在不同的时刻指定、排列和执行请求。
+- 支持取消操作。Command 接口必须添加一个 Unexecute 操作，该操作取消上一次 Execute 调用的效果。执行的命令被存储在一个历史列表中。可通过向后和向前遍历这一列表并分别调用 Unexecute 和 Execute 来实现重数不限的“取消”和“重做”。
+- 支持修改日志，这样当系统崩溃时，这些修改可以被重做一遍。在 Command 接口中添加装载操作和存储操作，可以用来保持变动的一个一致的修改日志。
+- 用构建在原语操作上的高层操作构造一个系统。这样一种结构在支持事务（transcation）的信息系统中很常见。一个事务封装了对数据的一组变动。
+
+**5. 结构**
+
+![](../images/DesignPatternsBook_202209121857_5.png)
+
+**6. 参与者**
+
+- Command
+  - 声明执行操作的接口。
+- ConcreteCommand （PasteCommand,OpenCommand)
+  - 将一个接收者对象绑定于一个动作。
+  - 调用接收者相应的操作，以实现 Execute。
+- Client (Application)
+  - 创建一个具体命令对象并设定它的接收者。
+- Invoker(MenuItem)
+  - 要求该命令执行这个请求。
+- Receiver (Document,Application)
+  - 知道如何实施与执行一个请求相关的操作。任何类都可能作为一个接收者。
+
+**7.协作**
+
+- Client 创建一个 ConcreteCommand 对象并指定它的 Receiver 对象。
+- 某 Invoker 对象存储该 ConcreteCommand 对象。
+- 该 Invoker 通过调用 Command 对象的 Execute 操作来提交一个请求。若该命令时可撤销的，ConcreteCommand 就在执行Execute 操作之前存储当前状态以用于取消该命令。
+- ConcreteCommand对象调用它的 Receiver 的一些操作以执行该请求。
+
+下图展示了这些对象之间的交互。说明了 Command 是如何将调用者和接收者（以及它执行的请求）解耦的。
+
+![](../images/DesignPatternsBook_202209121857_6.png)
+
+**8. 效果**
+
+1. Command 模式将调用操作的对象与知道如何实现该操作的对象解耦。
+2. Command 是头等的对象。它们可像其他的对象一样被操纵和扩展。
+3. 你可将多个命令装配成一个复合命令。例如是前面描述的 MacroCommand 类。一般来说，复合命令是 Composite 模式的一个应用实例。
+4. 增加新的 Command 很容易，因这无需改变已有的类。
+
+**9. 实现**
+
+需要考虑以下几个问题：
+
+1. `一个命令对象应达到何种智能程度` 命令对象的能力可大可小。一个极端是它仅确定一个接收者和执行该请求的动作。另一个极端是它自己实现所有功能，根本不需要额外的接收者对象。
+2. `支持取消和重做` 如果Command 提供方法逆转它们操作的执行，就可支持取消和重做功能。为达到这个目的，ConcreteCommand 类可能需要存储额外的状态信息。这个状态包括：
+    - 接收者对象，它真正执行处理该请求的各操作。
+    - 接收者上执行操作的参数。
+    - 如果处理请求的操作会改变接收者对象中的某些值，那么这些值也必须先存储起来。接收者还必须提供一些操作，以使该命令可将接收者恢复到它先前的状态。
+
+    若应用只是支持一次取消操作，那么只需存储最近一次被执行的命令。而若要支持多级的取消和重做，就需要有一个已被执行命令的历史列表(history list),该列表的最大长度决定了取消和重做的级数。
+
+    有时可能不得不将一个可撤销的命令在它可以被放入历史列表中拷贝下来。这是因为执行原来的请求的命令对象将在稍后执行其他请求。如果命令的状态在各次调用之间会发生变化，那就必须进行拷贝以区分相同命令的不同调用。
+3. `避免取消操作过程中的错误积累` 在实现一个可靠的、能保持原先语义的取消/重做机制时，可能会遇到滞后影响的问题。由于命令重复的执行、取消执行，和重执行的过程可能会积累错误，以至一个应用的状态最终偏离初始值。这就有必要在 Command 中存入更多的信息以保证这些对象可被精确地复原成它们的初始状态。这里可使用 Memento 模式来让该 Command 访问这些信息而不暴露其他对象的内部信息。
+4. `使用 C++ 模板` 对（1）不能被取消 （2）不需要参数的命令，我们可以使用 C++ 模板来实现，这样可以避免为每一种动作和接收者都创建一个 Command 子类。
+
+**10. 代码示例**
+
+```c++
+class Command{
+public:
+  virtual ~Command();
+  virtual void Execute() =0;
+
+protected:
+  Command();
+};
+
+class OpenCommand:public Command{
+public:
+  OpenCommand(Application *);
+  void Execute() override;
+
+protected:
+  virtual const char * AskUser();
+private:
+  Application * _application;
+  char * _response;
+};
+
+OpenCommand::OpenCommand(Application * a){
+  _application=a;
+}
+
+void OpenCommand::Execute(){
+  auto name = AskUser();
+
+  if(name){
+    auto document=new Document(name);
+    _application->Add(document);
+    document->Open();
+  }
+}
+
+class PasteCommand:public Command{
+public:
+  PasteCommand(Document *);
+
+  void Execute() override;
+private:
+  Document * _document;
+};
+
+PasteCommand::PasteCommand(Document * doc):
+  _document(doc){
+
+}
+
+void PasteCommand::Execute(){
+  _document->Paste();
+}
+
+```
+
+对于简单的不能取消和不需要参数的命令，可以用一个类模板来参数化该命令的接收者。
+
+```c++
+template <class Receiver>
+class SimleCommand:public Command{
+public:
+  typedef void (Receiver::* Action)();
+  SimleCommand(Receiver * r,Action a):
+    _receiver(r),_action(a){}
+  
+  void Execute() override;
+private:
+  Action _action;
+  Receiver * _receiver;
+}
+
+template<class Receiver>
+void SimpleCommand<Receiver>::Execute(){
+  (_receiver->*_action)();
+}
+
+```
+
+```c++
+MyClass * receiver = new MyClass;
+//...
+auto aCommand = new SimleCommand<MyClass>(receiver,&MyClass::Action);
+//...
+aCommand->Execute();
+```
+
+MacroCommand 管理一个子命令序列，它提供了增加和删除子命令的操作。
+
+```c++
+class MacroCommand::public Command{
+public:
+  MacroCommand();
+  virtual ~MacroCommand();
+
+  virtual void Add(Command *);
+  virtual void Remove(Command*);
+
+  virtual void Execute();
+private:
+  std::list<Command*>* _cmds;
+};
+
+void MacroCommand::Execute(){
+  for(auto i=_cmds.begin();i!=_cmds.end();++i){
+    auto c = i.CurrentItem();
+    c->Execute();
+  }
+}
+
+void MacroCommand::Add(Command * c){
+  _cmds.push_bask(c);
+}
+
+void MacroCommand::Remove(Command * c){
+  _cmds.pop_back();
+}
+```
+
+注意，如果 MacroCommand 实现取消操作，那么它的子命令必须相对于 Execute 的实现相反的顺序执行各子命令的取消操作。
+
+**11. 已知应用**
+
+MacApp 使实现可撤销操作的命令这一说法被普遍接受。而 ET++ ，InterViews ，和 Unidraw 也都定义了复合 Command 模式的类。InterViews定义了一个Action 抽象类，它提供命令功能。它还定义了一个 ActionCallback 模板，这个模板以Action 方法为参数，可自动生成 Command 子类。
+
+THINK 类库也使用了 Command 模式支持可撤销的操作。THINK 中的命令被称为 “任务”。任务对象沿着一个 Chain of Responsibility 传递以供消费。
+
+Unidraw 的命令对象很特别，它的行为就像一个消息。一个 Unidraw 命令可被送给另一个对象去解释，而解释的结果因接受的对象而异。此外，接收者可以委托另一个对象来进行解释，典型的情况是委托给一个较大的结构中（比如在一个职责链中）接收者的父构件。这样，Unidraw 命令的接收者是计算出来的而不是预先存储的。Unidraw 的解释机制依赖于运行时的类型信息。
+
+Coplien 在 C++ 中描述了 C++ 中怎样实现 functor。Functors 是一个实际上是用起来像函数的对象。它通过重载函数调用操作符号达到了一定程度的使用透明性。命令模式不同，它着重于维护接收者和函数（即动作）之间的绑定，而不仅是维护一个函数。
+
+**12.相关模式**
+
+- Composite 可被用来实现宏命令。
+- Memento 模式 可用来保持某个状态，命令用这一状态来取消它的效果。在被放入历史列表前必须被拷贝的命令起到一种原型的作用。
 
 ---
 
