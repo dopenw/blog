@@ -84,4 +84,4 @@ haddock:
 ---
 - [上一级](README.md)
 - 上一篇 -> [openresty测试](openresty_test.md)
-- 下一篇 -> [shadowsocks optimize](shadowsocksOptimize.md)
+- 下一篇 -> [三星 Galaxy Watch 5 搞机篇](samsungGlaxyWatch5.md)

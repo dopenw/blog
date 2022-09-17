@@ -196,6 +196,7 @@
 - [Octave 的简单使用](./other/octave.md)
 - [openresty测试](./other/openresty_test.md)
 - [利用 Pandoc 转换文档格式](./other/pandocConvertDoc.md)
+- [三星 Galaxy Watch 5 搞机篇](./other/samsungGlaxyWatch5.md)
 - [shadowsocks optimize](./other/shadowsocksOptimize.md)
 - [跳过 openGapps 设置向导](./other/skip_opengapps_init.md)
 - [一些面试问题](./other/someInterviewQuestions.md)

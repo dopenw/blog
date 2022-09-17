@@ -119,5 +119,5 @@ In this environment: aes better than chacha20
 [link2](https://github.com/iMeiji/shadowsocks_install/wiki/shadowsocks-optimize)
 ---
 - [上一级](README.md)
-- 上一篇 -> [利用 Pandoc 转换文档格式](pandocConvertDoc.md)
+- 上一篇 -> [三星 Galaxy Watch 5 搞机篇](samsungGlaxyWatch5.md)
 - 下一篇 -> [跳过 openGapps 设置向导](skip_opengapps_init.md)
