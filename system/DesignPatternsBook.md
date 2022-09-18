@@ -84,6 +84,7 @@
 - [第五章 行为模式](#第五章-行为模式)
   - [5.1 Chain Of Responsibility (职责连)](#51-chain-of-responsibility-职责连)
   - [5.2 Command (命令)](#52-command-命令)
+  - [5.3 Interpreter (解释器)](#53-interpreter-解释器)
 
 <!-- /code_chunk_output -->
 
@@ -4357,6 +4358,263 @@ Coplien 在 C++ 中描述了 C++ 中怎样实现 functor。Functors 是一个实
 
 - Composite 可被用来实现宏命令。
 - Memento 模式 可用来保持某个状态，命令用这一状态来取消它的效果。在被放入历史列表前必须被拷贝的命令起到一种原型的作用。
+
+## 5.3 Interpreter (解释器)
+
+**1.意图**
+
+给定一个语言，定义它的文法的一种表示，并定义一个解释器，这个解释器使用该表示来解释语句中的句子。
+
+**2.动机**
+
+如果一中特定类型的问题发生的频率足够高，那么可能就值得将该问题的各个实例表述为一个简单语句中的句子。这样就可以构建一个解释器，该解释器通过解释这些句子来解决该问题。
+
+例如，搜索匹配一个模式的字符串是一个常见的问题。正则表达式是描述字符串模式的一种标准语言。与其为每一个模式都构造一个特定的算法，不如使用一种通用的搜索算法来解释执行一个正则表达式，该正则表达式定义了待匹配字符串的集合。
+
+考虑以下文法定义正则表达式：
+
+```
+expression :: = literal | alternation | sequence| repetition | '(' expression ')'
+alternation ::= expression '|' expression
+sequence ::= expression '&' expression 
+repetition ::= expression '*'
+literal ::= 'a' | 'b' | 'c' | ... {'a' | 'b' | 'c' | ...}*
+```
+
+符号 expression 是开始符号， literal 是定义简单字的终结符。
+
+解释器模式使用类来表示每一条文法规则。上面的文法可用五个类来表示：
+
+![](../images/DesignPatternsBook_202209181710_1.png)
+
+每个用这个文法定义的正则表达式都被表示为一个由这些类的实例构成的抽象语法树。例如：
+
+![](../images/DesignPatternsBook_202209181710_2.png)
+
+表示正则表达式：`raining & (dogs | cats) *`
+
+如果我们为 RegularExpression 的每一子类都定义解释操作，那么就得到了为这些正则表达式的一个解释器。解释器将该表达式的上下文做为一个参数。上下文包含输入字符串和关于目前它已有多少已经被匹配等信息。为匹配输入字符串的下一部分，每一 RegularExpression 的子类都在当前上下文的基础上实现解释操作。例如：
+
+- literalExpression 将检查输入是否匹配它定义的字 (literal)
+- AlternationExpression 将检查输入是否匹配它的任意一个选择项。
+- RepetitionExpression 将检查输入是否含有多个它所重复的表达式。
+
+**3. 适用性**
+
+当有一个语言需要解释执行，并且你可将该语言中的句子表示为一个抽象语法树时，可使用解释器模式。而当存在以下情况时该模式效果最好：
+
+- 该文法简单。 对于复杂的文法，文法的类层次变得庞大而无法管理。此时语法分析程序生成器这样的工具是更好的选择。它们无需构建抽象语法树即可解释表达式，这样可以节省空间而且还可能节省时间。
+  - [语法分析程序生成器对比（Comparison of parser generators）](https://en.wikipedia.org/wiki/Comparison_of_parser_generators)
+- 效率不是一个关键问题，最高效的解释器通常不是通过直接解释语法分析树来实现的，而是首先将它们转换成另一种形式。例如，正则表达式通常被转换成状态机。但即使在这种情况下，转换器仍可用解释器模式实现，该模式仍是有用的。
+
+**4.结构**
+
+![](../images/DesignPatternsBook_202209181710_3.png)
+
+**5. 参与者**
+
+- AbstractExpression(抽象表达式，如 RegularExpression)
+  - 声明一个抽象的解释操作，这个接口为抽象语法树中所有的节点所共享。
+- TerminalExpression (终结符表达式，如 LiteralExpression)
+  - 实现与文本中的终结符相关联的解释操作。
+  - 一个句子中的每个终结符都需要该类的一个实例。
+- NonterminalExpression（非终结符表达式，如 AlternationExpression,RepetitionExpression,SequenceExpression）
+  - 对文法中的每一条规则 `R` ::= `R1` `R2` `...` `Rn` 都需要一个 NonterminalExpression类
+  - 为从 `R1` 到 `Rn` 的每个符号都维护一个 AbstractExpression 类型的实例变量。
+  - 为文法中的非终结符实现解释操作。解释一般要递归地调用表示 `R1` 到 `Rn` 的那些对象的解释操作。
+- Context（上下文）
+  - 包含解释器之外的一些全局信息
+- Client(客户)
+  - 构建（或被给定）表示该文法定义的语言中一个特定的句子的抽象语法树。该抽象语法树由 NonterminalExpression 和 TerminalExpression 的实例装配而成。
+  - 调用解释操作。
+
+**6. 协作**
+
+- Client构建（或被给定）一个句子，它是 NonterminalExpression 和 TerminalExpression 的实例的一个抽象语法树，然后初始化上下文并调用解释操作。
+- 每一个非终结符表达节点定义相应子表达式的解释操作。而各终结符表达式的解释操作构成了递归的基础。
+- 每一节点的解释操作用上下文来存储和访问解释器的状态。
+
+**7.效果**
+
+优点和不足：
+
+- `易于改变和扩展文法` 因为该模式使用类来表示文法规则，你可以使用继承来改变或扩展文法。
+- `也易于实现文法`
+- `复杂的文法难以维护` 解释器模式为文法的每一条规则至少定义了一个类（使用 BNF 定义的文法规则需要更多的类）。因此包含许多规则的文法可能难以管理和维护。可应用其他的设计模式来缓解这一问题。但当文本非常复杂时，其他的技术如语法分析程序或编译生成器更为适合。
+- `增加了新的解释表达式的方式` 解释器模式使得新表达式`计算` 变得容易。例如，你可以在表达式类上定义一个新的操作以支持优美打印或表达式的类型检查。如果你经常创建新的解释表达式的方式，那么可以考虑使用 Visitor 模式来避免修改这些代表文法的类。
+
+**8. 实现**
+
+Interpreter 和 Composite 模式在实现上有许多相同的地方。下面是 Interpreter 所要考虑的一些特殊问题：
+
+1. `创建抽象语法树` 解释器模式并未解释如何创建一个抽象的语法树。换言之，它不涉及语法分析。抽象语法树可用一个表驱动的语法分析程序来生成，也可用于手写的（通常为 [递归下降法](https://www.geeksforgeeks.org/recursive-descent-parser/)）语法分析程序创建，或直接由 Client 提供。
+
+2. `定义解释操作` 并不一定要在表达式类中定义解释操作。如果经常要创建一种新的解释器，那么使用 Visitor 模式将解释放入一个独立的 “访问者” 对象更好一些。例如，一个程序设计语言的会有许多在抽象语法树上的操作，比如类型检查、优化、代码生成，等等。恰当的做法时使用一个访问者以避免在每一个类上都定义这些操作。
+
+3. `与 FlyWeight 模式共享终结符` 在一些文法中，一个句子可能多次出现同一终结符。此时最好共享那个符号的单个拷贝。
+
+**9. 代码示例**
+
+这里实现对布尔表达式进行操作和求值。
+文法定义如下：
+
+```
+BooleanExp ::= VariableExp | Constant | OrExp | AndExp | NotExp | '(' BooleanExp ')'
+AndExp ::= BooleanExp 'and' BooleanExp
+OrExp ::= BooleanExp 'or' BooleanExp
+NotExp ::= 'not' BooleanExp
+Constant ::= 'true' | 'false'
+VariableExp ::= 'A' | 'B' | ... | 'x' | 'y' | 'z'
+```
+
+这里我们定义布尔表达式上的两个操作。
+
+- 第一个操作是求值（evaluate），即在上下文中求一个布尔表达式的值。
+- 第二个操作是替换 (replace),即用一个表达式来替换一个变量以产生一个新的布尔表达式。
+此处我们仅给出 BooleanExp,VariableExp和 AndExp 类的细节。类 OrExp 和 NotExp 与 AndExp 相似。Constant 类表示布尔常量。
+
+BooleanExp 为所有定义一个布尔表达式的类定义了一个接口：
+
+```c++
+class BooleanExp{
+public:
+  BooleanExp();
+  virtual ~BooleanExp();
+
+  virtual bool Evaluate(Context&) = 0;
+  virtual BooleanExp * Replace(const char*,BooleanExp&)=0;
+  virual BooleanExp* copy() const=0;
+};
+```
+
+类 Context 定义从变量到布尔值的一个映射，这些布尔值我们可用C++ 中的常量 true 和 false 来表示。Context 有以下接口：
+
+```c++
+class Context{
+public:
+  bool Lookup(const char *) const;
+  void Assign(VariableExp*,bool);
+};
+
+//有名变量
+class VariableExp:public BooleanExp{
+public:
+  VariableExp(const char*);
+  virtual ~VariableExp();
+
+  virtual bool Evaluate(Context&);
+  virtual BooleanExp * Replace(const char*,BooleanExp&);
+  virtual BooleanExp * Copy() const;
+private:
+  char * _name;
+};
+
+VariableExp::VariableExp(const char * name){
+  _name=strdup(name);
+}
+
+bool VariableExp::Evaluate(Context& aContext){
+  return aContext.Lookup(_name);
+}
+
+BooleanExp * VariableExp::Copy() const{
+  return new VariableExp(_name);
+}
+
+BooleanExp * VariableExp::Replace(
+  const char * name,BooleanExp& exp 
+){
+  if(strcmp(name,_name)==0){
+    return exp.Copy();
+  }else{
+    return new VariableExp(_name);
+  }
+}
+```
+
+AndExp 表示有两个布尔表达式与操作得到的表达式：
+
+```c++
+class AndExp:public BooleanExp{
+public:
+  AndExp(BooleanExp*,BooleanExp*);
+  virtual ~AndExp();
+
+  virtual bool Evaluate(Context&);
+  virtual BooleanExp * Replace(const char*,BooleanExp&);
+  virtual BooleanExp * Copy() const;
+private:
+  BooleanExp * _operand1;
+  BooleanExp * _operand2;
+};
+
+AndExp::AndExp(BooleanExp* op1,BooleanExp* op2){
+  _operand1=op1;
+  _operand2=op2;
+}
+
+bool AndExp::Evaluate(Context& aContext){
+  return 
+    _operand1->Evaluate(aContext) &&
+    _operand2->Evaluate(aContext);
+}
+
+BooleanExp * AndExp::Copy() const{
+  return new AndExp(_operand1->Copy()
+  ,_operand2->Copy());
+}
+
+BooleanExp * AndExp::Replace(const char * name,BooleanExp& exp){
+  return new AndExp(_operand1->Replace(name,exp)
+  ,_operand2->Replace(name,exp));
+}
+```
+
+现在我们可以定义布尔表达式：
+
+```
+(true and x) or (y and (not x))
+```
+
+并对给定的以 true 或 false 赋值的 x 和 y 求这个表达式值：
+
+```c++
+Context context;
+auto x = new VariableExp("x");
+auto y = new VariableExp("y");
+
+auto expression = new OrExp(
+  new AndExp(new Constant(true),x),
+  new AndExp(y,new NotExp(x))
+);
+
+context.Assign(x,false);
+context.Assign(y,true);
+
+auto result = expression->Evaluate(context);
+
+auto z = new VariableExp("z");
+NotExp not_z(z);
+
+auto replacement = expression->Replace("Y",not_z);
+context.Assign(z,true);
+result = replacement->Evaluate(context);
+```
+
+这个例子说明了解释器模式一个很重要的特点：可以用多种操作来 “解释” 一个句子。在为 BooleanExp 定义的三种操作中，Evaluate 最切合我们关于一个解释器应该做什么的想法- 即，它解释了一个程序或表达式并返回一个简单的结果。但是，替换操作也可被视为一个解释器。这个解释器的上下文是被替换变量的名字和替换它的表达式，而它的结果是一个新的表达式。甚至拷贝也被视为一个上下文为空的解释器。将替换和拷贝视为解释器可能有点怪，因为它们仅仅是树上的基本操作。Visitor 中的例子说明了这三个操作都可以被重新组织为独立的 “解释器”访问者，从而显示了它们之间深刻的相似性。
+
+**10. 已知应用**
+
+解释器模式在使用面向对象语言实现的编译器中得到了广泛应用，如 Smalltalk 编译器。SPECTalk 使用该模式解释输入文件格式的描述。QOCA 约束一求解工具使用它对约束进行计算。
+
+在最宽泛的概念下，几乎每个使用复合模式的系统也都使用了解释器模式。但是一般只有用一个类层次来定义某个语言时，才强调使用解释器模式。
+
+**11.相关模式**
+
+- Composite 模式： 抽象语法树是一个复合模式的实例。
+- FlyWeight 模式： 说明了如何在抽象语法树中共享终结符。
+- Iterator 模式： 解释器可用一个迭代器遍历该结构。
+- Visitor 模式: 可用来在一个类中维护抽象语法树中的各节点的行为。
 
 ---
 
