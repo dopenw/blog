@@ -85,6 +85,7 @@
   - [5.1 Chain Of Responsibility (职责连)](#51-chain-of-responsibility-职责连)
   - [5.2 Command (命令)](#52-command-命令)
   - [5.3 Interpreter (解释器)](#53-interpreter-解释器)
+  - [5.4 Iterator(迭代器)](#54-iterator迭代器)
 
 <!-- /code_chunk_output -->
 
@@ -4615,6 +4616,376 @@ result = replacement->Evaluate(context);
 - FlyWeight 模式： 说明了如何在抽象语法树中共享终结符。
 - Iterator 模式： 解释器可用一个迭代器遍历该结构。
 - Visitor 模式: 可用来在一个类中维护抽象语法树中的各节点的行为。
+
+## 5.4 Iterator(迭代器)
+
+**1. 意图**
+
+提供一种方法顺序访问一个聚合对象中的各个元素，而又不需暴露该对象的内部表示。
+
+**2. 别名**
+
+游标(Cursor)
+
+**3. 动机**
+
+一个聚合对象，如列表（List），应该提供一种方法来让别人可以访问它的元素，而又不需暴露它的内部结构。
+
+这一模式的关键思想是将列表的访问和遍历从列表中分离出来并放入一个`迭代器`(iterator) 对象中。
+
+例如，一个列表 (List) 可能需要一个列表迭代器(ListIterator),它们之间的关系如下图：
+
+![](../images/DesignPatternsBook_202210012251_1.png)
+
+将遍历机制与列表对象分离使我们可以定义不同的迭代器来实现不同的遍历策略，而无需在列表接口中列举它们。
+
+注意迭代器和列表是耦合在一起的，而且客户对象必须知道遍历的是一个列表而不是其他聚合结构。最好能有一种办法使得不需改变客户代码即可改变该聚合类。可以通过将迭代器的概念推广到 `多态迭代` 来达到这个目标。
+
+例如，假定我们还有一个列表的特殊实现，比如说 SkipList 。SkipList 是一种具有类似于平衡树性质的随机数据结构。我们希望我们的代码对 List 和 SkipList 都适用。
+
+首先，定义一个抽象列表类 AbstractList，它提供操作列表的公共接口。类似地，我们也需要一个抽象的迭代器类 Iterator，它定义了公共的迭代接口。然后我们可以为每一个不同的列表实现定义具体的Iterator 子类。这样迭代机制就与具体的聚合类无关了。
+
+![](../images/DesignPatternsBook_202210012251_2.png)
+
+余下的问题是如何创建迭代器。这需要列表对象提供 CreateIterator 这样的操作，客户请求调用该操作以获得一个迭代器对象。
+
+创建迭代器是一个 Factory Method 模式的例子。我们这里用它来使得一个客户可向一个列表对象请求合适的迭代器。
+
+**4.适用性**
+
+- 访问一个聚合对象的内容而无需暴露它的内部表示。
+- 支持对聚合对象的多种遍历。
+- 为遍历不同的聚合结构提供一个统一的接口（即，支持多态迭代）
+
+**5.结构**
+
+![](../images/DesignPatternsBook_202210012251_3.png)
+
+**6. 参与者**
+
+- Iterator(迭代器)
+  - 迭代器定义访问和遍历元素的接口。
+- ConcreteIterator（具体迭代器）
+  - 具体迭代器实现迭代器接口。
+  - 对该聚合遍历时跟踪当前位置。
+- Aggregate （聚合）
+  - 聚合定义创建相应迭代器对象的接口。
+- ConcreteAggregate（具体聚合）
+  - 具体聚合实现创建相应迭代器的接口，该操作返回 ConcreteIterator 的一个适当的实例。
+
+**7. 协作**
+
+- ConcreteIterator 跟踪聚合中的当前对象，并能够计算出待遍历的后继对象。
+
+**8. 效果**
+
+三个重要作用：
+
+1. 它支持以不同的方式遍历一个聚合 （例如，顺序，倒序遍历）
+2. 迭代器简化了聚合的接口。
+3. 在同一个聚合上可以有多个遍历。
+
+**9.实现**
+
+迭代器在实现上有许多变化和选择。下面是一些较重要的实现。
+
+1. `谁控制该迭代`   一个基本的问题是决定由哪一方来控制该迭代，是迭代器还是使用该迭代器的客户。当由客户来控制迭代时，该迭代器称为一个 `外部迭代器`（external Iterator）,而当由迭代器控制迭代时，该迭代器称为一个 `内部迭代器`（internal iterator）。使用外部迭代器的客户必须主动推进遍历的步伐，显式地向迭代器请求下一个元素。相反的，若使用内部迭代器，客户只需向其提交一个待执行的操作，而迭代器将对聚合中的每一个元素实施该操作。
+  外部迭代器比内部迭代器更灵活。但另一方面，内部迭代器的使用较为容易，因为它们已经定义好了迭代逻辑。
+
+2. `谁定义遍历算法` 迭代器不是唯一可定义遍历算法的地方。聚合本身也可以，并在遍历过程中用迭代器来存储当前迭代的状态。我们称这种迭代器为一个 `游标`（cursor），因为它仅用来指示当前位置。客户会以这个游标为一个参数调用该聚合的Next 操作，而 Next 操作将改变这个指示器的状态。
+  如果迭代器负责遍历算法，那么将易于在相同的聚合上使用不同的迭代算法，同时也易于在不同的聚合上重用相同的算法。从另一个方面来说，遍历算法可能需要访问聚合的私有变量。如果这样，将遍历算法放入迭代器中会破坏聚合的封装性。
+
+3. `迭代器健壮程度如何`  在遍历一个聚合同时更改这个聚合可能是危险的。如果在遍历聚合的时候增加或删除该聚合元素，可能会导致两次访问同一个元素或者遗漏掉某个元素。一个简单的解决方法是拷贝该聚合，并对该拷贝实施遍历，但一般来说这样做的代价太高。
+一个健壮的迭代器保证插入和删除操作不会干扰遍历，且不需拷贝该聚合。
+4. 附加的迭代器操作 迭代器的最小接口由 First、Next、IsDone和 CurrenItem 操作组成。
+5. `迭代器可有特权访问` 迭代器可被堪为创建它的聚合的一个扩展。迭代器和聚合紧密耦合。在 C++ 中我们可让迭代器作为它的聚合的一个友元（friend） 来表示这种紧密的关系。这样你就不需要在聚合类中定义一些仅为迭代器所使用的操作。
+但是，这样的特权访问可能使定义新的遍历变得很难，因为它将要求该聚合的接口增加另一个友元。为避免这一问题，迭代器类可包含一些 Protected 操作来访问聚合类的重要非公共可见的成员。迭代器在类（且只有迭代器子类）可使用这些 Protected 操作来得到该聚合的特权访问。
+6. `用于复合对象的迭代器` 在Composite 模式上的那些递归聚合结构上，外部迭代器可能难以实现，因为在该结构中不同对象处于嵌套的多个不同层次，因此一个外部迭代器必须为跟踪当前的对象存储一条纵贯该 Composite 的路径。有时使用一个内部迭代器会更容易些。它仅需递归地调用自己即可，这样就隐式地将路径存储在调用栈中，而无需显式地维护当前对象位置。
+如果复合中的节点有一个接口可以从一个节点移到它的兄弟节点、父节点、子节点，那么基于游标的迭代器是个更好的选择。
+7. `空迭代器` - 一个退化的迭代器，有助于处理边界条件。根据定义，一个 NullIterator 总是已经完成了遍历：即，它的IsDone 操作总是返回 true。
+
+**10. 代码示例**
+
+我们看一个简单的 List 类的实现。
+
+1. 列表和迭代器的接口
+
+```c++
+template <class Item>
+class List{
+public:
+  List(long size = DEFAULT_LIST_CAPACITY);
+
+  long Count() const;
+  Item& Get(long index) const;
+  //...
+};
+
+template<class Item>
+class Iterator{
+public:
+  virtual void First() = 0;
+  virtual void Next() = 0;
+  virtual bool IsDone() const = 0;
+  virtual Item CurrentItem() const = 0;
+protected:
+  Iterator();
+};
+```
+
+2. 迭代器的子类实现
+
+```c++
+template<class Item>
+class ListIterator:public Iterator<Item>{
+public:
+  ListIterator(const List<Item>* aList);
+  void First() override;
+  void Next() override;
+  bool IsDone() const override;
+  Item CurrentItem() const override;
+private:
+  const List<Item> * _list;
+  long _current;
+};
+
+template<class Item>
+ListIterator<Item>::ListIterator(const List<Item>* aList):_list(aList),_current(0){
+
+}
+
+template<class Item>
+void ListIterator<Item>::First(){
+  _current=0;
+}
+
+template<class Item>
+void ListIterator<Item>::Next(){
+  _current++;
+}
+
+template<class Item>
+void ListIterator<Item>::IsDone() const{
+  return _current >= _list->Count();
+}
+
+template<class Item>
+void ListIterator<Item>::CurrentItem() const{
+  if(IsDone()){
+    throw IteratorOutOfBounds;
+  }
+  return _list->Get(_current);
+}
+```
+
+ReverseListIterator 的实现几乎是一样的，只不过它的 First 操作将 _current 置于列表的末尾，而 Next 操作将_current 减一，向表头的方向前进一步。
+
+3. 使用迭代器 假定有一个雇员对象的List，而我们想要打印出列表包含的所有雇员的信息。Employee 类用一个Print 操作来打印本身的信息。
+
+```c++
+void PrintEmployees(Iterator<Employee*>& i){
+  for(i.First();!i.IsDone();i.Next()){
+    i.CurrenItem()->Print();
+  }
+}
+```
+
+不同遍历如下：
+
+```c++
+List<Employee*> * Employees;
+//...
+ListIterator<Employee*> forward(employees);
+ReverseListIterator<Employee*> backward(employees);
+PrintEmployees(forward);
+PrintEmployees(backward);
+```
+
+4. 避免限定于一种特定的列表实现 考虑一个List变体 SkipList 会对迭代器代码产生什么影响。
+
+```c++
+SkipList<Employee*> * Employees;
+//...
+SkipListIterator<Employee*> iterator(employees);
+PrintEmployees(iterator);
+```
+
+我们还可以支持多态迭代。我们可以在 AbstractList 中定义一个 Factory Method，称为 CreateIterator。
+
+```c++
+template <class Item>
+class AbstractList{
+public:
+  virtual Iterator<Item>* CreateIterator() const = 0;
+  // ...
+};
+
+//List 重写这个方法
+template <class Item>
+Iterator<Item>* List<Item>::CreateIterator() const{
+  return new ListIterator<Item>(this);
+}
+```
+
+现在我们可以写出不依赖于具体列表表示的打印雇员信息的代码：
+
+```c++
+AbstractList<Employee*>* employees;
+//...
+auto it = employees->CreateIterator();
+PrintEmployees(it);
+delete it;
+```
+
+5. 保证迭代器被删除 这里 CreateIterator 返回的是动态分配的迭代器对象。为了避免内存泄漏，我们可以提供一个 IteratorPtr 作为迭代器的代理。保证在 Iterator 对象离开作用域的时候清除它。
+
+```c++
+template<class Item>
+class IteratorPtr{
+public:
+  iterator(Iterator<Item>* i):_i(i){}
+  ~Iterator() {delete _i;}
+
+  Iterator<Item>* operator->() {return _i;}
+  Iterator<Item>* operator*() {return *_i;}
+private:
+  //disallow copy and assignment to avoid 
+  // multiple deletions of _i;
+
+  IteratorPtr(const IteratorPtr&);
+  IteratorPtr& operator=(const IteratorPtr&);
+private:
+  Iterator<Item>* _i;
+};
+```
+
+eg:
+
+```c++
+AbstractList<Employee*>* employees;
+//...
+IteratorPtr<Employee*> iterator(employees->CreateIterator());
+PrintEmployees(*iterator);
+```
+
+6. 一个内部的 ListIterator 。最后，让我们看看一个内部的或者被动的 ListIterator 是怎样实现的。此时由迭代器控制迭代，并对列表中的每一个元素进行同一操作。
+
+```c++
+template<class Item>
+class ListTraverser{
+public:
+  ListTraverser(List<Item>* aList);
+  bool Traverse();
+protected:
+  virtual bool ProcessItem(const Item&)=0;
+private:
+  ListIterator<Item> _iterator;
+};
+
+template<class Item>
+ListTraverser<Item>::ListTraverser(List<Item>* aList):
+  _iterator(aList){}
+
+template<class Item>
+bool ListTraverser<Item>::Traverse(){
+  bool result = false;
+
+  for(_iterator.First();!_iterator.IsDone();_iterator.Next()){
+    result = ProcessItem(_iterator.CurrentItem());
+    if(!result){
+      break;
+    }
+  }
+  return result;
+}
+
+class PrintNEmployees:public ListTraverser<Employee*>{
+public:
+  PrintNEmployees(List<Employee*>* aList,int n):
+    ListTraverser<Employee*>(aList),
+    _total(n),_count(0){
+
+    }
+protected:
+  bool ProcessItem(Employee* const &);
+private:
+  int _total;
+  int _count;
+};
+
+bool PrintNEmployees::ProcessItem(Employee* const& e){
+  _count++;
+  e->Print();
+  return _count < _total;
+}
+```
+
+使用示例：  
+
+```c++
+List<Employee*> * employees;
+//...
+PrintNEmployees pa(employees,10);
+pa.Traverse();
+```
+
+与使用外部迭代器比较：
+
+```c++
+ListIterator<Employee*> i(employees);
+
+int count=0;
+for(i.First();!i.IsDone();i.Next()){
+  count++;
+  i.CurrentItem()->Print();
+
+  if(count >= 10){
+    break;
+  }
+}
+```
+
+内部迭代器可以封装不同类型的迭代。例如，FilterListTraverser 封装的迭代仅处理能通过测试的那些列表元素：
+
+```c++
+template<class Item>
+class FilterListTraverser{
+public:
+  FilterListTraverser(List<Item>* aList);
+  bool Traverse();
+protected:
+  virtual bool ProcessItem(const Item&) = 0;
+  virtual bool TestItem(const Item&) = 0;
+private:
+  ListIterator<Item> _iterator;
+};
+
+template<class Item>
+void FilterListTraverser<Item>::Traverse(){
+  bool result = false;
+
+  for(_iterator.First();!_iterator.IsDone();_iterator.Next()){
+    if(TestItem(_iterator.CurrenItem())){
+      result = ProcessItem(_iterator.CurrentItem());
+      if(!result){
+        break;
+      }
+    }
+    
+  }
+  return result; 
+}
+```
+
+**11.已知应用**
+
+迭代器在面向对象中很普遍。大多数结合类库都以不同的形式提供了迭代器。
+
+**12. 相关模式**
+
+- Composite: 迭代器常被应用到像复合这样的递归结构上。
+- Factory Method： 多态迭代器靠 Factory Method 来实例化适当的迭代器子类。
+- Memento：常与迭代器模式一起使用。迭代器可使用一个 memento 来捕获一个迭代的状态。迭代器在其内部存储 memento。
 
 ---
 
