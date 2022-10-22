@@ -86,6 +86,7 @@
   - [5.2 Command (命令)](#52-command-命令)
   - [5.3 Interpreter (解释器)](#53-interpreter-解释器)
   - [5.4 Iterator(迭代器)](#54-iterator迭代器)
+  - [5.5 Mediator(中介者)](#55-mediator中介者)
 
 <!-- /code_chunk_output -->
 
@@ -4986,6 +4987,202 @@ void FilterListTraverser<Item>::Traverse(){
 - Composite: 迭代器常被应用到像复合这样的递归结构上。
 - Factory Method： 多态迭代器靠 Factory Method 来实例化适当的迭代器子类。
 - Memento：常与迭代器模式一起使用。迭代器可使用一个 memento 来捕获一个迭代的状态。迭代器在其内部存储 memento。
+
+## 5.5 Mediator(中介者)
+
+**1. 意图**
+
+用一个中介对象来封装一系列的对象交互。中介者使各对象不需要显式地相互调用，从而使其耦合松散，而且可以独立地改变他们之间的交互。
+
+**2. 动机**
+
+面向对象设计鼓励将行为分布到各个对象中。这种分布可能会导致对象间有许多连接。在最坏的情况下，每一个对象都知道其他所有对象。
+虽然将一个系统分割成许多对象通常可以增强可复用性，但是对象间相互连接的激增又会降低其可复用性。大量的相互连接使得一个对象似乎不太可能在没有其他对象的支持下工作-系统表现为一个不可分割的整体。而且，对系统的行为进行任何较大的改动都十分困难，因为行为被分布在许多对象中。结果是，你可能不得不定义很多子类以定制系统的行为。
+
+例如，考虑一个图形用户界面中对话框的实现。对话框使用一个窗口来展现一系列的窗口组件，如 按钮、菜单和输入域等，如下图所示。
+
+![](../images/DesignPatternsBook_202210221715_1.png)
+
+通常对话框中的窗口组件间存在依赖关系。例如，当一个特定的输入域为空时，某个按钮不能使用。等等...
+
+不同的对话框会有不同的窗口组件间的依赖关系。因此即使对话框显示相同类型的窗口组件，也不能简单地重用已有的窗口组件类；而必须定制它们以反映特定对话框的依赖关系。由于涉及多个类，用逐个生成子类的方式来定制它们会很冗长。
+
+可以通过将集体行为封装在一个单独的中介者对象中来避免这种问题。中介者负责控制和协调一组对象间的交互。中介者充当一个中介以使组中的对象不再相互显式调用。这些对象仅知道中介者，从而减少了相互连接的数目。
+
+例如，FontDialogDirector 可作为一个对话框中的窗口组件的中介者。FontDialogDirector 对象知道对话框中的各窗口组件，并协调它们之间的交互。它充当窗口组件通信的中转中心，如下图所示：
+
+![](../images/DesignPatternsBook_202210221715_2.png)
+
+下面交互图说明了各对象如何协作处理一个列表框中选项的变化。
+
+![](../images/DesignPatternsBook_202210221715_3.png)
+
+这里展示 FontDialogDirector 抽象怎样被集成到一个类库中，如下图所示：
+
+![](../images/DesignPatternsBook_202210221715_4.png)
+
+**3. 使用性**
+
+- 一组对象定义良好但是复杂的方式进行通信。产生相互依赖关系结构混乱且难以理解。
+- 一个对象引用其他很多对象并且直接与这些对象通信，导致难以复用该对象。
+- 想定制一个分布在多个类中的行为，而又不想生成太多的子类。
+
+**4. 结构**
+
+![](../images/DesignPatternsBook_202210221715_5.png)
+
+**5. 参与者**
+
+- Mediator（中介者，如 DialogDirector）
+  - 中介者定义一个接口用于各同事（Colleague） 对象通信。
+- ConcreteMediator（具体中介者，如 FontDialogDirector）
+  - 具体中介者通过协调各同事对象实现协作行为。
+  - 了解并维护它的各个同事。
+- Colleague class （同事类，如 ListBox，EntryField）
+  - 每一个同事类都知道它的中介者对象
+  - 每一个同事对象在需与其他的同事通信的时候，与它的中介者通信。
+
+![](../images/DesignPatternsBook_202210221715_6.png)
+
+**6. 协作**
+
+- 同事向一个中介者发送和接收请求。中介者在各同事间适当地转发请求以实现协作行为。
+
+**7. 效果**
+
+优缺点：
+
+- 减少了子类生成
+- 它将各 Colleague 解耦
+- 它简化了对象协议
+- 它对对象如何协作进行了抽象
+- 它使控制集中化
+  - 中介者模式将交互的复杂性变为中介者的复杂性。因为中介者封装了协议，它可能变得比任一个 Colleague 都复杂。这可能使得中介者自身成为一个难以维护的庞然大物。
+
+**8. 实现**
+
+一些实现问题：
+
+- 忽略抽象的 Mediator 类
+  - 各 Colleague 仅与一个 Mediator 一起工作时，没有必要定义一个抽象 Mediator 类。Mediator 类提供的抽象耦合已经使各 Colleague 可与不同的 Mediator 子类一起工作，反之亦然。
+- Colleague - Mediator 通信
+  - 当一个感兴趣的事件发生时，Colleague 必须与其 Mediator 通信。一种实现方法是使用 Observer 模式，将 Mediator 实现为一个 Observer，各 Colleague 作为 Subject，一旦状态改变就发送通知给 Mediator。 Mediator 作出的响应是将状态改变的结构传播给其他 Colleague。
+  另一个方法是在 Mediator 中定义一个特殊的通知接口，各 Colleague 在通信时直接调用该接口。
+
+**9. 代码示例**
+
+我们将使用一个 DialogDirector 来实现动机一节中所示的字体对话框。抽象类 DialogDirector 为导控者定义了一个接口：
+
+```c++
+class DialogDirector{
+public:
+  virtual ~DialogDirector();
+
+  vritual void ShowDialog();
+  virtual void WidgetChanged(Widget*)=0;
+
+protected:
+  DialogDirector();
+  virtual void CreateWidgets()=0;
+};
+
+class Widget{
+public:
+  Widget(DialogDirector*);
+  virtual void Changed();
+
+  virtual void HandleMouse(MouseEvent& event);
+  //...
+private:
+  DialogDirector * _director;
+};
+
+void Widget::Changed(){
+  _director->WidgetChanged(this);
+}
+
+class ListBox:public Widget{
+public:
+  ListBox(DialogDirector*);
+
+  virtual const char * GetSelection();
+  virtual void SetList(List<char*> listItems);
+  virtual void HandleMouse(MouseEvent& event);
+  // ...
+};
+
+class EntryField:public Widget{
+public:
+  EntryField(DialogDirector*);
+
+  virtual void SetText(const char* text);
+  virtual const char* GetText();
+  virtual void HandleMouse(MouseEvent& event);
+  //...
+};
+
+class Button:public Widget{
+public:
+  Button(DialogDirector*);
+
+  virtual void setText(const char* text);
+  virtual void HandleMouse(MouseEvent& event);
+  //...
+};
+
+void Button::HandleMouse(MouseEvent& event){
+  //...
+  Changed();
+}
+
+class FontDialogDirector:public DialogDirector{
+public:
+  FontDialogDirector();
+  virtual ~FontDialogDirector();
+  virtual void WidgetChanged(Widget*);
+protected:
+  virtual void CreateWidgets();
+
+private:
+  Button* o_ok;
+  Button* _cancel;
+  ListBox * _fontList;
+  EntryField* _fontName;
+};
+
+void FontDialogDirector::CreateWidgets(){
+  _ok = new Button(this);
+  _cancel = new Button(this);
+  _fontList = new ListBox(this);
+  _fontName = new EntryField(this);
+
+  // fill the listBox with the available font names 
+  // assemble the widgets in the dialog 
+}
+
+void FontDialogDirector::WidgetChanged(Widget* theChangedWidget){
+  if(theChangedWidget ==_fontList){
+    _fontName->setText(_fontList->GetSelection());
+  }else if(theChangedWidget == _ok){
+    // apply font change and dismiss dialog 
+  }else if(theChangedWidget == _cancel){
+    // dismiss dialog 
+  }
+}
+```
+
+**10. 已知应用**
+
+- ET++ 和 THINK C 类库 都在对话框中使用类似导控者的对象作为窗口组件间的中介者。
+- Windows 下的 Smalltalk/V 的应用结构基于中介者结构。
+- 还可以用于协调复杂的更新。一个例子是 Observer(5.7) 一节中所提到的 ChangeManager 类。
+- Unidraw 绘图框架，它使用一个称为 CSolver 的类来实现“连接器”间的连接约束。
+
+**11. 相关模式**
+
+- Facade 与中介者的不同之处在于它是对一个对象子系统进行抽象，从而提供了一个更为方便的接口。它的协议是单向的，即 Facade 对象对这个子系统类提出请求，但反之则不行。相反，Mediator 提供了各 Colleague 对象不支持或不能支持的协作行为，而且协议是多向的。
+
+- Colleague 可使用 Observer 模式与 Mediator 通信。
 
 ---
 
