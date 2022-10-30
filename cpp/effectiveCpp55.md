@@ -58,6 +58,8 @@
   - [条款 40：明智而审慎地使用多重继承](#条款-40明智而审慎地使用多重继承)
 - [定制 new 和 delete](#定制-new-和-delete)
   - [条款 49: 了解 new-handler 的行为](#条款-49-了解-new-handler-的行为)
+  - [条款 50: 了解 new 和 delete 的合理替换时机](#条款-50-了解-new-和-delete-的合理替换时机)
+  - [条款 51: 编写 new 和 delete 时需要固守常规](#条款-51-编写-new-和-delete-时需要固守常规)
 - [杂项讨论](#杂项讨论)
   - [条款 53：不要轻忽编译器的警告](#条款-53不要轻忽编译器的警告)
   - [条款 54：让自己熟悉标准程序库](#条款-54让自己熟悉标准程序库)
@@ -4567,6 +4569,172 @@ Nothrow new 对异常的强制保证性并不高。要知道，表达式 `new (s
 
 - set_new_handler 允许客户指定一个函数，在内存分配无法获得满足时被调用 。
 - nothrow new 是一个颇为局限的工具，因为它只适用于内存分配；后续的构造函数调用还是可能抛出异常。
+
+### 条款 50: 了解 new 和 delete 的合理替换时机
+
+让我们暂时回到根本原理。首先，怎么会有人想要替换编译器提供的 operator new 或 operator delete 呢？ 下面有三个常见的理由：
+
+- 用来检测运用上的错误。
+- 为了强化效能。
+- 为了收集使用上的统计数据。
+
+观念上，写一个定制型的 operator new 十分简单。举个例子（其中还有不少小错误，我们稍后完善它）：
+
+```c++
+static cons tint signature = 0xDEADBEEF;
+
+typedef unsigned char Byte;
+
+// 这段代码还有若干小错误，详下：
+void * operator new(std::size_t size) throw(std::bad_alloc){
+  using namespace std;
+  size_t realSize = size + 2 * sizeof(int); //增加大小，使能够塞入两个 signature
+  void * pMem = malloc(realSize)； // 调用 malloc 取得内存 
+  if(!pMem) throw bad_alloc();
+
+  // 将 signature 写入内存的最前段落和最后段落。
+  *(static_cast<int*>(pMem)) = signature;
+  *(reinterpret_cast<int*>(static_cast<Byte*>(pMem)
+  + realSize-sizeof(int))) = signature;
+
+  // 返回指针，指向恰位于第一个 signature 之后的内存位置：
+  return static_cast<Byte *>(pMem) + sizeof(int);
+}
+```
+
+这个 operator new 的缺点主要在于它疏忽了身为这个特殊函数所应具备的 “坚持 C++ 规矩”的态度。举个例子，条款 51 所说的所有 operator new 都应该内含一个循环，反复调用某个 new-handling 函数，这里却没有。另外还有一个问题 - 齐位(alignment)。
+
+在我们目前这个主题中， 齐位(alignment) 意义重大，因为 C++ 要求所有 operator news 返回的指针都有适当的对齐（取决于数据类型）。
+
+像 齐位(alignment) 这一类技术细节，正可以在那种“因其他纷扰因素而被程序员不断抛出异常”的内存管理器中区分出专业质量的管理器。写一个总是能够运作的内存管理器并不难，难的是它能够优良地运作。一般而言我建议你在必要时才试着写写看。
+
+很多时候都是非必要的！某些编译器已经在它们的内存管理函数中切换至调试状态(enable debugging)和 志记状态 (logging)。快速浏览以下你都编译器文档，很快就此消除自行撰写 new 和 delete 的需要。许多平台上已有商业产品可以替代编译器自带的内存管理器。如果需要它们来为你的程序提高机能和改善效能，你唯一 需要做的就是重新连接(relink).当然啦，首先你得花点钱买下它们。
+
+另一个选择时开放源码领域中的内存管理器。它们对许多平台都可用，你可以下载并试试。Boost 程序库的 Pool 就是这样一个分配器，它对于最常见的 “分配大量小型对象” 很有帮助。许多 C++ 书籍，包括本书的早期版本，都曾展示高效率的小型对象分配器源码，但它们往往漏掉可移植性和齐位考虑、线程安全性... 等等令人生厌的麻烦细节。真正称得上程序库者，必然稳健强固。即使你还是执意写一个自己的 news 和 deletes，看一看开放源码版本也可能对若干容易被漠视的细节取得深刻的理解。齐位就是这样一个细节，TR1 支持各种类型特定的对齐条件，很值得注意：
+
+本条款的主题是，了解何时可在“全局性的”或“class 专属的”基础上合理替换缺省的 new 和 delete 。挖掘更多细节之前，让我先对答案做一些摘要。
+
+- 为了检测运用错误（如前所述）
+- 为了收集动态分配内存之使用统计信息（如前所述）
+- 为了增加分配和归还的速度。
+- 为了降低缺省内存管理器带来的空间额外开销。
+- 为了弥补缺省分配器中的非最佳齐位(suboptimal alignment)。
+- 为了将相关对象成族集中。
+- 为了获得非传统行为。
+  - 有时候你会希望 operator new 和 delete 做编译器附带版没做的某些事情，例如你可能会希望分配和归还共享内存(shared memory) 内的区块。
+
+请记住：
+
+- 有许多理由需要写个自定义的 new 和 delete ,包括改善效能、对 heap 运用错误进行调试、收集 heap 使用信息。
+
+### 条款 51: 编写 new 和 delete 时需要固守常规
+
+让我们从 operator new 开始。实现一致性 operator new 必得返回正确的值，内存不足时必得调用 new-handling 函数，必须有对付零内存需求的准备，还需避免不慎掩盖正常形式的 new - 虽然这比较偏近 class 的接口要求而非实现要求。
+
+奇怪的是 C++ 规定，即使客户要求 0 bytes，operator new 也得返回一个合法指针。这种看似诡异的行为其实是为了简化语言其他部分。下面是个 non-member operator new 伪代码：
+
+```c++
+void * operator new(std::size_t size) throw(std::bad_alloc){
+  using namespace std;
+  if(0 == size){
+    size=1;
+  }
+  while(true){
+    // 尝试分配 size bytes；
+    if(分配成功){
+      return (一个指针，指向分配得来的内存)；
+    }
+
+    // 分配失败，找出目前的 new-handling 函数 
+    new-handler globalHandler = set_new_handler(nullptr);
+    set_new_handler(globalHandler);
+
+    if(globalHandler){
+      (*globalHandler)();
+    }else{
+      throw std::bad_alloc();
+    }
+  }
+}
+```
+
+这里的伎俩是把 0 bytes 申请视为 1 byte 申请量。看起来有点黏答答地令人厌恶，但做法简单、合法、可行，而且毕竟客户多久才会发出一个 0 bytes 申请呢？
+
+```c++
+    new-handler globalHandler = set_new_handler(nullptr);
+    set_new_handler(globalHandler);
+```
+
+这段代码很让人怀疑。那是因为我们很不幸地没有任何办法可以直接取得 new-handling 函数指针，所以必须调用 set_new_handler 找出它来。拙劣，但有效 - 至少对于单线程程序来说。若在多线程中你或许需要某种锁以便安全处置 new-handling 函数背后的 (global) 数据结构。
+
+条款 49 谈到 operator new 包含一个无穷循环，而上述伪代码明白表明出这个循环：“while (true)” 就是哪个无穷循环。退出此循环的唯一办法就是：内存被成功分配或者 new-handling 函数做了一件描述于条款49 的事情： 让更多的内存可用、安装另一个 new-handler、卸除 new-handler、抛出 bad_alloc 异常，或者承认失败而直接 return。现在，对于 new-handler 为什么必须做出某些事你应该很清楚了。如果不那么做；operator new 内的 while 循环永远不会结束。
+
+许多人没有意识到 operator new 成员函数会被 derived classes 继承，这会导致某些有趣的复杂性。针对 class X 而设计的 operator new ，其行为很典型地只为大小刚好为 sizeof(x) 的对象而设计。然而一旦被继承下去，有可能 base classes 的 operator new 被调用用以分配 derived class 对象：
+
+```c++
+class Base{
+public:
+  static void * operator new(std::size_t size) throw(std::bad_alloc);
+  ...
+};
+
+class Derived:public Base // 假设 Derived 未声明 operator new 
+{
+  ...
+};
+
+auto p = new Derived; // 这里调用的是 Base::operator new 
+```
+
+如果 Base class 专属的 operator new 并非被设计用来对付上述情况（实际上往往如此），处理此情势的最佳做法是将“内存申请量错误”的调用行为改采用标准的 operator new ，就像这样：
+
+```c++
+void * Base::operator new(std::size_t size) throw(std::bad_alloc){
+  if(size != sizeof(Base)){ // 如果大小错误
+    return ::operator new(size);  // 令标准的 operator new 起而处理。
+  }
+  ...                          // 否则就在这里处理
+}
+```
+
+如果你打算控制 class 专属之 "array 内存分配行为"，那么你需要实现 operator new 的 array 兄弟版； operator new[]。 这个函数通常被称为 "array new"。如果你决定写个 operator new[]，记住，唯一需要做的一件事就是分配一块未加工内存(raw memory),因此你无法对 array 之内迄今尚未存在的元素对象做任何事情，实际上你甚至无法计算这个 array 将含有多少个元素对象。
+
+operator delete 情况更简单，你只需要记住的唯一事情就是 C++ 保证 “删除 null 指针永远安全”，所以你必须兑现这项保证。下面是 non-member operator delete 的伪代码：
+
+```c++
+void operator delete(void * rawMemory) throw(){
+  if(nullptr == reawMemory) return; // 如果将被删除的是个 nullpt 指针，那么什么也不做。
+  现在归还 rawMemory 所指向的内存。
+}
+```
+
+这个函数的 member 版本也很简单，只需要多加一个动作检查删除数量。万一你的 class 专属的 operator new 将大小有误的分配行为转交 ::operator new 执行，你也必须将大小有误的删除行为转交给 ::operator delete 执行：
+
+```c++
+class Base{
+public:
+  static void * operator new(std::size_t size) throw(std::bad_alloc);
+  static void operator delete(void * rawMemory,std::size_t size) throw();
+  ...
+};
+
+void Base::operator delete(void * rawMemory,std::size_t size) throw(){
+  if(nullpt == rawMemory) return; // 检查 nullpt 指针 
+  if(size != sizeof(Base)){
+    ::operator delete(rawMemory);
+    return ;
+  }
+  现在归还 rawMemory 所指向的内存。 
+  return ;
+}
+```
+
+有趣的是，如果即将被删除的对象派生自某个 base class 而后者欠缺 virtual 析构函数，那么 C++ 传给 operator delete 的 size_t 数值可能不正确。这是“让你的 base classes 拥有 virtual 析构函数”的一个够好的理由。此时 operator delete 可能无法正确运作。
+
+请记住：
+
+- operator new 应该内含一个无穷循环，并在其中尝试分配内存，如果它无法满足内存需求，就该调用 new-handler。它也应该有能力处理 0 bytes 申请。 Class 专属版本则还应该处理 “比正确大小更大的（错误）申请”。
+- operator delete 应该在收到 nullptr 指针时不做任何事情。 Class 专属版本则还应该处理 “比正确大小更大的（错误）申请”。
 
 ## 杂项讨论
 
