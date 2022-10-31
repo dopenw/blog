@@ -60,6 +60,7 @@
   - [条款 49: 了解 new-handler 的行为](#条款-49-了解-new-handler-的行为)
   - [条款 50: 了解 new 和 delete 的合理替换时机](#条款-50-了解-new-和-delete-的合理替换时机)
   - [条款 51: 编写 new 和 delete 时需要固守常规](#条款-51-编写-new-和-delete-时需要固守常规)
+  - [条款 52: 写了 placement new 也要写 placement delete](#条款-52-写了-placement-new-也要写-placement-delete)
 - [杂项讨论](#杂项讨论)
   - [条款 53：不要轻忽编译器的警告](#条款-53不要轻忽编译器的警告)
   - [条款 54：让自己熟悉标准程序库](#条款-54让自己熟悉标准程序库)
@@ -4735,6 +4736,218 @@ void Base::operator delete(void * rawMemory,std::size_t size) throw(){
 
 - operator new 应该内含一个无穷循环，并在其中尝试分配内存，如果它无法满足内存需求，就该调用 new-handler。它也应该有能力处理 0 bytes 申请。 Class 专属版本则还应该处理 “比正确大小更大的（错误）申请”。
 - operator delete 应该在收到 nullptr 指针时不做任何事情。 Class 专属版本则还应该处理 “比正确大小更大的（错误）申请”。
+
+### 条款 52: 写了 placement new 也要写 placement delete
+
+回忆 条款 16 和 17，当你写一个 new 表达式像这样：
+
+```c++
+auto pw = new Widget;
+```
+
+共有两个函数被调用：一个是用以分配内存的 operator new ，一个是 Widget 的 default 构造函数。
+
+假设其中第一个函数调用成功，第二个函数却抛出异常。既然那样，步骤一的内存分配所得必须取消并恢复旧观，否则会造成内存泄漏。在这个时候，客户没有能力归还内存，因为如果 Widget 构造函数抛出异常，pw 尚未被赋值，客户手上也就没有指针指向该被归还的内存。取消步骤一并恢复旧观的责任因此落到 C++ 运行期系统身上。
+
+运行期系统会高高兴兴地调用步骤一所调用的 operator new 的相似的 operator delete 版本，前提是它必须知道是哪一个（因为可能有多个） operator delete 该被调用。如果目前面对的是拥有正常签名式的 new 和 delete ，这并不是问题
+，因为正常的 new 对应正常的 delete.
+
+```c++
+void * operator new(std::size_t ) throw(std::bad_alloc);
+
+
+// global 作用域中的正常签名式
+void operator delete(void * rawMemory) throw();
+
+// class 作用域中的正常签名式
+void operator delete(void * rawMemory,std::size_t size) throw();
+```
+
+因此，当你只使用正常形式的 new 和 delete ,运行期系统毫无问题可以找出那个 “知道如何取消 new 所做所为并恢复旧观”的 delete。然而当你开始声明非正常形式的 operator new ，也就是带有附加参数 的 operator new： “究竟哪一个 delete 伴随这个 new” 的问题便浮现了。
+
+举个例子，假设你写了一个 class 专属的 operator new ，要求接受一个 ostream ，用来记录相关分配信息，同时有写了一个正常形式的 class 专用 operator delete：
+
+```c++
+class Widget{
+public:
+  ...
+  static void* operator new(std::size_t size
+                      ,std::ostream& logStream) 
+                      throw(std::bad_alloc); // 非正常形式的 new 
+  static void operator delete(void * pMemory
+                      ,std::size_t size) 
+                      throw(); // 正常的 class 专属 delete 
+  ...
+};
+```
+
+这个设计有问题，但在讨论原因之前，我们需要先绕道，扼要讨论若干术语。
+
+`如果 operator new 接受的参数除了一定会有的那个 size_t 之外还有其他，这便是个所谓的 placement new。`因此，上述的 operator new 是一个 placement 版本。那样的 operator new 就像这样：
+
+```c++
+void * operator new(std::size_t,  ... ) throw(); // placement new 
+```
+
+这个版本的 new 已经被纳入标准程序库，你只要 `#include <new>` 就可以取用它。
+
+现在让我们回到 Widget class 的声明式，也就是先前说有问题的那个。这里的技术困难在于，那个 class 将引起微妙的内存泄漏。考虑以下客户代码，它在动态创建一个 Widget 时将相关的分配信息记录于 cerr：
+
+```c++
+auto pw = new (std::cerr) Widget; 
+// 调用 operator new 并传递 cerr 为其 ostream 实参：
+// 这个动作会在 Widget 构造函数抛出异常时泄漏内存
+```
+
+既然这里的 operator new 接受类型为 ostream& 的额外实参，所以对应的 operator delete 就应该是：
+
+```c++
+void operator delete(void * ,std::ostream&) throw();
+```
+
+类似于 new 的 placement 版本，operator delete 如果接受额外参数，便称为 placement delete。现在，既然 Widget 没有声明 placement 版本的 operator delete,所以运行期系统不知道如何取消并恢复原先对 placement new 的调用。于是什么都不做。本例中如果 Widget 构造函数抛出异常，不会有任何 operator delete 调用（那当然不妙）。
+
+为了弥补稍早代码中的内存泄漏，Widget 有必要声明一个 placement delete ，对应于那个有记录的 placement new:
+
+```c++
+class Widget{
+pubic:
+  ...
+  static void * operator new(std::size_t size
+                            ,std::ostream& logStream) 
+                            throw(std::bad_alloc);
+
+  static void operator delete(void * pMemory) throw();
+
+  static void operator delete(void * pMemory
+                              ,std::ostream& logStream) 
+                              throw();
+  ...
+};
+```
+
+这样改变之后，如果下面的语句引发 Widget 构造函数抛出异常：
+
+```c++
+auto pw = new (std::cerr) Widget; // 一如既往，但这次不再泄漏
+```
+
+对应的 placement delete 会被自动调用，让 Widget 有机会确保不会泄漏任何内存。
+
+然后如果没有抛出异常（通常如此），而客户代码中有对应的 delete ，会发生什么事情呢：
+
+```c++
+delete pw; // 调用正常的 operator delete 
+```
+
+placement delete 只有在 “伴随 placement new 调用而触发的构造函数”出现异常时才会被调用。对着一个指针施行 delete 绝不会导致调用 placement delete。不，绝对不会。
+
+这意味着如果要对所有的与 placement new 相关的内存泄漏宣战，我们必须同时提供一个正常的 operator delete（于构造期间无任何异常被抛出） 和一个 placement 版本（用于构造期间有异常被抛出）。
+
+附带一体，由于成员函数的名称会掩盖其外围作用域中的相同的名称，你必须小心避免让 class 专属的 new 掩盖客户期望的其他 new（包括正常版本）。假设你有一个 base class ，其中声明一个 placement operator new,客户会发现他们无法使用正常形式的 new：
+
+```c++
+class Base{
+public:
+ ...
+ static void * operator new(std::size_t size
+                            ,std::ostream& logStream) 
+                            throw(std::bad_alloc);
+                            // 这个 new 会遮盖正常的 global 形式
+  ...
+};
+
+auto pb = new Base; // 错误，应为正常形式的 operator new 被掩盖
+auto pc = new (std::cerr) Base; // 正确调用 Base 的 placement new；
+```
+
+同样道理，derived classes 中的 operator new 会掩盖 global 版本和继承而得的 operator new 版本：
+
+```c++
+class Derived: public Base{
+pubic:
+  ...
+  static void * operator new(std::size_t size)
+                throw(std::bad_alloc); //重新声明正常形式的 new
+
+  ...
+};
+
+auto pd = new (std::clog) Derived; // 错误，因为被掩盖 
+auto pd1 = new Deribed; // ok 
+```
+
+你需要记住的是，缺省情况下 C++ global 作用域内提供以下形式的 operator new :
+
+```c++
+void * operator new(std::size_t) throw(std::bad_alloc); //normal
+void * operator new(std::size_t ,void *) throw(); // placement new 
+void * operator new(std::size_t,const std::nothrow_t&) throw();
+```
+
+完成以上所言的一个简单做法是，建立一个 base class,内含所有正常形式的 new 和 delete：
+
+```c++
+class StandardDeleteForms{
+public:
+  // normal new/delete 
+  static void * operator new(std::size_t size) 
+                            throw(std::bad_alloc){
+    return ::operator new(size);
+  }
+  static void operator delete(void * pMemory) throw(){
+    ::operator delete(pMemory);
+  }
+
+  //placement new/delete
+  static void* operator new(std::size_t size,void * ptr) 
+                            throw(){
+    return ::operator new(size,ptr);
+  }
+  static void operator delete(void * pMemory,void * ptr) 
+                              throw(){
+    return ::operator delete(pMemory,ptr);
+  }
+
+  // nothrow new/delete 
+  static void * operator new(std::size_t size
+                              ,const std::nothrow_t& nt) 
+                              throw(){
+    return ::operator new(size,nt);
+  }
+  static void operator delete(void * pMemory
+                                ,const std::nothrow_t&) 
+                                throw(){
+    ::operator delete(pMemory);
+  }
+};
+```
+
+凡是想以自定形式扩充标准形式的客户，可利用继承机制及 using 声明式取得标准形式：
+
+```c++
+class Widget:public StandardDeleteForms{
+public:
+  // 让这些形式可见
+  using StandardDeleteForms::operator new;
+  using StandardDeleteForms::operator delete;
+
+  static void * operator new(std::size_t size
+                              ,std::ostream& logStream) 
+                              throw(std::bad_alloc);
+  // 添加一个自定义的 placement new 
+
+  static void operator delete(void * pMemory
+                              ,std::ostream& logStream) 
+                              throw();
+  // 添加一个对应的 placement delete  
+};
+```
+
+请记住：
+
+- 当你写一个 placement operator new ,请确定也写出了对应的 placement operator delete。如果没有这样做，你的程序可能会发生隐微而时断时续的内存泄漏。
+- 当你声明 placement new 和 placement delete,请确保不要无意识（非故意）地遮盖了它们的正常版本。
 
 ## 杂项讨论
 
