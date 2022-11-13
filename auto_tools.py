@@ -177,7 +177,7 @@ def blog_add_pre_next_links(blog_file,blog_map):
 
 def write_main_readme(all_blog_map):
     out_file = open("README.md",'w',encoding='UTF-8')
-    out_file.write('## 编程笔记、读书笔记、博客 ... '+config_item['end_of_line_seq'])
+    out_file.write('## 学习笔记、编程笔记、读书笔记、博客 ... '+config_item['end_of_line_seq'])
     for dir in all_blog_map.items():
         out_file.write('### 类别 : [{}](./{}/README.md){}'.format(dir[0],dir[0],config_item['end_of_line_seq']))
         for item in dir[1].items():
