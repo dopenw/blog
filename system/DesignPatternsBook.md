@@ -87,6 +87,7 @@
   - [5.3 Interpreter (解释器)](#53-interpreter-解释器)
   - [5.4 Iterator(迭代器)](#54-iterator迭代器)
   - [5.5 Mediator(中介者)](#55-mediator中介者)
+  - [5.6 Memento (备忘录)](#56-memento-备忘录)
 
 <!-- /code_chunk_output -->
 
@@ -5183,6 +5184,181 @@ void FontDialogDirector::WidgetChanged(Widget* theChangedWidget){
 - Facade 与中介者的不同之处在于它是对一个对象子系统进行抽象，从而提供了一个更为方便的接口。它的协议是单向的，即 Facade 对象对这个子系统类提出请求，但反之则不行。相反，Mediator 提供了各 Colleague 对象不支持或不能支持的协作行为，而且协议是多向的。
 
 - Colleague 可使用 Observer 模式与 Mediator 通信。
+
+## 5.6 Memento (备忘录)
+
+**1.意图**
+
+在不破坏封装的情况下，捕获一个对象的内部状态，并在该对象之外保存这个状态。这样以后就可以将该对象恢复到原先保存的状态。
+
+**2.别名**
+
+Token
+
+**3. 动机**
+
+有时有必要记录一个对象的内部状态。为了允许用户取消不确定的操作或从错误中恢复过来，需要实现检查点和取消机制，而要实现这些机制，你必须事先将状态保存在某处，这样才能将对象恢复到他们先前的状态。但是对象通常封装了部分或所有的状态信息，使得其状态不能被其他对象访问，也就不可能在该对象之外保存其状态。而暴露其内部状态又将违反封装的原则，可能有损应用的可靠性和可扩展性。
+
+例如，考虑一个图形编辑器，它支持图形对象间的连线。用户可用一条直线连接两个矩形，而当用户移动任意一个矩形时，这两个矩形仍能保持连接。在移动过程中，编辑器自动伸展这条直线以保存该连接。
+
+![](../images/DesignPatternsBook_202211132150_1.png)
+
+一个`备忘录`(memento)是一个对象，它存储另一个对象在某个瞬间的内部状态，而后者称为备忘录的`原发器`(originator)。当需要设置原发器的检查点时，取消操作机制会向原发器请求一个备忘录。原发器用描述当前状态的信息初始化该备忘录。只有原发器可以向备忘录中存取信息，备忘录对其他对象 “不可见”。
+
+**4. 适用性**
+
+- 必须保存一个对象在某一时刻的（部分）状态，这样以后需要时才能恢复到先前的状态。
+- 如果用一个接口来让其他对象直接得到这些状态，将会暴露对象的实现细节并破坏对象的封装性。
+
+**5. 结构**
+
+![](../images/DesignPatternsBook_202211132150_3.png)
+
+**6. 参与者**
+
+- Memonto(备忘录，如 SloverState)
+  - 备忘录存储原发器对象的内部对象。原发器根据需要决定备忘录存储原发器的哪些内部状态
+  - 防止原发器以外的其他对象访问备忘录。
+- Originator(原发器，如 ConstraintSolover)
+  - 原发器创建一个备忘录，用以记录当前时刻它的内部状态。
+  - 使用备忘录恢复内部状态。
+- Caretaker（负责人，如 undo mechanism）
+  - 负责保存好备忘录
+  - 不能对备忘录的内容进行操作或检查。
+
+**7. 协作**
+
+- 管理器向原发器请求一个备忘录，保留一段时间后，将其返回给原发器，如下面的交互图所示：
+
+![](../images/DesignPatternsBook_202211132150_2.png)
+
+有时管理者不会将备忘录返回给原发器，因为原发器可能根本不需要退到先前的状态。
+
+- 备忘录是被动的。只有创建备忘录的原发器会对它的状态进行赋值和检索。
+
+**8.效果**
+
+- 保持封装边界
+  - 可以避免暴露一些只应由原发器管理却又必须存储在原发器之外的信息。
+- 它简化了原发器
+- 使用备忘录可能代价很高
+  - 如果原发器在生成备忘录时必须拷贝并存储大量的信息，或者客户非常频繁地创建备忘录和恢复原发器状态，可能会导致非常大的开销。除非封装和恢复 Originator 状态的开销不大，否则该模式可能并不合适。
+- 定义窄接口和宽接口
+  - 在一些语言中可能难以保证只有原发器可访问备忘录的状态。
+- 维护备忘录的潜在代价
+  - 管理器负责删除它所维护的备忘录。然而，管理器不知道备忘录中有多少个状态。因此当存储备忘录时，一个本来很小的管理器，可能会产生大量的存储开销。
+
+**9.实现**
+
+下面是当实现备忘录模式时应该考虑的两个问题：
+
+1. 语言支持
+  备忘录有两个接口： 一个为原发器所使用的宽接口，一个为其他对象所使用的窄接口。理想的实现语言应可支持两级的静态保护。在 C++ 中，可将 Originator 作为 Memento 的一个友元，并使 Memento 宽接口为私有的。只有窄接口应该被声明为公共的。例如：
+
+  ```c++
+  class State;
+
+  class Originator{
+  public:
+    Memento * CreateMemento();
+    void setMemento(const Memento*);
+    // ...
+  private:
+    State * _state; // internal data structures 
+    // ...
+  };
+
+  class Memento{
+  public:
+    //narrow public interface 
+    virtual ~Memento();
+  private:
+    //private members accessible only to originator 
+    friend class originator;
+    Memento();
+
+    void SetState(State * );
+    State * GetState();
+    // ...
+  private:
+    State * _state;
+    // ...
+  };
+  ```
+
+2. 存储增量式改变
+  如果备忘录的创建及返回（给它们的原发器）的顺序是可预测的，备忘录可以仅存储原发器内部的增量改变。
+
+**10. 代码示例**
+
+此处给出的 C++ 代码展示的是前面讨论的 ConstraintSolover 的例子。我们使用 MoveCommand 命令对象来执行（取消）一个图形对象从一个位置到另一个位置的移动变换。图形编辑器调用命令对象的 Excute 来移动一个图形对象，而用 Unexecute 来取消该移动。命令对象存储它的目标、移动的距离和一个  ConstraintSoloverMemento 的实例，它是一个包含约束解释器状态的备忘录。
+
+```c++
+class Graphic;
+//base class for graphical objects in the graphical editor 
+
+class MoveCommand{
+public:
+  MoveCommand(Graphic * target,const Point& delta);
+  void Execute();
+  void Unexecute();
+private:
+  ConstraintSoloverMemento * _state;
+  Point _delta;
+  Graphic * _target;
+};
+
+class ConstraintSolover{
+public:
+  static ConstraintSolover* Instance();
+
+  void Solve();
+  void AddConstraint(Graphic * startConnection
+        ,Graphic * endConnection);
+  void RemoveConstraint(Graphic * startConnection
+        ,Graphic * endConnection);
+  ConstraintSoloverMemento * CreateMemento();
+  void setMemento(ConstraintSoloverMemento*);
+private:
+  // nontrivial state and operations for enforcing 
+  // connectivity semantics 
+};
+
+class ConstraintSoloverMemento{
+public:
+  virtual ~ConstraintSoloverMemento();
+private:
+  friend class ConstraintSolover;
+  ConstraintSoloverMemento();
+
+  //private constraint solver state 
+};
+
+void MoveCommand::Execute(){
+  ConstraintSolover * solver = ConstraintSolover::Instance();
+  _state = solver->CreateMemento();
+  _target->Move(_delta);
+  solver->Slove();
+}
+
+void MoveCommand::Unexecute(){
+  auto solver = ConstraintSolover::Instance();
+  _target->Move(- _delta);
+  solver->setMemento(_state);// restore solver state
+  solver->Solve();
+}
+
+```
+
+**11. 已知应用**
+
+- 前面的代码示例是来自于 Unidraw 中通过 CSolver 类的实现的对连接的支持。
+- QOCA 约束解释工具在备忘录中存储增量信息。
+
+**12.相关模式**
+
+- Command: 命令可使用备忘录来为可撤销的操作维护状态。
+- Iterator：如前所述备忘录可用于迭代。
 
 ---
 
