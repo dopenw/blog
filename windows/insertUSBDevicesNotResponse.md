@@ -7,5 +7,5 @@
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [Visual studio 安装 Visual Assist](VisualStudioInstallVisualAssist.md)
+- 上一篇 -> [Windows 11 C 盘瘦身](Win11_C_Optimize.md)
 - 下一篇 -> [使用 visual studio 遇到的一些问题](useVisualStudio.md)
