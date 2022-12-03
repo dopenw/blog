@@ -223,6 +223,7 @@
 - [组件对象模型 (COM)](./windows/COM.md)
 - [将中文docx文档转换为英文文档](./windows/DocZhToEn.md)
 - [Visual studio 安装 Visual Assist](./windows/VisualStudioInstallVisualAssist.md)
+- [Windows 11 C 盘瘦身](./windows/Win11_C_Optimize.md)
 - [Win 10 插入U盘后，听见插入提示音，但在我的电脑里没有相应的入口](./windows/insertUSBDevicesNotResponse.md)
 - [使用 visual studio 遇到的一些问题](./windows/useVisualStudio.md)
 - [visual studio 创建和使用 DLL 文件](./windows/visualStudioCreateUseDLL.md)
