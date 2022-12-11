@@ -27,7 +27,7 @@
 - [第二章 实例研究：设计一个文档编辑器](#第二章-实例研究设计一个文档编辑器)
   - [2.1 设计问题](#21-设计问题)
   - [2.2 文档结构](#22-文档结构)
-    - [2.2.1 递归组合](#221-递归组合)
+    - [　2.2.1 递归组合](#221-递归组合)
     - [2.2.2 图元](#222-图元)
     - [2.2.3 组合模式](#223-组合模式)
   - [2.3 格式化](#23-格式化)
@@ -62,7 +62,7 @@
     - [2.8.6 封装分析](#286-封装分析)
     - [2.8.7 Visitor 类及其子类](#287-visitor-类及其子类)
     - [2.8.8 Vistor 模式](#288-vistor-模式)
-  - [2.9  小结](#29-小结)
+  - [2.9  小结](#29--小结)
 - [第三章 创建型模式](#第三章-创建型模式)
   - [3.1 Abstract Factory (抽象工厂)](#31-abstract-factory-抽象工厂)
   - [3.2 Builder (生成器)](#32-builder-生成器)
@@ -78,7 +78,7 @@
   - [4.5 Facade（外观）](#45-facade外观)
   - [4.6 FlyWeight (享元)](#46-flyweight-享元)
   - [4.7 Proxy (代理)](#47-proxy-代理)
-  - [4.8  结构型模式的讨论](#48-结构型模式的讨论)
+  - [4.8  结构型模式的讨论](#48--结构型模式的讨论)
     - [4.8.1 Adapter 和 Bridge](#481-adapter-和-bridge)
     - [4.8.2 Composite ,Decorator 和 Proxy](#482-composite-decorator-和-proxy)
 - [第五章 行为模式](#第五章-行为模式)
@@ -88,6 +88,7 @@
   - [5.4 Iterator(迭代器)](#54-iterator迭代器)
   - [5.5 Mediator(中介者)](#55-mediator中介者)
   - [5.6 Memento (备忘录)](#56-memento-备忘录)
+  - [5.7 Observer（观察者）](#57-observer观察者)
 
 <!-- /code_chunk_output -->
 
@@ -5359,6 +5360,238 @@ void MoveCommand::Unexecute(){
 
 - Command: 命令可使用备忘录来为可撤销的操作维护状态。
 - Iterator：如前所述备忘录可用于迭代。
+
+## 5.7 Observer（观察者）
+
+**1. 意图**
+
+定义对象间的一种一对多的依赖关系，以便当一个对象的状态发生改变时，所有依赖于它的对象都得到通知并被自动更新。
+
+**2. 别名**
+
+依赖(Dependents),发布-订阅(Publish-Subscribe)
+
+**3. 动机**
+
+将一个系统分割成一系列相互协作的类有一个常见的副作用：需要维护相关对象间的一致性。我们不希望为了维护一致性而使各类紧密耦合，因为这样降低了它们的可重用性。
+例如，许多图形用户界面工具箱将用户应用的界面表示与底下的应用数据分离。定义应用数据的类和负责界面表示的类可以各自独立地复用。当然它们也可以一起工作。
+
+![](../images/DesignPatternsBook_202212031627_1.png)
+
+Observer 模式描述了如何建立这种关系。这一模式中的关键对象是`目标`(Subject) 和`观察者`(Observer)。一个目标可以有任意数目的依赖它的观察者。一旦目标的状态发生改变，所有的观察者都得到通知。作为对这个通知的响应，每个观察者都将查询目标以使其状态与目标的状态同步。
+
+这种交互也成为 `发布-订阅`(Publish-Subscribe)。目标是通知的发布者。它发出通知时并不需要知道谁是它的观察者。可以有任意数目的观察者订阅并接收通知。
+
+**4. 适用性**
+
+- 当一个抽象模型有两个方面，其中一个方面依赖于另一个方面。将这二者封装在独立的对象中以使它们可以各自独立的改变和复用。
+- 当一个对象的改变需要同时改变其他对象，而不知道具体有多少对象有待改变。
+- 当一个对象必须通知其他对象，而又不能假定其他对象是谁。换言之，你不希望这些对象使紧密耦合的。
+
+**5. 结构**
+
+![](../images/DesignPatternsBook_202212031627_2.png)
+
+**6. 参与者**
+
+- Subject(目标)
+  - 目标知道它的观察者。可以有任意多个观察者观察同一个目标。
+  - 提供注册和删除观察者对象的接口。
+- Observer（观察者）
+  - 为那些在目标发生改变时需获得通知的对象定义一个更新接口。
+- ConcreteSubject(具体目标)
+  - 将有关状态存入各 ConcreteSubject 对象。
+  - 当它的状态发生改变时，向它的各个观察者发出通知。
+- ConcreteObserver(具体观察者)
+  - 维护一个指向 ConcreteSubject 的引用。
+  - 存储有关状态，这些状态应该与目标的状态保持一致。
+  - 实现 Observer 的更新接口以使自身状态与目标的状态保持一致。
+
+**7. 协作**
+
+- 当 ConcreteSubject 发生任何可能导致其观察者与其本身状态不一致的改变时，它将通知它的各个观察者。
+- 在得到一个具体目标的改变通知后，ConcreteObserver 对象可向目标对象查询信息。ConcreteObserver 使用这些信息以使它的状态与目标对象的状态一致。
+
+下面的交互图说明了一个目标对象和两个观察者之间的协作。
+![](../images/DesignPatternsBook_202212112040_1.png)
+
+注意发出改变请求的 Observer 对象并不立即更新，而是将其推迟到它从目标得到一个通知之后。Notify 不总是由目标对象调用。它也可被一个观察者或其他对象调用。实现一节将讨论一些常用的变化。
+
+**8. 效果**
+
+Observer 模式允许你独立的改变目标和观察者。优缺点如下：
+
+1. 目标和观察者的抽象耦合。
+2. 支持广播通信。
+3. `意外的更新`。 因为一个观察者并不知道其他观察者的存在，它可能对改变目标的最终代价一无所知。此外，如果依赖准则的定义或维护不当，常常会引起错误的更新，这种错误通常很难捕捉。
+
+**9. 实现**
+
+1. 创建目标到其观察者之间的映射
+   1. 一个目标对象跟踪它应通知的观察者的最简单的方法时显式地在目标中保存对它们的引用。然而，当目标很多而观察者较少时，这样存储可能代价太高。一个解决方法时用时间换空间，用一个关联查找机制（例如一个 Hash 表）来维护目标到观察者的映射。这样没有观察者的目标就不产生存储开销。但另一方面，这一方法增加了访问观察者的开销。
+2. 观察多个目标。
+   1. 在某些情况下，一个观察者依赖于多个目标可能是有意义的。例如，一个表格对象可能依赖于多个数据源。在这种情况下，必须扩展 Update 接口以使得观察者知道是哪一个目标送来的通知。目标对象可以简单地将自己作为 Update 操作的一个参数，让观察者知道应该去检查哪一个目标。
+3. 谁触发更新。 目标和它的观察者依赖于通知机制来保持一致。但到底哪一个对象调用 Notify 来触发更新？此时有两个选择：
+   1. 由目标对象的状态设定操作在改变目标对象的状态后自动调用 Notify 。这种方法的优点是客户不需要记住要在目标对象上调用 Notify，缺点是多个连续的操作会产生多次连续的更新，可能效率较低。
+   2. 让客户负责在适当的时候调用 Notify。这样做的优点是客户可以在一系列状态改变完成后再一次性地触发更新，避免了不必要地中间更新。缺点是给客户增加了触发更新的责任。由于客户可能会忘记调用 Notify ，这种方式较易出错。
+
+4. 对已删除目标的悬挂引用
+   1. 删除一个目标时应注意不要在其观察者中遗留对该目标的悬挂应用。一种避免悬挂引用的方法是，当一个目标被删除时，让它通知它的观察者将对该目标的引用复位。一般来说，不能简单地删除观察者，因为其他对象可能会引用它们，或者也可能它们还在观察其他的目标。
+5. 在发出通知前确保目标的状态自身是一致的。这一点很重要，因为观察者在更新其状态的过程中需要查询目标的当前状态。
+   1. 当 Subject 的子类调用继承的该项操作时，很容易无意中违反这条自身一致的准则。例如，在下面的代码中，在目标尚且处于一种不一致的状态时，通知就被出发了：
+   2.
+
+   ```c++
+   void MySubject:Operation(int newValue){
+    BaseClassSubject::Operation(newValue);
+      //trigger notification
+
+    _myInstVar += newValue;
+      //update subclass state (too late !)
+   }
+   ```
+
+   3. 你可以用抽象的 Subject 类中的模板方法（Template Method） 发送通知来避免这种错误。
+6. 避免特定于观察者的更新协议 - 推拉模型。  观察者模式的实现经常需要让目标广播关于其改变的其他一些信息。目标将这些信息作为 Update 操作的一个参数传递出去。这些信息的量可能很小，也可能很大。
+   1. 一个极端情况是，目标向观察者发送关于改变的详细信息，而不管它们需要与否。我们称之为`推模型`。另一个极端是`拉模型`；目标除最小通知外什么也不送出，而在此之后由观察者显式地向目标询问细节。
+   2. 推模型可能使得观察者相对难以复用，因为目标对观察者的假定可能并不总是正确的。另一方面。拉模型可能效率较差，因为观察者对象需在没有目标对象帮助的情况下确定什么改变了。
+7. 显式地指定感兴趣的改变
+   1. 你可以扩展目标的注册接口，让各观察者注册为仅对特定事件感兴趣，以提高新的效率。当一个事件发生时，目标仅通知那些已注册为对该事件感兴趣的观察者。支持这种做法一种途径是，对使用目标对象的方面(aspects)的概念。可用如下代码：`void Subject::Attach(Observer * ,Aspect& interest);`。在通知的时刻，目标将这方面的改变作为 Update 操作的一个参数传递给它的观察者，例如： `void Observer::Update(Subject* ,Aspect& interest)`。
+8. 封装复杂的更新语义。 当目标和观察者间的依赖关系特别复杂时，可能需要一个维护这些关系的对象。我们称这样的对象为`更改管理器（ChangeManager）`。它的目的是尽量减少观察者反映其目标的状态所需的工作量。例如，如果一个操作涉及到对几个相互依赖的目标进行改动，就必须保证仅在所有的目标都已更改完毕后，才一次性地通知它们的观察者，而不是每个目标都通知观察者。下面的图描述了一个简单的基于 ChangeManager 的 Observer 模式的实现。ChangeManager 有三个责任：
+   1. 它将一个目标映射到它的观察者并提供一个接口来维护这个映射。这就不需要由目标来维护对其观察者的引用，反之亦然。
+   2. 它定义一个特定的更新策略。
+   3. 根据一个目标的请求，它更新所有依赖于这个目标的观察者。
+![](../images/DesignPatternsBook_202212112040_2.png)
+
+**10. 代码示例**
+
+```c++
+class Subject; 
+
+class Observer{
+public:
+  virtual ~Observer();
+  virtual void Update(Subject * theChangedSubject) = 0;
+protected:
+  Observer();
+};
+
+class Subject{
+public:
+  virual ~Subject();
+
+  virtual void Attach(Observer*) ;
+  virtual void Detach(Observer*);
+  virtual void Notify();
+protected:
+  Subject();
+
+private:
+  List<Observer*> * _obervers;
+};
+
+void Subject::Attach(Observer * o){
+  _observers->Append(o);
+}
+
+void Subject::Detach(Observer * o){
+  _observers->Remove(o);
+}
+
+void Subject::Notify(){
+  ListIterator<Observer*> i(_observers);
+  for(i.First();!i.IsDone（）；i.Next()){
+    i.CurrentItem()->Update(this);
+  }
+}
+
+//ClockTimer 是一个用于存储和维护一天时间的具体目标。它每秒钟通知一次它的观察者。
+
+class ClockTimer:public Subject{
+public:
+  ClockTimer();
+
+  virtual int GetHour();
+  virtual int GetMinute();
+  virtual int GetSecond();
+
+  void Tick();
+};
+
+void ClockTimer::Tick(){
+  //update internal time-keeping state 
+  //...
+  Notify();
+}
+
+
+class DigitalClock:public Widget,public Observer{
+public:
+  DigitalClock(ClockTimer * );
+  virtual ~DigitalClock();
+
+  virtual void Update(Subject *);
+  // override observer operations
+
+  virtual void Draw();
+  //override Widget operation;
+  //define how to draw the digital clock 
+private:
+  ClockTimer * _subject;
+};
+
+DigitalClock::DigitalClock(ClockTimer * s){
+  _subject=s;
+  _subject->Attach(this);
+}
+
+DigitalClock::~DigitalClock(){
+  _subject->Detach(this);
+}
+
+void DigitalClock::Update(Subject * theChangedSubject){
+  if(theChangedSubject == _subject){
+    Draw();
+  }
+}
+
+void DigitalClock::Draw(){
+  // get the new values from the subject 
+
+  int hour = _subject->GetHour();
+  int minute = _subject->GetMinute();
+  // etc 
+
+  //draw the digital clock 
+}
+
+// 一个 AnalogClock 可用相同的方式定义
+class AnalogClock:public Widget,public Observer{
+public:
+  AnalogClock(ClockTimer *);
+  virtual void Update(Subject *);
+  virtual void Draw();
+};
+
+```
+
+使用方式：
+
+```c++
+auto timer = new ClockTimer;
+auto analogClock = new AnalogClock(timer);
+auto digitalClock = new DigitalClock(timer);
+```
+
+**11. 已知应用**
+
+- 最早的可能也是最著名的 Observer 模式的例子出现在 Smalltalk 的 Model/View/Controller (MVC) 结构中，它是 Smalltalk 环境中的用户界面框架。MVC 中的 Model 担任目标的角色，而 View 是观察者的基类。
+- 其他的使用这一模式的用户界面工具有 InterViews,Andrew Toolkit 和 Unidraw。
+
+**12.相关模式**
+
+- Mediator；通过封装复杂的更新语义，ChangeManager充当目标和观察者之间的中介者。
+- Singleton: ChangeManager 可使用 Singleton 模式来保证它是唯一的并且是全局访问的。
 
 ---
 
