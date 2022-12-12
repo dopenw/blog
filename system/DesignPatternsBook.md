@@ -89,6 +89,7 @@
   - [5.5 Mediator(中介者)](#55-mediator中介者)
   - [5.6 Memento (备忘录)](#56-memento-备忘录)
   - [5.7 Observer（观察者）](#57-observer观察者)
+  - [5.8 State (状态)](#58-state-状态)
 
 <!-- /code_chunk_output -->
 
@@ -5592,6 +5593,222 @@ auto digitalClock = new DigitalClock(timer);
 
 - Mediator；通过封装复杂的更新语义，ChangeManager充当目标和观察者之间的中介者。
 - Singleton: ChangeManager 可使用 Singleton 模式来保证它是唯一的并且是全局访问的。
+
+## 5.8 State (状态)
+
+**1. 意图**
+
+允许一个对象在其内部状态改变时改变它的行为。对象看起来似乎修改了它的类。
+
+**2. 别名**
+
+状态对象(Objects for States)
+
+**3. 动机**
+
+考虑一个网络连接的类 TCPConnection。一个 TCPConnection 对象的状态处于若干不同状态之一：连接已建立(Established)、正在监听(Listening)、连接已关闭（Closed）。当一个 TCPConnection 对象收到其他对象的请求时，它根据自身的当前状态作出不同的反应。例如，一个 Open 请求的结果依赖于该连接是处于连接已关闭状态还是连接已建立状态。State 模式描述了 TCPConnection 如何在每一种状态下表现出不同的行为。
+
+这一模式的关键思想是引入了一个称为 TCPState 的抽象类来表示网络的连接状态。TCPState 类为各表示不同的操作状态的子类声明了一个公共接口。TCPState 的子类实现与特定状态相关的行为。例如，TCPEstablished 和 TCPClosed 类分别实现了特定于 TCPConnection 的连接已建立状态和连接已关闭状态的行为。
+
+![](../images/DesignPatternsBook_202212122045_1.png)
+
+TCPConnection 类维护一个表示 TCP 连接当前状态的状态对象（一个 TCPState 子类的实例）。
+一旦连接状态改变，TCPConnection 对象就会改变它所使用的状态对象。
+
+**4. 适用性**
+
+- 一个对象的行为取决于它的状态，并且它必须在运行时刻根据状态改变它的行为。
+- 一个操作中含有庞大的多分支的条件语句，且这些分支依赖于该对象的状态。
+
+**5. 结构**
+
+![](../images/DesignPatternsBook_202212122045_2.png)
+
+**6. 参与者**
+
+- Context(环境，如 TCPConnection)
+  - 定义客户感兴趣的接口。
+  - 维护一个 ConcreteState 子类的实例，这个实例是定义当前状态。
+- State(状态，如 TCPState)
+  - 定义一个接口以封装与 Context 的一个特定状态相关的行为。
+- ConcreteState subclass(具体状态子类，如 TCPEstablished,TCPListen,TCPClosed)
+  - 每一个子类实现一个与 context 的一个状态相关的行为。
+
+**7. 协作**
+
+- Context 将与状态相关的请求委托给当前的 COncreteState 对象处理。
+- Context 可将自身作为一个参数传递给处理该请求的状态对象。这使得状态对象在必要时可访问 Context 。
+- Context 是客户使用的主要接口。客户可用状态对象来配置一个 Context ,一旦一个 Context 配置完毕，它的客户不再需要直接与状态对象打交道。
+- Context 或 ConcreteState 子类都可决定哪个状态是另外哪一个的后继者，以及是在何种条件下进行状态转换。
+
+**8. 效果**
+
+1. 它将与特定状态相关的行为局部化，并且将不同状态的行为分割开来。
+2. 它使得状态转换显式化
+3. State 对象可被共享
+   1. 如果 State 对象没有实例变量 - 即它们表示的状态完全以它们的类型来编码 - 那个各 Context 对象可以共享一个 State 对象。当状态以这种方式被共享时，它们必然是没有内部状态，只有行为的轻量级对象(参见 FlyWeight)
+
+**9. 实现**
+
+实现该模式有多方面的考虑：
+
+1. `谁定义状态转换` State 模式不指定哪一个参与者定义状态转换准则。如果该准则是固定的，那么它们可在 Context 中完全实现。然而若让 State 子类自身指定它们的后继状态以及何时进行转换，通常更灵活更合适。这需要 Context 增加一个接口，让 State 对象显式地设定 Context 的当前状态。
+用这种方法分散转换逻辑可以很容易地定义新的State 子类来修改和扩展该逻辑。这样做的一个缺点就是，一个 State 子类至少拥有一个其他子类的信息，这就在各子类之间产生了实现依赖。
+2. `基于表的另一种方法` 使用表将输入映射到状态转换。对每一个状态，一张表将每一个可能的输入映射到一个后继状态。实际上，这种方法将条件代码映射为一个查找表。表的好处是它们的规则性：你可以通过更改数据而不是更改代码程序来改变状态转换的准则。然而它也有一些缺点：
+     1. 对表的查找通常不如（虚）函数调用效率高。
+     2. 用统一的、表格的形式表示转换逻辑使得转换准则变得不够明确而难以理解。
+     3. 通常难以加入伴随状态转换的一些动作。表驱动的方法描述了状态和它们之间的转换，但必须扩充这个机制以便在每一个转换上能够进行任意计算。
+
+   表驱动的状态机和State 模式的主要区别在于：State 模式对与状态相关的行为进行建模，而表驱动的方法着重于定义状态转换。
+3. `创建和销毁 State 对象` 一个常见的值得考虑的实现上的权衡是，究竟是 （1） 仅当需要 State 对象时才创建它们并随后销毁它们，还是 （2） 提前创建它们并且始终不销毁它们。
+   当将要进入的状态在运行时是不可知的，并且上下文不经常改变状态时，第一种选择较为可取。当状态改变很频繁时，第二种方法较好。在这种情况下最好避免销毁状态，因为可能很快再次需要用到它们。
+4. `使用动态继承` 改变一个响应特定请求的行为可以用在运行时刻改变这个对象的类的办法实现，但这在大多数面向对象设计程序语言中都是不可能的。Self 和其他一些基于委托的语言确实例外，它们提供这种机制，从而直接支持 State 模式。
+
+**10. 代码示例**
+
+下面的例子给出了在动机一节中描述的 TCP 连接例子中的 C++ 代码。这个例子是 TCP 协议的一个简化版本，它并未完整描述 TCP 连接的协议以及其所有状态。
+
+```c++
+// 首先，我们定义类 TCPConnection ，它提供了一个传送数据的接口并处理改变状态的请求。
+class TCPOctetStream;
+class TCPState;
+
+class TCPConnection{
+public:
+  TCPConnection();
+
+  void ActiveOpen();
+  void PassiveOpen();
+  void Close();
+  void Send();
+  void Acknowledge();
+  void Synchronize();
+
+  void ProcessOctet(TCPOctetStream*);
+private:
+  friend class TCPState;
+  void ChangeState(TCPState*);
+private:
+  TCPState* _state;
+};
+
+class TCPState{
+public:
+  virtual void Transmit(TCPConnection*,TCPOctetStream*);
+  virtual void ActiveOpen(TCPConnection *);
+  virtual void PassiveOpen(TCPConnection *);
+  virtual void Close(TCPConnection *);
+  virtual void Synchronize(TCPConnection *);
+  virtual void Acknowledge(TCPConnection *);
+  virtual void Send(TCPConnection *);
+
+protected:
+  void ChangeState(TCPConnection*,TCPState*);
+};
+
+TCPConnection::TCPConnection(){
+  _state=TCPClosed::Instance();
+}
+
+void TCPConnection::ChangeState(TCPState * s){
+  _state = s;
+}
+
+void TCPConnection::ActiveOpen(){
+  _state->ActiveOpen(thsi);
+}
+
+void TCPConnection::PassiveOpen(){
+  _state->PassiveOpen(this);
+}
+
+void TCPConnection::Close(){
+  _state->Close(this);
+}
+
+void TCPConnection::Acknowledge(){
+  _state->Acknowledge(this);
+}
+
+void TCPConnection::Synchronize(){
+  _state->Synchronize(this);
+}
+
+void TCPState::Transmit(TCPConnection*,TCPOctetStream*){ }
+void TCPState::ActiveOpen(TCPConnection *){ }
+void TCPState::PassiveOpen(TCPConnection *){ }
+void TCPState::Close(TCPConnection *){ }
+void TCPState::Synchronize(TCPConnection *){ }
+void TCPState::Acknowledge(TCPConnection *){ }
+void TCPState::Send(TCPConnection *){ }
+void TCPState::ChangeState(TCPConnection* t,TCPState* s){ 
+  t->ChangeState(s);
+}
+
+class TCPEstablished:public TCPState{
+public:
+  static TCPState * Instance();
+
+  virual void Transmit(TCPConnection*,TCPOctetStream*);
+  virtual void Close(TCPConnection*);
+};
+
+class TCPListen:public TCPState{
+public:
+  static TCPState* Instance();
+
+  virtual void Send(TCPConnection*);
+  // ...
+};
+
+class TCPClosed:public TCPState{
+public:
+  static TCPState * Instance();
+
+  virtual void Send(TCPConnection*);
+  virtual void PassiveOpen(TCPConnection *);
+}
+// TCPState 的子类没有局部变量，因此它们可以被共享，并且每个子类只需要一个实例。
+
+void TCPClosed::ActiveOpen(TCPConnection * t){
+  // send SYN ,receive SYN ,ACK ,etc 
+  ChangeState(t,TCPEstablished::Instance());
+}
+
+void TCPClosed::PassiveOpen(TCPConnection * t){
+  ChangeState(t,TCPListen::Instance());
+}
+
+void TCPEstablished::Close(TCPConnection * t){
+  // send FIN,reveive ACK of FIN  
+  ChangeState(t,TCPListen::Instance());
+}
+
+void TCPEstablished::Transmit(TCPConnection * t,TCPOctetStream * o){
+  t->ProcessOctet(o);
+}
+
+void TCPListen::Send(TCPConnection * t){
+  // send SYN ,receive SYN ,ACK ,etc 
+  ChangeState(t,TCPEstablished::Instance());
+}
+
+```
+
+在完成与状态相关的动作后，这些操作调用 ChangeState 操作来改变 TCPConnection 的状态。TCPConnection 本身对 TCP 连接协议一无所知；是由 TCPState 子类来定义 TCP 中的每一个状态转换和动作。
+
+**11. 已知应用**
+
+- Johnson 和 Zweig 描述了 State 模式以及它在 TCP 连接协议上的应用。
+- 大多数流行的交互式绘图程序提供了以直接操纵的方式进行工作的“工具”。我们可定义一个抽象的 Tool 类，再从这个类派生出一些子类，实现与特定工具相关的行为。图形编辑器维护一个当前 Tool 对象并将请求委托给它。当用户选择一个新的工具时，就将这个工具换成新的，从而使得图形编辑器的行为相应地发生改变。
+- HotDraw 和 Unidraw 中地绘图编辑器框架都使用了这一技术。它使得客户可以很容易地定义新类型地工具。在 HotDraw 中，DrawingController 类将请求转发给当前的 Tool 对象。在 Unidraw 中，相应的类是 Viewer 和 Tool。下面简要描述了 Tool 和 DrawingController 的接口。
+![](../images/DesignPatternsBook_202212122045_3.png)
+- Copelien 的 Envelope-Letter idom 与 State 模式也有关。Envelope-Letter 是一种在运行时改变一个对象的类的技术。State 模式更为特殊，它着重于如何处理那些行为随状态变化而变化的对象。
+
+**12. 相关模式**
+
+- FlyWeight 模式解释了何时以及怎样共享状态对象。
+- 状态对象通常是 Singleton。
 
 ---
 
