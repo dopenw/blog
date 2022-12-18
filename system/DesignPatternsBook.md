@@ -90,6 +90,7 @@
   - [5.6 Memento (备忘录)](#56-memento-备忘录)
   - [5.7 Observer（观察者）](#57-observer观察者)
   - [5.8 State (状态)](#58-state-状态)
+  - [5.9 Strategy (策略)](#59-strategy-策略)
 
 <!-- /code_chunk_output -->
 
@@ -5809,6 +5810,184 @@ void TCPListen::Send(TCPConnection * t){
 
 - FlyWeight 模式解释了何时以及怎样共享状态对象。
 - 状态对象通常是 Singleton。
+
+## 5.9 Strategy (策略)
+
+**1.意图**
+
+定义一系列的算法，把它们一个个封装起来，并且使它们可以相互替换。本模式使得算法可独立于使用它的客户而变化。
+
+**2. 别名**
+
+政策(Policy)
+
+**3. 动机**
+
+有许多算法可对一个正文流进行分行。将这些算法硬编进使用它们的类中是不可取的。我们可以定义一些类来封装不同的换行算法。一个以这种方法封装的算法称为一个策略(Strategy)，如下图所示：
+
+![](../images/DesignPatternsBook_202212181735_1.png)
+
+**4. 适用性**
+
+- 许多相关的类仅仅是行为有异。“策略”提供了一种用多个行为中的一个行为来配置一个类的方法。
+- 需要使用一个算法的不同变体。例如，你可能会定义一些反映不同空间/时间权衡的算法。当这些变体实现为一个算法的类层次时，可以使用策略模式。
+- 算法使用客户不应该知道的数据。可使用策略模式来避免暴露复杂的、与算法相关的数据结构。
+- 一个类定义了多种行为，并且这些行为在这个类的操作中以多个条件语句的形式出现。将相关的条件分支移入它们各自的 Strategy 类中以代替这些条件语句。
+
+**5. 结构**
+
+![](../images/DesignPatternsBook_202212181735_2.png)
+
+**6. 参与者**
+
+- Strategy（策略）
+  - 定义所有支持的算法的公共接口。Context 使用这个接口来调用某个 ConcreteStrategy 定义的算法。
+  - ConcreteStrategy(具体策略，如 SimpleCompositor,TeXCompositor,ArrayCompositor)
+    - 以 Strategy 接口实现某具体算法。
+  - Context （上下文，如 Composition）
+    - 用一个 ConcreteStrategy 对象来配置
+    - 维护一个对 Strategy 对象的引用
+    - 可定义一个接口来让 Stategy 访问它的数据。
+  
+**7. 协作**
+
+- Strategy 和 Context 相互作用以实现选定的算法。当算法被调用时，Context 可以将该算法所需要的所有数据都传递给该 Strategy 。或者，Context 可以将自身作为一个参数传递给 Strategy 操作。这就让 Strategy 在需要时可以回调 Context。
+- Context 将它的客户的请求转发给它的 Strategy 。客户通常创建并传递一个 ConcreteStrategy 对象给该 Context ；这样，客户仅与 Context 交互。通常有一系列的 ConcreteStrategy 类可供客户从中选择。
+  
+**8. 效果**
+
+优缺点：
+
+1. `相关算法系列` Strategy 类层次为 Context 定义了一系列的可供重用的算法或行为。继承有助于析取出这些算法中的公共功能。
+2. `一个替代继承的方法` 将算法封装在独立的 Strategy 类中使得你可以独立于其 Context 改变它，使它易于切换、易于理解、易于扩展。
+3. `消除了一些条件语句`
+4. `实现的选择` Strategy 模式可以提供相同行为的不同实现。客户可以根据不同时间/空间权衡取舍要求从不同策略中进行选择。
+5. `客户必须了解不同的 Strategy` 本模式有一个潜在的缺点，就是一个客户要选择一个合适的 Strategy 就必须知道这些 Strategy 到底有何不同。此时可能不得不向客户暴露具体的实现问题。因此，仅当这些不同行为变体与客户相关的行为时，才需要使用 Strategy 模式。
+6. `Strategy 和 Context 之间的通信开销` 无论各个 ConcreteStrategy 实现的算法时简单还是复杂，它们都共享 Strategy 定义的接口。因此很可能某些 ConcreteStrategy 不会都用到所有通过这个接口传递给它们的信息；这就意味着有时 Context 会创建和初始化一些永远不会用到的参数。
+7. `增加了对象的数目` Strategy 增加了一个应用中的对象的数目。有时你可以将 Strategy 实现为可供各 Context 共享的无状态的对象来减少这一开销。任何其余的状态都由 Context 维护。Context 在每一次对 Strategy 对象的请求中都将这个状态传递过去。共享的 Strategy 不应在各次调用之间维护状态。FlyWeight 模式更详细地描述了这一方法。
+
+**9. 实现**
+
+考虑下面地实现问题：
+
+1. `定义 Strategy 和 Context 接口` Strategy 和 Context 接口必须使得 ConcreteStrategy 能够有效的访问它所需要的 Context 中的任何数据，反之亦然。一种方法是让 Context 将数据放在参数中传递给 Strategy 操作。这使得 Strategy 和 Context 解耦。但另一方面，Context 可能会发送一些 Strategy 不需要的数据。另一个方法是让 Context 将自身作为一个参数传递给 Strategy ，该 Strategy 再显式地向该 Context 请求数据。或者，Strategy 可以存储对它的 Context 的一个引用，这样根本不再需要传递任何东西。 这两种情况下，Strategy 都可以请求到它所需要的数据。但现在 Context 必须对它的数据定义一个更为精细的接口，这将 Strategy 和 Context 更紧密地耦合在一起。
+2. `将 Strategy 作为模板参数` 在 C++ 中，可利用模板机制用一个 Strategy 来配置一个类。然而这种技术仅当下面条件满足时才可使用：1. 可以在编译时选择 Strategy ；2. 它不需要在运行时改变。
+
+```c++
+template <class AStrategy>
+class Context{
+  void operation()(theStrategy.DoAlgorithm();)
+  //...
+private:
+  AStrategy theStrategy;
+};
+
+class MyStrategy{
+public:
+  void DoAlgorithm();
+};
+Context<MyStrategy> aContext;
+```
+
+使用模板不再需要定义给 Strategy 定义接口的抽象类。把 Strategy 作为一个模板参数也使得可以将一个 Strategy 和它的 Context 静态地绑定在一起，从而提高效率。
+
+3. `使 Strategy 对象成为可选的` 如果即使在不使用额外的 Strategy 对象的情况下，Context 也还有意义的话，那么它可以被简化。Context 在访问某些 Strategy 前先检查它是否存在，如果有，那么就使用它；如果没有，那么 Context 执行缺省的行为。这种方法的好处使客户根本不需要处理 Strategy 对象，除非它们不喜欢缺省的行为。
+
+**10. 代码示例**
+
+这里给出动机一节例子的高层代码，这些代码基于 InterViews 中的 Composition 和 Compositor 类的实现。
+Composition 类维护一个 Component 实例的集合，它们代表一个文档中的正文和图形元素。Composition 使用一个封装了某种分行策略的 Compositor 子类实例将 Component 对象编排成行。每一个 Component 都有相应的正常大小、可伸展性和可收缩性。可伸展性定义了该 Component 可以增长到超出正常大小的程度；可收缩性定义它可以收缩的程度。Composition 将这些值传递给一个 Compositor ，它使用这些值来决定换行的最佳位置。
+
+```c++
+class Composition{
+public:
+  Composition(Compositor *);
+  void Repair();
+private:
+  Compositor * _compositor; 
+  Component* _components; // the list of components
+  int _componentCount; // the number of components 
+  int _lineWidth; // the Composition's line width 
+  int * _lineBreaks; // the position of linebreaks in components 
+  int _lineCount; // the number of lines
+
+};
+
+class Compositor{
+public:
+  virtual int Compose(Coord natural[],Coord stretch[],Coord shrink[],int componentCount,int lineWidth,int breaks[])=0;
+protected:
+  Compositor();
+};
+
+
+void Composition::Repair(){
+  Coord * natural;
+  Coord * stretchability;
+  Coord * shrinkability;
+  int componentCount;
+  int * breaks;
+
+  // prepare the arrays with the desired component sizes 
+  //...
+
+  // deteermine where the breaks are:
+  int breakCount;
+  breakCount = _compositor->Compose(natural,stretchability,shrinkability,componentCount,_lineWidth,breaks);
+
+  // lay out components according to breaks 
+  // ...
+}
+
+
+// SimpleCompositor 一次检查一行 Component,并决定在那儿换行：
+class SimpleCompositor:public Compositor{
+public:
+  SimpleCompositor();
+
+  virtual int Compose(Coord natural[],Coord stretch[],Coord shrink[],int componentCount,int lineWidth,int breaks[]);
+  // ...
+};
+
+// TeXCompositor 使用一个更为全局的策略。它每次检查一个段落(paragraph)，并同时考虑各 Component 的大小和伸展性。它也通过压缩 Component 之间的空白以尽量给该段落一个均匀的 “色彩”。
+class TeXCompositor:public Compositor{
+public:
+  TeXCompositor();
+
+  virtual int Compose(Coord natural[],Coord stretch[],Coord shrink[],int componentCount,int lineWidth,int breaks[]);
+  // ...
+};
+// ArrayCompositor 用规则的间距将构件分割成行。
+class ArrayCompositor:public Compositor{
+public:
+  ArrayCompositor(int interval);
+
+  virtual int Compose(Coord natural[],Coord stretch[],Coord shrink[],int componentCount,int lineWidth,int breaks[]);
+  // ...
+};
+
+```
+
+这些类并未都使用传递给 Compose 的信息。SimpleCompositor 忽略 Component 的伸展性，仅考虑它们的正常大小；TeXCompositor 使用所有传递给它的信息；而 ArrayCompositor 忽略所有的信息。
+
+使用方式：
+
+```c++
+auto quick = new Composition(new SimpleCompositor);
+auto slick = new Composition(new TeXCompositor);
+auto iconic = new Composition(new ArrayCompositor(100));
+```
+
+**11. 已知应用**
+
+- ET++ 和 InterViews 都使用 Strategy 来封装不同的换行算法。
+- 在用于编译器代码优化的 RTL 系统中，Strategy 定义了不同的寄存器分配方案(RegisterAllocator)和指令调度策略(RISCscheduler,CISscheduler).这就为在不同的目标机器结构上实现优化程序提供了所需的灵活性。
+- RApp 是一个集成电路布局系统。RApp 必须对连接电路中各子系统的线路进行布局和布线。RApp 中的布线算法定义为一个抽象的 Router 类的子类。Router 是一个 Strategy 类。
+- Borland 的 ObjectWindows 在对话框中使用 Strategy 来保证用户输入合法的数据。ObjectWindows 使用 Validator 对象来封装验证策略。
+
+**12. 相关模式**
+
+- FlyWeight: Strategy 对象经常是很好的轻量级对象。
 
 ---
 
