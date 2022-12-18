@@ -91,6 +91,7 @@
   - [5.7 Observer（观察者）](#57-observer观察者)
   - [5.8 State (状态)](#58-state-状态)
   - [5.9 Strategy (策略)](#59-strategy-策略)
+  - [5.10 Template method （模板方法）](#510-template-method-模板方法)
 
 <!-- /code_chunk_output -->
 
@@ -5988,6 +5989,108 @@ auto iconic = new Composition(new ArrayCompositor(100));
 **12. 相关模式**
 
 - FlyWeight: Strategy 对象经常是很好的轻量级对象。
+
+## 5.10 Template method （模板方法）
+
+**1. 意图**
+
+定义一个操作中的算法的骨架，而将一些步骤延迟到子类中。 Template Method 使得子类可以不改变一个算法的结构即可重定义该算法的某些特定步骤。
+
+**2. 动机**
+
+考虑一个提供 Application 和 Document 类的应用框架。Application 类负责打开一个已有的以外部形式存储的文档。如一个文件。一旦一个文档中的信息从该文件中读出后，它就由一个 Document 对象表示。
+
+用框架构建的应用可以通过继承 Application 和 Document 来满足特定的需求。例如，一个绘图应用定义 DrawApplication 和 DrawDocument 子类；一个电子表格应用定义 SpreadsheetApplication 和 SpreadsheetDocument 子类，如下图所示；
+
+![](../images/DesignPatternsBook_202212182132_1.png)
+
+抽象的 Application 类在它的 OpenDocument 操作中定义了打开和读取一个文档的算法：
+
+```c++
+void Application::OpenDocument(const char * name){
+  if(!canOpenDocument(name)){
+    // cannot handle this document 
+    return ;
+  }
+  auto doc = DoCreateDocument();
+
+  if(doc){
+    _docs->AddDocument(doc);
+    AboutToOpenDocument(doc);
+    doc->Open();
+    doc->DoRead();
+  }
+}
+```
+
+我们称 OpenDocument 为一个模板方法(Template method)。一个模板方法用一些抽象的操作定义一个算法，而子类将重定义这些操作以提供具体的行为。
+
+**3. 适用性**
+
+模板方法应用于下列情况：
+
+- 一次性实现一个算法的不变部分，并将可变的部分留给子类来实现。
+- 各子类中公共的行为应被抽取出来并集中到一个公共父类中以避免代码重复。
+- 控制子类扩展。模板方法只在特定点调用 "hook" 操作，这样就只允许在这些点进行扩展。
+
+**4. 结构**
+
+![](../images/DesignPatternsBook_202212182132_2.png)
+
+**5. 参与者**
+
+- AbstraceClass (抽象类，如 Application)
+  - 定义抽象的原语操作(primitive operation)，具体的子类将重定义它们以实现一个算法的各步骤。
+  - 实现一个模板方法，定义一个算法的骨架。该模板方法不仅调用原语操作，也调用定义在  AbstraceClass 或其他对象中的操作。
+- ConcreteClass （具体类，如 MyApplication）
+  - 实现原语操作以完成算法中与特定子类相关的步骤。
+
+**6. 协作**
+
+- ConcreteClass 靠 AbstractClass 来实现算法中不变的步骤。
+
+**7. 效果**
+
+模板方法是一种代码复用的基本技术。它们在类库中尤为重要，它们提取了类库中的公共行为。
+模板方法导致一种反向的控制结构，这种结构有时被称为 “好莱坞法则”，即 “别找我们，我们找你”。这指的是一个父类调用一个子类的操作，而不是相反。
+模板方法调用下列类型的操作：
+
+- 具体的操作(ConcreteClass 或对客户类的操作)。
+- 具体的 AbstractClass 的操作（即，通常对子类有用的操作）
+- 原语操作（即，抽象操作）。
+- Factory Method
+- 钩子操作(hook operations)，它提供了缺省的行为，子类可以在必要时进行扩展。一个钩子操作在缺省操作同通常是一个空操作。
+
+**8. 实现**
+
+1. `使用 C++ 访问控制` 在 C++ 中，一个模板方法调用的原语操作可以被定义为保护成员。这保证它们只被模板方法调用。必须重定义的原语操作需定义为纯虚函数。模板方法自身不需被重定义；因此可以将模板方法定义为一个非虚成员函数。
+2. `尽量减少原语操作` 定义模板方法的一个重要目的是尽量减少一个子类具体实现该算法时必须重定义的那些原语操作的数目。需要重定义的操作越多，客户程序就越冗长。
+3. `命名约定` 可以给应被重定义的那些操作的名字加上一个前缀以识别它们。例如，用于 Macintosh 应用的 MacApp 框架给模板方法加上前缀 "Do-",如 "DoCreateDocument","DoRead"，等等。
+
+**9. 代码实现**
+
+下面的 C++ 实例说明了一个父类如何强制其子类遵循一种不变的结构。这个例子来自于 NeXT 的 AppKit 。考虑一个支持在屏幕上绘图的类 View。一个视图在进入 “焦点”(focus) 状态时才可设定合适的特定绘图状态（如颜色和字体），因而只有成为“焦点”之后才可以绘图。View 类将强制其子类遵守这个规则。
+
+我们用 Display 模板方法来解决这个问题。View 定义两个具体操作，SetFocus 和 ResetFocus ，分别设定和清除绘图状态。View 的 DoDisplay 钩子操作实施真正的绘图功能。Display 在 DoDisplay 前调用 SetFocus 以设定绘图状态；Display 此后调用 ResetFocus 以释放绘图状态。
+
+```c++
+void View::Display(){
+  SetFocus();
+  DoDisplay();
+  ResetFocus();
+}
+```
+
+为维持不变部分，View 的客户通常调用 Display，而 View 的子类通常重定义 DoDisplay。
+
+**10. 已知应用**
+
+模板方法非常基本，它们几乎可以在任何一个抽象类中找到。
+
+**11. 相关模式**
+
+- Factory Method 模式常被模板方法调用。在动机一节的例子中，DoCreateDocument 就是一个 Factory Method，它由模板方法 OpenDocument 调用.
+- Strategy ： 模板方法使用继承来改变算法的一部分。Strategy 使用委托来改变整个算法。
 
 ---
 
