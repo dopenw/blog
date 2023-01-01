@@ -92,6 +92,7 @@
   - [5.8 State (状态)](#58-state-状态)
   - [5.9 Strategy (策略)](#59-strategy-策略)
   - [5.10 Template method （模板方法）](#510-template-method-模板方法)
+  - [5.11 Visitor (访问者)](#511-visitor-访问者)
 
 <!-- /code_chunk_output -->
 
@@ -6091,6 +6092,282 @@ void View::Display(){
 
 - Factory Method 模式常被模板方法调用。在动机一节的例子中，DoCreateDocument 就是一个 Factory Method，它由模板方法 OpenDocument 调用.
 - Strategy ： 模板方法使用继承来改变算法的一部分。Strategy 使用委托来改变整个算法。
+
+## 5.11 Visitor (访问者)
+
+**1. 意图**
+
+表示一个作用于某对象结构中的各元素的操作。它使你可以在不改变各元素的类的前提下定义作用于这些元素的新操作。
+
+**2. 动机**
+
+考虑一个编译器，它将源程序表示为一个抽象的语法树。改编译器需要在抽象语法树上实施某些操作以进行 “静态语义” 分析。它也需要生成代码。因此它可能需要定义许多操作以进行类型检查、代码优化、流程分析，检查变量是否在使用前被赋值，等等。此外，还可使用抽象语法树进行优化格式打印、程序重构、code instrumentation 以及对程序进行各种度量。
+
+这些操作大多数要求对不同的节点进行不同的处理。有用于赋值语句的类，有用于变量访问的类，还有用于算术表达式的类，等等。结点类的集合当然依赖于被编译的语言，但对于一个给定的语言其变化不大。
+
+![](../images/DesignPatternsBook_202301011635_1.png)
+
+上面的框图显示了 Node 类层次的一部分。这里的问题是，将所有这些操作分散到各种节点类中会导致整个系统难以理解、难以维护和修改。将类型检查代码与优化格式打印代码或者流程分析代码放在一起，将产生混乱。此外，增加新的操作通常需要重新编译所有这些类。如果可以独立地增加新的操作，并且使这些结点类独立于作用于其上地操作，将会更好一些。
+
+要实现上述两个目标，我们可以将每一个类中相关的操作包装在一个独立的对象（称为一个 Visitor） 中，并在遍历抽象语法树时将此对象传递给当前访问的元素。当一个元素 “接受”该访问者时，该元素向访问者发送一个包含自身类信息的请求。该请求同时也将该元素本身作为一个参数。然后访问者将为该元素执行该操作 - 这一操作以前是在该元素的类中的。
+
+为使访问者不仅仅只做类型检查，我们需要所有抽象语法树的访问者有一个抽象的父类 NodeVisitor。 NodeVisitor 必须为每一个结点类定义一个操作。一个需要计算程序度量的应用将定义 NodeVisitor 的新的子类，并且将不再需要在该结点类中增加与特定应用相关的代码。Visitor 模式将每一个编译步骤的操作封装在一个与该步骤相关的 Visitor 中。
+
+![](../images/DesignPatternsBook_202301011635_2.png)
+
+使用 Visitor 模式，必须定义两个类层次：一个对应于接受操作的元素（Node 层次）另一个对应于定义该元素的操作的访问者(NodeVisitor 层次)。给访问者类层次增加一个新的子类即可创建一个新的操作。只要该编译器接受的语法不改变（即不需要增加新的 Node 子类），我们就可以简单的定义新的 NodeVisitor 子类以增加新的功能。
+
+**3. 适用性**
+
+- 一个对象结构包含很多类对象，它们有不同的接口，而你想要对这些对象实施一些依赖于其具体类的操作。
+- 需要对一个对象结构中的对象进行很多不同的并且不相关的操作，而你想要避免这些操作“污染”对象的类。Visitor 使得你可以将相关操作集中起来定义在一个类中。当该对象结构被很多应用共享时，用 Visitor 模式让每个应用仅包含需要用到的操作。
+- 定义对象结构的类很少改变，但经常需要在此结构上定义新的操作。改变对象结构类需要重新定义对所有访问者的接口，这可能需要很大的代价。如果对象结构类经常改变，那么可能还是在这些类中定义这些操作比较好。
+
+**4. 结构**
+
+![](../images/DesignPatternsBook_202301011635_3.png)
+
+**5. 参与者**
+
+- Visitor（访问者，如 NodeVisitor）
+  - 为该对象结构中  ConcreteElement 的每一个类声明一个 Visit 操作。该操作的名字和特征标识了发送 Visit 请求给该访问者的那个类。这使得访问者可以确定正被访问元素的具体的类。这样访问者就可以通过该元素的特定接口直接访问它。
+- ConcreteVisitor（具体访问者,如 TypeCheckingVisitor）
+  - 实现每个由 Visitor 声明的操作。每个操作实现本算法的一部分，而该算法片段乃是对应于结构中对象的类。ConcreteVisitor 为该算法提供了上下文并存储它的局部状态。这一状态常常在遍历该结构的过程中累积结果。
+- Element（元素，如 Node）
+  - 定义一个 Accept 操作，它以一个访问者为参数。
+- ConcreteElement（具体元素，如 AssignmentNode，VariableRefNode）
+  - 实现 Accept 操作，该操作以一个访问者为参数。
+- ObjectStructure（对象结构，如 Program）
+  - 能枚举它的元素。
+  - 可以提供一个高层的接口以允许访问者访问它的元素。
+  - 可以是一个复合或者是一个集合，如一个列表或一个无序集合。
+
+**6. 协作**
+
+- 一个使用 Visitor 模式的客户必须创建一个 ConcreteVisitor 对象，然后遍历该对象结构，并用该访问者访问每一个元素。
+- 当一个元素被访问时，它调用对应于它的类的 Visitor 操作。如果必要，该元素将自身作为这个操作的一个参数以便该访问者访问它的状态。
+
+下面的交互框图说明了一个对象结构、一个访问者和两个元素之间的协作。
+
+![](../images/DesignPatternsBook_202301011635_4.png)
+
+**7.效果**
+
+优缺点 ：
+
+- 访问者模式使得易于增加新的操作。
+- 访问者集中相关的操作而分离无关的操作。
+- 增加新的 ConcreteElement 类很困难。
+  - 在应用访问者模式时考虑关键的问题是系统的哪个部分会经常变化，是作用于对象结构上的算法呢还是构成该结构的各个对象的类。如果老是有新的 ConcreteElement 类加入进来的话，Visitor 类层次将变得难以维护。在这种情况下，直接在构成该结构的类中定义这些操作可能更容易一些。如果 Element 类层次是稳定的，而你不断地增加操作或修改算法，访问者模式可以帮助你管理这些改动。
+- 通过类层次进行访问。
+  - 访问者可以访问不具有相同父类的对象。可以对一个 Visitor 接口增加任何类型的对象。例如:
+
+  ```c++
+  class Visitor{
+  public:
+    // ...
+    void VisitMyType(MyType *);
+    void VisitYourType(YourType *);
+  };
+  ```
+
+- 累积状态
+  - 当访问者访问对象结构中的每一个元素时，它可能会累积状态。如果没有访问者，这一状态将作为额外的参数传递给进行遍历的操作，或者定义为全局变量。
+- 破坏封装
+  - 访问者方法假定 ConcreteElement 接口的功能足够强，足以让访问者进行它们的工作。结果是，该模式常常迫使你提供访问元素内部状态的公共操作，这可能会破坏它的封装性。
+
+**8.实现**
+
+每一个对象结构将有一个相关的 Visitor 类。这个抽象的访问者类为定义对象结构的每一个 ConcreteElement 类声明一个 VisitConcreteElement 操作。每一个 Visitor 上的Visit 操作声明它的参数为一个特定的 ConcreteElement ，以允许该 Visitor 直接访问 ConcreteElement 的接口。ConcreteVisitor 类重定义每一个 Visit 操作，从而为相应的 ConcreteElement 类实现与特定访问者相关的行为。
+
+```c++
+class Visitor{
+public:
+  virtual void VisitElementA(ElementA *);
+  virtual void VisitElementB(ElementB *);
+
+  // and so on for other concrete elements 
+protected:
+  Visitor();
+};
+
+class Element{
+public:
+  virtual ~Element();
+  virtual void Accept(Visitor&) =0;
+protected:
+  Element();
+};
+
+class ElementA:public Element{
+public:
+  ElementA();
+  virtual void Accept(Visitor& v){
+    v.VisitElementA(this);
+  }
+};
+
+class ElementB:public Element{
+public:
+  ElementB();
+  virtual void Accept(Visitor& v){
+    v.VisitElementB(this);
+  }
+};
+
+// 一个 CompositeElement 类可能像这样实现 Accept
+class CompositeElement:public Element{
+public:
+  virual void Accept(Visitor&);
+private:
+  List<Element*>* _children;
+};
+
+void CompositeElement::Accept(Visitor& v){
+  ListIterator<Element*> i(_children);
+
+  for(i.First();!i.IsDone();i.Next()){
+    i.CurrentItem()->Accept(v);
+  }
+  v.VisitCompositeElement(this);
+}
+```
+
+下面是当应用 Visitor 模式时产生的其他两个实现问题：
+
+- 双分派(Double-dispatch) 访问者模式允许你不改变类即可有效地增加其上的操作。为达到这一效果使用了一种称为双分派的技术。这是一种很著名的技术。事实上，一些编程语言甚至直接支持这一技术（例如，CLOS）。而像 C++ 和 Smalltalk 这样的语言支持单分派。
+  - 在单分派语言中，到底由哪一种操作来实现一个请求取决于两个方面：该请求的名和接收者的类型。例如，一个 GenerateCode 请求将会调用的操作决定于你请求的结点对象的类型。在 C++ 中，对一个 VariableRefNode 实例调用 GenerateCode 将调用 VariableRefNode::GenerateCode(它生成一个变量引用的代码)。而对一个 AssignmentNode 调用 GenerateCode 将调用 AssignmentNode::GenerateCode(它生成一个赋值操作的代码)。所以最终哪个操作得到执行依赖于请求和接收者的类型两个方面。
+  - 双分派意味着得到执行的操作取决于请求的种类和两个接收者的类型。Accept 是一个 Double-dispatch 操作。它的含义决定于两个类型：Visitor 的类型和 Element 的类型。双分派使得访问者可以对每一个类的元素请求不同的操作。
+  - 这是 Visitor 模式的关键所在：得到执行的操作不仅决定于 Visitor 的类型还决定于它访问的 Element 的类型。可以不将操作静态地绑定在 Element 接口中，而将其安放在一个 Visitor 中，并使用 Accept 在运行时进行绑定。扩展 Element 接口就等于定义一个新的 Visitor 子类而不是多个新的 Element 子类。
+- 谁负责遍历对象结构 一个访问者必须访问这个对象结构的每一个元素。问题是，它怎样做？我们可以将遍历的责任放大下面三个地方中的任意一个：对象结构中，访问者中，或一个独立的迭代器对象中。
+  - 通常由对象结构负责迭代。一个集合只需对它的元素进行迭代，并对每一个元素调用 Accept 操作。而一个复合通常让 Accept 操作遍历该元素的各子构件并对它们中的每一个递归对调用 Accept。
+  - 甚至可以将遍历算法放在访问者中，尽管这样将导致对每一个聚合 ConcreteElement，在每一个 ConcreteVisitor 中都要复制遍历的代码。将该遍历策略放在访问者中的主要原因时想实现一个特别复杂的遍历，它依赖于对该对象结构的操作结果。我们将在代码示例一节给出这种情况的一个例子。
+
+**9.代码示例**
+
+因为访问者通常与复合相关，我们将使用 Composite 代码示例一节中定义的 Equipment 类来说明 Visitor 模式。我们将使用 Visitor 定义一些用于计算材料存货清单和单件设备总花费的操作。 Equipment 类非常简单，实际上并不一定要使用 Visitor 。但我们可以从中很容易地看出实现该模式时会涉及到的内容。
+
+```c++
+class Equipment{
+public:
+  virtual ~Equipment();
+
+  const char * Name() {return _name;}
+
+  virtual Watt Power();
+  virtual Currency NetPrice();
+  virtual Currency DiscountPrice();
+
+  virtual void Accept(EquipmentVisitor&);
+
+protected:
+  Equipment(const char *);
+private:
+  const char * _name;
+};
+
+class EquipmentVisitor{
+public:
+  virtual ~EquipmentVisitor();
+
+  virtual void VisitFloppyDisk(FloppyDisk*);
+  virtual void VisitCard(Card *);
+  virtual void VisitChassis(Chassis *);
+  virtual void VisitBus(Bus*);
+
+  // and so on for other concrete subclasses of Equipment
+protected:
+  EquipmentVisitor();
+};
+
+// Equipment 子类以基本相同的方式定义 Accept；
+void FloppyDisk::Accept(EquipmentVisitor& visitor){
+  visitor.VisitFloppyDisk(this);
+}
+
+//包含其他设备的设备（尤其是在 Composite 模式中
+// CompositeEquipment 的子类）可这样。
+void Chassis::Accept(EquipmentVisitor& visitor){
+  for(ListIterator<Equipment*>i(_parts);!i.IsDone();i.Next()){
+    i.CurrenItem()->Accept(Visitor);
+  }
+  visitor.VisitChassis(this);
+}
+
+// EquipmentVisitor 的子类在设备结构上定义了特定的算法
+//。PricingVisitor 计算该设备结构的价格。它计算所有简单设备的实价
+//以及所有复合设备打折后的价格。
+
+class PricingVisitor:public EquipmentVisitor{
+public:
+  PricingVisitor();
+
+  Currency& GetTotalPrice();
+
+  virtual void VisitFloppyDisk(FloppyDisk*);
+  virtual void VisitCard(Card *);
+  virtual void VisitChassis(Chassis *);
+  virtual void VisitBus(Bus*);
+  //...
+private:
+  Currency _total;
+};
+
+void PricingVisitor::VisitFloppyDisk(FloppyDisk * e){
+  _total += e->NetPrice();
+}
+
+void PricingVisitor::VisitChassis(Chassis * e){
+  _total += e->DiscountPrice();
+}
+
+// 我们还可以像这样定义一个计算存货清单的类：
+class InventoryVisitor:public EquipmentVisitor{
+public:
+  InventoryVisitor();
+
+  Inventory& GetInventory();
+
+  virtual void VisitFloppyDisk(FloppyDisk*);
+  virtual void VisitCard(Card *);
+  virtual void VisitChassis(Chassis *);
+  virtual void VisitBus(Bus*);
+  //...
+
+private:
+  Inventory _inventory;
+};
+
+void InventoryVisitor::VisitFloppyDisk(FloppyDisk * e){
+  _inventory.Accumulate(e);
+}
+
+void InventoryVisitor::VisitChassis(Chassis * e){
+  _inventory.Accumulate(e);
+}
+```
+
+下面时如何在一个设备结构上使用 InventoryVisitor:
+
+```c++
+Equipment * component=new FloppyDisk;
+InventoryVisitor visitor;
+
+component->Accept(visitor);
+std::cout<<"Inventory "<< component->Name() << visitor.GetInventory();
+```
+
+**10. 已知应用**
+
+- Smalltalk-80 编译器有一个称为 ProgramNodeEnumerator 的 Visitor 类。它主要用于那些分析源代码的算法。它未被用于代码生成和优美格式打印，尽管它也可以做这些工作。
+
+- IRISInventor 是一个用于开发三维图形应用的工具包。Inventor 将一个三维场景表示成一个结点的层次结构，每一个结点代表一个几何对象或其属性。诸如绘制一个场景或是映射一个输入事件之类的一些操作要求以不同的方式遍历这个层次结构。Inventor 使用称为 “action” 的访问者来做到这一点。生成图像、事件处理、查询、填充和决定边界框等操作都有各自相应的访问者来处理。
+- Mark Linton 在 X Consortium 的  Fresco Application Toolkit 设计说明书中提出了术语 “Visitor”。
+
+**11. 相关模式**
+
+- Composite: 访问者可以用于对一个由 Composite 模式定义的对象结构进行操作。
+- Interpreter: 访问者可以用于解释。
 
 ---
 
