@@ -72,5 +72,5 @@ CONFIG+=qwt
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [《Qml Book》 - Extending QML with C++](qmlbook_18_extendingQmlWithc++.md)
+- 上一篇 -> [Qt 源码学习](qtSourceStudy.md)
 - 下一篇 -> [QwtPolar 简单使用](qwtPolar.md)

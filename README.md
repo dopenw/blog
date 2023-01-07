@@ -79,6 +79,7 @@
 - [《Qml Book》 - JavaScript](./Qt/qmlbook_16_javaScript.md)
 - [《Qml Book》 - Qt and C++](./Qt/qmlbook_17_QtAndc++.md)
 - [《Qml Book》 - Extending QML with C++](./Qt/qmlbook_18_extendingQmlWithc++.md)
+- [Qt 源码学习](./Qt/qtSourceStudy.md)
 - [qwt 简单使用](./Qt/qwt.md)
 - [QwtPolar 简单使用](./Qt/qwtPolar.md)
 - [编译 vs2012 qt 5.3.1 64 位版本](./Qt/useCompiledQt.md)

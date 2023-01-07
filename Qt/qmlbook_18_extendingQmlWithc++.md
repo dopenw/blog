@@ -566,4 +566,4 @@ Plugins provide a nice and clean separation between C++ backend development and 
 
 - [上一级](README.md)
 - 上一篇 -> [《Qml Book》 - Qt and C++](qmlbook_17_QtAndc++.md)
-- 下一篇 -> [qwt 简单使用](qwt.md)
+- 下一篇 -> [Qt 源码学习](qtSourceStudy.md)
