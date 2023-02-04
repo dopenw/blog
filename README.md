@@ -88,6 +88,7 @@
 - [C 和 C++ 的内存分布](./system/CAndC++MemoryDistribution.md)
 - [设计模式 - 可复用面向对象软件的基础](./system/DesignPatternsBook.md)
 - [贪心算法](./system/GreedyAlgorithms.md)
+- [极客时间 - 设计模式之美 - 学习笔记](./system/TheBeautyOfDesignPatterns.md)
 - [极客时间 - 软件工程之美（宝玉）- 学习笔记](./system/TheBeautyOfSoftwareEngineering.md)
 - [变量名的力量](./system/ThePowerOfVariableName.md)
 - [UML 统一建模语言](./system/UML.md)
