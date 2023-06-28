@@ -45,6 +45,7 @@ The way these sockets work depend on the type of socket chosen. And flow of mess
 
 ## ZeroMQ guide
 [ØMQ - The Guide](http://zguide.zeromq.org/) - 包含 zeroMsg 说明和多种编程语言的例子
+[ZMQ 指南](https://github.com/anjuke/zguide-cn)
 
 ## 构建
 ### 构建 libZmq 
@@ -219,6 +220,10 @@ Some points about the publish-subscribe (pub-sub) pattern:
 * If a publisher has no connected subscribers, then it will simply drop all messages.
 * If you're using TCP and a subscriber is slow, messages will queue up on the publisher. We'll look at how to protect publishers against this using the "high-water mark" later.
 * From ZeroMQ v3.x, filtering happens at the publisher side when using a connected protocol (tcp:// or ipc://). Using the epgm:// protocol, filtering happens at the subscriber side. In ZeroMQ v2.x, all filtering happened at the subscriber side.
+
+PUB-SUB套接字组合是异步的。客户端在一个循环体中使用zmq_recv()接收消息，如果向SUB套接字发送消息则会报错；类似地，服务端可以不断地使用zmq_send()发送消息，但不能在PUB套接字上使用zmq_recv()。
+
+关于PUB-SUB套接字，还有一点需要注意：你无法得知SUB是何时开始接收消息的。就算你先打开了SUB套接字，后打开PUB发送消息，这时SUB还是会丢失一些消息的，因为建立连接是需要一些时间的。很少，但并不是零。
 
 publisher:
 ```c++
