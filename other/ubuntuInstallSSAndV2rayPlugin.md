@@ -11,8 +11,11 @@ apt install -y git vim gcc
 
 # apt copr enable librehat/shadowsocks -y
 apt update -y
-apt install -y shadowsocks-libev
+# apt install -y shadowsocks-libev
 apt install wget
+
+wget https://github.com/shadowsocks/shadowsocks-rust/releases/download/v1.16.2/shadowsocks-v1.16.2.x86_64-unknown-linux-gnu.tar.xz
+sudo tar -C /usr/local -xf shadowsocks-v1.16.2.x86_64-unknown-linux-gnu.tar.xz
 
 # install go 1.13.8
 wget https://go.dev/dl/go1.16.5.linux-amd64.tar.gz
@@ -28,56 +31,76 @@ go build
 cp v2ray-plugin /usr/bin/v2ray-plugin
 
 # solve "ss-server This system doesn't provide enough entropy to quickly generate high-quality random numbers."
-apt-get install -y rng-tools
-rngd -r /dev/urandom
+# apt-get install -y rng-tools
+# rngd -r /dev/urandom
 
 
 # add shadowsocks config
 # server config
 
-# phone json
+mkdir /etc/shadowsocks-rust
+
+generatedPassword=$(/usr/local/ssservice genkey -m "aes-256-gcm")
+
 echo "{
     \"server\":\"0.0.0.0\",
-    \"server_port\":SERVER_PORT,
+    \"server_port\":6653,
     \"local_port\":1080,
-    \"password\":\"PASSWORD\",
+    \"password\":\"$generatedPassword\",
     \"timeout\":600,
-    \"method\":\"xchacha20-ietf-poly1305\",
-    \"fast_open\":true
-}" > /etc/shadowsocks-libev/configPhone.json
+    \"method\":\"aes-256-gcm\",
+    \"fast_open\":true,
+    \"plugin\":\"v2ray-plugin\",
+    \"plugin_args\": [
+        // Each line is an argument passed to "plugin"
+        \"-server\"
+    ]
+}" > /etc/shadowsocks-rust/configPhone.json
 
 # computer json
 echo "{
-    \"server\":\"0.0.0.0\",
-    \"server_port\":SERVER_PORT,
+   \"server\":\"0.0.0.0\",
+    \"server_port\":7655,
     \"local_port\":1080,
-    \"password\":\"PASSWORD\",
+    \"password\":\"$generatedPassword\",
     \"timeout\":600,
-    \"method\":\"xchacha20-ietf-poly1305\",
-    \"fast_open\":true
-}" > /etc/shadowsocks-libev/configComputer.json
+    \"method\":\"aes-256-gcm\",
+    \"fast_open\":true,
+    \"plugin\":\"v2ray-plugin\",
+    \"plugin_args\": [
+        // Each line is an argument passed to "plugin"
+        \"-server\"
+    ]
+}" > /etc/shadowsocks-rust/configComputer.json
 
 # other json
 echo "{
-    \"server\":[\"[::0]\", \"0.0.0.0\"],
-    \"server_port\":SERVER_PORT,
+       \"server\":\"0.0.0.0\",
+    \"server_port\":8657,
     \"local_port\":1080,
-    \"password\":\"PASSWORD\",
+    \"password\":\"$generatedPassword\",
     \"timeout\":600,
-    \"method\":\"chacha20-ietf-poly1305\",
-    \"fast_open\":true
-}" > /etc/shadowsocks-libev/configOther.json
+    \"method\":\"aes-256-gcm\",
+    \"fast_open\":true,
+    \"plugin\":\"v2ray-plugin\",
+    \"plugin_args\": [
+        // Each line is an argument passed to "plugin"
+        \"-server\"
+    ]
+}" > /etc/shadowsocks-rust/configOther.json
 
 # Client config
 echo "{
-    \"server\":\"server_ip_address\",
-    \"server_port\":SERVER_PORT,
+    \"server\":\"YOUR_SERVER_IP\",
+    \"server_port\":6653,
+    \"local_address\": \"127.0.0.1\",
     \"local_port\":1080,
-    \"password\":\"PASSWORD\",
-    \"timeout\":600,
-    \"method\":\"xchacha20-ietf-poly1305\",
+    \"password\":\"$generatedPassword\",
+    \"timeout\":300,
+    \"method\":\"aes-256-gcm\",
+    \"plugin\":\"v2ray-plugin\",
     \"fast_open\":true
-}" > /etc/shadowsocks-libev/config.json
+}" > /etc/shadowsocks-rust/config.json
 
 
 
@@ -176,7 +199,7 @@ After=network.target
 
 [Service]
 User=shadowsocks
-ExecStart=/usr/bin/ss-server -c /etc/shadowsocks-libev/configPhone.json -u --plugin v2ray-plugin --plugin-opts \"server\"
+ExecStart=/usr/local/ssserver -c /etc/shadowsocks-rust/configPhone.json
 Restart=on-failure
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
@@ -191,7 +214,7 @@ After=network.target
 
 [Service]
 User=shadowsocks
-ExecStart=/usr/bin/ss-server -c /etc/shadowsocks-libev/configComputer.json -u --plugin v2ray-plugin --plugin-opts \"server\"
+ExecStart=/usr/local/ssserver -c /etc/shadowsocks-rust/configComputer.json
 Restart=on-failure
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
@@ -206,7 +229,7 @@ After=network.target
 
 [Service]
 User=shadowsocks
-ExecStart=/usr/bin/ss-server -c /etc/shadowsocks-libev/configOther.json -u
+ExecStart=/usr/local/ssserver -c /etc/shadowsocks-rust/configOther.json
 Restart=on-failure
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
@@ -218,6 +241,10 @@ WantedBy=multi-user.target" > /etc/systemd/system/SSOther.service
 systemctl start SSPhone
 systemctl start SSComputer
 systemctl start SSOther
+
+systemctl stop SSPhone
+systemctl stop SSComputer
+systemctl stop SSOther
 
 echo "shadowsocks status ################################################################"
 systemctl status SSPhone
@@ -235,6 +262,7 @@ systemctl enable SSOther
 * [安装shadowsocks-libev插件v2ray-plugin](https://medium.com/@caorun/%E5%AE%89%E8%A3%85shadowsocks-libev%E6%8F%92%E4%BB%B6v2ray-plugin-dfd10ecc0085)
 * [shadowsocks-libev配置v2ray-plugin](https://jackzhou.co/?p=108)
 * [shadowsocks/v2ray-plugin](https://github.com/shadowsocks/v2ray-plugin)
+* [shadowsocks/shadowsocks-rust](https://github.com/shadowsocks/shadowsocks-rust)
 
 ---
 - [上一级](README.md)
