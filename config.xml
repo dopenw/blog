@@ -10,6 +10,7 @@
         <item>apue</item>
         <item>unp</item>
         <item>windows</item>
+        <item>mac</item>
         <item>java</item>
         <item>mysql</item>
     </include_dir>
