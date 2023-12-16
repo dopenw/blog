@@ -234,6 +234,8 @@
 - [在windows下编译调试c++和lua代码](./windows/zerobrane_VisualStudio_debug_linux.md)
 ### 类别 : [mac](./mac/README.md)
 - [上架 mac 应用程序到苹果商店](./mac/app2MacAppStore.md)
+- [mac 开发资料](./mac/macDevelopSome.md)
+- [qt and mac](./mac/qtAndMac.md)
 ### 类别 : [java](./java/README.md)
 - [初识java](./java/java_tutorial.md)
 ### 类别 : [mysql](./mysql/README.md)
