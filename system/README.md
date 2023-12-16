@@ -9,6 +9,7 @@
 * ### [UML 统一建模语言](UML.md)
 * ### [Wireshark 使用](Wireshark.md)
 * ### [C++ VS Java](c++VSjava.md)
+* ### [clion 开发环境配置](clion.md)
 * ### [开发者测试](developTest.md)
 * ### [动态规划](dynamicProgramming.md)
 * ### [Eclipse IDE](eclipse.md)

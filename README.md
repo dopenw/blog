@@ -94,6 +94,7 @@
 - [UML 统一建模语言](./system/UML.md)
 - [Wireshark 使用](./system/Wireshark.md)
 - [C++ VS Java](./system/c++VSjava.md)
+- [clion 开发环境配置](./system/clion.md)
 - [开发者测试](./system/developTest.md)
 - [动态规划](./system/dynamicProgramming.md)
 - [Eclipse IDE](./system/eclipse.md)
