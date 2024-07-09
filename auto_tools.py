@@ -22,7 +22,7 @@ def read_config(config_file_path,config_item):
         include_dir_list.append(value)
         logging.debug('Include dir is %s%%' % (value))
     platform_system = platform.system()
-    if 'Linux' == platform_system:
+    if 'Linux' == platform_system or "Darwin" == platform_system:
         config_item['end_of_line_seq'] = '\n'
     elif 'Windows' == platform_system:
         config_item['end_of_line_seq'] = '\n'
