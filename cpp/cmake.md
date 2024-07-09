@@ -31,6 +31,7 @@
 - [包含子项目](#包含子项目)
   - [Git 子模组（Submodule）](#git-子模组submodule)
   - [获取软件包（FetchContent） (CMake 3.11+)](#获取软件包fetchcontent-cmake-311)
+  - [使用 vcpkg 包管理器](#使用-vcpkg-包管理器)
 - [链接](#链接)
 
 <!-- /code_chunk_output -->
@@ -460,6 +461,23 @@ endif()
 ```
 
 这样，你就可以在 CMake 3.11+ 里使用 CMake 3.14+ 的语法了。
+
+## 使用 vcpkg 包管理器
+
+- [vcpkg 概述](https://learn.microsoft.com/zh-cn/vcpkg/get_started/overview)
+- [教程：通过 vcpkg 安装和使用包](https://learn.microsoft.com/zh-cn/vcpkg/get_started/get-started?pivots=shell-cmd)
+
+vcpkg 是 Microsoft 和 C++ 社区维护的免费开放源代码 C/C++ 包管理器。 它于 2016 年推出，可帮助开发人员将项目迁移到较新版本的 Visual Studio。 vcpkg 已演变成 Windows、macOS 和 Linux 上开发人员使用的跨平台工具。 vcpkg 拥有大量开放源代码库注册表和企业就绪功能，旨在通过支持任何构建和项目系统来促进开发过程。 vcpkg 是核心的 C++ 工具，使用 CMake 中的脚本以 C++ 语言编写。 它从头开始设计，以解决 C/C++ 开发人员体验的独特难点。
+
+为什么使用 vcpkg？
+
+- 超过 2200 个开放源代码库可供选择，您也可以创建自己的代码库
+- 适用于 Windows、macOS 和 Linux 的一致的跨平台体验
+- 可以根据需要从源生成依赖项，使用框中的 70 多个配置和针对特定要求的无限自定义从源生成依赖项
+- 避免包与您的项目之间出现 ABI 不兼容问题
+- 防止依赖项关系图中的版本冲突和菱形依赖问题
+- 可用于企业级项目。 许多行业的 C/C++ 开发人员依赖此工具，包括：财务、游戏、嵌入式/IoT、半导体、防御以及 Microsoft 内部的项目
+- 对于 MSBuild 和 CMake 用户：自动与生成环境集成，打造无缝获取依赖项的体验
 
 # 链接
 
