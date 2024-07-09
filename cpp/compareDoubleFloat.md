@@ -49,5 +49,5 @@ float:1.19209e-07
 [geeksforgeeks.org/cpp-program-to-find-machine-epsilon](https://www.geeksforgeeks.org/cpp-program-to-find-machine-epsilon/)
 ---
 - [上一级](README.md)
-- 上一篇 -> [CMake](cmake.md)
+- 上一篇 -> [CMake 学习](cmake.md)
 - 下一篇 -> [const限定符](const.md)
