@@ -31,7 +31,7 @@
 - [包含子项目](#包含子项目)
   - [Git 子模组（Submodule）](#git-子模组submodule)
   - [获取软件包（FetchContent） (CMake 3.11+)](#获取软件包fetchcontent-cmake-311)
-  - [使用 vcpkg 包管理器](#使用-vcpkg-包管理器)
+- [使用 vcpkg 包管理器](#使用-vcpkg-包管理器)
 - [链接](#链接)
 
 <!-- /code_chunk_output -->
@@ -462,7 +462,7 @@ endif()
 
 这样，你就可以在 CMake 3.11+ 里使用 CMake 3.14+ 的语法了。
 
-## 使用 vcpkg 包管理器
+# 使用 vcpkg 包管理器
 
 - [vcpkg 概述](https://learn.microsoft.com/zh-cn/vcpkg/get_started/overview)
 - [教程：通过 vcpkg 安装和使用包](https://learn.microsoft.com/zh-cn/vcpkg/get_started/get-started?pivots=shell-cmd)
