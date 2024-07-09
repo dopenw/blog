@@ -9,7 +9,7 @@
     - [CMake 应避免的行为](#cmake-应避免的行为)
     - [CMake 应遵守的规范](#cmake-应遵守的规范)
   - [CMake 各个版本添加的新特性](#cmake-各个版本添加的新特性)
-- [cmake 基本使用](#cmake-基本使用)
+- [CMake 基本使用](#cmake-基本使用)
 - [为 CMake 项目添加特性](#为-cmake-项目添加特性)
   - [一些实用的工具](#一些实用的工具)
     - [CCache](#ccache)
@@ -28,6 +28,9 @@
     - [用文件夹来组织目标 (target)](#用文件夹来组织目标-target)
     - [用文件夹来组织文件](#用文件夹来组织文件)
     - [在 IDE 中运行CMake](#在-ide-中运行cmake)
+- [包含子项目](#包含子项目)
+  - [Git 子模组（Submodule）](#git-子模组submodule)
+  - [获取软件包（FetchContent） (CMake 3.11+)](#获取软件包fetchcontent-cmake-311)
 - [链接](#链接)
 
 <!-- /code_chunk_output -->
@@ -110,7 +113,7 @@ CMake是一个跨平台开源工具家族，用于构建、测试和打包软件
 - CMake 3.25：块作用域和 SYSTEM
 - ...
 
-# cmake 基本使用
+# CMake 基本使用
 
 - [cmake-examples](https://github.com/ttroy50/cmake-examples)
 
@@ -364,6 +367,99 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/base/dir" PREFIX "Header Files" F
 ### 在 IDE 中运行CMake
 
 要使用 IDE，如果 CMake 可以生成对应 IDE 的文件（例如 Xcode，Visual Studio），可以通过 `-G"name of IDE"` 来完成，或者如果 IDE 已经内置了对 CMake 的支持（例如 CLion，QtCreator 和一些其他的 IDE），你可以直接在 IDE 中打开 `CMakeLists.txt` 来运行 CMake。
+
+# 包含子项目
+
+这就是将一个好的 Git 系统与 CMake 共同使用的优势所在。虽然靠这种方法无法解决世界上所有的问题，但可以解决大部分基于 C++ 的工程包含子项目的问题！
+
+本章中列出了几种包含子项目的方法。
+
+## Git 子模组（Submodule）
+
+如果你想要添加一个 Git 仓库，它与你的项目仓库使用相同的 Git 托管服务（诸如 GitHub、GitLab、BitBucker 等等），下面是正确的添加一个子模组到 extern 目录中的命令：
+
+```sh
+gitbook $ git submodule add ../../owner/repo.git extern/repo
+```
+
+但缺点是你的用户必须懂 `git submodule` 命令，这样他们才可以 `init` 和 `update` 仓库，或者他们可以在最开始克隆你的仓库的时候加上 `--recursive` 选项。针对这种情况，CMake 提供了一种解决方案：
+
+```cmake
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+# Update submodules as needed
+    option(GIT_SUBMODULE "Check submodules during build" ON)
+    if(GIT_SUBMODULE)
+        message(STATUS "Submodule update")
+        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                        RESULT_VARIABLE GIT_SUBMOD_RESULT)
+        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+            message(FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+        endif()
+    endif()
+endif()
+
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/repo/CMakeLists.txt")
+    message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
+endif()
+```
+
+现在，你的用户可以完全忽视子模组的存在了，而你同时可以拥有良好的开发体验！唯一需要开发者注意的一点是，如果你正在子模组里开发，你会在重新运行 CMake 的时候重置你的子模组。只需要添加一个新的提交到主仓库的暂存区，就可以避免这个问题。
+
+然后你就可以添加对 CMake 有良好支持的项目了：
+
+```cmake
+add_subdirectory(extern/repo)
+```
+
+## 获取软件包（FetchContent） (CMake 3.11+)
+
+有时你想要在配置的时候下载数据或者是包，而不是在编译的时候下载。这种方法已经被第三方包重复“发明”了好几次。最终，这种方法在 CMake 3.11 中以 [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html) 模块的形式出现。
+
+使用 `FetchContent_Declare(MyName)` 来从 URL、Git 仓库等地方获取数据或者是软件包。
+使用 `FetchContent_GetProperties(MyName)` 来获取 `MyName_*` 等变量的值，这里的 `MyName` 是上一步获取的软件包的名字。
+检查 `MyName_POPULATED` 是否已经导出，否则使用 `FetchContent_Populate(MyName)` 来导出变量（如果这是一个软件包，则使用 `add_subdirectory("${MyName_SOURCE_DIR}" "${MyName_BINARY_DIR}"`) ）
+
+比如，下载 Catch2 ：
+
+```cmake
+FetchContent_Declare(
+  catch
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG        v2.13.6
+)
+
+# CMake 3.14+
+FetchContent_MakeAvailable(catch)
+```
+
+如果你不能使用 CMake 3.14+ ，可以使用适用于低版本的方式来加载：
+
+```cmake
+# CMake 3.11+
+FetchContent_GetProperties(catch)
+if(NOT catch_POPULATED)
+  FetchContent_Populate(catch)
+  add_subdirectory(${catch_SOURCE_DIR} ${catch_BINARY_DIR})
+endif()
+```
+
+当然，你可以将这些语句封装到一个宏内：
+
+```cmake
+if(${CMAKE_VERSION} VERSION_LESS 3.14)
+    macro(FetchContent_MakeAvailable NAME)
+        FetchContent_GetProperties(${NAME})
+        if(NOT ${NAME}_POPULATED)
+            FetchContent_Populate(${NAME})
+            add_subdirectory(${${NAME}_SOURCE_DIR} ${${NAME}_BINARY_DIR})
+        endif()
+    endmacro()
+endif()
+```
+
+这样，你就可以在 CMake 3.11+ 里使用 CMake 3.14+ 的语法了。
 
 # 链接
 
