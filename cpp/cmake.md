@@ -365,6 +365,16 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/base/dir" PREFIX "Header Files" F
 
 注意：如果你需要支持低于 3.8 版本的CMake，我不建议你使用上述命令，只建议在 CMake 3.8+ 中使用上述文件夹布局。
 
+一个简单的例子：
+
+```cmake
+function(optimizationOnIDE)
+    set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+    file(GLOB_RECURSE ALL_SOURCE_FILES "*.h" "*.cpp" "*.mm" "*.ui" "*.c" "*.hpp")
+    source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${ALL_SOURCE_FILES})
+endfunction()
+```
+
 ### 在 IDE 中运行CMake
 
 要使用 IDE，如果 CMake 可以生成对应 IDE 的文件（例如 Xcode，Visual Studio），可以通过 `-G"name of IDE"` 来完成，或者如果 IDE 已经内置了对 CMake 的支持（例如 CLion，QtCreator 和一些其他的 IDE），你可以直接在 IDE 中打开 `CMakeLists.txt` 来运行 CMake。
