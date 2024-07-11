@@ -511,7 +511,7 @@ Catch 还提供了两个 CMake 模块（modules），你可以通过这个来注
 
 Catch 对 CMake 支持很友好.可以通过 submodules 或者 FetchContent 来使用。如果网络不好，可以安装 catch2 。更多可以参考 [官方文档 - CMake integration](https://github.com/catchorg/Catch2/blob/devel/docs/cmake-integration.md)
 
-使用例子
+[Catch2 tutorial](https://github.com/catchorg/Catch2/blob/devel/docs/tutorial.md), 使用例子
 
 - [010-TestCase](../any/cmake/catch2_examples/010-TestCase.cpp)
 - [020-TestCase-1](../any/cmake/catch2_examples/020-TestCase-1.cpp)
