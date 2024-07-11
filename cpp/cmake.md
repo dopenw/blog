@@ -32,6 +32,8 @@
   - [Git 子模组（Submodule）](#git-子模组submodule)
   - [获取软件包（FetchContent） (CMake 3.11+)](#获取软件包fetchcontent-cmake-311)
 - [使用 vcpkg 包管理器](#使用-vcpkg-包管理器)
+- [测试](#测试)
+  - [Catch](#catch)
 - [链接](#链接)
 
 <!-- /code_chunk_output -->
@@ -488,6 +490,45 @@ vcpkg 是 Microsoft 和 C++ 社区维护的免费开放源代码 C/C++ 包管理
 - 防止依赖项关系图中的版本冲突和菱形依赖问题
 - 可用于企业级项目。 许多行业的 C/C++ 开发人员依赖此工具，包括：财务、游戏、嵌入式/IoT、半导体、防御以及 Microsoft 内部的项目
 - 对于 MSBuild 和 CMake 用户：自动与生成环境集成，打造无缝获取依赖项的体验
+
+# 测试
+
+主流测试框架的使用方式：
+
+- [GoogleTest](https://github.com/google/googletest): 一个 Google 出品的主流测试框架。不过开发可能有点慢。
+- [Catch2](https://github.com/catchorg/Catch2): 一个现代的，具有灵巧的宏的 PyTest-like 的测试框架。
+- [DocTest](https://github.com/doctest/doctest): 一个 Catch2 框架的替代品，并且编译速度更快、更干净(cleaner)。See Catch2 chapter and replace with DocTest.
+
+GoogleTest 和 GoogleMock 是非常经典的选择；不过就个人经验而言，会推荐使用 Catch2，因为 GoogleTest 十分遵循谷歌的发展理念；它假定用户总是想使用最新的技术，因此会很快的抛弃旧的编译器（不对其适配）等等。添加 GoogleMock 也常常令人头疼，并且你需要使用 GoogleMock 来获得匹配器(matchers)，这在 Catch2 是一个默认特性，而不需要手动添加（但 DocTest 没有这个特性）。
+
+## Catch
+
+[Catch2](https://github.com/catchorg/Catch2) （只有 C++11 版本）是一个独立且强大的测试工具，它的理念（philosophy）类似于 Python 中的 pytest。他比 GTest 支持更多的编译器版本，并且会紧跟潮流支持新的事物，比如支持在 M1 版本 MacOS 上使用 Catch。他也有一个相似但是更加快速的双胞胎兄弟，doctest，他编译十分迅速但是缺少了一些类似于匹配器（features）的特性。
+
+- [官方文档](https://github.com/catchorg/Catch2/tree/devel/docs)
+
+Catch 还提供了两个 CMake 模块（modules），你可以通过这个来注册独立的测试。
+
+Catch 对 CMake 支持很友好.可以通过 submodules 或者 FetchContent 来使用。如果网络不好，可以安装 catch2 。更多可以参考 [官方文档 - CMake integration](https://github.com/catchorg/Catch2/blob/devel/docs/cmake-integration.md)
+
+使用例子
+
+- [010-TestCase](../any/cmake/catch2_examples/010-TestCase.cpp)
+- [020-TestCase-1](../any/cmake/catch2_examples/020-TestCase-1.cpp)
+- [020-TestCase-2](../any/cmake/catch2_examples/020-TestCase-2.cpp)
+- [030-Asn-Require-Check](../any/cmake/catch2_examples/030-Asn-Require-Check.cpp)
+- [100-Fix-Section](../any/cmake/catch2_examples/100-Fix-Section.cpp)
+- [110-Fix-ClassFixture](../any/cmake/catch2_examples/110-Fix-ClassFixture.cpp)
+- [120-Bdd-ScenarioGivenWhenThen](../any/cmake/catch2_examples/120-Bdd-ScenarioGivenWhenThen.cpp)
+- [210-Evt-EventListeners](../any/cmake/catch2_examples/210-Evt-EventListeners.cpp)
+- [231-Cfg-OutputStreams](../any/cmake/catch2_examples/231-Cfg-OutputStreams.cpp)
+- [232-Cfg-CustomMain](../any/cmake/catch2_examples/232-Cfg-CustomMain.cpp)
+- [300-Gen-OwnGenerator](../any/cmake/catch2_examples/300-Gen-OwnGenerator.cpp)
+- [301-Gen-MapTypeConversion](../any/cmake/catch2_examples/301-Gen-MapTypeConversion.cpp)
+- [302-Gen-Table](../any/cmake/catch2_examples/302-Gen-Table.cpp)
+- [310-Gen-VariablesInGenerators](../any/cmake/catch2_examples/310-Gen-VariablesInGenerators.cpp)
+- [311-Gen-CustomCapture](../any/cmake/catch2_examples/311-Gen-CustomCapture.cpp)
+- [CMakeLists.txt](../any/cmake/catch2_examples/CMakeLists.txt)
 
 # 链接
 
