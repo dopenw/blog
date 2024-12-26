@@ -156,7 +156,12 @@ def blog_add_pre_next_links(blog_file, blog_map):
 
         endPos = len(blog_map.keys())
         blog_key_list = list(blog_map.keys())
-        pos = blog_key_list.index(blog_file)
+        pos = 0
+        try:
+            pos = blog_key_list.index(blog_file)
+        except:
+            pos =0
+        
         if pos >= endPos:
             logging.error('not found blog_file{}'.format(blog_file))
             return False

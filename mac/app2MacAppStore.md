@@ -1,6 +1,5 @@
 
 <!-- Mac App Store上架与内购集成实操经验分享 -->
-  ---
 
   <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
@@ -1147,4 +1146,4 @@
 
 
 - [上一级](README.md)
-- 下一篇 -> [mac 开发资料](macDevelopSome.md)
+- 下一篇 -> [qt and mac](qtAndMac.md)

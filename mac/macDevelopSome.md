@@ -244,5 +244,4 @@ make CXXFLAGS=-D"NS_FORMAT_ARGUMENT\(A\)="
 ---
 
 - [上一级](README.md)
-- 上一篇 -> [上架 mac 应用程序到苹果商店](app2MacAppStore.md)
 - 下一篇 -> [qt and mac](qtAndMac.md)
