@@ -151,4 +151,4 @@ redirect()中写至cout的输出信息被送到文件去了。mian()执行redire
 ---
 - [上一级](README.md)
 - 上一篇 -> [智能指针](smartPointer.md)
-- 下一篇 -> [在使用晚绑定的时候，要注意对基类的析构函数加virtual](vir_del.md)
+- 下一篇 -> [使用 tracy 工具做性能分析](tracy.md)
