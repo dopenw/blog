@@ -399,5 +399,5 @@ int main(int argc, char const *argv[]) {
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [c++ 内部类](inner_class.md)
+- 上一篇 -> [Google c++ test framework](google_test_framework.md)
 - 下一篇 -> [log4cplus 学习笔记](log4cplus.md)

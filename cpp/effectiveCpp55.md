@@ -5090,5 +5090,5 @@ typedef boost::mpl::push_front<float,int>::type types;
 ---
 
 - [上一级](README.md)
-- 上一篇 -> [do_while_false的功用](do_while_false.md)
+- 上一篇 -> [设计模式](design_patterns.md)
 - 下一篇 -> [函数参数入栈的顺序](function_arg_stack.md)

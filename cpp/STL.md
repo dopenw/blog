@@ -104,5 +104,5 @@ coll.erase(remove(coll.begin(),coll.end(),3),coll.end());
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [Put functions into vector and execute](PutFunctionsIntoVectorAndExecute.md)
-- 下一篇 -> [problem sorting using member function as comparator](algorithmSortNonStaticMemberFunction.md)
+- 上一篇 -> [MFC 对比 QT](MFC_VS_QT.md)
+- 下一篇 -> [一些 Boost 程序库的简单使用](boost.md)

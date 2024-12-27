@@ -3302,4 +3302,4 @@ do Down on TheOther
 ---
 - [上一级](README.md)
 - 上一篇 -> [用户自定义迭代器](createOwnIterator.md)
-- 下一篇 -> [开发注意事项](develop_care_detail.md)
+- 下一篇 -> [Effective c++ 改善程序与设计的55个具体做法](effectiveCpp55.md)
