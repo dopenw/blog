@@ -23,6 +23,7 @@
 * ### [21. 创建插件](21_createPlugin.md)
 * ### [23. 平台相关性](23_platformDependencies.md)
 * ### [Qt Creator 使用](QtCreatorTips.md)
+* ### [使用 bit7z 解压缩](bit7z.md)
 * ### [《C++ Qt 设计模式（第二版）》 读书笔记](cppQtDesignPatternsBook.md)
 * ### [解决 qt 程序的依赖项](deployqt.md)
 * ### [使用qt实现支持断点续传的下载类](downloaderHelper.md)

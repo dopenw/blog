@@ -338,5 +338,5 @@ QThreadPool::globalInstance()->start(hello);
 ---
 
 - [上一级](README.md)
-- 上一篇 -> [Qt Creator 使用](QtCreatorTips.md)
+- 上一篇 -> [使用 bit7z 解压缩](bit7z.md)
 - 下一篇 -> [解决 qt 程序的依赖项](deployqt.md)

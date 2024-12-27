@@ -24,4 +24,4 @@
 ---
 - [上一级](README.md)
 - 上一篇 -> [23. 平台相关性](23_platformDependencies.md)
-- 下一篇 -> [《C++ Qt 设计模式（第二版）》 读书笔记](cppQtDesignPatternsBook.md)
+- 下一篇 -> [使用 bit7z 解压缩](bit7z.md)
