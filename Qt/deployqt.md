@@ -44,4 +44,4 @@ qApp->addLibraryPath("C:/customPath/plugins");
 ---
 - [上一级](README.md)
 - 上一篇 -> [《C++ Qt 设计模式（第二版）》 读书笔记](cppQtDesignPatternsBook.md)
-- 下一篇 -> [Qt Creator 的一些配置](projectConfig.md)
+- 下一篇 -> [使用qt实现支持断点续传的下载类](downloaderHelper.md)

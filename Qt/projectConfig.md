@@ -26,5 +26,5 @@ else:win32:CONFIG(debug, debug|release): TARGET = 目标名
 
 ---
 - [上一级](README.md)
-- 上一篇 -> [解决 qt 程序的依赖项](deployqt.md)
+- 上一篇 -> [使用qt实现支持断点续传的下载类](downloaderHelper.md)
 - 下一篇 -> [QML Tutorial](qml.md)

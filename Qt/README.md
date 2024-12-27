@@ -25,6 +25,7 @@
 * ### [Qt Creator 使用](QtCreatorTips.md)
 * ### [《C++ Qt 设计模式（第二版）》 读书笔记](cppQtDesignPatternsBook.md)
 * ### [解决 qt 程序的依赖项](deployqt.md)
+* ### [使用qt实现支持断点续传的下载类](downloaderHelper.md)
 * ### [Qt Creator 的一些配置](projectConfig.md)
 * ### [QML Tutorial](qml.md)
 * ### [《Qml Book》 - Meet Qt5](qmlBook_1_MeetQt5.md)
