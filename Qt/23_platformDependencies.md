@@ -137,4 +137,4 @@ void MyWidget::paintEvent(QPaintEvent * event){
 
 - [上一级](README.md)
 - 上一篇 -> [21. 创建插件](21_createPlugin.md)
-- 下一篇 -> [Qt Creator 使用](QtCreatorTips.md)
+- 下一篇 -> [QCef 简单使用](QCefView.md)

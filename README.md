@@ -53,6 +53,7 @@
 - [20. 三维图形](./Qt/20_3DGraphics.md)
 - [21. 创建插件](./Qt/21_createPlugin.md)
 - [23. 平台相关性](./Qt/23_platformDependencies.md)
+- [QCef 简单使用](./Qt/QCefView.md)
 - [Qt Creator 使用](./Qt/QtCreatorTips.md)
 - [使用 bit7z 解压缩](./Qt/bit7z.md)
 - [《C++ Qt 设计模式（第二版）》 读书笔记](./Qt/cppQtDesignPatternsBook.md)
