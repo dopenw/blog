@@ -1,0 +1,14 @@
+[
+  {
+    "label": "Debug minimal agent（带提问参数）",
+    "adapter": "Debugpy",
+    "request": "launch",
+    "program": "$ZED_WORKTREE_ROOT/code/minimal_agent.py",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "python": "$ZED_WORKTREE_ROOT/.venv/bin/python",
+    "args": [
+      "现在上海几点？并计算 (18 + 6) * 3。"
+    ],
+    "justMyCode": true
+  }
+]

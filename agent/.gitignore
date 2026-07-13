@@ -1,0 +1,4 @@
+# 本地密钥配置；以 code/.env.example 作为可提交的模板。
+code/.env
+.venv/
+code/__pycache__/
