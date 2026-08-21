@@ -835,12 +835,18 @@ int main(int argc, char **argv)
     qInfo() << "after show: hasHandle=" << (window.handle() != nullptr)
             << "winId=" << window.winId();
 
-    QTimer::singleShot(8000, &app, &QCoreApplication::quit);
+    QTimer::singleShot(8000, &window, [&window] {
+        // 在派生对象仍完整时释放平台资源，确保重写的 event() 能观察销毁事件。
+        window.destroy();
+        QCoreApplication::quit();
+    });
     return app.exec();
 }
 ```
 
 `nativeEventFilter()` 必须返回 false，因为本实验只观察消息。返回 true 会改变窗口系统行为，让实验从 tracing 变成 interception。
+
+退出前要显式调用 `window.destroy()`。若只退出事件循环并等待栈对象析构，`QWindow` 基类析构阶段才会释放平台资源；此时派生类的 `event()` 已不再参与虚分派，`TracingWindow` 就记录不到 `SurfaceAboutToBeDestroyed`。
 
 ### 6.16.2 `CMakeLists.txt`
 

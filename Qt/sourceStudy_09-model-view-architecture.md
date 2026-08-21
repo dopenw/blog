@@ -2,7 +2,7 @@
 
 > 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](https://github.com/qt/qtbase/blob/v6.10.2/.cmake.conf)）<br>
 > 本文定位：第 14～15 周的 Model/View 主线。目标不是只会把 `QStringListModel` 交给 `QTreeView`，而是能独立设计树模型、证明索引与结构通知的正确性、理解代理映射和选择状态，并用 `QAbstractItemModelTester` 把模型契约变成自动检查。<br>
-> 前置知识：建议先完成 [`02-qobject-moc-metaobject-system.md`](sourceStudy_02-qobject-moc-metaobject-system.md)、[`03-event-loop-and-event-dispatch.md`](sourceStudy_03-event-loop-and-event-dispatch.md) 和后续的 QWidget 专题。Model/View 的更新传播依赖信号槽、事件循环、绘制和 Widget 输入状态。
+> 前置知识：建议先完成 [`02-qobject-moc-metaobject-system.md`](sourceStudy_02-qobject-moc-metaobject-system.md)、[`03-event-loop-and-event-dispatch.md`](sourceStudy_03-event-loop-and-event-dispatch.md) 和前一阶段的 [`08-qwidget-system.md`](sourceStudy_08-qwidget-system.md)。Model/View 的更新传播依赖信号槽、事件循环、绘制和 Widget 输入状态。
 
 ## 9.1 完成本阶段后，你应能回答什么
 

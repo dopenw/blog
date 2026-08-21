@@ -75,10 +75,12 @@
 设 `a` 是一个非空 `QString`：
 
 ```cpp
-QString a = QStringLiteral("hello");
+QString a = QString::fromLatin1("hello");
 QString b = a;
 b[0] = u'H';
 ```
+
+这里刻意使用 `fromLatin1()` 构造普通的自有数据块，以便观察 `ref = 1 → 2 → detach`。Qt 6.10.2 的 [`QStringLiteral`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/text/qstring.h#L1779-L1789) 直接指向静态 UTF-16 数据，其 `QArrayData` 头为空；复制这种句柄不会增加引用计数，第一次写入则因 [`needsDetach()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qarraydatapointer.h#L457-L460) 为 true 而物化一份可写数据。它是下一节数组存储模型中的特殊状态，不适合用来演示普通共享块的引用计数变化。
 
 状态变化如下：
 
@@ -110,7 +112,7 @@ void write(Value &self, Change change)
 
 这里有三个不变量：
 
-1. **复制句柄必须增加引用计数。** 否则一个副本析构后会提前释放共享数据。
+1. **复制普通自有共享数据块的句柄必须增加引用计数。** 否则一个副本析构后会提前释放共享数据；静态或 raw-data 视图没有可递增的数据头，应单独建模。
 2. **写入前必须拥有独占数据。** 引用计数大于 1 时直接写会破坏值语义。
 3. **最后一个句柄离开时释放数据。** 这是 RAII 在共享数据上的落点。
 
@@ -247,7 +249,7 @@ bool needsDetach() noexcept
 对下面代码：
 
 ```cpp
-QString a = QStringLiteral("hello");
+QString a = QString::fromLatin1("hello");
 QString b = a;
 b[0] = u'H';
 ```

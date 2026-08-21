@@ -17,7 +17,7 @@
 - [参考链接](#参考链接)
 
 
-备注： 使用的源码版本为 [Qt 5.15.2](https://github.com/qt/qt5/tree/v5.15.2)
+备注：使用的源码版本为 [Qt 5.15.2](https://github.com/qt/qt5/tree/v5.15.2)。本文保留为历史概览；系统学习 QtBase 6.10.2 请从[新版学习大纲](sourceStudy_qtbase-learning-outline.md)开始。
 
 # 源码概览
 
@@ -29,7 +29,7 @@
 
 ## Qt 3D 
 
-- [qt/qt3d]((https://github.com/qt/qt3d/tree/34171b1d99f55fde1627df3c57eed50480ab2ae7)) 
+- [qt/qt3d](https://github.com/qt/qt3d/tree/34171b1d99f55fde1627df3c57eed50480ab2ae7)
 
 Qt 3D 为近实时仿真系统提供功能，支持 Qt C++ 和 Qt Quick 应用程序中的 2D 和 3D 渲染。
 

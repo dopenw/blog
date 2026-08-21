@@ -149,8 +149,8 @@ Widgets + Model/View
 - [`qeventloop.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventloop.cpp)
 - [`qcoreapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreapplication.cpp)
 - [`qabstracteventdispatcher.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qabstracteventdispatcher.h)
-- `src/corelib/kernel/qevent.cpp`
-- `src/corelib/kernel/qtimer.cpp`
+- [`qcoreevent.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreevent.cpp)
+- [`qtimer.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qtimer.cpp)
 
 重点：
 
@@ -437,4 +437,4 @@ python3 Qt/check_sourceStudy_links.py
 python3 -m unittest Qt/test_sourceStudy_links.py
 ```
 
-第一条命令检查所有 `sourceStudy_*.md` 的本地章节链接，并拒绝逃出 `Qt/` 文档目录的相对链接；QtBase 源码证据应使用固定到 `v6.10.2` 的官方链接。第二条命令验证检查器自身对有效链接、缺失目标和越界目标的处理。
+第一条命令检查所有 `sourceStudy_*.md`、`Qt/README.md` 和历史入口 `qtSourceStudy.md`，验证本地目标、Markdown 标题锚点与链接语法；`sourceStudy_*.md` 和历史入口中的相对链接不得逃出 `Qt/` 文档目录，`Qt/README.md` 只额外允许链接仓库根目录。QtBase 源码证据应使用固定到 `v6.10.2` 的官方链接。第二条命令验证检查器自身对这些边界的处理。
