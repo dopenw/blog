@@ -1,8 +1,8 @@
 # 9. Model/View 架构
 
-> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](../.cmake.conf)）<br>
+> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](https://github.com/qt/qtbase/blob/v6.10.2/.cmake.conf)）<br>
 > 本文定位：第 14～15 周的 Model/View 主线。目标不是只会把 `QStringListModel` 交给 `QTreeView`，而是能独立设计树模型、证明索引与结构通知的正确性、理解代理映射和选择状态，并用 `QAbstractItemModelTester` 把模型契约变成自动检查。<br>
-> 前置知识：建议先完成 [`02-qobject-moc-metaobject-system.md`](02-qobject-moc-metaobject-system.md)、[`03-event-loop-and-event-dispatch.md`](03-event-loop-and-event-dispatch.md) 和后续的 QWidget 专题。Model/View 的更新传播依赖信号槽、事件循环、绘制和 Widget 输入状态。
+> 前置知识：建议先完成 [`02-qobject-moc-metaobject-system.md`](sourceStudy_02-qobject-moc-metaobject-system.md)、[`03-event-loop-and-event-dispatch.md`](sourceStudy_03-event-loop-and-event-dispatch.md) 和后续的 QWidget 专题。Model/View 的更新传播依赖信号槽、事件循环、绘制和 Widget 输入状态。
 
 ## 9.1 完成本阶段后，你应能回答什么
 
@@ -26,7 +26,7 @@
 16. `QSortFilterProxyModel` 如何维护 source/proxy 双向行列映射？
 17. 代理链上为什么必须在每一层显式 `mapToSource()` 或 `mapFromSource()`？
 18. `dynamicSortFilter`、递归过滤与 `autoAcceptChildRows` 各自改变什么？
-19. Qt 6.10 新增的 `beginFilterChange()` / `endFilterChange()` 解决什么问题？
+19. Qt 6.9 引入的 `beginFilterChange()` 与 Qt 6.10 引入的 `endFilterChange()` 共同解决什么问题？
 20. `canFetchMore()` / `fetchMore()` 如何与 View 的可见区域联动？
 21. 后台线程为什么不能直接修改一个连接到 View 的模型？
 22. `QAbstractItemModelTester` 能发现哪些错误，不能替代哪些业务测试？
@@ -72,7 +72,7 @@ flowchart LR
 
 ## 9.3 `QAbstractItemModel` 的最小契约
 
-公共接口见 [`qabstractitemmodel.h`](../src/corelib/itemmodels/qabstractitemmodel.h)。一个只读树模型最少需要实现：
+公共接口见 [`qabstractitemmodel.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qabstractitemmodel.h)。一个只读树模型最少需要实现：
 
 ```cpp
 QModelIndex index(int row, int column,
@@ -122,7 +122,7 @@ int TreeModel::rowCount(const QModelIndex &parent) const
 }
 ```
 
-Qt 自带 [`simpletreemodel`](../examples/widgets/itemviews/simpletreemodel/treemodel.cpp) 和 model tester 都把这条规则当作树模型的常见契约。除非你的数据确实定义了“不同列拥有不同子树”，否则不要让非第 0 列返回孩子。
+Qt 自带 [`simpletreemodel`](https://github.com/qt/qtbase/blob/v6.10.2/examples/widgets/itemviews/simpletreemodel/treemodel.cpp) 和 model tester 都把这条规则当作树模型的常见契约。除非你的数据确实定义了“不同列拥有不同子树”，否则不要让非第 0 列返回孩子。
 
 ### 9.3.3 `hasIndex()` 是边界守门员
 
@@ -139,7 +139,7 @@ if (!hasIndex(row, column, parent))
 
 ## 9.4 `QModelIndex`：一个短期定位句柄
 
-Qt 6.10.2 的 [`QModelIndex`](../src/corelib/itemmodels/qabstractitemmodel.h) 实质上保存四项：
+Qt 6.10.2 的 [`QModelIndex`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qabstractitemmodel.h) 实质上保存四项：
 
 ```text
 row        int
@@ -199,7 +199,7 @@ return createIndex(row, column, &nodes[row]);
 
 ## 9.5 `index()` 与 `parent()`：树模型最关键的双向映射
 
-官方 [`simpletreemodel`](../examples/widgets/itemviews/simpletreemodel/treemodel.cpp) 的主链可以压缩为：
+官方 [`simpletreemodel`](https://github.com/qt/qtbase/blob/v6.10.2/examples/widgets/itemviews/simpletreemodel/treemodel.cpp) 的主链可以压缩为：
 
 ```text
 index(row, column, parentIndex)
@@ -313,7 +313,7 @@ Qt 6 的 Delegate 会通过 `QModelIndex::multiData()` 一次请求 Font、Align
 
 ## 9.7 View 如何观察 Model
 
-[`QAbstractItemView::setModel()`](../src/widgets/itemviews/qabstractitemview.cpp) 并不复制数据。它断开旧模型后，连接新模型的：
+[`QAbstractItemView::setModel()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/itemviews/qabstractitemview.cpp) 并不复制数据。它断开旧模型后，连接新模型的：
 
 - `dataChanged`、`headerDataChanged`；
 - 行列插入、删除、移动信号；
@@ -428,7 +428,7 @@ beginMoveRows(parent, 2, 2, parent, 5);
 
 ### 9.9.1 Reset 是最强但最有损的工具
 
-[`endResetModel()`](../src/corelib/itemmodels/qabstractitemmodel.cpp) 会使全部 persistent indexes 失效、调用 `resetInternalData()` 并发出 `modelReset`。View 会重新查询，但用户通常丢失：
+[`endResetModel()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qabstractitemmodel.cpp) 会使全部 persistent indexes 失效、调用 `resetInternalData()` 并发出 `modelReset`。View 会重新查询，但用户通常丢失：
 
 - 当前项；
 - 选择；
@@ -486,7 +486,7 @@ Model 每次结构变更都要扫描和维护已注册的 persistent indexes。�
 
 ## 9.11 `QItemSelectionModel`：current 与 selection 是两层状态
 
-[`qitemselectionmodel.h`](../src/corelib/itemmodels/qitemselectionmodel.h) 明确区分：
+[`qitemselectionmodel.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qitemselectionmodel.h) 明确区分：
 
 - current index：键盘导航、焦点提示、编辑目标；
 - selection：一个或多个选中范围。
@@ -521,7 +521,7 @@ tableView->setSelectionModel(treeView->selectionModel());
 
 ## 9.12 Delegate：把显示和编辑策略从 View 拆出来
 
-[`QStyledItemDelegate`](../src/widgets/itemviews/qstyleditemdelegate.cpp) 的显示路径：
+[`QStyledItemDelegate`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/itemviews/qstyleditemdelegate.cpp) 的显示路径：
 
 ```text
 View 决定 index 的矩形与状态
@@ -574,7 +574,7 @@ void SeverityDelegate::initStyleOption(QStyleOptionViewItem *option,
 
 ## 9.13 Proxy Model：Model 上的可组合投影
 
-[`QAbstractProxyModel`](../src/corelib/itemmodels/qabstractproxymodel.h) 仍继承 `QAbstractItemModel`，并新增两个核心纯虚函数：
+[`QAbstractProxyModel`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qabstractproxymodel.h) 仍继承 `QAbstractItemModel`，并新增两个核心纯虚函数：
 
 ```cpp
 virtual QModelIndex mapToSource(const QModelIndex &proxyIndex) const = 0;
@@ -632,7 +632,7 @@ Qt 6.10.2 的关键默认值：
 
 ### 9.14.1 自定义 filter 的正确更新协议
 
-Qt 6.10 新增了方向明确的过滤变更协议：
+Qt 6.9 先引入 `beginFilterChange()`；Qt 6.10 再加入带方向参数的 `endFilterChange()`，形成方向明确的过滤变更协议：
 
 ```cpp
 void LogFilterProxy::setMinimumSeverity(int severity)
@@ -698,7 +698,7 @@ void FileListModel::fetchMore(const QModelIndex &parent)
 }
 ```
 
-Qt 自带实现见 [`fetchmore/filelistmodel.cpp`](../examples/widgets/itemviews/fetchmore/filelistmodel.cpp)。`QAbstractItemView` 会在以下时机触发检查：
+Qt 自带实现见 [`fetchmore/filelistmodel.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/examples/widgets/itemviews/fetchmore/filelistmodel.cpp)。`QAbstractItemView` 会在以下时机触发检查：
 
 - 更新几何后用 0ms timer 延迟检查；
 - 滚动条到末端；
@@ -725,7 +725,7 @@ GUI 线程：beginInsertRows → 合并结果 → endInsertRows → 清 in-fligh
 
 ## 9.16 线程边界：Model API 不是线程安全接口
 
-Qt 的 [`models.qdocinc`](../src/corelib/doc/src/includes/models.qdocinc) 明确规定：`QAbstractItemModel` 是 QObject 子类，不是线程安全类；所有 Model 相关 API 只能从 Model 所在线程调用。连接到 Widget View 的 Model 通常必须在 GUI 线程，因为 View 会在 GUI 线程同步调用 `rowCount()`、`index()` 和 `data()`。
+Qt 的 [`models.qdocinc`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/doc/src/includes/models.qdocinc) 明确规定：`QAbstractItemModel` 是 QObject 子类，不是线程安全类；所有 Model 相关 API 只能从 Model 所在线程调用。连接到 Widget View 的 Model 通常必须在 GUI 线程，因为 View 会在 GUI 线程同步调用 `rowCount()`、`index()` 和 `data()`。
 
 安全边界是：
 
@@ -782,8 +782,8 @@ View、Delegate、Proxy 和 Tester 会高频调用 Model API。性能分析不�
 
 本实践不从空白复制一套未经验证的模型。以 Qt 6.10.2 自带的两个例子为基线：
 
-- [`simpletreemodel`](../examples/widgets/itemviews/simpletreemodel)：只读树、稳定节点地址、model tester；
-- [`editabletreemodel`](../examples/widgets/itemviews/editabletreemodel)：编辑、动态增删行列和精确通知。
+- [`simpletreemodel`](https://github.com/qt/qtbase/tree/v6.10.2/examples/widgets/itemviews/simpletreemodel)：只读树、稳定节点地址、model tester；
+- [`editabletreemodel`](https://github.com/qt/qtbase/tree/v6.10.2/examples/widgets/itemviews/editabletreemodel)：编辑、动态增删行列和精确通知。
 
 ### 9.18.1 第一步：运行只读树并建立断点
 
@@ -812,7 +812,7 @@ QStyledItemDelegate::paint
 
 ### 9.18.2 第二步：加入编辑和动态增删
 
-参考 [`editabletreemodel/treemodel.cpp`](../examples/widgets/itemviews/editabletreemodel/treemodel.cpp) 实现：
+参考 [`editabletreemodel/treemodel.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/examples/widgets/itemviews/editabletreemodel/treemodel.cpp) 实现：
 
 - `flags()` 增加 `ItemIsEditable`；
 - `data()` 同时支持 DisplayRole 与 EditRole；
@@ -876,23 +876,22 @@ treeModel.removeRow(sourceIndex.row(), sourceIndex.parent());
 
 ## 9.19 用 `QAbstractItemModelTester` 验证契约
 
-最小测试来自 Qt 自带 [`simpletreemodel/test.cpp`](../examples/widgets/itemviews/simpletreemodel/test.cpp)：
+最小测试沿用 Qt 自带 [`simpletreemodel/test.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/examples/widgets/itemviews/simpletreemodel/test.cpp) 的做法。这个示例模型是只读模型，因此这里只构造真实数据并让 tester 检查其静态契约：
 
 ```cpp
 void TestTreeModel::modelContract()
 {
-    TreeModel model(testData());
+    TreeModel model(QStringLiteral("Title\n  Child"));
     QAbstractItemModelTester tester(
         &model,
         QAbstractItemModelTester::FailureReportingMode::QtTest);
 
-    // tester 在构造时执行基础检查，之后继续监听结构与数据信号。
-    QVERIFY(model.insertRows(0, 2));
-    QVERIFY(model.removeRows(0, 1));
+    QCOMPARE(model.rowCount(), 1);
+    QCOMPARE(model.rowCount(model.index(0, 0)), 1);
 }
 ```
 
-链接 `Qt6::Test`，并把 tester 的生命周期覆盖所有待测变更。
+`simpletreemodel` 没有重写 `insertRows()` / `removeRows()`，基类实现会返回 false。要验证动态插入和删除，应改用 `editabletreemodel` 或自己的可变模型，并让 tester 的生命周期覆盖所有待测变更。链接目标仍为 `Qt6::Test`。
 
 ### 9.19.1 它会检查什么
 
@@ -1143,7 +1142,7 @@ Lazy Fetch 正在后台请求时，`canFetchMore()` 应如何设计？
 - [ ] 能解释普通索引和 persistent index 在插入、删除、move、layout、reset 下的结果。
 - [ ] current 与 selection 行为分别有测试。
 - [ ] source/proxy 双向映射对可见和被过滤项都有测试。
-- [ ] 自定义过滤参数使用 Qt 6.10 的 begin/endFilterChange。
+- [ ] 自定义过滤参数使用 Qt 6.9 的 `beginFilterChange()` 与 Qt 6.10 的 `endFilterChange()`。
 - [ ] Delegate 保留 selection、focus、Style 与高 DPI 行为。
 - [ ] Lazy Fetch 能终止，不会重复并发请求，结构更新发生在 Model 线程。
 - [ ] `QAbstractItemModelTester` 覆盖所有动态操作的生命周期。
@@ -1156,27 +1155,27 @@ Lazy Fetch 正在后台请求时，`canFetchMore()` 应如何设计？
 
 第一轮只追 Model 契约和树索引：
 
-1. [`qabstractitemmodel.h`](../src/corelib/itemmodels/qabstractitemmodel.h)：`QModelIndex` 字段、纯虚接口、信号和 protected 事务 API。
-2. [`simpletreemodel/treemodel.cpp`](../examples/widgets/itemviews/simpletreemodel/treemodel.cpp) 与 [`treeitem.cpp`](../examples/widgets/itemviews/simpletreemodel/treeitem.cpp)：`internalPointer`、隐藏 root、index/parent 往返。
-3. [`qabstractitemmodel.cpp`](../src/corelib/itemmodels/qabstractitemmodel.cpp)：begin/end insert/remove/move/reset。
-4. [`qabstractitemmodel_p.h`](../src/corelib/itemmodels/qabstractitemmodel_p.h)：change 栈和 persistent index 数据结构。
-5. [`qabstractitemmodeltester.cpp`](../src/testlib/qabstractitemmodeltester.cpp)：把隐含不变量变成可执行检查。
+1. [`qabstractitemmodel.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qabstractitemmodel.h)：`QModelIndex` 字段、纯虚接口、信号和 protected 事务 API。
+2. [`simpletreemodel/treemodel.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/examples/widgets/itemviews/simpletreemodel/treemodel.cpp) 与 [`treeitem.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/examples/widgets/itemviews/simpletreemodel/treeitem.cpp)：`internalPointer`、隐藏 root、index/parent 往返。
+3. [`qabstractitemmodel.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qabstractitemmodel.cpp)：begin/end insert/remove/move/reset。
+4. [`qabstractitemmodel_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qabstractitemmodel_p.h)：change 栈和 persistent index 数据结构。
+5. [`qabstractitemmodeltester.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qabstractitemmodeltester.cpp)：把隐含不变量变成可执行检查。
 
 第二轮进入协作者：
 
-6. [`qabstractitemview.cpp`](../src/widgets/itemviews/qabstractitemview.cpp)：`setModel()`、结构信号响应、fetch-more 触发点。
-7. [`qitemselectionmodel.h`](../src/corelib/itemmodels/qitemselectionmodel.h) 与 [`qitemselectionmodel.cpp`](../src/corelib/itemmodels/qitemselectionmodel.cpp)：range merge、current/selection、reset 竞态防护。
-8. [`qstyleditemdelegate.cpp`](../src/widgets/itemviews/qstyleditemdelegate.cpp)：multiData、Style 绘制和 editor user property。
-9. [`qabstractproxymodel.cpp`](../src/corelib/itemmodels/qabstractproxymodel.cpp)：转发接口与 source 连接。
-10. [`qsortfilterproxymodel.cpp`](../src/corelib/itemmodels/qsortfilterproxymodel.cpp)：Mapping 缓存、source/proxy 双向数组、动态更新和过滤变更协议。
+6. [`qabstractitemview.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/itemviews/qabstractitemview.cpp)：`setModel()`、结构信号响应、fetch-more 触发点。
+7. [`qitemselectionmodel.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qitemselectionmodel.h) 与 [`qitemselectionmodel.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qitemselectionmodel.cpp)：range merge、current/selection、reset 竞态防护。
+8. [`qstyleditemdelegate.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/itemviews/qstyleditemdelegate.cpp)：multiData、Style 绘制和 editor user property。
+9. [`qabstractproxymodel.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qabstractproxymodel.cpp)：转发接口与 source 连接。
+10. [`qsortfilterproxymodel.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qsortfilterproxymodel.cpp)：Mapping 缓存、source/proxy 双向数组、动态更新和过滤变更协议。
 
 第三轮用测试校准边界：
 
-11. [`tst_qabstractitemmodel.cpp`](../tests/auto/corelib/itemmodels/qabstractitemmodel/tst_qabstractitemmodel.cpp)：基础模型与 persistent index 边界。
-12. [`tst_qitemselectionmodel.cpp`](../tests/auto/corelib/itemmodels/qitemselectionmodel/tst_qitemselectionmodel.cpp)：选择范围、current 与结构变化。
-13. [`tst_qsortfilterproxymodel.cpp`](../tests/auto/corelib/itemmodels/qsortfilterproxymodel/tst_qsortfilterproxymodel.cpp)：过滤、排序、映射、动态变化与 fetch more。
-14. [`tst_qabstractitemview.cpp`](../tests/auto/widgets/itemviews/qabstractitemview/tst_qabstractitemview.cpp)：View 与 Model/Selection/Editor 的协作。
-15. [`tst_qitemdelegate.cpp`](../tests/auto/widgets/itemviews/qitemdelegate/tst_qitemdelegate.cpp)：item delegate 的 role、editor、Style 和事件边界。
+11. [`tst_qabstractitemmodel.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/itemmodels/qabstractitemmodel/tst_qabstractitemmodel.cpp)：基础模型与 persistent index 边界。
+12. [`tst_qitemselectionmodel.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/itemmodels/qitemselectionmodel/tst_qitemselectionmodel.cpp)：选择范围、current 与结构变化。
+13. [`tst_qsortfilterproxymodel.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/itemmodels/qsortfilterproxymodel/tst_qsortfilterproxymodel.cpp)：过滤、排序、映射、动态变化与 fetch more。
+14. [`tst_qabstractitemview.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/widgets/itemviews/qabstractitemview/tst_qabstractitemview.cpp)：View 与 Model/Selection/Editor 的协作。
+15. [`tst_qitemdelegate.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/widgets/itemviews/qitemdelegate/tst_qitemdelegate.cpp)：item delegate 的 role、editor、Style 和事件边界。
 
 每完成一条行为链，都画四张小图：
 
@@ -1195,14 +1194,14 @@ UI 状态图：current / selection / editor / expansion 如何变化
 
 | 结论 | QtBase 6.10.2 证据 |
 |---|---|
-| `QModelIndex` 保存 row、column、internal id、model | [`qabstractitemmodel.h`](../src/corelib/itemmodels/qabstractitemmodel.h) |
-| begin/end 记录 change、发信号并维护 persistent indexes | [`qabstractitemmodel.cpp`](../src/corelib/itemmodels/qabstractitemmodel.cpp)、[`qabstractitemmodel_p.h`](../src/corelib/itemmodels/qabstractitemmodel_p.h) |
-| reset 会使全部 persistent indexes 失效 | [`QAbstractItemModel::endResetModel`](../src/corelib/itemmodels/qabstractitemmodel.cpp) |
-| View 通过模型信号观察数据与结构 | [`QAbstractItemView::setModel`](../src/widgets/itemviews/qabstractitemview.cpp) |
-| Selection 分开保存 current 与 ranges | [`qitemselectionmodel.h`](../src/corelib/itemmodels/qitemselectionmodel.h)、[`qitemselectionmodel.cpp`](../src/corelib/itemmodels/qitemselectionmodel.cpp) |
-| Delegate 用 multiData 填充 Style Option | [`QStyledItemDelegate::initStyleOption`](../src/widgets/itemviews/qstyleditemdelegate.cpp) |
-| Sort/Filter Proxy 缓存 source/proxy 双向映射 | [`qsortfilterproxymodel.cpp`](../src/corelib/itemmodels/qsortfilterproxymodel.cpp) |
-| Qt 6.10 提供方向明确的 begin/endFilterChange | [`qsortfilterproxymodel.h`](../src/corelib/itemmodels/qsortfilterproxymodel.h) |
-| View 会根据可见区域调用 fetchMore | [`qabstractitemview.cpp`](../src/widgets/itemviews/qabstractitemview.cpp) |
-| Model API 只能从 Model 所在线程调用 | [`models.qdocinc`](../src/corelib/doc/src/includes/models.qdocinc) |
-| Tester 检查结构往返和事务前后数量 | [`qabstractitemmodeltester.cpp`](../src/testlib/qabstractitemmodeltester.cpp) |
+| `QModelIndex` 保存 row、column、internal id、model | [`qabstractitemmodel.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qabstractitemmodel.h) |
+| begin/end 记录 change、发信号并维护 persistent indexes | [`qabstractitemmodel.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qabstractitemmodel.cpp)、[`qabstractitemmodel_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qabstractitemmodel_p.h) |
+| reset 会使全部 persistent indexes 失效 | [`QAbstractItemModel::endResetModel`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qabstractitemmodel.cpp) |
+| View 通过模型信号观察数据与结构 | [`QAbstractItemView::setModel`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/itemviews/qabstractitemview.cpp) |
+| Selection 分开保存 current 与 ranges | [`qitemselectionmodel.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qitemselectionmodel.h)、[`qitemselectionmodel.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qitemselectionmodel.cpp) |
+| Delegate 用 multiData 填充 Style Option | [`QStyledItemDelegate::initStyleOption`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/itemviews/qstyleditemdelegate.cpp) |
+| Sort/Filter Proxy 缓存 source/proxy 双向映射 | [`qsortfilterproxymodel.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qsortfilterproxymodel.cpp) |
+| Qt 6.9 引入 beginFilterChange，Qt 6.10 加入带方向参数的 endFilterChange | [`qsortfilterproxymodel.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qsortfilterproxymodel.h) |
+| View 会根据可见区域调用 fetchMore | [`qabstractitemview.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/itemviews/qabstractitemview.cpp) |
+| Model API 只能从 Model 所在线程调用 | [`models.qdocinc`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/doc/src/includes/models.qdocinc) |
+| Tester 检查结构往返和事务前后数量 | [`qabstractitemmodeltester.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qabstractitemmodeltester.cpp) |

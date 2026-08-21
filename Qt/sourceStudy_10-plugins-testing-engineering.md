@@ -1,8 +1,8 @@
 # 10. 插件、测试和工程化
 
-> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](../.cmake.conf)）<br>
+> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](https://github.com/qt/qtbase/blob/v6.10.2/.cmake.conf)）<br>
 > 本文定位：第 16 周的扩展边界、质量保障与交付主线。目标不是只会写 `Q_PLUGIN_METADATA` 或 `QVERIFY`，而是能设计一个可发现、可验证、可部署、可演进的插件协议，并用自动测试、基准测试和 CMake/CTest 把这些约束变成持续执行的工程系统。<br>
-> 前置知识：建议先完成 [`01-value-semantics-implicit-sharing-abi.md`](01-value-semantics-implicit-sharing-abi.md)、[`02-qobject-moc-metaobject-system.md`](02-qobject-moc-metaobject-system.md) 和 [`03-event-loop-and-event-dispatch.md`](03-event-loop-and-event-dispatch.md)。插件依赖元对象和 ABI，异步测试依赖事件循环。
+> 前置知识：建议先完成 [`01-value-semantics-implicit-sharing-abi.md`](sourceStudy_01-value-semantics-implicit-sharing-abi.md)、[`02-qobject-moc-metaobject-system.md`](sourceStudy_02-qobject-moc-metaobject-system.md) 和 [`03-event-loop-and-event-dispatch.md`](sourceStudy_03-event-loop-and-event-dispatch.md)。插件依赖元对象和 ABI，异步测试依赖事件循环。
 
 ## 10.1 完成本阶段后，你应能回答什么
 
@@ -144,7 +144,7 @@ public:
 
 ### 10.3.3 MOC 生成的不是装饰代码
 
-阅读 [`qplugin.h`](../src/corelib/plugin/qplugin.h) 和 [`generator.cpp`](../src/tools/moc/generator.cpp) 时，重点观察 MOC 最终生成的两类能力：
+阅读 [`qplugin.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qplugin.h) 和 [`generator.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/tools/moc/generator.cpp) 时，重点观察 MOC 最终生成的两类能力：
 
 ```text
 qt_plugin_query_metadata...   → 返回编入二进制的元数据
@@ -168,7 +168,7 @@ qt_plugin_instance...         → 返回插件 root QObject
 }
 ```
 
-`Q_PLUGIN_METADATA(FILE ...)` 引用的 JSON 会在构建时被 MOC 读取并嵌入插件。Qt 内部元数据还包含 IID、实现类名、Qt 版本、架构要求和 debug/release 信息；私有解析结构见 [`qplugin_p.h`](../src/corelib/plugin/qplugin_p.h)。FILE 中的自定义 JSON 会出现在 `QPluginLoader::metaData()` 返回对象的 `MetaData` 字段下。
+`Q_PLUGIN_METADATA(FILE ...)` 引用的 JSON 会在构建时被 MOC 读取并嵌入插件。Qt 内部元数据还包含 IID、实现类名、Qt 版本、架构要求和 debug/release 信息；私有解析结构见 [`qplugin_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qplugin_p.h)。FILE 中的自定义 JSON 会出现在 `QPluginLoader::metaData()` 返回对象的 `MetaData` 字段下。
 
 推荐的发现顺序是：
 
@@ -186,7 +186,7 @@ instance()                                ← 通过筛选后才加载并构造
 qobject_cast<TextTransformer *>()
 ```
 
-[`QPluginLoader::metaData()`](../src/corelib/plugin/qpluginloader.cpp) 直接读取已经解析的插件元数据，不要求先调用 `load()`。这使元数据成为一个“低副作用选择平面”。但要注意：
+[`QPluginLoader::metaData()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qpluginloader.cpp) 直接读取已经解析的插件元数据，不要求先调用 `load()`。这使元数据成为一个“低副作用选择平面”。但要注意：
 
 - 元数据来自外部二进制，仍是不可信输入；字段必须做类型、范围和缺失检查。
 - 元数据只能声明能力，不能证明实现真的正确；还需要契约测试。
@@ -208,7 +208,7 @@ qobject_cast<TextTransformer *>()
 
 ## 10.5 `QPluginLoader` 动态加载主链
 
-公共入口位于 [`qpluginloader.h`](../src/corelib/plugin/qpluginloader.h)，实现位于 [`qpluginloader.cpp`](../src/corelib/plugin/qpluginloader.cpp)，底层库与元数据检查位于 [`qlibrary.cpp`](../src/corelib/plugin/qlibrary.cpp)。主链可压缩为：
+公共入口位于 [`qpluginloader.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qpluginloader.h)，实现位于 [`qpluginloader.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qpluginloader.cpp)，底层库与元数据检查位于 [`qlibrary.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qlibrary.cpp)。主链可压缩为：
 
 ```text
 QPluginLoader::setFileName(path)
@@ -251,7 +251,7 @@ MOC 生成的 `Q_PLUGIN_INSTANCE` 使用静态 `QPointer` 缓存 root instance�
 
 ### 10.5.3 版本检查不是“完全相等”
 
-[`QLibraryPrivate::updatePluginState()`](../src/corelib/plugin/qlibrary.cpp) 的通用检查要求 Qt major 相同，并拒绝使用更高 Qt minor 构建的插件；patch 版本不参与这一判断。在要求更严的专用体系中还可能叠加规则。例如 [`QFactoryLoader`](../src/corelib/plugin/qfactoryloader.cpp) 对 QPA IID 额外要求 Qt major.minor 精确匹配。
+[`QLibraryPrivate::updatePluginState()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qlibrary.cpp) 的通用检查要求 Qt major 相同，并拒绝使用更高 Qt minor 构建的插件；patch 版本不参与这一判断。在要求更严的专用体系中还可能叠加规则。例如 [`QFactoryLoader`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qfactoryloader.cpp) 对 QPA IID 额外要求 Qt major.minor 精确匹配。
 
 在 Windows/MSVC 上还要匹配 debug/release；源码对 MinGW 和 Unix 有不同处理。工程上不要把“同为 Qt 6”当作充分兼容证明。
 
@@ -259,7 +259,7 @@ MOC 生成的 `Q_PLUGIN_INSTANCE` 使用静态 `QPointer` 缓存 root instance�
 
 ## 10.6 `QFactoryLoader`：Qt 内部的 keyed plugin registry
 
-[`qfactoryloader_p.h`](../src/corelib/plugin/qfactoryloader_p.h) 是私有头，应用代码不应依赖它；它适合用来学习 Qt 自己如何组织平台、图片格式等插件。
+[`qfactoryloader_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qfactoryloader_p.h) 是私有头，应用代码不应依赖它；它适合用来学习 Qt 自己如何组织平台、图片格式等插件。
 
 `QPluginLoader` 解决“给定一个文件，加载它”；`QFactoryLoader` 解决“在若干标准目录中，找到声明某个 IID 和 key 的最佳实现”。
 
@@ -323,7 +323,15 @@ Q_IMPORT_PLUGIN(ReversePlugin)
 
 ## 10.8 生命周期：热卸载为什么危险
 
-`QPluginLoader::unload()` 只有在所有使用同一插件的 loader 都请求卸载时才可能真正卸载。真正困难的不是引用计数，而是证明插件代码已经不可能再次执行。
+`QPluginLoader::unload()` 只有在所有使用同一插件的 loader 都请求卸载时才可能真正卸载。还要注意：从 Qt 5.7 起，`QPluginLoader::loadHints` 默认包含 `QLibrary::PreventUnloadHint`。如果实验确实要求观察物理卸载，必须在首次加载前显式清除此 hint：
+
+```cpp
+auto hints = loader.loadHints();
+hints.setFlag(QLibrary::PreventUnloadHint, false);
+loader.setLoadHints(hints); // 必须发生在 load()/instance() 之前
+```
+
+清除 hint 只表示“允许尝试卸载”，不代表热卸载已经安全。真正困难的不是引用计数，而是证明插件代码已经不可能再次执行。
 
 卸载前至少要证明：
 
@@ -346,7 +354,7 @@ Q_IMPORT_PLUGIN(ReversePlugin)
 5. 销毁产品对象，再销毁 root instance。
 6. 最后调用 `unload()` 并记录结果。
 
-如果无法证明这些条件，进程期常驻通常比“看起来高级”的热卸载更可靠。Qt 内部工厂广泛使用 `PreventUnloadHint` 正体现了这种取舍。
+如果无法证明这些条件，进程期常驻通常比“看起来高级”的热卸载更可靠。`QPluginLoader` 的默认 hint 以及 Qt 内部工厂对 `PreventUnloadHint` 的使用，正体现了这种取舍。
 
 ---
 
@@ -399,7 +407,7 @@ $env:QT_DEBUG_PLUGINS = "1"
 ./plugin_host.exe
 ```
 
-源码中的日志类别位于 [`qlibrary.cpp`](../src/corelib/plugin/qlibrary.cpp)。它能帮助观察候选文件、元数据和加载错误，但生产日志仍应补充业务 IID、schema、key 与选择策略。
+源码中的日志类别位于 [`qlibrary.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qlibrary.cpp)。它能帮助观察候选文件、元数据和加载错误，但生产日志仍应补充业务 IID、schema、key 与选择策略。
 
 ### 10.10.1 安全边界
 
@@ -428,7 +436,7 @@ Qt 动态插件是进程内原生代码，不是沙箱：加载后拥有宿主�
 
 ## 10.11 QtTest 的执行模型
 
-入口可从 [`qtest.h`](../src/testlib/qtest.h) 和 [`qtestcase.cpp`](../src/testlib/qtestcase.cpp) 开始。`QTEST_MAIN(TestClass)` 大致展开为：
+入口可从 [`qtest.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qtest.h) 和 [`qtestcase.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qtestcase.cpp) 开始。`QTEST_MAIN(TestClass)` 大致展开为：
 
 ```text
 构造 QApplication / QGuiApplication / QCoreApplication
@@ -509,7 +517,7 @@ void tst_TextTransformer::transform()
 }
 ```
 
-内部主链位于 [`qtestcase.cpp`](../src/testlib/qtestcase.cpp)、[`qtesttable.cpp`](../src/testlib/qtesttable.cpp) 和 [`qtestdata.cpp`](../src/testlib/qtestdata.cpp)：
+内部主链位于 [`qtestcase.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qtestcase.cpp)、[`qtesttable.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qtesttable.cpp) 和 [`qtestdata.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qtestdata.cpp)：
 
 ```text
 找到 transform()
@@ -566,7 +574,7 @@ QFETCH 按列名和类型取值
 
 ## 10.14 异步测试与 `QSignalSpy`
 
-[`QSignalSpy`](../src/testlib/qsignalspy.h) 本身是一个保存 `QList<QVariant>` 参数列表的容器。其实现 [`qsignalspy.cpp`](../src/testlib/qsignalspy.cpp) 会：
+[`QSignalSpy`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qsignalspy.h) 本身是一个保存 `QList<QVariant>` 参数列表的容器。其实现 [`qsignalspy.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qsignalspy.cpp) 会：
 
 1. 验证目标方法确实是 signal。
 2. 读取每个参数的 `QMetaType`。
@@ -616,20 +624,20 @@ QTRY_COMPARE_WITH_TIMEOUT(spy.size(), 1, 2s);
 
 | 目录 | 目标 | 典型特点 |
 |---|---|---|
-| [`tests/auto`](../tests/auto) | 可自动判定的正确性与回归 | CI 主体、稳定断言、平台条件化 |
-| [`tests/benchmarks`](../tests/benchmarks) | 性能测量与趋势 | `QBENCHMARK`、多轮测量、关注噪声 |
-| [`tests/manual`](../tests/manual) | 难自动化的人机/平台观察 | 需要明确操作和期望，不能冒充自动覆盖 |
-| [`tests/baseline`](../tests/baseline) | 渲染等基线比较 | 像素/图像差异与容差 |
-| [`tests/libfuzzer`](../tests/libfuzzer) | 非预期输入空间探索 | crash、越界、解析器鲁棒性 |
-| [`tests/testserver`](../tests/testserver) | 测试配套服务 | 为网络/协议测试提供可控环境 |
+| [`tests/auto`](https://github.com/qt/qtbase/tree/v6.10.2/tests/auto) | 可自动判定的正确性与回归 | CI 主体、稳定断言、平台条件化 |
+| [`tests/benchmarks`](https://github.com/qt/qtbase/tree/v6.10.2/tests/benchmarks) | 性能测量与趋势 | `QBENCHMARK`、多轮测量、关注噪声 |
+| [`tests/manual`](https://github.com/qt/qtbase/tree/v6.10.2/tests/manual) | 难自动化的人机/平台观察 | 需要明确操作和期望，不能冒充自动覆盖 |
+| [`tests/baseline`](https://github.com/qt/qtbase/tree/v6.10.2/tests/baseline) | 渲染等基线比较 | 像素/图像差异与容差 |
+| [`tests/libfuzzer`](https://github.com/qt/qtbase/tree/v6.10.2/tests/libfuzzer) | 非预期输入空间探索 | crash、越界、解析器鲁棒性 |
+| [`tests/testserver`](https://github.com/qt/qtbase/tree/v6.10.2/tests/testserver) | 测试配套服务 | 为网络/协议测试提供可控环境 |
 
 读 QtBase 机制时，应把对应测试当作“可执行设计文档”。例如：
 
-- [`tst_qpluginloader.cpp`](../tests/auto/corelib/plugin/qpluginloader/tst_qpluginloader.cpp)：加载、卸载、损坏二进制、静态插件、版本与路径。
-- [`tst_qfactoryloader.cpp`](../tests/auto/corelib/plugin/qfactoryloader/tst_qfactoryloader.cpp)：key map、静态实例和 factory 选择。
-- [`tst_qplugin.cpp`](../tests/auto/corelib/plugin/qplugin/tst_qplugin.cpp)：元数据解析与非法插件。
-- [`tst_qsignalspy.cpp`](../tests/auto/testlib/qsignalspy/tst_qsignalspy.cpp)：参数捕获、等待和跨线程信号。
-- [`selftests`](../tests/auto/testlib/selftests)：QtTest 自己的日志、data、skip、expected failure 和 benchmark 行为。
+- [`tst_qpluginloader.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/plugin/qpluginloader/tst_qpluginloader.cpp)：加载、卸载、损坏二进制、静态插件、版本与路径。
+- [`tst_qfactoryloader.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/plugin/qfactoryloader/tst_qfactoryloader.cpp)：key map、静态实例和 factory 选择。
+- [`tst_qplugin.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/plugin/qplugin/tst_qplugin.cpp)：元数据解析与非法插件。
+- [`tst_qsignalspy.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/testlib/qsignalspy/tst_qsignalspy.cpp)：参数捕获、等待和跨线程信号。
+- [`selftests`](https://github.com/qt/qtbase/tree/v6.10.2/tests/auto/testlib/selftests)：QtTest 自己的日志、data、skip、expected failure 和 benchmark 行为。
 
 阅读顺序应是“某个具体测试函数 → 被保护的契约 → 对应实现”，而不是从一个巨大测试文件第 1 行顺序读到底。
 
@@ -637,7 +645,7 @@ QTRY_COMPARE_WITH_TIMEOUT(spy.size(), 1, 2s);
 
 ## 10.16 Benchmark 不是把单元测试包进计时器
 
-正确性测试回答“结果对不对”，基准测试回答“在可控条件下，这个操作的成本分布是否发生有意义变化”。入口见 [`qbenchmark.h`](../src/testlib/qbenchmark.h)、[`qbenchmark.cpp`](../src/testlib/qbenchmark.cpp) 和 [`tests/benchmarks`](../tests/benchmarks)。
+正确性测试回答“结果对不对”，基准测试回答“在可控条件下，这个操作的成本分布是否发生有意义变化”。入口见 [`qbenchmark.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qbenchmark.h)、[`qbenchmark.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qbenchmark.cpp) 和 [`tests/benchmarks`](https://github.com/qt/qtbase/tree/v6.10.2/tests/benchmarks)。
 
 ```cpp
 void tst_TransformerBenchmark::reverseMediumText()
@@ -930,7 +938,7 @@ fixtures/
 
 ## 10.19 CMake、CTest 与 CI 门禁
 
-QtBase 自身使用内部函数如 `qt_internal_add_test()`、`qt_internal_add_benchmark()`；这些是构建 Qt 自己时的基础设施。普通应用应使用公共 CMake API、`qt_add_executable()`、`qt_add_plugin()` 与标准 CTest。公共插件辅助逻辑可阅读 [`QtPublicPluginHelpers.cmake`](../cmake/QtPublicPluginHelpers.cmake)，但不要复制内部实现作为应用 API。
+QtBase 自身使用内部函数如 `qt_internal_add_test()`、`qt_internal_add_benchmark()`；这些是构建 Qt 自己时的基础设施。普通应用应使用公共 CMake API、`qt_add_executable()`、`qt_add_plugin()` 与标准 CTest。公共插件辅助逻辑可阅读 [`QtPublicPluginHelpers.cmake`](https://github.com/qt/qtbase/blob/v6.10.2/cmake/QtPublicPluginHelpers.cmake)，但不要复制内部实现作为应用 API。
 
 ### 10.19.1 推荐流水线
 
@@ -982,7 +990,7 @@ flowchart LR
     → QT_MOC_EXPORT_PLUGIN / Q_PLUGIN_INSTANCE
 ```
 
-先打开构建目录中的 `moc_reverseplugin.cpp`，再对照 [`qplugin.h`](../src/corelib/plugin/qplugin.h) 和 [`generator.cpp`](../src/tools/moc/generator.cpp)。
+先打开构建目录中的 `moc_reverseplugin.cpp`，再对照 [`qplugin.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qplugin.h) 和 [`generator.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/tools/moc/generator.cpp)。
 
 ### 10.20.2 只读取元数据
 
@@ -1185,28 +1193,28 @@ QSignalSpy::wait / QTestEventLoop
 
 第一轮只追插件公共主链：
 
-1. [`qplugin.h`](../src/corelib/plugin/qplugin.h)：接口声明、静态注册和 MOC 导出宏。
-2. [`qpluginloader.h`](../src/corelib/plugin/qpluginloader.h)：公共契约、instance/load/unload/metaData。
-3. [`qpluginloader.cpp`](../src/corelib/plugin/qpluginloader.cpp)：root instance 和 loader 引用语义。
-4. [`qlibrary.cpp`](../src/corelib/plugin/qlibrary.cpp)：二进制扫描、版本/构建模式检查和平台装载。
-5. [`qplugin_p.h`](../src/corelib/plugin/qplugin_p.h)：只为理解内部 CBOR/metadata keys，不作为应用依赖。
-6. [`tst_qpluginloader.cpp`](../tests/auto/corelib/plugin/qpluginloader/tst_qpluginloader.cpp)：用错误路径和损坏插件反推契约边界。
+1. [`qplugin.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qplugin.h)：接口声明、静态注册和 MOC 导出宏。
+2. [`qpluginloader.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qpluginloader.h)：公共契约、instance/load/unload/metaData。
+3. [`qpluginloader.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qpluginloader.cpp)：root instance 和 loader 引用语义。
+4. [`qlibrary.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qlibrary.cpp)：二进制扫描、版本/构建模式检查和平台装载。
+5. [`qplugin_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qplugin_p.h)：只为理解内部 CBOR/metadata keys，不作为应用依赖。
+6. [`tst_qpluginloader.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/plugin/qpluginloader/tst_qpluginloader.cpp)：用错误路径和损坏插件反推契约边界。
 
 第二轮进入 Factory/Registry：
 
-7. [`qfactoryloader_p.h`](../src/corelib/plugin/qfactoryloader_p.h)：key → factory 模板入口。
-8. [`qfactoryloader.cpp`](../src/corelib/plugin/qfactoryloader.cpp)：路径扫描、IID/Keys、重复实现选择和静态插件统一。
-9. [`Windows 平台插件入口`](../src/plugins/platforms/windows/main.cpp) 与 [`minimal`](../src/plugins/platforms/minimal/main.cpp)：观察 QPA factory 落地。
-10. [`tst_qfactoryloader.cpp`](../tests/auto/corelib/plugin/qfactoryloader/tst_qfactoryloader.cpp)：静态/动态 factory 行为。
+7. [`qfactoryloader_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qfactoryloader_p.h)：key → factory 模板入口。
+8. [`qfactoryloader.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qfactoryloader.cpp)：路径扫描、IID/Keys、重复实现选择和静态插件统一。
+9. [`Windows 平台插件入口`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/main.cpp) 与 [`minimal`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/minimal/main.cpp)：观察 QPA factory 落地。
+10. [`tst_qfactoryloader.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/plugin/qfactoryloader/tst_qfactoryloader.cpp)：静态/动态 factory 行为。
 
 第三轮进入 QtTest：
 
-11. [`qtest.h`](../src/testlib/qtest.h)：main 宏。
-12. [`qtestcase.cpp`](../src/testlib/qtestcase.cpp)：qExec、方法发现、fixture、data rows 和 watchdog。
-13. [`qtesttable.cpp`](../src/testlib/qtesttable.cpp) 与 [`qtestdata.cpp`](../src/testlib/qtestdata.cpp)：data-driven 存储。
-14. [`qsignalspy.cpp`](../src/testlib/qsignalspy.cpp)：动态参数捕获和等待。
-15. [`qbenchmark.cpp`](../src/testlib/qbenchmark.cpp)：测量状态与结果聚合。
-16. [`tests/auto/testlib/selftests`](../tests/auto/testlib/selftests)：把 QtTest 自身当作被测框架阅读。
+11. [`qtest.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qtest.h)：main 宏。
+12. [`qtestcase.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qtestcase.cpp)：qExec、方法发现、fixture、data rows 和 watchdog。
+13. [`qtesttable.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qtesttable.cpp) 与 [`qtestdata.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qtestdata.cpp)：data-driven 存储。
+14. [`qsignalspy.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qsignalspy.cpp)：动态参数捕获和等待。
+15. [`qbenchmark.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/qbenchmark.cpp)：测量状态与结果聚合。
+16. [`tests/auto/testlib/selftests`](https://github.com/qt/qtbase/tree/v6.10.2/tests/auto/testlib/selftests)：把 QtTest 自身当作被测框架阅读。
 
 每完成一条主链，产出五张表/图：
 

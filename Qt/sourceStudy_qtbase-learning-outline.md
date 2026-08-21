@@ -56,7 +56,7 @@ Widgets + Model/View
 
 ### 0. 建立 QtBase 整体地图
 
-本阶段详细学习文档：[`00-qtbase-overall-map.md`](00-qtbase-overall-map.md)。
+本阶段详细学习文档：[`00-qtbase-overall-map.md`](sourceStudy_00-qtbase-overall-map.md)。
 
 先认识 QtBase 的边界：
 
@@ -67,7 +67,7 @@ Widgets + Model/View
 - TestLib：测试基础设施。
 - SQL、DBus、OpenGL、PrintSupport：外围能力。
 
-模块装配入口可从 [`src/CMakeLists.txt`](../src/CMakeLists.txt) 开始。
+模块装配入口可从 [`src/CMakeLists.txt`](https://github.com/qt/qtbase/blob/v6.10.2/src/CMakeLists.txt) 开始。
 
 需要理解：
 
@@ -80,11 +80,11 @@ Widgets + Model/View
 
 ### 1. 值语义、隐式共享与 ABI
 
-本阶段详细学习文档：[`01-value-semantics-implicit-sharing-abi.md`](01-value-semantics-implicit-sharing-abi.md)。
+本阶段详细学习文档：[`01-value-semantics-implicit-sharing-abi.md`](sourceStudy_01-value-semantics-implicit-sharing-abi.md)。
 
 阅读：
 
-- [`qshareddata.h`](../src/corelib/tools/qshareddata.h)
+- [`qshareddata.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qshareddata.h)
 - `src/corelib/tools/qarraydata.h`
 - `src/corelib/tools/qarraydatapointer.h`
 - `src/corelib/tools/qlist.h`
@@ -111,14 +111,14 @@ Widgets + Model/View
 
 ### 2. QObject、MOC 与元对象系统
 
-本阶段详细学习文档：[`02-qobject-moc-metaobject-system.md`](02-qobject-moc-metaobject-system.md)。
+本阶段详细学习文档：[`02-qobject-moc-metaobject-system.md`](sourceStudy_02-qobject-moc-metaobject-system.md)。
 
 核心入口：
 
-- [`qobject.h`](../src/corelib/kernel/qobject.h)
-- [`qobject_p.h`](../src/corelib/kernel/qobject_p.h)
-- [`qobjectdefs.h`](../src/corelib/kernel/qobjectdefs.h)
-- [`qobject.cpp`](../src/corelib/kernel/qobject.cpp)
+- [`qobject.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.h)
+- [`qobject_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject_p.h)
+- [`qobjectdefs.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobjectdefs.h)
+- [`qobject.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp)
 - `src/corelib/kernel/qmetaobject.cpp`
 - `src/corelib/kernel/qmetatype.h`
 - `src/corelib/kernel/qproperty.h`
@@ -142,13 +142,13 @@ Widgets + Model/View
 
 ### 3. 事件循环与事件分发
 
-本阶段详细学习文档：[`03-event-loop-and-event-dispatch.md`](03-event-loop-and-event-dispatch.md)。
+本阶段详细学习文档：[`03-event-loop-and-event-dispatch.md`](sourceStudy_03-event-loop-and-event-dispatch.md)。
 
 核心入口：
 
-- [`qeventloop.cpp`](../src/corelib/kernel/qeventloop.cpp)
-- [`qcoreapplication.cpp`](../src/corelib/kernel/qcoreapplication.cpp)
-- [`qabstracteventdispatcher.h`](../src/corelib/kernel/qabstracteventdispatcher.h)
+- [`qeventloop.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventloop.cpp)
+- [`qcoreapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreapplication.cpp)
+- [`qabstracteventdispatcher.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qabstracteventdispatcher.h)
 - `src/corelib/kernel/qevent.cpp`
 - `src/corelib/kernel/qtimer.cpp`
 
@@ -172,11 +172,11 @@ Widgets + Model/View
 
 ### 4. QThread 与并发模型
 
-本阶段详细学习文档：[`04-qthread-and-concurrency-model.md`](04-qthread-and-concurrency-model.md)。
+本阶段详细学习文档：[`04-qthread-and-concurrency-model.md`](sourceStudy_04-qthread-and-concurrency-model.md)。
 
 入口：
 
-- [`qthread.h`](../src/corelib/thread/qthread.h)
+- [`qthread.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthread.h)
 - `src/corelib/thread/qthread.cpp`
 - `src/corelib/thread/qthreadpool.cpp`
 - `src/corelib/thread/qrunnable.cpp`
@@ -204,11 +204,11 @@ Widgets + Model/View
 
 ### 5. QIODevice 与异步网络
 
-本阶段详细学习文档：[`05-qiodevice-and-async-network.md`](05-qiodevice-and-async-network.md)。
+本阶段详细学习文档：[`05-qiodevice-and-async-network.md`](sourceStudy_05-qiodevice-and-async-network.md)。
 
 入口：
 
-- [`qiodevice.h`](../src/corelib/io/qiodevice.h)
+- [`qiodevice.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/io/qiodevice.h)
 - `src/corelib/io/qfile.cpp`
 - `src/corelib/io/qbuffer.cpp`
 - `src/network/socket/qabstractsocket.cpp`
@@ -228,13 +228,13 @@ Widgets + Model/View
 
 ### 6. QPA 与跨平台设计
 
-本阶段详细学习文档：[`06-qpa-and-cross-platform-design.md`](06-qpa-and-cross-platform-design.md)。
+本阶段详细学习文档：[`06-qpa-and-cross-platform-design.md`](sourceStudy_06-qpa-and-cross-platform-design.md)。
 
 入口：
 
-- [`qplatformintegration.h`](../src/gui/kernel/qplatformintegration.h)
-- [`qplatformintegrationplugin.h`](../src/gui/kernel/qplatformintegrationplugin.h)
-- [`Windows 平台插件入口`](../src/plugins/platforms/windows/main.cpp)
+- [`qplatformintegration.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegration.h)
+- [`qplatformintegrationplugin.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegrationplugin.h)
+- [`Windows 平台插件入口`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/main.cpp)
 - `src/plugins/platforms/windows`
 - `src/plugins/platforms/minimal`
 
@@ -251,12 +251,12 @@ Widgets + Model/View
 
 ### 7. QPainter 绘制架构
 
-本阶段详细学习文档：[`07-qpainter-painting-architecture.md`](07-qpainter-painting-architecture.md)。
+本阶段详细学习文档：[`07-qpainter-painting-architecture.md`](sourceStudy_07-qpainter-painting-architecture.md)。
 
 入口：
 
-- [`qpainter.h`](../src/gui/painting/qpainter.h)
-- [`qpaintengine.h`](../src/gui/painting/qpaintengine.h)
+- [`qpainter.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpainter.h)
+- [`qpaintengine.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpaintengine.h)
 - `src/gui/painting/qpainter.cpp`
 - `src/gui/painting/qpaintdevice.cpp`
 - `src/gui/painting/qpaintengine_raster.cpp`
@@ -277,11 +277,11 @@ Widgets + Model/View
 
 ### 8. QWidget 体系
 
-本阶段详细学习文档：[`08-qwidget-system.md`](08-qwidget-system.md)。
+本阶段详细学习文档：[`08-qwidget-system.md`](sourceStudy_08-qwidget-system.md)。
 
 入口：
 
-- [`qwidget.h`](../src/widgets/kernel/qwidget.h)
+- [`qwidget.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.h)
 - `src/widgets/kernel/qwidget.cpp`
 - `src/widgets/kernel/qapplication.cpp`
 - `src/widgets/kernel/qlayout.cpp`
@@ -300,12 +300,12 @@ Widgets + Model/View
 
 ### 9. Model/View 架构
 
-本阶段详细学习文档：[`09-model-view-architecture.md`](09-model-view-architecture.md)。
+本阶段详细学习文档：[`09-model-view-architecture.md`](sourceStudy_09-model-view-architecture.md)。
 
 入口：
 
-- [`qabstractitemmodel.h`](../src/corelib/itemmodels/qabstractitemmodel.h)
-- [`qabstractitemview.h`](../src/widgets/itemviews/qabstractitemview.h)
+- [`qabstractitemmodel.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/itemmodels/qabstractitemmodel.h)
+- [`qabstractitemview.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/itemviews/qabstractitemview.h)
 - `src/corelib/itemmodels/qabstractproxymodel.h`
 - `src/corelib/itemmodels/qsortfilterproxymodel.h`
 - `src/widgets/itemviews/qstyleditemdelegate.h`
@@ -332,11 +332,11 @@ Widgets + Model/View
 
 ### 10. 插件、测试和工程化
 
-本阶段详细学习文档：[`10-plugins-testing-engineering.md`](10-plugins-testing-engineering.md)。
+本阶段详细学习文档：[`10-plugins-testing-engineering.md`](sourceStudy_10-plugins-testing-engineering.md)。
 
 阅读：
 
-- [`qfactoryloader_p.h`](../src/corelib/plugin/qfactoryloader_p.h)
+- [`qfactoryloader_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/plugin/qfactoryloader_p.h)
 - `src/corelib/plugin/qpluginloader.cpp`
 - `src/corelib/plugin/qplugin.h`
 - Windows/minimal 平台插件。
@@ -427,3 +427,14 @@ QObject::connect
 - 最后画出对象生命周期图、线程图、事件流图和模块图。
 
 这个项目能把 QtBase 最重要的几条设计主线真正串起来。第一轮完成后，再根据方向进入 `qtdeclarative`、多媒体、WebEngine 或更深的平台后端。
+
+## 七、文档维护检查
+
+从仓库根目录运行：
+
+```bash
+python3 Qt/check_sourceStudy_links.py
+python3 -m unittest Qt/test_sourceStudy_links.py
+```
+
+第一条命令检查所有 `sourceStudy_*.md` 的本地章节链接，并拒绝逃出 `Qt/` 文档目录的相对链接；QtBase 源码证据应使用固定到 `v6.10.2` 的官方链接。第二条命令验证检查器自身对有效链接、缺失目标和越界目标的处理。

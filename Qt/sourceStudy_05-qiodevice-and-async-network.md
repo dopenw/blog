@@ -1,8 +1,8 @@
 # 5. QIODevice 与异步网络
 
-> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](../.cmake.conf)）  
+> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](https://github.com/qt/qtbase/blob/v6.10.2/.cmake.conf)）<br>
 > 本文定位：第 9 周的异步 I/O 与网络主线。目标不是只会连接 `readyRead()`，而是能从 `QIODevice` 契约、内部缓冲、事件循环、Socket 状态机和应用协议五个层次解释数据何时可读、何时真正写出，以及超时、取消和销毁为何会竞争。  
-> 前置知识：建议先完成 [`03-event-loop-and-event-dispatch.md`](03-event-loop-and-event-dispatch.md) 和 [`04-qthread-and-concurrency-model.md`](04-qthread-and-concurrency-model.md)。异步 Socket 依赖线程事件循环，跨线程使用又受 QObject 线程亲和性约束。
+> 前置知识：建议先完成 [`03-event-loop-and-event-dispatch.md`](sourceStudy_03-event-loop-and-event-dispatch.md) 和 [`04-qthread-and-concurrency-model.md`](sourceStudy_04-qthread-and-concurrency-model.md)。异步 Socket 依赖线程事件循环，跨线程使用又受 QObject 线程亲和性约束。
 
 ## 5.1 完成本阶段后，你应能回答什么
 
@@ -67,7 +67,7 @@ flowchart TB
 
 ## 5.3 `QIODevice` 的抽象边界：公共算法包住最小虚函数
 
-公共接口位于 [`qiodevice.h`](../src/corelib/io/qiodevice.h)，通用算法位于 [`qiodevice.cpp`](../src/corelib/io/qiodevice.cpp)，内部状态位于 [`qiodevice_p.h`](../src/corelib/io/qiodevice_p.h)。
+公共接口位于 [`qiodevice.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/io/qiodevice.h)，通用算法位于 [`qiodevice.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/io/qiodevice.cpp)，内部状态位于 [`qiodevice_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/io/qiodevice_p.h)。
 
 ### 5.3.1 子类最少实现什么
 
@@ -132,7 +132,7 @@ protected:
 
 ## 5.4 `read()` 的真实路径：先缓冲，再设备
 
-[`QIODevicePrivate::read()`](../src/corelib/io/qiodevice.cpp) 是理解基类的核心。QtBase 6.10.2 的路径可压缩为：
+[`QIODevicePrivate::read()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/io/qiodevice.cpp) 是理解基类的核心。QtBase 6.10.2 的路径可压缩为：
 
 ```text
 QIODevice::read(data, maxSize)
@@ -217,7 +217,7 @@ if (socket.size() < expectedSize)
 
 ## 5.6 `readyRead()` 是边沿提示，不是消息事件
 
-[`qiodevice.cpp`](../src/corelib/io/qiodevice.cpp) 对 `readyRead()` 的契约非常具体：每当**新数据**进入当前读通道时发射一次；只因旧缓冲仍未读完，不应反复发射。
+[`qiodevice.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/io/qiodevice.cpp) 对 `readyRead()` 的契约非常具体：每当**新数据**进入当前读通道时发射一次；只因旧缓冲仍未读完，不应反复发射。
 
 这带来四条规则：
 
@@ -378,7 +378,7 @@ QtBase 6.10.2 的实现差异是：
 
 ## 5.10 `QAbstractSocket` 状态机
 
-公共接口位于 [`qabstractsocket.h`](../src/network/socket/qabstractsocket.h)，状态与缓冲逻辑位于 [`qabstractsocket.cpp`](../src/network/socket/qabstractsocket.cpp)，平台 socket engine 位于 `src/network/socket/` 的私有实现中。
+公共接口位于 [`qabstractsocket.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/network/socket/qabstractsocket.h)，状态与缓冲逻辑位于 [`qabstractsocket.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/network/socket/qabstractsocket.cpp)，平台 socket engine 位于 `src/network/socket/` 的私有实现中。
 
 典型连接路径：
 
@@ -462,11 +462,11 @@ Qt 自己的 `tst_qtcpsocket.cpp` 专门覆盖 `recursiveReadyRead`、`waitForRe
 
 入口：
 
-- [`qnetworkaccessmanager.h`](../src/network/access/qnetworkaccessmanager.h)
-- [`qnetworkaccessmanager.cpp`](../src/network/access/qnetworkaccessmanager.cpp)
-- [`qnetworkreply.h`](../src/network/access/qnetworkreply.h)
-- [`qnetworkreply.cpp`](../src/network/access/qnetworkreply.cpp)
-- [`qnetworkrequest.h`](../src/network/access/qnetworkrequest.h)
+- [`qnetworkaccessmanager.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/network/access/qnetworkaccessmanager.h)
+- [`qnetworkaccessmanager.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/network/access/qnetworkaccessmanager.cpp)
+- [`qnetworkreply.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/network/access/qnetworkreply.h)
+- [`qnetworkreply.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/network/access/qnetworkreply.cpp)
+- [`qnetworkrequest.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/network/access/qnetworkrequest.h)
 
 ### 5.13.1 三层职责
 
@@ -1072,11 +1072,11 @@ QObject::deleteLater
 
 | 主题 | 测试文件与用例 |
 |---|---|
-| peek、skip、readLine、事务 | [`tst_qiodevice.cpp`](../tests/auto/corelib/io/qiodevice/tst_qiodevice.cpp) 的 `peekAndRead`、`skipAfterPeek`、`readLineInto`、`transaction` |
-| `QBuffer` open/seek/信号 | [`tst_qbuffer.cpp`](../tests/auto/corelib/io/qbuffer/tst_qbuffer.cpp) 的 `openWriteOnlyDoesNotTruncate`、`seekTest`、`signalTest` |
-| TCP 部分读取与递归 | [`tst_qtcpsocket.cpp`](../tests/auto/network/socket/qtcpsocket/tst_qtcpsocket.cpp) 的 `partialRead`、`recursiveReadyRead`、`waitForReadyReadInASlot` |
+| peek、skip、readLine、事务 | [`tst_qiodevice.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/io/qiodevice/tst_qiodevice.cpp) 的 `peekAndRead`、`skipAfterPeek`、`readLineInto`、`transaction` |
+| `QBuffer` open/seek/信号 | [`tst_qbuffer.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/io/qbuffer/tst_qbuffer.cpp) 的 `openWriteOnlyDoesNotTruncate`、`seekTest`、`signalTest` |
+| TCP 部分读取与递归 | [`tst_qtcpsocket.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/network/socket/qtcpsocket/tst_qtcpsocket.cpp) 的 `partialRead`、`recursiveReadyRead`、`waitForReadyReadInASlot` |
 | TCP 缓冲与强制关闭 | 同文件的 read buffer size 相关用例、`abortiveClose` |
-| Reply buffer/line | [`tst_qnetworkreply.cpp`](../tests/auto/network/access/qnetworkreply/tst_qnetworkreply.cpp) 的 `getFromHttpIntoBufferCanReadLine` |
+| Reply buffer/line | [`tst_qnetworkreply.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/network/access/qnetworkreply/tst_qnetworkreply.cpp) 的 `getFromHttpIntoBufferCanReadLine` |
 | HTTP 取消与关闭 | 同文件的 `httpAbort`、`closeDuringDownload`、`abortAndError` |
 | Reply 自动删除 | 同文件的 `autoDeleteRepliesAttribute`、`autoDeleteReplies` |
 | 传输超时 | 同文件的 `requestWithTimeout` |
@@ -1212,16 +1212,16 @@ HTTP Reply 发出 `finished()` 后应检查哪三层结果？
 
 ## 5.22 推荐源码阅读顺序
 
-1. [`qiodevice.h`](../src/corelib/io/qiodevice.h)：先记住公共契约和最小虚函数面。
-2. [`qiodevice_p.h`](../src/corelib/io/qiodevice_p.h)：理解 ring buffer、位置、通道和事务状态。
-3. [`qiodevice.cpp`](../src/corelib/io/qiodevice.cpp)：定向阅读 `read()`、`QIODevicePrivate::read()`、`write()` 和事务。
-4. [`qbuffer.cpp`](../src/corelib/io/qbuffer.cpp)：看最简单随机访问子类如何落地。
-5. [`qfile.cpp`](../src/corelib/io/qfile.cpp) 与 `qfiledevice.cpp`：看文件语义和平台引擎边界。
-6. [`qabstractsocket.h`](../src/network/socket/qabstractsocket.h)：整理状态、错误、signals 和 wait 系列。
-7. [`qabstractsocket.cpp`](../src/network/socket/qabstractsocket.cpp)：跟 `canReadNotification()`、`readData()`、`writeData()` 和关闭路径。
+1. [`qiodevice.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/io/qiodevice.h)：先记住公共契约和最小虚函数面。
+2. [`qiodevice_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/io/qiodevice_p.h)：理解 ring buffer、位置、通道和事务状态。
+3. [`qiodevice.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/io/qiodevice.cpp)：定向阅读 `read()`、`QIODevicePrivate::read()`、`write()` 和事务。
+4. [`qbuffer.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/io/qbuffer.cpp)：看最简单随机访问子类如何落地。
+5. [`qfile.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/io/qfile.cpp) 与 `qfiledevice.cpp`：看文件语义和平台引擎边界。
+6. [`qabstractsocket.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/network/socket/qabstractsocket.h)：整理状态、错误、signals 和 wait 系列。
+7. [`qabstractsocket.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/network/socket/qabstractsocket.cpp)：跟 `canReadNotification()`、`readData()`、`writeData()` 和关闭路径。
 8. `src/network/socket/*socketengine*`：理解 event dispatcher 与 native socket 的桥接。
-9. [`qnetworkaccessmanager.cpp`](../src/network/access/qnetworkaccessmanager.cpp)：跟 `createRequest()` 与 `_q_replyFinished()`。
-10. [`qnetworkreply.cpp`](../src/network/access/qnetworkreply.cpp)：区分设备状态、网络状态和元数据。
+9. [`qnetworkaccessmanager.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/network/access/qnetworkaccessmanager.cpp)：跟 `createRequest()` 与 `_q_replyFinished()`。
+10. [`qnetworkreply.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/network/access/qnetworkreply.cpp)：区分设备状态、网络状态和元数据。
 11. 5.19 列出的自动测试：用边界条件校正自己的模型。
 
 完成本阶段后，再进入 QPA 前，建议画出两张图：

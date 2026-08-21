@@ -1,8 +1,8 @@
 # 3. 事件循环与事件分发
 
-> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](../.cmake.conf)）<br>
+> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](https://github.com/qt/qtbase/blob/v6.10.2/.cmake.conf)）<br>
 > 本文定位：第 6～7 周的机制主线。目标不是只会调用 `app.exec()`，而是能从一个原生消息、定时器、Socket 就绪或 `postEvent()` 一路追到目标对象的 `event()`，并能判断所有权、线程、顺序、重入和销毁边界。<br>
-> 路径校正：学习大纲中的 `src/corelib/kernel/qevent.cpp` 在本版本不存在；`QEvent` 的 Core 实现位于 [`qcoreevent.cpp`](../src/corelib/kernel/qcoreevent.cpp)，Gui 事件类型另见 `src/gui/kernel/qevent.cpp`。
+> 路径校正：学习大纲中的 `src/corelib/kernel/qevent.cpp` 在本版本不存在；`QEvent` 的 Core 实现位于 [`qcoreevent.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreevent.cpp)，Gui 事件类型另见 `src/gui/kernel/qevent.cpp`。
 
 ## 3.1 完成本阶段后，你应能回答什么
 
@@ -70,7 +70,7 @@ flowchart LR
 
 ### 3.3.1 `QCoreApplication::exec()` 只是主循环入口
 
-[`QCoreApplication::exec()`](../src/corelib/kernel/qcoreapplication.cpp) 的核心逻辑很短：
+[`QCoreApplication::exec()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreapplication.cpp) 的核心逻辑很短：
 
 ```text
 检查 QCoreApplication 实例存在
@@ -92,7 +92,7 @@ eventLoop.exec(QEventLoop::ApplicationExec)
 
 ### 3.3.2 `QEventLoop::exec()` 维护循环栈
 
-[`QEventLoop::exec()`](../src/corelib/kernel/qeventloop.cpp) 进入时：
+[`QEventLoop::exec()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventloop.cpp) 进入时：
 
 1. 检查线程是否已收到整体退出请求 `quitNow`。
 2. 拒绝同一个 `QEventLoop` 实例递归调用自己的 `exec()`。
@@ -133,7 +133,7 @@ QThreadData（每线程）
 
 ### 3.3.4 `ProcessEventsFlags` 的真实边界
 
-[`qeventloop.h`](../src/corelib/kernel/qeventloop.h) 中公开相关标志为：
+[`qeventloop.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventloop.h) 中公开相关标志为：
 
 | 标志 | 行为 |
 |---|---|
@@ -161,7 +161,7 @@ QThreadData（每线程）
 
 ### 3.4.1 Windows：消息队列 + 隐藏窗口
 
-[`QEventDispatcherWin32::processEvents()`](../src/corelib/kernel/qeventdispatcher_win.cpp) 的主干是：
+[`QEventDispatcherWin32::processEvents()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventdispatcher_win.cpp) 的主干是：
 
 ```text
 emit awake()
@@ -192,7 +192,7 @@ Windows 后端创建一个内部隐藏窗口 `internalHwnd`：
 
 ### 3.4.2 UNIX：poll + 唤醒管道
 
-[`QEventDispatcherUNIX::processEvents()`](../src/corelib/kernel/qeventdispatcher_unix.cpp) 先处理 posted events，再根据 flags 组装 Socket fd 集合和 Timer deadline，随后调用 `qt_safe_poll()`：
+[`QEventDispatcherUNIX::processEvents()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventdispatcher_unix.cpp) 先处理 posted events，再根据 flags 组装 Socket fd 集合和 Timer deadline，随后调用 `qt_safe_poll()`：
 
 ```text
 sendPostedEvents()
@@ -226,7 +226,7 @@ Windows 隐藏窗口消息和 UNIX pipe 都在解决同一个问题：另一个�
 
 ### 3.5.1 完整调用链
 
-对一个普通 Core `QObject`，[`QCoreApplication::sendEvent()`](../src/corelib/kernel/qcoreapplication.cpp) 的路径为：
+对一个普通 Core `QObject`，[`QCoreApplication::sendEvent()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreapplication.cpp) 的路径为：
 
 ```text
 QCoreApplication::sendEvent(receiver, event)
@@ -271,7 +271,7 @@ Qt 的通知路径要求事件发送到当前线程中的对象；Debug 构建�
 
 ### 3.6.1 `postEvent()` 的所有权状态机
 
-[`QCoreApplication::postEvent()`](../src/corelib/kernel/qcoreapplication.cpp) 的契约要求事件在堆上创建：
+[`QCoreApplication::postEvent()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreapplication.cpp) 的契约要求事件在堆上创建：
 
 ```cpp
 QCoreApplication::postEvent(receiver, new MyEvent);
@@ -303,7 +303,7 @@ stateDiagram-v2
 
 ### 3.6.3 优先级：降序；同优先级稳定
 
-内部 [`QPostEventList::addEvent()`](../src/corelib/thread/qthread.cpp) 保持队列按 priority 降序排列。使用 `std::upper_bound` 插入同优先级事件，确保同优先级仍按投递顺序处理。
+内部 [`QPostEventList::addEvent()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthread.cpp) 保持队列按 priority 降序排列。使用 `std::upper_bound` 插入同优先级事件，确保同优先级仍按投递顺序处理。
 
 ```text
 投递顺序： A(priority 0), B(priority 10), C(priority 0), D(priority -2)
@@ -328,7 +328,7 @@ priority 可以从 `INT_MIN` 到 `INT_MAX`。高优先级不意味着实时保�
 
 解锁后才调用用户代码非常重要。handler 可能再次投递、进入嵌套循环、移动对象甚至销毁对象；如果队列锁仍被持有，很容易死锁。
 
-Qt 6.10.2 的 [`tst_QCoreApplication::postEvent()`](../tests/auto/corelib/kernel/qcoreapplication/tst_qcoreapplication.cpp) 直接验证了优先级、同批次边界和递归 `sendPostedEvents()` 的顺序。
+Qt 6.10.2 的 [`tst_QCoreApplication::postEvent()`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/kernel/qcoreapplication/tst_qcoreapplication.cpp) 直接验证了优先级、同批次边界和递归 `sendPostedEvents()` 的顺序。
 
 ### 3.6.5 事件压缩意味着“一次 post 不一定一次 delivery”
 
@@ -417,7 +417,7 @@ filter 与被监视对象安装时必须在同一线程。若安装后其中一�
 
 ## 3.8 `QObject::event()`：统一入口与 Template Method
 
-[`QObject::event()`](../src/corelib/kernel/qobject.cpp) 根据 type 分派 Core 事件：
+[`QObject::event()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp) 根据 type 分派 Core 事件：
 
 | type | 默认动作 |
 |---|---|
@@ -506,7 +506,7 @@ bool Receiver::event(QEvent *event)
 
 ### 3.10.1 `QTimer` 不是后台线程
 
-[`QTimer::start()`](../src/corelib/kernel/qtimer.cpp) 最终调用：
+[`QTimer::start()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qtimer.cpp) 最终调用：
 
 ```text
 QTimer::start()
@@ -539,7 +539,7 @@ Timer 到期只是让 handler 有资格在事件线程运行。它不是硬实�
 
 ### 3.10.2 `QSocketNotifier` 把 fd readiness 变成 Qt 事件
 
-`QSocketNotifier::setEnabled(true)` 向当前线程 dispatcher 注册 notifier。平台后端观察 fd 就绪后向 notifier 发送 `QEvent::SockAct` 或 `SockClose`；[`QSocketNotifier::event()`](../src/corelib/kernel/qsocketnotifier.cpp) 再发出 `activated()`。
+`QSocketNotifier::setEnabled(true)` 向当前线程 dispatcher 注册 notifier。平台后端观察 fd 就绪后向 notifier 发送 `QEvent::SockAct` 或 `SockClose`；[`QSocketNotifier::event()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qsocketnotifier.cpp) 再发出 `activated()`。
 
 它与 Timer 的共同点是：
 
@@ -626,7 +626,7 @@ QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
 ### 3.13.1 它投递的是特殊事件
 
-[`QObject::deleteLater()`](../src/corelib/kernel/qobject.cpp) 不直接删除对象，而是：
+[`QObject::deleteLater()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp) 不直接删除对象，而是：
 
 1. 在对象线程的 post-event mutex 下去重 `deleteLaterCalled`；
 2. 记录当前 `loopLevel` 和 `scopeLevel`；
@@ -677,6 +677,7 @@ object->deleteLater();
 ```cpp
 #include <QCoreApplication>
 #include <QEvent>
+#include <QMetaObject>
 #include <QPointer>
 #include <QStringList>
 #include <QTimer>
@@ -770,7 +771,9 @@ int main(int argc, char *argv[])
 
     QPointer<QObject> guard;
 
-    QTimer::singleShot(0, &app, [&] {
+    // 与上面的普通优先级 posted event 使用同一队列；同优先级按投递顺序处理，
+    // 因此它是确定性的队列屏障。0ms timer 与其他事件源的顺序则没有保证。
+    QMetaObject::invokeMethod(&app, [&] {
         const QStringList expected{
             QStringLiteral("sync"),
             QStringLiteral("high"),
@@ -790,7 +793,7 @@ int main(int argc, char *argv[])
         doomed->deleteLater();
         Q_ASSERT(!guard.isNull());
         qInfo().noquote() << "deleteLater scheduled";
-    });
+    }, Qt::QueuedConnection);
 
     QTimer failSafe;
     failSafe.setSingleShot(true);
@@ -869,8 +872,8 @@ deleteLater delivered
 
 依次设置断点：
 
-1. [`QCoreApplication::exec()`](../src/corelib/kernel/qcoreapplication.cpp)
-2. [`QEventLoop::exec()`](../src/corelib/kernel/qeventloop.cpp)
+1. [`QCoreApplication::exec()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreapplication.cpp)
+2. [`QEventLoop::exec()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventloop.cpp)
 3. `QEventLoop::processEvents()`
 4. 当前平台的 `QEventDispatcherWin32::processEvents()`、`QEventDispatcherUNIX::processEvents()` 或其他后端
 5. dispatcher 的阻塞等待调用
@@ -935,15 +938,15 @@ QTimer::start
 
 | 行为 | 测试入口 |
 |---|---|
-| loop 的 exec/reexec/同实例递归保护 | [`tst_qeventloop.cpp`](../tests/auto/corelib/kernel/qeventloop/tst_qeventloop.cpp) 的 `exec()`、`reexec()` |
+| loop 的 exec/reexec/同实例递归保护 | [`tst_qeventloop.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/kernel/qeventloop/tst_qeventloop.cpp) 的 `exec()`、`reexec()` |
 | nested loop 不应卡死 | 同文件 `nestedLoops()` |
 | flags 排除 Socket/Timer | 同文件 `processEventsExcludeSocket()`、`processEventsExcludeTimers()` |
 | 跨线程投递保持定义顺序 | 同文件 `deliverInDefinedOrder()` |
-| priority、同批次边界、递归发送 | [`tst_qcoreapplication.cpp`](../tests/auto/corelib/kernel/qcoreapplication/tst_qcoreapplication.cpp) 的 `postEvent()` |
+| priority、同批次边界、递归发送 | [`tst_qcoreapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/kernel/qcoreapplication/tst_qcoreapplication.cpp) 的 `postEvent()` |
 | processEvents 能处理已投递事件 | 同文件 `processEventsAlwaysSendsPostedEvents()` |
-| filter 同线程约束与 LIFO 顺序 | [`tst_qobject.cpp`](../tests/auto/corelib/kernel/qobject/tst_qobject.cpp) 的 `installEventFilter()`、`installEventFilterOrder()` |
+| filter 同线程约束与 LIFO 顺序 | [`tst_qobject.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/kernel/qobject/tst_qobject.cpp) 的 `installEventFilter()`、`installEventFilterOrder()` |
 | deleteLater 与 dispatcher 阻塞边界 | 同文件 `deleteLaterInAboutToBlockHandler()` |
-| zero timer、活锁、递归、饥饿 | [`tst_qtimer.cpp`](../tests/auto/corelib/kernel/qtimer/tst_qtimer.cpp) 的 `zeroTimer()`、`livelock()`、`timerInfiniteRecursion()`、`postedEventsShouldNotStarveTimers()` |
+| zero timer、活锁、递归、饥饿 | [`tst_qtimer.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/kernel/qtimer/tst_qtimer.cpp) 的 `zeroTimer()`、`livelock()`、`timerInfiniteRecursion()`、`postedEventsShouldNotStarveTimers()` |
 
 ---
 
@@ -1076,18 +1079,18 @@ A 的调用栈还会从 `processEvents()` 返回并继续访问对象。`deleteL
 
 按下面顺序读，能从公共契约逐步进入平台细节：
 
-1. [`src/corelib/kernel/qeventloop.h`](../src/corelib/kernel/qeventloop.h)：先理解 flags、`exec()`、`exit()` 和 `wakeUp()` 的公开协议。
-2. [`src/corelib/kernel/qeventloop.cpp`](../src/corelib/kernel/qeventloop.cpp)：跟 `exec()` 如何维护 loop stack 和 `loopLevel`。
-3. [`src/corelib/kernel/qcoreevent.h`](../src/corelib/kernel/qcoreevent.h)：看 event type、accepted、spontaneous 和用户类型范围。
-4. [`src/corelib/kernel/qcoreevent.cpp`](../src/corelib/kernel/qcoreevent.cpp)：看事件生命周期与 `registerEventType()`。
-5. [`src/corelib/kernel/qcoreapplication.h`](../src/corelib/kernel/qcoreapplication.h)：区分 send/post/process/notify 的公共契约。
-6. [`src/corelib/kernel/qcoreapplication.cpp`](../src/corelib/kernel/qcoreapplication.cpp)：定向跟 `notifyInternal2()`、filter 链、`postEvent()` 和 `sendPostedEvents()`。
-7. [`src/corelib/thread/qthread_p.h`](../src/corelib/thread/qthread_p.h) 与 [`qthread.cpp`](../src/corelib/thread/qthread.cpp)：理解 `QPostEvent`、`QPostEventList` 和 priority 排序。
-8. [`src/corelib/kernel/qobject.cpp`](../src/corelib/kernel/qobject.cpp)：读 `event()`、filter 安装顺序、Timer 注册和 `deleteLater()`。
-9. [`src/corelib/kernel/qabstracteventdispatcher.h`](../src/corelib/kernel/qabstracteventdispatcher.h)：确认平台后端必须实现的抽象接口。
-10. [`src/corelib/kernel/qeventdispatcher_win.cpp`](../src/corelib/kernel/qeventdispatcher_win.cpp)：在 Windows 上跟隐藏窗口、消息等待、Timer 和 Socket。
-11. [`src/corelib/kernel/qeventdispatcher_unix.cpp`](../src/corelib/kernel/qeventdispatcher_unix.cpp)：对比 poll、deadline 和 thread pipe。
-12. [`src/corelib/kernel/qtimer.cpp`](../src/corelib/kernel/qtimer.cpp) 与 [`qsocketnotifier.cpp`](../src/corelib/kernel/qsocketnotifier.cpp)：看统一循环如何向上还原成信号。
+1. [`src/corelib/kernel/qeventloop.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventloop.h)：先理解 flags、`exec()`、`exit()` 和 `wakeUp()` 的公开协议。
+2. [`src/corelib/kernel/qeventloop.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventloop.cpp)：跟 `exec()` 如何维护 loop stack 和 `loopLevel`。
+3. [`src/corelib/kernel/qcoreevent.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreevent.h)：看 event type、accepted、spontaneous 和用户类型范围。
+4. [`src/corelib/kernel/qcoreevent.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreevent.cpp)：看事件生命周期与 `registerEventType()`。
+5. [`src/corelib/kernel/qcoreapplication.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreapplication.h)：区分 send/post/process/notify 的公共契约。
+6. [`src/corelib/kernel/qcoreapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreapplication.cpp)：定向跟 `notifyInternal2()`、filter 链、`postEvent()` 和 `sendPostedEvents()`。
+7. [`src/corelib/thread/qthread_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthread_p.h) 与 [`qthread.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthread.cpp)：理解 `QPostEvent`、`QPostEventList` 和 priority 排序。
+8. [`src/corelib/kernel/qobject.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp)：读 `event()`、filter 安装顺序、Timer 注册和 `deleteLater()`。
+9. [`src/corelib/kernel/qabstracteventdispatcher.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qabstracteventdispatcher.h)：确认平台后端必须实现的抽象接口。
+10. [`src/corelib/kernel/qeventdispatcher_win.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventdispatcher_win.cpp)：在 Windows 上跟隐藏窗口、消息等待、Timer 和 Socket。
+11. [`src/corelib/kernel/qeventdispatcher_unix.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventdispatcher_unix.cpp)：对比 poll、deadline 和 thread pipe。
+12. [`src/corelib/kernel/qtimer.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qtimer.cpp) 与 [`qsocketnotifier.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qsocketnotifier.cpp)：看统一循环如何向上还原成信号。
 13. `tests/auto/corelib/kernel/qeventloop`、`qcoreapplication`、`qobject`、`qtimer`：用测试确认顺序、重入和平台差异。
 
 建议最终画出四张自己的图：

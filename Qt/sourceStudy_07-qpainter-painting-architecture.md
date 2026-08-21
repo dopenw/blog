@@ -1,8 +1,8 @@
 # 7. QPainter 绘制架构
 
-> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](../.cmake.conf)）<br>
+> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](https://github.com/qt/qtbase/blob/v6.10.2/.cmake.conf)）<br>
 > 本文定位：第 11 周的绘制系统主线。目标不是只会调用 `drawLine()`，而是能从一次 `QWidget::update()` 一直追到 backing store、`QPainter` 状态、Raster Engine、span 混合函数和 QPA flush，并能解释坐标变换、裁剪、合成与局部刷新的真实边界。<br>
-> 前置知识：建议先理解 [`03-event-loop-and-event-dispatch.md`](03-event-loop-and-event-dispatch.md) 的 posted event、[`06` 阶段](qtbase-learning-outline.md#6-qpa-与跨平台设计)的 QPA 抽象，以及 `QImage` 的隐式共享语义。
+> 前置知识：建议先理解 [`03-event-loop-and-event-dispatch.md`](sourceStudy_03-event-loop-and-event-dispatch.md) 的 posted event、[`06` 阶段](sourceStudy_qtbase-learning-outline.md#6-qpa-与跨平台设计)的 QPA 抽象，以及 `QImage` 的隐式共享语义。
 
 ## 7.1 完成本阶段后，你应能回答什么
 
@@ -92,7 +92,7 @@ RepaintManager / BackingStore 决定“何时把哪些结果提交到窗口”
 
 ### 7.3.1 `QPainter`：有状态绘制门面
 
-公共接口位于 [`qpainter.h`](../src/gui/painting/qpainter.h)，主要分为五组：
+公共接口位于 [`qpainter.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpainter.h)，主要分为五组：
 
 | 接口组 | 代表接口 | 核心语义 |
 |---|---|---|
@@ -114,7 +114,7 @@ painter.setOpacity(0.5); // 只影响后续命令
 
 ### 7.3.2 `QPaintDevice`：目标、度量和后端入口
 
-公共接口位于 [`qpaintdevice.h`](../src/gui/painting/qpaintdevice.h)。最关键的扩展点是：
+公共接口位于 [`qpaintdevice.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpaintdevice.h)。最关键的扩展点是：
 
 ```cpp
 virtual QPaintEngine *paintEngine() const = 0;
@@ -128,11 +128,11 @@ virtual QPaintEngine *paintEngine() const = 0;
 
 常见 paint device 包括 `QImage`、`QPixmap`、`QWidget`、`QPicture`、`QPdfWriter`、`QPrinter` 和 `QOpenGLPaintDevice`。它们共享“可被 painter 绘制”的契约，但存储、记录和提交方式并不相同。
 
-`QImage::paintEngine()` 位于 [`qimage.cpp`](../src/gui/image/qimage.cpp)：它先允许 `QPlatformIntegration::createImagePaintEngine()` 提供平台实现；没有平台实现时创建 `QRasterPaintEngine`。这说明“设备选择后端”是真实的运行时扩展点，不是只存在于类图上的抽象。
+`QImage::paintEngine()` 位于 [`qimage.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/image/qimage.cpp)：它先允许 `QPlatformIntegration::createImagePaintEngine()` 提供平台实现；没有平台实现时创建 `QRasterPaintEngine`。这说明“设备选择后端”是真实的运行时扩展点，不是只存在于类图上的抽象。
 
 ### 7.3.3 `QPaintEngine`：最小后端协议
 
-公共接口位于 [`qpaintengine.h`](../src/gui/painting/qpaintengine.h)。一个最小自定义 engine 至少需要实现：
+公共接口位于 [`qpaintengine.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpaintengine.h)。一个最小自定义 engine 至少需要实现：
 
 ```cpp
 bool begin(QPaintDevice *) override;
@@ -155,7 +155,7 @@ QPaintEngine::Type type() const override;
 
 ### 7.3.4 `QPaintEngineEx`：Qt 内部的向量路径协议
 
-[`qpaintengineex_p.h`](../src/gui/painting/qpaintengineex_p.h) 是私有头文件，不承诺源码兼容。它把许多公共 primitive 汇聚为：
+[`qpaintengineex_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpaintengineex_p.h) 是私有头文件，不承诺源码兼容。它把许多公共 primitive 汇聚为：
 
 ```text
 QVectorPath
@@ -171,7 +171,7 @@ QVectorPath
 
 ## 7.4 `QPainter::begin()` 到 `end()` 的真实生命周期
 
-`QPainter::begin()` 位于 [`qpainter.cpp`](../src/gui/painting/qpainter.cpp)。主链可以压缩为：
+`QPainter::begin()` 位于 [`qpainter.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpainter.cpp)。主链可以压缩为：
 
 ```mermaid
 sequenceDiagram
@@ -264,7 +264,7 @@ backingStore.endPaint()
 
 ### 7.5.1 `QPainterState` 里有什么
 
-私有定义位于 [`qpainter_p.h`](../src/gui/painting/qpainter_p.h)，包括：
+私有定义位于 [`qpainter_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpainter_p.h)，包括：
 
 - `pen`、`brush`、`font`、background brush/mode；
 - `opacity`、`composition_mode`、render hints；
@@ -322,7 +322,7 @@ Raster state 再把变化拆成更贴近执行的数据：
 
 ### 7.5.4 `DirtyFlag` 是增量同步协议
 
-[`qpaintengine.h`](../src/gui/painting/qpaintengine.h) 中的 dirty bits 覆盖 pen、brush、font、transform、clip、hints、composition 和 opacity。它们解决的是：
+[`qpaintengine.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpaintengine.h) 中的 dirty bits 覆盖 pen、brush、font、transform、clip、hints、composition 和 opacity。它们解决的是：
 
 > 公共状态很多，但一次 setter 不应迫使所有后端缓存全部重建。
 
@@ -516,12 +516,12 @@ pen   != NoPen   → stroke(path, pen)
 
 Raster 后端的核心文件是：
 
-- [`qpaintengine_raster.cpp`](../src/gui/painting/qpaintengine_raster.cpp)：后端策略和快速路径；
-- [`qpaintengine_raster_p.h`](../src/gui/painting/qpaintengine_raster_p.h)：Raster state/private data；
-- [`qoutlinemapper_p.h`](../src/gui/painting/qoutlinemapper_p.h)：路径到 outline；
-- [`qrasterizer_p.h`](../src/gui/painting/qrasterizer_p.h)：几何到覆盖 spans；
-- [`qdrawhelper.cpp`](../src/gui/painting/qdrawhelper.cpp)：brush/image fetch、composition、像素格式和 SIMD 分派；
-- [`qcompositionfunctions.cpp`](../src/gui/painting/qcompositionfunctions.cpp)：合成函数实现与表。
+- [`qpaintengine_raster.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpaintengine_raster.cpp)：后端策略和快速路径；
+- [`qpaintengine_raster_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpaintengine_raster_p.h)：Raster state/private data；
+- [`qoutlinemapper_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qoutlinemapper_p.h)：路径到 outline；
+- [`qrasterizer_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qrasterizer_p.h)：几何到覆盖 spans；
+- [`qdrawhelper.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qdrawhelper.cpp)：brush/image fetch、composition、像素格式和 SIMD 分派；
+- [`qcompositionfunctions.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qcompositionfunctions.cpp)：合成函数实现与表。
 
 ### 7.10.1 begin：把 device 变成 raster buffer
 
@@ -631,7 +631,7 @@ destination format
 
 ### 7.11.3 `qInitDrawhelperFunctions()` 做什么
 
-[`qdrawhelper.cpp`](../src/gui/painting/qdrawhelper.cpp) 中的初始化先建立 C 基线表，再按构建目标和运行时 CPU 能力替换部分槽位。QtBase 6.10.2 源码中可见 SSE2/SSSE3/AVX2、ARM NEON、LoongArch LSX/LASX 等实现。
+[`qdrawhelper.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qdrawhelper.cpp) 中的初始化先建立 C 基线表，再按构建目标和运行时 CPU 能力替换部分槽位。QtBase 6.10.2 源码中可见 SSE2/SSSE3/AVX2、ARM NEON、LoongArch LSX/LASX 等实现。
 
 这体现三层降级：
 
@@ -656,7 +656,7 @@ destination format
 5. backing-store flush；
 6. compositor/vsync 等待。
 
-Qt 自带 [`tests/benchmarks/gui/painting/qpainter`](../tests/benchmarks/gui/painting/qpainter) 覆盖 begin/end、save/restore、line、image、composition、clip 和 transformed primitive，可用作实验模板。
+Qt 自带 [`tests/benchmarks/gui/painting/qpainter`](https://github.com/qt/qtbase/tree/v6.10.2/tests/benchmarks/gui/painting/qpainter) 覆盖 begin/end、save/restore、line、image、composition、clip 和 transformed primitive，可用作实验模板。
 
 ---
 
@@ -999,7 +999,8 @@ protected:
     {
         const qreal steps = event->angleDelta().y() / 120.0;
         scale_ = qBound(0.35, scale_ * qPow(1.12, steps), 2.8);
-        update(contentRect());
+        // 变换后的图形可能超出原始逻辑矩形；更新整个控件，避免旧像素残留。
+        update();
         event->accept();
     }
 
@@ -1009,16 +1010,16 @@ protected:
         case Qt::Key_U:
             angle_ += 7.5;
             // 连续多次调用，观察它们通常合并成一次 paintEvent。
-            update(contentRect());
-            update(contentRect().adjusted(-8, -8, 8, 8));
+            update();
+            update();
             break;
         case Qt::Key_R:
             angle_ += 7.5;
-            repaint(contentRect());
+            repaint();
             break;
         case Qt::Key_Space:
             plusMode_ = !plusMode_;
-            update(contentRect());
+            update();
             break;
         default:
             QWidget::keyPressEvent(event);
@@ -1027,11 +1028,6 @@ protected:
     }
 
 private:
-    QRect contentRect() const
-    {
-        return QRect(rect().center() - QPoint(245, 180), QSize(490, 360));
-    }
-
     qreal scale_ = 1.0;
     qreal angle_ = 18.0;
     bool plusMode_ = false;
@@ -1243,7 +1239,7 @@ Windows 上可继续进入对应平台插件的 backing store；Linux/XCB、Wayl
 
 ### 7.19.1 `tst_QPainter`
 
-[`tests/auto/gui/painting/qpainter/tst_qpainter.cpp`](../tests/auto/gui/painting/qpainter/tst_qpainter.cpp) 是主测试入口，优先阅读：
+[`tests/auto/gui/painting/qpainter/tst_qpainter.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/gui/painting/qpainter/tst_qpainter.cpp) 是主测试入口，优先阅读：
 
 - `saveAndRestore`、`stateResetBetweenQPainters`；
 - `combinedTransform`、`setWindow`；
@@ -1255,11 +1251,11 @@ Windows 上可继续进入对应平台插件的 backing store；Linux/XCB、Wayl
 
 ### 7.19.2 `tst_QPaintEngine`
 
-[`tests/auto/gui/painting/qpaintengine/tst_qpaintengine.cpp`](../tests/auto/gui/painting/qpaintengine/tst_qpaintengine.cpp) 定义最小 `MyPaintEngine`，适合理解 public engine 的最低实现契约和 get/set 行为。
+[`tests/auto/gui/painting/qpaintengine/tst_qpaintengine.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/gui/painting/qpaintengine/tst_qpaintengine.cpp) 定义最小 `MyPaintEngine`，适合理解 public engine 的最低实现契约和 get/set 行为。
 
 ### 7.19.3 `tst_QWidgetRepaintManager`
 
-[`tests/auto/widgets/kernel/qwidgetrepaintmanager/tst_qwidgetrepaintmanager.cpp`](../tests/auto/widgets/kernel/qwidgetrepaintmanager/tst_qwidgetrepaintmanager.cpp) 覆盖：
+[`tests/auto/widgets/kernel/qwidgetrepaintmanager/tst_qwidgetrepaintmanager.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/widgets/kernel/qwidgetrepaintmanager/tst_qwidgetrepaintmanager.cpp) 覆盖：
 
 - basic update/repaint；
 - child/opaque child；
@@ -1272,7 +1268,7 @@ Windows 上可继续进入对应平台插件的 backing store；Linux/XCB、Wayl
 
 ### 7.19.4 benchmark
 
-[`tests/benchmarks/gui/painting/qpainter`](../tests/benchmarks/gui/painting/qpainter) 可用于比较：
+[`tests/benchmarks/gui/painting/qpainter`](https://github.com/qt/qtbase/tree/v6.10.2/tests/benchmarks/gui/painting/qpainter) 可用于比较：
 
 - begin/end 与 save/restore；
 - clipped/antialiased line；
@@ -1417,34 +1413,34 @@ SourceOver 下用透明色 fillRect 为什么不能可靠清空旧内容？
 
 第一轮只追公共抽象和一条 QImage 路径：
 
-1. [`qpainter.h`](../src/gui/painting/qpainter.h)：公共状态和绘制 API。
-2. [`qpaintdevice.h`](../src/gui/painting/qpaintdevice.h)：device metric 与 `paintEngine()` 契约。
-3. [`qpaintengine.h`](../src/gui/painting/qpaintengine.h)：feature、dirty flags、primitive virtual API。
-4. [`qpainter.cpp`](../src/gui/painting/qpainter.cpp)：`begin()`、`end()`、state、`drawPath()`、fallback。
-5. [`qimage.cpp`](../src/gui/image/qimage.cpp)：`QImage::paintEngine()` 如何选择 Raster Engine。
+1. [`qpainter.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpainter.h)：公共状态和绘制 API。
+2. [`qpaintdevice.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpaintdevice.h)：device metric 与 `paintEngine()` 契约。
+3. [`qpaintengine.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpaintengine.h)：feature、dirty flags、primitive virtual API。
+4. [`qpainter.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpainter.cpp)：`begin()`、`end()`、state、`drawPath()`、fallback。
+5. [`qimage.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/image/qimage.cpp)：`QImage::paintEngine()` 如何选择 Raster Engine。
 
 第二轮进入 Raster：
 
-6. [`qpaintengineex_p.h`](../src/gui/painting/qpaintengineex_p.h) 与 [`qpaintengineex.cpp`](../src/gui/painting/qpaintengineex.cpp)：primitive 到 QVectorPath/fill/stroke。
-7. [`qpaintengine_raster_p.h`](../src/gui/painting/qpaintengine_raster_p.h)：Raster state、flags、span data 和 private components。
-8. [`qpaintengine_raster.cpp`](../src/gui/painting/qpaintengine_raster.cpp)：begin、fill、stroke、drawImage 快速路径。
-9. [`qrasterizer_p.h`](../src/gui/painting/qrasterizer_p.h) 和 [`qoutlinemapper_p.h`](../src/gui/painting/qoutlinemapper_p.h)：geometry → outline → spans。
-10. [`qdrawhelper.cpp`](../src/gui/painting/qdrawhelper.cpp) 与 [`qcompositionfunctions.cpp`](../src/gui/painting/qcompositionfunctions.cpp)：source fetch、format dispatch、composition、SIMD。
+6. [`qpaintengineex_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpaintengineex_p.h) 与 [`qpaintengineex.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpaintengineex.cpp)：primitive 到 QVectorPath/fill/stroke。
+7. [`qpaintengine_raster_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpaintengine_raster_p.h)：Raster state、flags、span data 和 private components。
+8. [`qpaintengine_raster.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpaintengine_raster.cpp)：begin、fill、stroke、drawImage 快速路径。
+9. [`qrasterizer_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qrasterizer_p.h) 和 [`qoutlinemapper_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qoutlinemapper_p.h)：geometry → outline → spans。
+10. [`qdrawhelper.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qdrawhelper.cpp) 与 [`qcompositionfunctions.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qcompositionfunctions.cpp)：source fetch、format dispatch、composition、SIMD。
 
 第三轮进入 QWidget 更新与提交：
 
-11. [`qwidget.cpp`](../src/widgets/kernel/qwidget.cpp)：update/repaint、drawWidget、paint event redirection。
-12. [`qwidgetrepaintmanager.cpp`](../src/widgets/kernel/qwidgetrepaintmanager.cpp)：markDirty、UpdateRequest、paintAndFlush。
-13. [`qbackingstore.cpp`](../src/gui/painting/qbackingstore.cpp)：DPR、paint device 和 flush。
-14. [`qplatformbackingstore.h`](../src/gui/painting/qplatformbackingstore.h)：QPA 提交契约。
+11. [`qwidget.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp)：update/repaint、drawWidget、paint event redirection。
+12. [`qwidgetrepaintmanager.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidgetrepaintmanager.cpp)：markDirty、UpdateRequest、paintAndFlush。
+13. [`qbackingstore.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qbackingstore.cpp)：DPR、paint device 和 flush。
+14. [`qplatformbackingstore.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qplatformbackingstore.h)：QPA 提交契约。
 15. 当前平台插件的 backing-store 实现：把统一 flush 落到原生窗口系统。
 
 第四轮用测试锁定不变量：
 
-16. [`tst_qpainter.cpp`](../tests/auto/gui/painting/qpainter/tst_qpainter.cpp)。
-17. [`tst_qpaintengine.cpp`](../tests/auto/gui/painting/qpaintengine/tst_qpaintengine.cpp)。
-18. [`tst_qwidgetrepaintmanager.cpp`](../tests/auto/widgets/kernel/qwidgetrepaintmanager/tst_qwidgetrepaintmanager.cpp)。
-19. [`tests/benchmarks/gui/painting/qpainter`](../tests/benchmarks/gui/painting/qpainter)。
+16. [`tst_qpainter.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/gui/painting/qpainter/tst_qpainter.cpp)。
+17. [`tst_qpaintengine.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/gui/painting/qpaintengine/tst_qpaintengine.cpp)。
+18. [`tst_qwidgetrepaintmanager.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/widgets/kernel/qwidgetrepaintmanager/tst_qwidgetrepaintmanager.cpp)。
+19. [`tests/benchmarks/gui/painting/qpainter`](https://github.com/qt/qtbase/tree/v6.10.2/tests/benchmarks/gui/painting/qpainter)。
 
 每追一条绘制行为链，都画五张小图：
 

@@ -1,6 +1,6 @@
 # 1. 值语义、隐式共享与 ABI
 
-> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](../.cmake.conf)）<br>
+> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](https://github.com/qt/qtbase/blob/v6.10.2/.cmake.conf)）<br>
 > 本文定位：第 2～3 周的机制主线。目标不是记住 `detach()` 的名字，而是能从一次复制、一次写入一路追到引用计数、内存分配和 ABI 边界。
 
 ## 1.1 完成本阶段后，你应能回答什么
@@ -37,7 +37,7 @@
 
 ### 身份语义：关心“是不是同一个对象”
 
-身份对象代表一个持续存在的实体。它的地址、生命周期、父子关系、线程亲和性或外部资源绑定都有意义。`QObject` 明确使用 [`Q_DISABLE_COPY(QObject)`](../src/corelib/kernel/qobject.h)，因为复制一个对象时无法自然回答这些问题：
+身份对象代表一个持续存在的实体。它的地址、生命周期、父子关系、线程亲和性或外部资源绑定都有意义。`QObject` 明确使用 [`Q_DISABLE_COPY(QObject)`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.h)，因为复制一个对象时无法自然回答这些问题：
 
 - 新副本是否复制信号槽连接？
 - 两个对象是否共享 object name、动态属性和事件队列状态？
@@ -122,7 +122,7 @@ void write(Value &self, Change change)
 
 ### 1.4.1 数据块从 `QSharedData` 开始
 
-[`QSharedData`](../src/corelib/tools/qshareddata.h) 只有一个核心成员：
+[`QSharedData`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qshareddata.h) 只有一个核心成员：
 
 ```cpp
 mutable QAtomicInt ref;
@@ -132,7 +132,7 @@ mutable QAtomicInt ref;
 
 ### 1.4.2 读写入口由 const 性决定
 
-[`QSharedDataPointer<T>`](../src/corelib/tools/qshareddata.h) 的核心接口可归纳为：
+[`QSharedDataPointer<T>`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qshareddata.h) 的核心接口可归纳为：
 
 | 表达式 | 返回 | 自动 detach |
 |---|---|---:|
@@ -146,7 +146,7 @@ mutable QAtomicInt ref;
 
 ### 1.4.3 复制、移动和析构分别做什么
 
-从 [`qshareddata.h`](../src/corelib/tools/qshareddata.h) 可以直接读出：
+从 [`qshareddata.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qshareddata.h) 可以直接读出：
 
 - 复制构造：复制 d-pointer，并执行 `ref.ref()`；
 - 复制赋值：先增加新数据块计数，再减少旧数据块计数；
@@ -162,7 +162,7 @@ mutable QAtomicInt ref;
 
 ### 1.4.4 `detach_helper()` 的真实顺序
 
-[`QSharedDataPointer<T>::detach_helper()`](../src/corelib/tools/qshareddata.h) 的行为顺序是：
+[`QSharedDataPointer<T>::detach_helper()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qshareddata.h) 的行为顺序是：
 
 ```text
 clone()：new T(*oldData)
@@ -178,7 +178,7 @@ clone()：new T(*oldData)
 
 ### 1.4.5 显式共享不是隐式共享的“高级版”
 
-[`QExplicitlySharedDataPointer<T>`](../src/corelib/tools/qshareddata.h) 也有原子引用计数，但 non-const `operator->()` 不自动 detach。复制后的两个句柄默认观察同一份修改。它适合共享身份或共享可变状态，不应被误当作普通值类的省事实现。
+[`QExplicitlySharedDataPointer<T>`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qshareddata.h) 也有原子引用计数，但 non-const `operator->()` 不自动 detach。复制后的两个句柄默认观察同一份修改。它适合共享身份或共享可变状态，不应被误当作普通值类的省事实现。
 
 | 选择 | non-const 解引用 | 复制后修改的语义 |
 |---|---:|---|
@@ -212,7 +212,7 @@ QArrayData
 
 ### 1.5.1 `QArrayData` 负责共享头和容量
 
-[`QArrayData`](../src/corelib/tools/qarraydata.h) 保存 `ref_`、`flags` 和 `alloc`。两个判断尤其重要：
+[`QArrayData`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qarraydata.h) 保存 `ref_`、`flags` 和 `alloc`。两个判断尤其重要：
 
 ```cpp
 bool isShared() const noexcept
@@ -232,7 +232,7 @@ bool needsDetach() noexcept
 
 ### 1.5.2 `QArrayDataPointer<T>` 负责句柄和元素生命周期
 
-[`QArrayDataPointer<T>`](../src/corelib/tools/qarraydatapointer.h) 的复制构造增加引用计数，析构在最后一个引用离开时销毁元素并释放头部。它还负责：
+[`QArrayDataPointer<T>`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qarraydatapointer.h) 的复制构造增加引用计数，析构在最后一个引用离开时销毁元素并释放头部。它还负责：
 
 - `detach()`：共享时重新分配并复制；
 - `detachAndGrow()`：把分离和扩容合成一次操作；
@@ -282,11 +282,11 @@ s.at(i) / s[i] const / s.constData()
 不 detach
 ```
 
-[`QString::data()`](../src/corelib/text/qstring.h) 的 non-const 重载先调用 `detach()`；const 重载只返回只读指针。[`QByteArray::data()`](../src/corelib/text/qbytearray.h) 使用相同设计。[`QList<T>::data()`](../src/corelib/tools/qlist.h) 也在 non-const 版本中先分离。
+[`QString::data()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/text/qstring.h) 的 non-const 重载先调用 `detach()`；const 重载只返回只读指针。[`QByteArray::data()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/text/qbytearray.h) 使用相同设计。[`QList<T>::data()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qlist.h) 也在 non-const 版本中先分离。
 
 ### 1.5.4 non-const 迭代器是常见的意外分离点
 
-[`QList<T>::begin()`](../src/corelib/tools/qlist.h) 的 non-const 重载会调用 `detach()`，因为它必须返回允许写入元素的 iterator。即使循环体只读，只要容器本身不是 const，调用 `begin()` 就可能复制整块数据：
+[`QList<T>::begin()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qlist.h) 的 non-const 重载会调用 `detach()`，因为它必须返回允许写入元素的 iterator。即使循环体只读，只要容器本身不是 const，调用 `begin()` 就可能复制整块数据：
 
 ```cpp
 QList<QString> copy = original;
@@ -309,7 +309,7 @@ for (const QString &item : std::as_const(copy))
 
 ### 1.5.5 `Q_DECLARE_SHARED` 到底做了什么
 
-[`Q_DECLARE_SHARED(Type)`](../src/corelib/global/qtclasshelpermacros.h) 只做两件关键事：
+[`Q_DECLARE_SHARED(Type)`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/global/qtclasshelpermacros.h) 只做两件关键事：
 
 1. 提供基于成员 `swap()` 的 ADL `swap`；
 2. 通过 `Q_DECLARE_TYPEINFO` 把类型标为 `Q_RELOCATABLE_TYPE`。
@@ -446,7 +446,7 @@ private:
 
 以后给 `WidgetConfigPrivate` 增加 `QString profile`，公开 `WidgetConfig` 仍只保存一个固定大小的指针。旧调用方不知道 private 对象的布局，库内新实现可以按新布局分配和访问它。
 
-Qt 的 [`Q_DECLARE_PRIVATE`](../src/corelib/global/qtclasshelpermacros.h)、[`Q_D`](../src/corelib/global/qtclasshelpermacros.h)、`Q_DECLARE_PUBLIC` 和 `Q_Q` 为这种双向关系提供统一语法：
+Qt 的 [`Q_DECLARE_PRIVATE`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/global/qtclasshelpermacros.h)、[`Q_D`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/global/qtclasshelpermacros.h)、`Q_DECLARE_PUBLIC` 和 `Q_Q` 为这种双向关系提供统一语法：
 
 ```text
 公开对象 q                           私有对象 d
@@ -459,7 +459,7 @@ Qt 的 [`Q_DECLARE_PRIVATE`](../src/corelib/global/qtclasshelpermacros.h)、[`Q_
          └────────────────────────────────────────────────┘
 ```
 
-[`QObject`](../src/corelib/kernel/qobject.h) 的公开对象中保存 `QScopedPointer<QObjectData> d_ptr`，真实状态在 private 层演进。`QScopedPointer` 本身禁止复制和移动，表达独占所有权；它与用于值语义的 `QSharedDataPointer` 职责不同。
+[`QObject`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.h) 的公开对象中保存 `QScopedPointer<QObjectData> d_ptr`，真实状态在 private 层演进。`QScopedPointer` 本身禁止复制和移动，表达独占所有权；它与用于值语义的 `QSharedDataPointer` 职责不同。
 
 ### 1.8.4 隐式共享和 PIMPL 的关系
 
@@ -668,8 +668,8 @@ cmake --build build
 
 依次在下面的位置设断点：
 
-1. [`QSharedDataPointer<T>::detach()`](../src/corelib/tools/qshareddata.h)
-2. [`QSharedDataPointer<T>::detach_helper()`](../src/corelib/tools/qshareddata.h)
+1. [`QSharedDataPointer<T>::detach()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qshareddata.h)
+2. [`QSharedDataPointer<T>::detach_helper()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qshareddata.h)
 3. `PersonData` 的复制构造函数
 4. `Person::setAge()`
 
@@ -857,18 +857,18 @@ private 数据由库实现分配，旧调用方不知道其大小。公开对象
 
 按下面顺序读，能从通用协议逐步进入优化细节：
 
-1. [`src/corelib/doc/src/implicit-sharing.qdoc`](../src/corelib/doc/src/implicit-sharing.qdoc)：先确认 Qt 对外描述的行为契约。
-2. [`src/corelib/tools/qshareddata.h`](../src/corelib/tools/qshareddata.h)：读完整个 `QSharedDataPointer` 复制、移动、析构和 detach 实现。
-3. [`src/corelib/tools/qshareddata.cpp`](../src/corelib/tools/qshareddata.cpp)：读自定义共享类的官方说明和隐式/显式共享边界。
-4. [`src/corelib/tools/qrefcount.h`](../src/corelib/tools/qrefcount.h)：理解静态、独占、共享引用计数状态。
-5. [`src/corelib/tools/qarraydata.h`](../src/corelib/tools/qarraydata.h)：理解数组数据头和容量标志。
-6. [`src/corelib/tools/qarraydatapointer.h`](../src/corelib/tools/qarraydatapointer.h)：跟 `detach()`、`detachAndGrow()`、`reallocateAndGrow()`。
-7. [`src/corelib/text/qstring.h`](../src/corelib/text/qstring.h)：对比 `data()`、`constData()`、`operator[]` 的 const/non-const 重载。
-8. [`src/corelib/text/qbytearray.h`](../src/corelib/text/qbytearray.h)：验证相同存储思想如何复用。
-9. [`src/corelib/tools/qlist.h`](../src/corelib/tools/qlist.h)：重点看 iterator、元素生命周期和扩容。
-10. [`src/corelib/global/qtclasshelpermacros.h`](../src/corelib/global/qtclasshelpermacros.h)：拆解 d/q 指针和 `Q_DECLARE_SHARED` 宏。
-11. [`src/corelib/kernel/qobject.h`](../src/corelib/kernel/qobject.h)：对比身份对象、禁止复制和独占 d-pointer。
-12. [`tests/auto/corelib/tools/qlist/tst_qlist.cpp`](../tests/auto/corelib/tools/qlist/tst_qlist.cpp) 与 [`tests/auto/corelib/text/qbytearray/tst_qbytearray.cpp`](../tests/auto/corelib/text/qbytearray/tst_qbytearray.cpp)：把 `isDetached()`、`isSharedWith()` 和 non-const 访问行为当作可执行设计文档。
+1. [`src/corelib/doc/src/implicit-sharing.qdoc`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/doc/src/implicit-sharing.qdoc)：先确认 Qt 对外描述的行为契约。
+2. [`src/corelib/tools/qshareddata.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qshareddata.h)：读完整个 `QSharedDataPointer` 复制、移动、析构和 detach 实现。
+3. [`src/corelib/tools/qshareddata.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qshareddata.cpp)：读自定义共享类的官方说明和隐式/显式共享边界。
+4. [`src/corelib/tools/qrefcount.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qrefcount.h)：理解静态、独占、共享引用计数状态。
+5. [`src/corelib/tools/qarraydata.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qarraydata.h)：理解数组数据头和容量标志。
+6. [`src/corelib/tools/qarraydatapointer.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qarraydatapointer.h)：跟 `detach()`、`detachAndGrow()`、`reallocateAndGrow()`。
+7. [`src/corelib/text/qstring.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/text/qstring.h)：对比 `data()`、`constData()`、`operator[]` 的 const/non-const 重载。
+8. [`src/corelib/text/qbytearray.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/text/qbytearray.h)：验证相同存储思想如何复用。
+9. [`src/corelib/tools/qlist.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/tools/qlist.h)：重点看 iterator、元素生命周期和扩容。
+10. [`src/corelib/global/qtclasshelpermacros.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/global/qtclasshelpermacros.h)：拆解 d/q 指针和 `Q_DECLARE_SHARED` 宏。
+11. [`src/corelib/kernel/qobject.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.h)：对比身份对象、禁止复制和独占 d-pointer。
+12. [`tests/auto/corelib/tools/qlist/tst_qlist.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/tools/qlist/tst_qlist.cpp) 与 [`tests/auto/corelib/text/qbytearray/tst_qbytearray.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/text/qbytearray/tst_qbytearray.cpp)：把 `isDetached()`、`isSharedWith()` 和 non-const 访问行为当作可执行设计文档。
 
 建议调试两条调用链并各画一张图：
 

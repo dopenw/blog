@@ -1,6 +1,6 @@
 # 2. QObject、MOC 与元对象系统
 
-> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](../.cmake.conf)）<br>
+> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](https://github.com/qt/qtbase/blob/v6.10.2/.cmake.conf)）<br>
 > 本文定位：第 4～5 周的机制主线。目标不是会写 `connect()`，而是能从 `Q_OBJECT`、MOC 生成物一路追到连接表、信号激活、跨线程事件和运行时类型操作。
 
 ## 2.1 完成本阶段后，你应能回答什么
@@ -72,7 +72,7 @@ flowchart TD
 
 ### 2.3.1 为什么禁止复制
 
-[`QObject`](../src/corelib/kernel/qobject.h) 使用 `Q_DISABLE_COPY(QObject)`。复制它无法给出一致答案：
+[`QObject`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.h) 使用 `Q_DISABLE_COPY(QObject)`。复制它无法给出一致答案：
 
 - 新对象是否复制原对象的连接？
 - 子对象应转移、复制，还是继续归原对象？
@@ -84,9 +84,9 @@ flowchart TD
 
 ### 2.3.2 父子树是 Composite，也是单一所有权协议
 
-构造时传入 parent 或调用 `setParent()` 后，子对象进入 parent 的 `children` 列表。parent 析构时，[`QObjectPrivate::deleteChildren()`](../src/corelib/kernel/qobject.cpp) 逐个删除子对象。
+构造时传入 parent 或调用 `setParent()` 后，子对象进入 parent 的 `children` 列表。parent 析构时，[`QObjectPrivate::deleteChildren()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp) 逐个删除子对象。
 
-实现没有直接使用 `qDeleteAll(children)`。删除某个 child 时，child 的析构函数可能删除兄弟对象；Qt 会先记录 `currentChildBeingDeleted`，并把已处理位置置空，从而避免重复删除。测试 [`childDeletesItsSibling()`](../tests/auto/corelib/kernel/qobject/tst_qobject.cpp) 专门覆盖了这个重入边界。
+实现没有直接使用 `qDeleteAll(children)`。删除某个 child 时，child 的析构函数可能删除兄弟对象；Qt 会先记录 `currentChildBeingDeleted`，并把已处理位置置空，从而避免重复删除。测试 [`childDeletesItsSibling()`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/kernel/qobject/tst_qobject.cpp) 专门覆盖了这个重入边界。
 
 父子关系同时约束线程：
 
@@ -99,7 +99,7 @@ flowchart TD
 
 ### 2.3.3 析构时实际清理什么
 
-[`QObject::~QObject()`](../src/corelib/kernel/qobject.cpp) 的主路径可以压缩为：
+[`QObject::~QObject()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp) 的主路径可以压缩为：
 
 ```text
 标记 wasDeleted，清理属性绑定状态
@@ -124,7 +124,7 @@ QObjectPrivate 析构时移除该对象尚未处理的 posted events
 1. sender、receiver 或带 context 的 functor 中任一生命周期结束，相关连接会失效。
 2. `destroyed()` 不受 `blockSignals()` 抑制。
 3. 销毁 receiver 会移除发给它、尚未执行的 posted events。
-4. **仅调用 `disconnect()` 不会撤回已经入队的 `QMetaCallEvent`。** [`disconnectQueuedConnection_pendingEventsAreDelivered()`](../tests/auto/corelib/kernel/qobject/tst_qobject.cpp) 明确验证：先 emit、再 disconnect，已入队调用仍会执行。
+4. **仅调用 `disconnect()` 不会撤回已经入队的 `QMetaCallEvent`。** [`disconnectQueuedConnection_pendingEventsAreDelivered()`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/kernel/qobject/tst_qobject.cpp) 明确验证：先 emit、再 disconnect，已入队调用仍会执行。
 5. 在事件处理或跨线程场景中，`deleteLater()` 通常比立即 `delete` 安全，因为它把销毁放在对象所属线程的 DeferredDelete 事件上。
 
 ---
@@ -133,7 +133,7 @@ QObjectPrivate 析构时移除该对象尚未处理的 posted events
 
 ### 2.4.1 宏本身并没有生成元数据
 
-Qt 6.10.2 的宏位于 [`qtmetamacros.h`](../src/corelib/kernel/qtmetamacros.h)。`Q_OBJECT` 主要向类中声明：
+Qt 6.10.2 的宏位于 [`qtmetamacros.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qtmetamacros.h)。`Q_OBJECT` 主要向类中声明：
 
 ```cpp
 static const QMetaObject staticMetaObject;
@@ -189,7 +189,7 @@ qt_meta_stringdata_MyObject_t
 qt_meta_data_MyObject[]
 ```
 
-Qt 6.10.2 的 [`Generator::generateCode()`](../src/tools/moc/generator.cpp) 已主要生成：
+Qt 6.10.2 的 [`Generator::generateCode()`](https://github.com/qt/qtbase/blob/v6.10.2/src/tools/moc/generator.cpp) 已主要生成：
 
 ```cpp
 QtMocHelpers::StringRefStorage qt_stringData { ... };
@@ -198,7 +198,7 @@ QtMocHelpers::UintData qt_properties { ... };
 return QtMocHelpers::metaObjectData<...>(...);
 ```
 
-随后以 constexpr 内容初始化 `staticMetaObject`。概念没有变：仍是字符串表、整数描述表、元类型表和分派函数；变化的是生成代码把更多布局工作交给 [`qtmochelpers.h`](../src/corelib/kernel/qtmochelpers.h) 在编译期完成。阅读旧资料时应迁移概念，不要机械寻找已改名的数组。
+随后以 constexpr 内容初始化 `staticMetaObject`。概念没有变：仍是字符串表、整数描述表、元类型表和分派函数；变化的是生成代码把更多布局工作交给 [`qtmochelpers.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qtmochelpers.h) 在编译期完成。阅读旧资料时应迁移概念，不要机械寻找已改名的数组。
 
 ---
 
@@ -304,7 +304,7 @@ QObject::connect(sender, &Sender::valueChanged,
 - 参数和返回类型兼容；
 - `UniqueConnection` 的目标必须可比较，普通 lambda 不满足该约束。
 
-随后 [`QObject::connectImpl()`](../src/corelib/kernel/qobject.cpp) 通过生成的 `IndexOfMethod` 分支找到 signal 的类内编号，再转换为继承链上的内部信号编号。真正分配节点的是 [`QObjectPrivate::connectImpl()`](../src/corelib/kernel/qobject.cpp)。
+随后 [`QObject::connectImpl()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp) 通过生成的 `IndexOfMethod` 分支找到 signal 的类内编号，再转换为继承链上的内部信号编号。真正分配节点的是 [`QObjectPrivate::connectImpl()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp)。
 
 一个 `Connection` 记录的核心状态包括：
 
@@ -385,14 +385,14 @@ Direct 路径没有事件循环。slot 在 emit 所在线程、emit 的调用栈
 
 ### 2.8.1 Auto 比较的是“当前发射线程”和 receiver
 
-[`doActivate()`](../src/corelib/kernel/qobject.cpp) 读取 `QThread::currentThreadId()`，再与 receiver 的 `threadData->threadId` 比较：
+[`doActivate()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp) 读取 `QThread::currentThreadId()`，再与 receiver 的 `threadData->threadId` 比较：
 
 ```text
 当前 emit 所在线程 == receiver 所属线程 → Direct
 当前 emit 所在线程 != receiver 所属线程 → Queued
 ```
 
-它不是简单比较 `sender->thread() == receiver->thread()`。测试 [`autoConnectionBehavior()`](../tests/auto/corelib/kernel/qobject/tst_qobject.cpp) 故意从第三个线程调用 sender 的 signal：即使 sender 与 receiver 亲和性相同，只要当前发射线程不同，Auto 仍排队。
+它不是简单比较 `sender->thread() == receiver->thread()`。测试 [`autoConnectionBehavior()`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/kernel/qobject/tst_qobject.cpp) 故意从第三个线程调用 sender 的 signal：即使 sender 与 receiver 亲和性相同，只要当前发射线程不同，Auto 仍排队。
 
 这解释了一个常见现象：同一条连接在 receiver `moveToThread()` 后会改变执行方式，因为 Auto 在每次 emit 时重新判断。
 
@@ -494,7 +494,7 @@ Queued 调用不能把返回值异步写回一个已经离开作用域的地址�
 
 ## 2.11 `QMetaType` 与 `QVariant`：类型擦除的运行时底座
 
-[`QMetaTypeInterface`](../src/corelib/kernel/qmetatype.h) 为每个类型保存：
+[`QMetaTypeInterface`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qmetatype.h) 为每个类型保存：
 
 - revision、size、alignment、flags 和 type id；
 - 类型名称和可选的 `QMetaObject`；
@@ -569,7 +569,7 @@ QProperty<int> area;
 area.setBinding([&] { return width.value() * height.value(); });
 ```
 
-绑定求值期间，Qt 在当前线程的 binding evaluation state 中记录“正在计算 area”。读取 width/height 时，[`registerDependency_helper()`](../src/corelib/kernel/qproperty.cpp) 把它们登记为依赖；依赖变化后，observer 链触发重新求值。
+绑定求值期间，Qt 在当前线程的 binding evaluation state 中记录“正在计算 area”。读取 width/height 时，[`registerDependency_helper()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qproperty.cpp) 把它们登记为依赖；依赖变化后，observer 链触发重新求值。
 
 ```text
 求值 area binding
@@ -910,21 +910,21 @@ MOC 为什么要让生成的 `qt_metacall()` 先调用父类，再对 id 做减�
 
 按下面顺序读，可以从生成契约逐步进入运行时并发细节：
 
-1. [`src/corelib/kernel/qtmetamacros.h`](../src/corelib/kernel/qtmetamacros.h)：展开 `Q_OBJECT`、signals/slots、`Q_PROPERTY` 和 `emit`。
-2. [`src/corelib/kernel/qobject.h`](../src/corelib/kernel/qobject.h)：确认 QObject 的 public API、禁止复制、connect 模板与属性入口。
-3. [`src/tools/moc/generator.cpp`](../src/tools/moc/generator.cpp)：跟 `generateCode()`、`generateMetacall()`、`generateStaticMetacall()` 和 `generateSignal()`。
-4. [`src/corelib/kernel/qtmochelpers.h`](../src/corelib/kernel/qtmochelpers.h)：理解 Qt 6.10 constexpr 元数据布局。
+1. [`src/corelib/kernel/qtmetamacros.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qtmetamacros.h)：展开 `Q_OBJECT`、signals/slots、`Q_PROPERTY` 和 `emit`。
+2. [`src/corelib/kernel/qobject.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.h)：确认 QObject 的 public API、禁止复制、connect 模板与属性入口。
+3. [`src/tools/moc/generator.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/tools/moc/generator.cpp)：跟 `generateCode()`、`generateMetacall()`、`generateStaticMetacall()` 和 `generateSignal()`。
+4. [`src/corelib/kernel/qtmochelpers.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qtmochelpers.h)：理解 Qt 6.10 constexpr 元数据布局。
 5. 自己生成的 `moc_probe.cpp`：把生成器逻辑映射到一个小类。
-6. [`src/corelib/kernel/qmetaobject.cpp`](../src/corelib/kernel/qmetaobject.cpp)：读 offset/count、索引查询、`metacall()` 和 `invokeMethodImpl()`。
-7. [`src/corelib/kernel/qobject_p_p.h`](../src/corelib/kernel/qobject_p_p.h)：画出 `Connection`、`SignalVector`、`ConnectionData`、`Sender` 的关系。
-8. [`src/corelib/kernel/qobject.cpp`](../src/corelib/kernel/qobject.cpp)：跟 `connectImpl()` → `doActivate()` → `queued_activate()` → `QMetaCallEvent::placeMetaCall()`。
+6. [`src/corelib/kernel/qmetaobject.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qmetaobject.cpp)：读 offset/count、索引查询、`metacall()` 和 `invokeMethodImpl()`。
+7. [`src/corelib/kernel/qobject_p_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject_p_p.h)：画出 `Connection`、`SignalVector`、`ConnectionData`、`Sender` 的关系。
+8. [`src/corelib/kernel/qobject.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp)：跟 `connectImpl()` → `doActivate()` → `queued_activate()` → `QMetaCallEvent::placeMetaCall()`。
 9. 同文件的 `QObject::~QObject()`、`deleteChildren()`、`setParent_helper()`：校准生命周期与重入边界。
-10. [`src/corelib/kernel/qmetatype.h`](../src/corelib/kernel/qmetatype.h) 与 [`qmetatype.cpp`](../src/corelib/kernel/qmetatype.cpp)：读 `QMetaTypeInterface`、construct/destroy/convert。
-11. [`src/corelib/kernel/qvariant.cpp`](../src/corelib/kernel/qvariant.cpp)：观察类型描述如何管理实际值存储。
-12. [`src/corelib/kernel/qproperty.h`](../src/corelib/kernel/qproperty.h)、[`qproperty.cpp`](../src/corelib/kernel/qproperty.cpp) 与 [`qproperty_p.h`](../src/corelib/kernel/qproperty_p.h)：跟 binding 求值、依赖登记和 observer 通知。
-13. [`tests/auto/corelib/kernel/qobject/tst_qobject.cpp`](../tests/auto/corelib/kernel/qobject/tst_qobject.cpp)：重点读 `autoConnectionBehavior`、`blockingQueuedConnection`、`connectFunctorWithContext`、`childDeletesItsSibling` 和 queued-disconnect 测试。
-14. [`tests/auto/corelib/kernel/qmetaobject/tst_qmetaobject.cpp`](../tests/auto/corelib/kernel/qmetaobject/tst_qmetaobject.cpp)：重点读 queued/blocking invoke、method index、signal offset 和继承测试。
-15. [`tests/auto/corelib/kernel/qproperty/tst_qproperty.cpp`](../tests/auto/corelib/kernel/qproperty/tst_qproperty.cpp)：重点读 basic/multiple dependencies、deleted dependency、binding loop 和 thread safety 测试。
+10. [`src/corelib/kernel/qmetatype.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qmetatype.h) 与 [`qmetatype.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qmetatype.cpp)：读 `QMetaTypeInterface`、construct/destroy/convert。
+11. [`src/corelib/kernel/qvariant.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qvariant.cpp)：观察类型描述如何管理实际值存储。
+12. [`src/corelib/kernel/qproperty.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qproperty.h)、[`qproperty.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qproperty.cpp) 与 [`qproperty_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qproperty_p.h)：跟 binding 求值、依赖登记和 observer 通知。
+13. [`tests/auto/corelib/kernel/qobject/tst_qobject.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/kernel/qobject/tst_qobject.cpp)：重点读 `autoConnectionBehavior`、`blockingQueuedConnection`、`connectFunctorWithContext`、`childDeletesItsSibling` 和 queued-disconnect 测试。
+14. [`tests/auto/corelib/kernel/qmetaobject/tst_qmetaobject.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/kernel/qmetaobject/tst_qmetaobject.cpp)：重点读 queued/blocking invoke、method index、signal offset 和继承测试。
+15. [`tests/auto/corelib/kernel/qproperty/tst_qproperty.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/kernel/qproperty/tst_qproperty.cpp)：重点读 basic/multiple dependencies、deleted dependency、binding loop 和 thread safety 测试。
 
 建议最终画三张图：
 

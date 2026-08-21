@@ -1,8 +1,8 @@
 # 8. QWidget 体系
 
-> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](../.cmake.conf)）<br>
+> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](https://github.com/qt/qtbase/blob/v6.10.2/.cmake.conf)）<br>
 > 本文定位：第 12～13 周的 Widgets 主线。目标不是记忆控件 API，而是建立一套能解释“对象如何组成、窗口何时创建、事件如何到达、布局如何协商、脏区如何绘制、输入状态如何路由”的运行时模型。<br>
-> 前置知识：建议先完成 [`02-qobject-moc-metaobject-system.md`](02-qobject-moc-metaobject-system.md)、[`03-event-loop-and-event-dispatch.md`](03-event-loop-and-event-dispatch.md) 和大纲中的 QPA、QPainter 主题。QWidget 把这几条主线汇合到传统桌面 UI。
+> 前置知识：建议先完成 [`02-qobject-moc-metaobject-system.md`](sourceStudy_02-qobject-moc-metaobject-system.md)、[`03-event-loop-and-event-dispatch.md`](sourceStudy_03-event-loop-and-event-dispatch.md) 和大纲中的 QPA、QPainter 主题。QWidget 把这几条主线汇合到传统桌面 UI。
 
 ## 8.1 完成本阶段后，你应能回答什么
 
@@ -34,7 +34,7 @@
 
 ## 8.2 一张总图：QWidget 是六条机制的汇合点
 
-[`QWidget`](../src/widgets/kernel/qwidget.h#L98) 的声明直接给出第一条线索：
+[`QWidget`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.h#L98) 的声明直接给出第一条线索：
 
 ```cpp
 class Q_WIDGETS_EXPORT QWidget : public QObject, public QPaintDevice
@@ -71,13 +71,13 @@ flowchart LR
 
 源码阅读时不要把 QWidget 当成一个类读完。应围绕行为链在以下文件间跳转：
 
-- Widget 状态与事件：[`qwidget.cpp`](../src/widgets/kernel/qwidget.cpp)、[`qwidget_p.h`](../src/widgets/kernel/qwidget_p.h)
-- 应用级路由：[`qapplication.cpp`](../src/widgets/kernel/qapplication.cpp)
-- 平台窗口桥：[`qwidgetwindow.cpp`](../src/widgets/kernel/qwidgetwindow.cpp)
-- 布局：[`qlayout.cpp`](../src/widgets/kernel/qlayout.cpp)、[`qlayoutitem.cpp`](../src/widgets/kernel/qlayoutitem.cpp)
-- 重绘管理：[`qwidgetrepaintmanager.cpp`](../src/widgets/kernel/qwidgetrepaintmanager.cpp)
-- 样式：[`qstyle.cpp`](../src/widgets/styles/qstyle.cpp)、[`qproxystyle.cpp`](../src/widgets/styles/qproxystyle.cpp)
-- 命令与快捷键：[`qaction.cpp`](../src/gui/kernel/qaction.cpp)、[`qshortcutmap.cpp`](../src/gui/kernel/qshortcutmap.cpp)
+- Widget 状态与事件：[`qwidget.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp)、[`qwidget_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget_p.h)
+- 应用级路由：[`qapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qapplication.cpp)
+- 平台窗口桥：[`qwidgetwindow.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidgetwindow.cpp)
+- 布局：[`qlayout.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qlayout.cpp)、[`qlayoutitem.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qlayoutitem.cpp)
+- 重绘管理：[`qwidgetrepaintmanager.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidgetrepaintmanager.cpp)
+- 样式：[`qstyle.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/styles/qstyle.cpp)、[`qproxystyle.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/styles/qproxystyle.cpp)
+- 命令与快捷键：[`qaction.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qaction.cpp)、[`qshortcutmap.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qshortcutmap.cpp)
 
 ---
 
@@ -117,7 +117,7 @@ Widget Tree 是 Composite，但它不只是“容器包含控件”。父节点�
 - `Qt::WA_DontCreateNativeAncestors` 会改变“为原生子控件补齐原生祖先”的默认行为；
 - 应用属性 `Qt::AA_NativeWindows` 可以让所有 Widgets 倾向原生化。
 
-[`QWidget::create()`](../src/widgets/kernel/qwidget.cpp#L1163) 明确处理了这组规则：原生子控件若没有原生父级，默认会促使祖先创建句柄；而 [`QWidgetPrivate::create()`](../src/widgets/kernel/qwidget.cpp#L1288) 对既非顶层又未设置 `WA_NativeWindow` 的控件直接返回。
+[`QWidget::create()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L1163) 明确处理了这组规则：原生子控件若没有原生父级，默认会促使祖先创建句柄；而 [`QWidgetPrivate::create()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L1288) 对既非顶层又未设置 `WA_NativeWindow` 的控件直接返回。
 
 ```mermaid
 flowchart TB
@@ -138,11 +138,11 @@ flowchart TB
     VIDEO -."对应".-> NVIDEO
 ```
 
-这解释了一个常见误区：`winId()` 不是无副作用的“查询普通字段”。它可能迫使原本 alien 的 Widget 创建原生资源，从而改变窗口层级、绘制、裁剪和性能特征。相关入口见 [`QWidget::winId()`](../src/widgets/kernel/qwidget.cpp#L2388)。
+这解释了一个常见误区：`winId()` 不是无副作用的“查询普通字段”。它可能迫使原本 alien 的 Widget 创建原生资源，从而改变窗口层级、绘制、裁剪和性能特征。相关入口见 [`QWidget::winId()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L2388)。
 
 ### 8.3.4 三棵树什么时候会重新对齐
 
-[`QWidgetPrivate::setParent_sys()`](../src/widgets/kernel/qwidget.cpp#L10961) 展示了 reparent 的真实成本：
+[`QWidgetPrivate::setParent_sys()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L10961) 展示了 reparent 的真实成本：
 
 1. 更新 QObject parent；
 2. 判断顶层转子控件时是否需要销毁旧窗口；
@@ -167,7 +167,7 @@ Widget 构造阶段主要建立 C++ 对象、私有状态、父子关系和初�
 
 ### 8.4.2 `show()` 只是公开入口
 
-[`QWidget::show()`](../src/widgets/kernel/qwidget.cpp#L7943) 对普通子控件调用 `setVisible(true)`；对窗口还会询问平台默认窗口状态，可能转入全屏或最大化路径。
+[`QWidget::show()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L7943) 对普通子控件调用 `setVisible(true)`；对窗口还会询问平台默认窗口状态，可能转入全屏或最大化路径。
 
 可把主链概括为：
 
@@ -186,7 +186,7 @@ QWidget::show()
         → Popup、Focus、Accessibility 等收尾
 ```
 
-[`QWidgetPrivate::show_helper()`](../src/widgets/kernel/qwidget.cpp#L8046) 中一个容易忽略的顺序是：先让对象进入 visible 状态，再递归显示孩子；`QShowEvent` 在 `show_sys()` 前同步发送。这里的 Show Event 表示 Widget 生命周期通知，不等于“像素已经出现在屏幕上”。平台 expose、Backing Store 绘制和 flush 仍可能发生在之后。
+[`QWidgetPrivate::show_helper()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L8046) 中一个容易忽略的顺序是：先让对象进入 visible 状态，再递归显示孩子；`QShowEvent` 在 `show_sys()` 前同步发送。这里的 Show Event 表示 Widget 生命周期通知，不等于“像素已经出现在屏幕上”。平台 expose、Backing Store 绘制和 flush 仍可能发生在之后。
 
 ### 8.4.3 `isVisible()`、`isHidden()` 与显式隐藏
 
@@ -202,7 +202,7 @@ QWidget::show()
 
 ### 8.4.4 Polish：延迟完成样式初始化
 
-[`QWidget::event()`](../src/widgets/kernel/qwidget.cpp#L8945) 对 `PolishRequest` 调用 `ensurePolished()`；处理 `Polish` 时调用 `style()->polish(this)`，设置 `WA_WState_Polished`，并解析应用字体和调色板。
+[`QWidget::event()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L8945) 对 `PolishRequest` 调用 `ensurePolished()`；处理 `Polish` 时调用 `style()->polish(this)`，设置 `WA_WState_Polished`，并解析应用字体和调色板。
 
 Polish 允许样式在构造之后、首次使用之前补充初始化。实践中不要在 Widget 构造函数早期假定所有样式派生尺寸、字体和父链状态都已稳定。需要依赖最终样式信息时，可在 `showEvent()`、`changeEvent()` 或布局查询阶段重新计算，并在尺寸意愿变化时调用 `updateGeometry()`。
 
@@ -212,7 +212,7 @@ Polish 允许样式在构造之后、首次使用之前补充初始化。实践�
 
 ### 8.5.1 `QApplicationPrivate::notify_helper()` 的顺序
 
-[`QApplicationPrivate::notify_helper()`](../src/widgets/kernel/qapplication.cpp#L3261) 给出通用 Widget 事件交付顺序：
+[`QApplicationPrivate::notify_helper()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qapplication.cpp#L3261) 给出通用 Widget 事件交付顺序：
 
 ```text
 Application event filters
@@ -227,7 +227,7 @@ Application event filters
 
 ### 8.5.2 `QWidget::event()` 是分派器，不是业务逻辑仓库
 
-[`QWidget::event()`](../src/widgets/kernel/qwidget.cpp#L8945) 约 500 行，核心职责是把通用 `QEvent` 分派给专用虚函数或内部状态机：
+[`QWidget::event()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L8945) 约 500 行，核心职责是把通用 `QEvent` 分派给专用虚函数或内部状态机：
 
 - Mouse → `mouseMoveEvent()`、`mousePressEvent()`、`mouseReleaseEvent()`；
 - Key → 先处理 Tab/Backtab 焦点移动，再进入 `keyPressEvent()`；
@@ -350,7 +350,7 @@ QSizePolicy、stretch、spacing、margins、style metrics
 
 ### 8.7.3 `updateGeometry()` 是失效通知
 
-[`QWidget::updateGeometry()`](../src/widgets/kernel/qwidget.cpp#L10572) 只进入 `QWidgetPrivate::updateGeometry_helper()`。它的语义是：“我的尺寸意愿变了，请让上层布局重新考虑我”，不是立即改变几何。
+[`QWidget::updateGeometry()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L10572) 只进入 `QWidgetPrivate::updateGeometry_helper()`。它的语义是：“我的尺寸意愿变了，请让上层布局重新考虑我”，不是立即改变几何。
 
 当以下内容变化时应调用它：
 
@@ -363,9 +363,9 @@ QSizePolicy、stretch、spacing、margins、style metrics
 
 ### 8.7.4 从 invalidate 到 LayoutRequest
 
-[`QLayout::update()`](../src/widgets/kernel/qlayout.cpp#L939) 沿嵌套 Layout 向上把 activated 清为 false，并向顶层布局所属 Widget 投递 `QEvent::LayoutRequest`。这允许多次尺寸失效被事件循环合并。
+[`QLayout::update()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qlayout.cpp#L939) 沿嵌套 Layout 向上把 activated 清为 false，并向顶层布局所属 Widget 投递 `QEvent::LayoutRequest`。这允许多次尺寸失效被事件循环合并。
 
-[`QApplicationPrivate::notify_helper()`](../src/widgets/kernel/qapplication.cpp#L3261) 会先把事件交给 Widget 的 Layout；[`QLayout::widgetEvent()`](../src/widgets/kernel/qlayout.cpp#L509) 在父 Widget 可见时对 `LayoutRequest` 调用 `activate()`，在 Resize 时直接重排或激活。
+[`QApplicationPrivate::notify_helper()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qapplication.cpp#L3261) 会先把事件交给 Widget 的 Layout；[`QLayout::widgetEvent()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qlayout.cpp#L509) 在父 Widget 可见时对 `LayoutRequest` 调用 `activate()`，在 Resize 时直接重排或激活。
 
 ```mermaid
 sequenceDiagram
@@ -384,7 +384,7 @@ sequenceDiagram
 
 ### 8.7.5 `QLayout::activate()` 做了什么
 
-[`QLayout::activate()`](../src/widgets/kernel/qlayout.cpp#L963) 的主线是：
+[`QLayout::activate()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qlayout.cpp#L963) 的主线是：
 
 1. 跳到 top-level Layout；
 2. 递归激活子 Layout；
@@ -402,7 +402,7 @@ Qt 6.10.2 支持水平和垂直方向分别设置 Size Constraint。阅读这段
 
 ### 8.8.1 推荐入口是 `update()`
 
-[`QWidgetPrivate::update()`](../src/widgets/kernel/qwidget.cpp#L11328) 的关键逻辑：
+[`QWidgetPrivate::update()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L11328) 的关键逻辑：
 
 1. 不可见或 updates disabled 时返回；
 2. 把请求区域裁剪到 `rect()`；
@@ -425,7 +425,7 @@ Qt 6.10.2 支持水平和垂直方向分别设置 Size Constraint。阅读这段
 
 ### 8.8.3 Repaint Manager 与 Backing Store
 
-[`QWidgetRepaintManager::markDirty()`](../src/widgets/kernel/qwidgetrepaintmanager.cpp#L168) 把 Widget 局部脏区登记到顶层窗口。随后 Update Request 触发同步：
+[`QWidgetRepaintManager::markDirty()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidgetrepaintmanager.cpp#L168) 把 Widget 局部脏区登记到顶层窗口。随后 Update Request 触发同步：
 
 ```text
 QWidget::update(region)
@@ -445,7 +445,7 @@ QWidget::update(region)
 
 ### 8.8.4 `drawWidget()` 的内部阶段
 
-[`QWidgetPrivate::drawWidget()`](../src/widgets/kernel/qwidget.cpp#L5490) 是理解 Widget 绘制最有价值的函数之一。其主阶段是：
+[`QWidgetPrivate::drawWidget()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L5490) 是理解 Widget 绘制最有价值的函数之一。其主阶段是：
 
 1. 计算真正需要绘制的区域并扣除 opaque children；
 2. 设置 `WA_WState_InPaintEvent`，检测递归 repaint；
@@ -511,7 +511,7 @@ Widget state
 
 ### 8.9.3 `QProxyStyle` 是可叠加的代理/装饰
 
-[`QProxyStyle::drawControl()`](../src/widgets/styles/qproxystyle.cpp#L169) 默认确保 base style 存在，然后直接转发。自定义代理只需覆盖少数点，其余行为仍交给 base style：
+[`QProxyStyle::drawControl()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/styles/qproxystyle.cpp#L169) 默认确保 base style 存在，然后直接转发。自定义代理只需覆盖少数点，其余行为仍交给 base style：
 
 ```cpp
 class DenseStyle final : public QProxyStyle
@@ -586,13 +586,13 @@ Command 特征不在于“有一个 triggered 信号”，而在于：
 
 ### 8.10.2 `activate()` 的状态机
 
-[`QAction::activate()`](../src/gui/kernel/qaction.cpp#L1084) 在 Trigger 时先检查显式 disabled 和 group 状态；对于 checkable action，处理 exclusive group 不能取消当前唯一选中项的规则，然后切换 checked 并发出 `triggered(checked)`。代码使用 `QPointer` 防止信号回调删除 action 后继续访问悬空对象。
+[`QAction::activate()`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qaction.cpp#L1084) 在 Trigger 时先检查显式 disabled 和 group 状态；对于 checkable action，处理 exclusive group 不能取消当前唯一选中项的规则，然后切换 checked 并发出 `triggered(checked)`。代码使用 `QPointer` 防止信号回调删除 action 后继续访问悬空对象。
 
 这段短代码同时体现三件事：状态迁移、组约束、回调期间生命周期防护。
 
 ### 8.10.3 Shortcut 不是 KeyPress 的简单 if
 
-快捷键由 [`QShortcutMap`](../src/gui/kernel/qshortcutmap.cpp) 注册、匹配和分发，并受 Shortcut Context、窗口激活、Widget 可见/启用状态及歧义匹配影响。应用还会先发送 Shortcut Override，让控件有机会把某个组合键保留给文本编辑等局部语义。
+快捷键由 [`QShortcutMap`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qshortcutmap.cpp) 注册、匹配和分发，并受 Shortcut Context、窗口激活、Widget 可见/启用状态及歧义匹配影响。应用还会先发送 Shortcut Override，让控件有机会把某个组合键保留给文本编辑等局部语义。
 
 选择 context 时先问“命令在哪个作用域成立”：
 
@@ -617,13 +617,13 @@ Command 特征不在于“有一个 triggered 信号”，而在于：
 | Focus Chain | Tab/Backtab 按什么环形顺序移动？ |
 | Active Window | 哪个顶层窗口当前有资格持有应用级键盘焦点？ |
 
-`setFocus()` 不是无条件改全局指针。[`QWidget::setFocus()`](../src/widgets/kernel/qwidget.cpp#L6555) 会：
+`setFocus()` 不是无条件改全局指针。[`QWidget::setFocus()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L6555) 会：
 
 1. 拒绝 Disabled Widget；
 2. 沿 Focus Proxy 找到最深目标；
 3. 若窗口 active，处理输入法提交和 FocusAboutToChange；
 4. 更新沿父链的 focus child；
-5. 进入 [`QApplicationPrivate::setFocusWidget()`](../src/widgets/kernel/qapplication.cpp#L1506)；
+5. 进入 [`QApplicationPrivate::setFocusWidget()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qapplication.cpp#L1506)；
 6. 按顺序发送 FocusOut、FocusIn 和 `focusChanged`；
 7. 若窗口未 active，先记录 focus child，等待窗口激活。
 
@@ -649,7 +649,7 @@ Command 特征不在于“有一个 triggered 信号”，而在于：
 
 平台 Mouse Event 先到 `QWindow/QWidgetWindow`，QApplication 根据全局/窗口坐标、Widget Tree、可见性、mask、透明命中属性、Popup 和 Modal 状态选择 receiver。随后把坐标转换为 receiver 局部坐标并发送 QMouseEvent。
 
-[`QApplicationPrivate::sendMouseEvent()`](../src/widgets/kernel/qapplication.cpp#L2302) 还维护 last mouse receiver、Enter/Leave、button-down receiver、alien/native widget 差异以及 Popup 状态。
+[`QApplicationPrivate::sendMouseEvent()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qapplication.cpp#L2302) 还维护 last mouse receiver、Enter/Leave、button-down receiver、alien/native widget 差异以及 Popup 状态。
 
 ### 8.12.2 隐式 Grab
 
@@ -679,7 +679,7 @@ Command 特征不在于“有一个 triggered 信号”，而在于：
 
 Popup 不只是带某个 Window Flag 的窗口。`show_helper()` 会关闭不兼容的现有 Popup、raise 新 Popup，并在显示后加入 QApplication 的 Popup 栈。Popup 还可能申请平台/应用级 Grab，以确保点击外部时能关闭菜单。
 
-因此 Popup 活跃时，事件目标选择会优先考虑 active popup。源码中的 [`QApplicationPrivate::tryModalHelper()`](../src/widgets/kernel/qapplication.cpp#L2221) 甚至先判断 active popup，再判断 modal blocking。
+因此 Popup 活跃时，事件目标选择会优先考虑 active popup。源码中的 [`QApplicationPrivate::tryModalHelper()`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qapplication.cpp#L2221) 甚至先判断 active popup，再判断 modal blocking。
 
 ### 8.13.2 Modal 是“哪些窗口被阻塞”的关系
 
@@ -782,6 +782,8 @@ Widget 必须在 GUI 线程使用。`deleteLater()` 把销毁推迟到对象线�
 
 class MetricCard final : public QWidget
 {
+    Q_OBJECT
+
 public:
     explicit MetricCard(QString title, QWidget *parent = nullptr)
         : QWidget(parent)
@@ -932,9 +934,11 @@ int main(int argc, char **argv)
     window.show();
     return app.exec();
 }
+
+#include "main.moc"
 ```
 
-这个类没有自定义 signal/property，因此不需要 `Q_OBJECT`，也不需要手工包含 moc 文件。
+这个类虽然没有自定义 signal/property，但使用了 `tr()`。加入 `Q_OBJECT` 后，翻译上下文是 `MetricCard`，而不是继承 `QWidget` 的上下文。因为类定义位于 `main.cpp`，示例在文件末尾包含 `main.moc`，并在 CMake 中启用 AUTOMOC。
 
 ### 8.16.2 `CMakeLists.txt`
 
@@ -946,6 +950,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.10 REQUIRED COMPONENTS Widgets)
+
+qt_standard_project_setup()
 
 qt_add_executable(qwidget_system_lab
     main.cpp
@@ -1177,12 +1183,12 @@ QApplication::activeModalWidget()
 
 | 主题 | 测试入口 | 值得观察的边界 |
 |---|---|---|
-| QWidget 综合行为 | [`tst_qwidget.cpp`](../tests/auto/widgets/kernel/qwidget/tst_qwidget.cpp) | visibility、geometry、update/repaint、focus、native child、reparent |
-| QWidget 与 QWindow 桥 | [`tst_qwidget_window.cpp`](../tests/auto/widgets/kernel/qwidget_window/tst_qwidget_window.cpp) | show/hide、window handle、expose、window state、focus object |
-| Layout | [`tst_qlayout.cpp`](../tests/auto/widgets/kernel/qlayout/tst_qlayout.cpp) | invalidate、Size Hint、删除 child、约束传播 |
-| QStyle | [`tst_qstyle.cpp`](../tests/auto/widgets/styles/qstyle/tst_qstyle.cpp) | Style Option、Pixel Metric、Proxy 行为 |
-| Style Sheet | [`tst_qstylesheetstyle.cpp`](../tests/auto/widgets/styles/qstylesheetstyle/tst_qstylesheetstyle.cpp) | selector、代理、绘制与尺寸交互 |
-| QAction | [`tst_qaction.cpp`](../tests/auto/gui/kernel/qaction/tst_qaction.cpp) | enabled/visible、checkable、group、standard keys |
+| QWidget 综合行为 | [`tst_qwidget.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/widgets/kernel/qwidget/tst_qwidget.cpp) | visibility、geometry、update/repaint、focus、native child、reparent |
+| QWidget 与 QWindow 桥 | [`tst_qwidget_window.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/widgets/kernel/qwidget_window/tst_qwidget_window.cpp) | show/hide、window handle、expose、window state、focus object |
+| Layout | [`tst_qlayout.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/widgets/kernel/qlayout/tst_qlayout.cpp) | invalidate、Size Hint、删除 child、约束传播 |
+| QStyle | [`tst_qstyle.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/widgets/styles/qstyle/tst_qstyle.cpp) | Style Option、Pixel Metric、Proxy 行为 |
+| Style Sheet | [`tst_qstylesheetstyle.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/widgets/styles/qstylesheetstyle/tst_qstylesheetstyle.cpp) | selector、代理、绘制与尺寸交互 |
+| QAction | [`tst_qaction.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/gui/kernel/qaction/tst_qaction.cpp) | enabled/visible、checkable、group、standard keys |
 
 在 `tst_qwidget.cpp` 中特别关注：
 
@@ -1355,15 +1361,15 @@ QAction 的 Command 价值体现在哪里？
 
 第一轮按一条可见行为链阅读：
 
-1. [`qwidget.h`](../src/widgets/kernel/qwidget.h)：公开契约、属性、事件虚函数。
-2. [`qwidget.cpp`](../src/widgets/kernel/qwidget.cpp) 的 `show()`、`create()`、`event()`、`update()`。
-3. [`qwidget_p.h`](../src/widgets/kernel/qwidget_p.h)：Widget data、extra、top-level extra 和状态位。
-4. [`qwidgetwindow.cpp`](../src/widgets/kernel/qwidgetwindow.cpp)：QWindow Event 到 QApplication Widget 路由。
-5. [`qapplication.cpp`](../src/widgets/kernel/qapplication.cpp)：notify、Mouse、Focus、Popup、Modal。
-6. [`qwidgetrepaintmanager.cpp`](../src/widgets/kernel/qwidgetrepaintmanager.cpp)：Dirty Region、Backing Store、flush。
-7. [`qlayout.cpp`](../src/widgets/kernel/qlayout.cpp) 与一个具体 Layout，例如 [`qboxlayout.cpp`](../src/widgets/kernel/qboxlayout.cpp)。
-8. [`qstyle.cpp`](../src/widgets/styles/qstyle.cpp)、[`qproxystyle.cpp`](../src/widgets/styles/qproxystyle.cpp) 与一个具体 Style。
-9. [`qaction.cpp`](../src/gui/kernel/qaction.cpp)、[`qshortcutmap.cpp`](../src/gui/kernel/qshortcutmap.cpp)。
+1. [`qwidget.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.h)：公开契约、属性、事件虚函数。
+2. [`qwidget.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp) 的 `show()`、`create()`、`event()`、`update()`。
+3. [`qwidget_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget_p.h)：Widget data、extra、top-level extra 和状态位。
+4. [`qwidgetwindow.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidgetwindow.cpp)：QWindow Event 到 QApplication Widget 路由。
+5. [`qapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qapplication.cpp)：notify、Mouse、Focus、Popup、Modal。
+6. [`qwidgetrepaintmanager.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidgetrepaintmanager.cpp)：Dirty Region、Backing Store、flush。
+7. [`qlayout.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qlayout.cpp) 与一个具体 Layout，例如 [`qboxlayout.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qboxlayout.cpp)。
+8. [`qstyle.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/styles/qstyle.cpp)、[`qproxystyle.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/styles/qproxystyle.cpp) 与一个具体 Style。
+9. [`qaction.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qaction.cpp)、[`qshortcutmap.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qshortcutmap.cpp)。
 10. 对应 `tests/auto`，用边界测试校准理解。
 
 第二轮按问题定向阅读：
@@ -1384,23 +1390,23 @@ QAction 的 Command 价值体现在哪里？
 
 | 结论 | QtBase 6.10.2 源码位置 |
 |---|---|
-| QWidget 的双重继承 | [`qwidget.h:98`](../src/widgets/kernel/qwidget.h#L98) |
-| 原生 Widget 创建条件、祖先原生化、Repaint Manager 创建 | [`qwidget.cpp:1163`](../src/widgets/kernel/qwidget.cpp#L1163) |
-| QWidgetPrivate 接入 QWidgetWindow/QWindow/QBackingStore | [`qwidget.cpp:1288`](../src/widgets/kernel/qwidget.cpp#L1288) |
-| `show()` 平台默认窗口状态 | [`qwidget.cpp:7943`](../src/widgets/kernel/qwidget.cpp#L7943) |
-| Show Event、children、Popup 与 Focus 的显示顺序 | [`qwidget.cpp:8046`](../src/widgets/kernel/qwidget.cpp#L8046) |
-| QWidget 主事件分派器 | [`qwidget.cpp:8945`](../src/widgets/kernel/qwidget.cpp#L8945) |
-| `update()` 在 Paint Event 中转为 UpdateLater | [`qwidget.cpp:11328`](../src/widgets/kernel/qwidget.cpp#L11328) |
-| 背景、Paint Event、children 的实际绘制 | [`qwidget.cpp:5490`](../src/widgets/kernel/qwidget.cpp#L5490) |
-| Reparent 对对象树和窗口树的同步 | [`qwidget.cpp:10961`](../src/widgets/kernel/qwidget.cpp#L10961) |
-| QApplication event filter、Layout 与 receiver event 顺序 | [`qapplication.cpp:3261`](../src/widgets/kernel/qapplication.cpp#L3261) |
-| Mouse receiver、Enter/Leave 与 implicit grab 状态 | [`qapplication.cpp:2302`](../src/widgets/kernel/qapplication.cpp#L2302) |
-| Focus Widget 切换和事件顺序 | [`qapplication.cpp:1506`](../src/widgets/kernel/qapplication.cpp#L1506) |
-| LayoutRequest 的 posted event 合并 | [`qlayout.cpp:939`](../src/widgets/kernel/qlayout.cpp#L939) |
-| Layout 对 Resize/ChildRemoved/LayoutRequest 的处理 | [`qlayout.cpp:509`](../src/widgets/kernel/qlayout.cpp#L509) |
-| Layout constraint 求解与几何分配 | [`qlayout.cpp:963`](../src/widgets/kernel/qlayout.cpp#L963) |
-| Dirty Region 登记 | [`qwidgetrepaintmanager.cpp:168`](../src/widgets/kernel/qwidgetrepaintmanager.cpp#L168) |
-| QProxyStyle 默认转发到 base style | [`qproxystyle.cpp:169`](../src/widgets/styles/qproxystyle.cpp#L169) |
-| QAction Trigger/checkable/exclusive group 状态机 | [`qaction.cpp:1084`](../src/gui/kernel/qaction.cpp#L1084) |
+| QWidget 的双重继承 | [`qwidget.h:98`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.h#L98) |
+| 原生 Widget 创建条件、祖先原生化、Repaint Manager 创建 | [`qwidget.cpp:1163`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L1163) |
+| QWidgetPrivate 接入 QWidgetWindow/QWindow/QBackingStore | [`qwidget.cpp:1288`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L1288) |
+| `show()` 平台默认窗口状态 | [`qwidget.cpp:7943`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L7943) |
+| Show Event、children、Popup 与 Focus 的显示顺序 | [`qwidget.cpp:8046`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L8046) |
+| QWidget 主事件分派器 | [`qwidget.cpp:8945`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L8945) |
+| `update()` 在 Paint Event 中转为 UpdateLater | [`qwidget.cpp:11328`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L11328) |
+| 背景、Paint Event、children 的实际绘制 | [`qwidget.cpp:5490`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L5490) |
+| Reparent 对对象树和窗口树的同步 | [`qwidget.cpp:10961`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.cpp#L10961) |
+| QApplication event filter、Layout 与 receiver event 顺序 | [`qapplication.cpp:3261`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qapplication.cpp#L3261) |
+| Mouse receiver、Enter/Leave 与 implicit grab 状态 | [`qapplication.cpp:2302`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qapplication.cpp#L2302) |
+| Focus Widget 切换和事件顺序 | [`qapplication.cpp:1506`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qapplication.cpp#L1506) |
+| LayoutRequest 的 posted event 合并 | [`qlayout.cpp:939`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qlayout.cpp#L939) |
+| Layout 对 Resize/ChildRemoved/LayoutRequest 的处理 | [`qlayout.cpp:509`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qlayout.cpp#L509) |
+| Layout constraint 求解与几何分配 | [`qlayout.cpp:963`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qlayout.cpp#L963) |
+| Dirty Region 登记 | [`qwidgetrepaintmanager.cpp:168`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidgetrepaintmanager.cpp#L168) |
+| QProxyStyle 默认转发到 base style | [`qproxystyle.cpp:169`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/styles/qproxystyle.cpp#L169) |
+| QAction Trigger/checkable/exclusive group 状态机 | [`qaction.cpp:1084`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qaction.cpp#L1084) |
 
 完成本阶段后，下一步进入 Model/View。此时应继续沿用本文的六条问题线：对象身份、事件路由、布局几何、绘制失效、命令输入和生命周期。Model/View 不是另一套孤立 UI 框架，而是在 QWidget 基础上把“大量结构化数据的状态、选择与绘制”进一步解耦。

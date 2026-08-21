@@ -1,6 +1,6 @@
 # 0. 建立 QtBase 整体地图
 
-> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](../.cmake.conf)）<br>
+> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](https://github.com/qt/qtbase/blob/v6.10.2/.cmake.conf)）<br>
 > 本文定位：第一周的架构导航图。它不是逐目录 API 清单，而是后续研究 QObject、事件循环、线程、QPA、绘制、Widgets 和 Model/View 时反复使用的“坐标系”。
 
 ## 0.1 完成本阶段后，你应能回答什么
@@ -23,7 +23,7 @@
 
 QtBase 是 Qt 的基础仓库。它提供对象模型、事件循环、线程、容器、文件与设备 I/O、网络、二维 GUI、传统桌面控件、平台抽象、插件基础设施、测试库和一组构建工具。它也是其他 Qt 仓库通常要依赖的地基。
 
-当前仓库的 [`dependencies.yaml`](../dependencies.yaml) 为 `dependencies: {}`，表示 QtBase 在 Qt 仓库层面不依赖其他兄弟仓库。这不表示它没有操作系统库或第三方依赖；[`src/CMakeLists.txt`](../src/CMakeLists.txt) 仍会按 Feature 选择 PCRE2、zlib 等 bundled 或 system 实现。
+当前仓库的 [`dependencies.yaml`](https://github.com/qt/qtbase/blob/v6.10.2/dependencies.yaml) 为 `dependencies: {}`，表示 QtBase 在 Qt 仓库层面不依赖其他兄弟仓库。这不表示它没有操作系统库或第三方依赖；[`src/CMakeLists.txt`](https://github.com/qt/qtbase/blob/v6.10.2/src/CMakeLists.txt) 仍会按 Feature 选择 PCRE2、zlib 等 bundled 或 system 实现。
 
 ### 属于本轮 QtBase 学习范围
 
@@ -108,20 +108,20 @@ flowchart BT
 
 | 模块目标 | 主要职责 | 公开依赖 | 首选源码入口 |
 |---|---|---|---|
-| `Qt::Core` | 值类型、QObject、事件循环、线程、I/O、插件基础 | 平台基础目标与系统库 | [`src/corelib`](../src/corelib) |
-| `Qt::Concurrent` | Map/Filter/Run、Future、任务编排 | Core | [`src/concurrent`](../src/concurrent) |
-| `Qt::Network` | Socket、TLS、HTTP、Network Access | Core | [`src/network`](../src/network) |
-| `Qt::Sql` | 数据库连接、查询、SQL Models、Driver 接口 | Core | [`src/sql`](../src/sql) |
-| `Qt::DBus` | D-Bus 消息、连接、适配器和接口 | Core | [`src/dbus`](../src/dbus) |
-| `Qt::Xml` | DOM 兼容模块；流式 XML 主要已在 Core | Core | [`src/xml`](../src/xml) |
-| `Qt::Gui` | 应用、窗口、输入、字体、图像、绘制、QPA、RHI | Core | [`src/gui`](../src/gui) |
-| `Qt::OpenGL` | OpenGL 对象、上下文辅助和绘制后端 | Core + Gui | [`src/opengl`](../src/opengl) |
-| `Qt::Widgets` | 控件、布局、Style、对话框、Item Views | Core + Gui | [`src/widgets`](../src/widgets) |
-| `Qt::OpenGLWidgets` | `QOpenGLWidget` 对 Widgets/OpenGL 的桥接 | OpenGL + Widgets | [`src/openglwidgets`](../src/openglwidgets) |
-| `Qt::PrintSupport` | 打印设备、打印引擎、打印对话框 | Core + Gui + Widgets | [`src/printsupport`](../src/printsupport) |
-| `Qt::Test` | 测试执行、断言、数据驱动、Signal Spy、benchmark | Core | [`src/testlib`](../src/testlib) |
+| `Qt::Core` | 值类型、QObject、事件循环、线程、I/O、插件基础 | 平台基础目标与系统库 | [`src/corelib`](https://github.com/qt/qtbase/tree/v6.10.2/src/corelib) |
+| `Qt::Concurrent` | Map/Filter/Run、Future、任务编排 | Core | [`src/concurrent`](https://github.com/qt/qtbase/tree/v6.10.2/src/concurrent) |
+| `Qt::Network` | Socket、TLS、HTTP、Network Access | Core | [`src/network`](https://github.com/qt/qtbase/tree/v6.10.2/src/network) |
+| `Qt::Sql` | 数据库连接、查询、SQL Models、Driver 接口 | Core | [`src/sql`](https://github.com/qt/qtbase/tree/v6.10.2/src/sql) |
+| `Qt::DBus` | D-Bus 消息、连接、适配器和接口 | Core | [`src/dbus`](https://github.com/qt/qtbase/tree/v6.10.2/src/dbus) |
+| `Qt::Xml` | DOM 兼容模块；流式 XML 主要已在 Core | Core | [`src/xml`](https://github.com/qt/qtbase/tree/v6.10.2/src/xml) |
+| `Qt::Gui` | 应用、窗口、输入、字体、图像、绘制、QPA、RHI | Core | [`src/gui`](https://github.com/qt/qtbase/tree/v6.10.2/src/gui) |
+| `Qt::OpenGL` | OpenGL 对象、上下文辅助和绘制后端 | Core + Gui | [`src/opengl`](https://github.com/qt/qtbase/tree/v6.10.2/src/opengl) |
+| `Qt::Widgets` | 控件、布局、Style、对话框、Item Views | Core + Gui | [`src/widgets`](https://github.com/qt/qtbase/tree/v6.10.2/src/widgets) |
+| `Qt::OpenGLWidgets` | `QOpenGLWidget` 对 Widgets/OpenGL 的桥接 | OpenGL + Widgets | [`src/openglwidgets`](https://github.com/qt/qtbase/tree/v6.10.2/src/openglwidgets) |
+| `Qt::PrintSupport` | 打印设备、打印引擎、打印对话框 | Core + Gui + Widgets | [`src/printsupport`](https://github.com/qt/qtbase/tree/v6.10.2/src/printsupport) |
+| `Qt::Test` | 测试执行、断言、数据驱动、Signal Spy、benchmark | Core | [`src/testlib`](https://github.com/qt/qtbase/tree/v6.10.2/src/testlib) |
 
-依赖证据可直接查看：Gui 的 [`PUBLIC_LIBRARIES`](../src/gui/CMakeLists.txt)、Widgets 的 [`PUBLIC_LIBRARIES`](../src/widgets/CMakeLists.txt)、Network 的 [`PUBLIC_LIBRARIES`](../src/network/CMakeLists.txt) 和 PrintSupport 的 [`PUBLIC_LIBRARIES`](../src/printsupport/CMakeLists.txt)。
+依赖证据可直接查看：Gui 的 [`PUBLIC_LIBRARIES`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/CMakeLists.txt)、Widgets 的 [`PUBLIC_LIBRARIES`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/CMakeLists.txt)、Network 的 [`PUBLIC_LIBRARIES`](https://github.com/qt/qtbase/blob/v6.10.2/src/network/CMakeLists.txt) 和 PrintSupport 的 [`PUBLIC_LIBRARIES`](https://github.com/qt/qtbase/blob/v6.10.2/src/printsupport/CMakeLists.txt)。
 
 ### 为什么依赖不能反转
 
@@ -137,7 +137,7 @@ QObject + QEventLoop
             └── QWidget + Layout + Style + Dialog + Item View
 ```
 
-源码中的继承关系与模块关系一致：[`QGuiApplication`](../src/gui/kernel/qguiapplication.h) 继承 `QCoreApplication`，[`QApplication`](../src/widgets/kernel/qapplication.h) 继承 `QGuiApplication`，[`QWidget`](../src/widgets/kernel/qwidget.h) 同时继承 `QObject` 和 `QPaintDevice`。
+源码中的继承关系与模块关系一致：[`QGuiApplication`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qguiapplication.h) 继承 `QCoreApplication`，[`QApplication`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qapplication.h) 继承 `QGuiApplication`，[`QWidget`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget.h) 同时继承 `QObject` 和 `QPaintDevice`。
 
 如果反向依赖，会产生四类直接问题：
 
@@ -246,11 +246,11 @@ flowchart TD
     Root --> Helper --> Begin --> Src --> Post --> Tests --> End --> Examples
 ```
 
-根 [`CMakeLists.txt`](../CMakeLists.txt) 的职责很小：读取版本、加载 `QtBaseHelpers.cmake`、建立 `project(QtBase)`，然后调用 `qt_internal_qtbase_build_repo()`。真正的仓库编排位于 [`cmake/QtBaseHelpers.cmake`](../cmake/QtBaseHelpers.cmake)。
+根 [`CMakeLists.txt`](https://github.com/qt/qtbase/blob/v6.10.2/CMakeLists.txt) 的职责很小：读取版本、加载 `QtBaseHelpers.cmake`、建立 `project(QtBase)`，然后调用 `qt_internal_qtbase_build_repo()`。真正的仓库编排位于 [`cmake/QtBaseHelpers.cmake`](https://github.com/qt/qtbase/blob/v6.10.2/cmake/QtBaseHelpers.cmake)。
 
 ### `src/CMakeLists.txt` 的关键顺序
 
-[`src/CMakeLists.txt`](../src/CMakeLists.txt) 是理解模块装配的首要入口。它大致按以下顺序工作：
+[`src/CMakeLists.txt`](https://github.com/qt/qtbase/blob/v6.10.2/src/CMakeLists.txt) 是理解模块装配的首要入口。它大致按以下顺序工作：
 
 1. 提前计算 Core、Network、Gui 的 Feature，因为后续是否构建 bundled 第三方库依赖这些值。
 2. 先加入 `syncqt`，再按需要构建 bootstrap 库、`moc`、`rcc`、trace 工具和 automoc parser。
@@ -333,7 +333,7 @@ Public API 仍可能随 Qt 的版本策略演进，但它是应用应依赖的�
 
 ### 3. QPA API
 
-QPA（Qt Platform Abstraction，Qt 平台抽象）位于 Gui 和平台插件之间。它比普通 Private 头更像一组明确接口，但 [`qplatformintegration.h`](../src/gui/kernel/qplatformintegration.h) 同样声明它不面向应用，并可能造成未来版本源码或二进制不兼容。
+QPA（Qt Platform Abstraction，Qt 平台抽象）位于 Gui 和平台插件之间。它比普通 Private 头更像一组明确接口，但 [`qplatformintegration.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegration.h) 同样声明它不面向应用，并可能造成未来版本源码或二进制不兼容。
 
 可把三者理解为：
 
@@ -358,7 +358,7 @@ PIMPL（Pointer to Implementation，实现指针）把公开对象与可变化�
           └────────────────────────────────────────────────────┘
 ```
 
-宏定义位于 [`qtclasshelpermacros.h`](../src/corelib/global/qtclasshelpermacros.h)：
+宏定义位于 [`qtclasshelpermacros.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/global/qtclasshelpermacros.h)：
 
 - `Q_DECLARE_PRIVATE(Foo)`：在公开类中生成 `d_func()`，把 `d_ptr` 解释为 `FooPrivate*`，并把 `FooPrivate` 设为 friend。
 - `Q_D(Foo)`：在成员函数内创建局部变量 `FooPrivate * const d = d_func()`。
@@ -393,7 +393,7 @@ main()
   → 具体 event handler
 ```
 
-关键证据：[`QCoreApplication::exec()`](../src/corelib/kernel/qcoreapplication.cpp) 创建 `QEventLoop`；[`QEventLoop::exec()`](../src/corelib/kernel/qeventloop.cpp) 循环调用 dispatcher；不同平台 dispatcher 由 Core 的条件源码提供。
+关键证据：[`QCoreApplication::exec()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreapplication.cpp) 创建 `QEventLoop`；[`QEventLoop::exec()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventloop.cpp) 循环调用 dispatcher；不同平台 dispatcher 由 Core 的条件源码提供。
 
 学习问题：同步 `sendEvent()` 与异步 `postEvent()` 在哪处分叉？事件归哪个线程队列？嵌套 `exec()` 如何增加 loop level？
 
@@ -411,10 +411,10 @@ QGuiApplicationPrivate::init()
 
 关键入口：
 
-- [`qguiapplication.cpp`](../src/gui/kernel/qguiapplication.cpp)：平台名、插件路径、Integration 初始化。
-- [`qplatformintegrationfactory.cpp`](../src/gui/kernel/qplatformintegrationfactory.cpp)：通过 `QFactoryLoader` 装入平台插件。
-- [`src/plugins/platforms/windows/main.cpp`](../src/plugins/platforms/windows/main.cpp)：Windows 插件入口。
-- [`src/plugins/platforms/minimal`](../src/plugins/platforms/minimal)：比 Windows 后端更小，适合先理解接口面。
+- [`qguiapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qguiapplication.cpp)：平台名、插件路径、Integration 初始化。
+- [`qplatformintegrationfactory.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegrationfactory.cpp)：通过 `QFactoryLoader` 装入平台插件。
+- [`src/plugins/platforms/windows/main.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/main.cpp)：Windows 插件入口。
+- [`src/plugins/platforms/minimal`](https://github.com/qt/qtbase/tree/v6.10.2/src/plugins/platforms/minimal)：比 Windows 后端更小，适合先理解接口面。
 
 ### 主干 C：窗口创建与显示
 
@@ -440,7 +440,7 @@ paint event / 主动绘制请求
   → backing store 或目标设备
 ```
 
-[`QPainter::begin()`](../src/gui/painting/qpainter.cpp) 从设备取得 `paintEngine()`，这比只记“QPainter 是 Facade”更重要：实际后端选择由目标 `QPaintDevice` 参与决定。
+[`QPainter::begin()`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpainter.cpp) 从设备取得 `paintEngine()`，这比只记“QPainter 是 Facade”更重要：实际后端选择由目标 `QPaintDevice` 参与决定。
 
 ### 主干 E：Widgets 与 Model/View
 
@@ -497,7 +497,7 @@ Network 并不建立第二套事件循环。Socket engine 将 readiness 接入 C
 ### Day 1：边界与模块图
 
 - 通读本文 0.2～0.4。
-- 从 [`src/CMakeLists.txt`](../src/CMakeLists.txt) 手工抄出模块装配顺序。
+- 从 [`src/CMakeLists.txt`](https://github.com/qt/qtbase/blob/v6.10.2/src/CMakeLists.txt) 手工抄出模块装配顺序。
 - 不看本文模块图，自己重画一次 `Core → Gui → Widgets` 及外围模块。
 - 解释 Network 为何不应依赖 Gui。
 
@@ -505,9 +505,9 @@ Network 并不建立第二套事件循环。Socket engine 将 readiness 接入 C
 
 ### Day 2：构建装配
 
-- 阅读根 [`CMakeLists.txt`](../CMakeLists.txt)。
-- 跟到 [`qt_internal_qtbase_build_repo()`](../cmake/QtBaseHelpers.cmake)。
-- 回到 [`src/CMakeLists.txt`](../src/CMakeLists.txt)，标出 Core 前后的分界。
+- 阅读根 [`CMakeLists.txt`](https://github.com/qt/qtbase/blob/v6.10.2/CMakeLists.txt)。
+- 跟到 [`qt_internal_qtbase_build_repo()`](https://github.com/qt/qtbase/blob/v6.10.2/cmake/QtBaseHelpers.cmake)。
+- 回到 [`src/CMakeLists.txt`](https://github.com/qt/qtbase/blob/v6.10.2/src/CMakeLists.txt)，标出 Core 前后的分界。
 - 任选 `gui` 或 `network` Feature，按“配置 → 模块 → C++ 宏”追一遍。
 
 产物：一张从 `configure` 到具体 `.cpp` 是否参与编译的决策链。
@@ -575,9 +575,9 @@ rg -n -A 8 "PUBLIC_LIBRARIES" src/gui/CMakeLists.txt `
 
 分别打开：
 
-1. [`qcoreapplication.h`](../src/corelib/kernel/qcoreapplication.h)
-2. [`qguiapplication.h`](../src/gui/kernel/qguiapplication.h)
-3. [`qapplication.h`](../src/widgets/kernel/qapplication.h)
+1. [`qcoreapplication.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreapplication.h)
+2. [`qguiapplication.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qguiapplication.h)
+3. [`qapplication.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qapplication.h)
 
 列出每层新增加的能力，并给出一个“不该下沉到前一层”的例子。
 
@@ -648,19 +648,19 @@ QtBase 有大量 `_win.cpp`、`_unix.cpp`、`.mm` 和平台插件。跨平台来
 7. 绘制：沿本文主干 D 深挖设备、状态与 engine。
 8. Widgets 与 Model/View：沿本文主干 E 深挖控件树、布局和事务式通知。
 
-返回总纲：[`qtbase-learning-outline.md`](qtbase-learning-outline.md)。
+返回总纲：[`qtbase-learning-outline.md`](sourceStudy_qtbase-learning-outline.md)。
 
 ## 0.14 本文使用的源码证据索引
 
-- 版本与构建要求：[`.cmake.conf`](../.cmake.conf)
-- 顶层工程入口：[`CMakeLists.txt`](../CMakeLists.txt)
-- 仓库构建宏：[`cmake/QtBaseHelpers.cmake`](../cmake/QtBaseHelpers.cmake)
-- 模块装配顺序：[`src/CMakeLists.txt`](../src/CMakeLists.txt)
-- 模块依赖：[`corelib`](../src/corelib/CMakeLists.txt)、[`gui`](../src/gui/CMakeLists.txt)、[`widgets`](../src/widgets/CMakeLists.txt)、[`network`](../src/network/CMakeLists.txt)、[`concurrent`](../src/concurrent/CMakeLists.txt)、[`testlib`](../src/testlib/CMakeLists.txt)、[`opengl`](../src/opengl/CMakeLists.txt)、[`printsupport`](../src/printsupport/CMakeLists.txt)
-- d/q 指针宏：[`qtclasshelpermacros.h`](../src/corelib/global/qtclasshelpermacros.h)
-- Private API 警告：[`qobject_p.h`](../src/corelib/kernel/qobject_p.h)、[`qwidget_p.h`](../src/widgets/kernel/qwidget_p.h)
-- QPA 边界：[`qplatformintegration.h`](../src/gui/kernel/qplatformintegration.h)
-- 事件循环：[`qcoreapplication.cpp`](../src/corelib/kernel/qcoreapplication.cpp)、[`qeventloop.cpp`](../src/corelib/kernel/qeventloop.cpp)、[`qabstracteventdispatcher.cpp`](../src/corelib/kernel/qabstracteventdispatcher.cpp)
-- 平台插件选择：[`qguiapplication.cpp`](../src/gui/kernel/qguiapplication.cpp)、[`qplatformintegrationfactory.cpp`](../src/gui/kernel/qplatformintegrationfactory.cpp)、[`windows/main.cpp`](../src/plugins/platforms/windows/main.cpp)
-- 绘制入口：[`qpainter.cpp`](../src/gui/painting/qpainter.cpp)
-- 测试分层：[`tests/auto/CMakeLists.txt`](../tests/auto/CMakeLists.txt)、[`tests/benchmarks/CMakeLists.txt`](../tests/benchmarks/CMakeLists.txt)
+- 版本与构建要求：[`.cmake.conf`](https://github.com/qt/qtbase/blob/v6.10.2/.cmake.conf)
+- 顶层工程入口：[`CMakeLists.txt`](https://github.com/qt/qtbase/blob/v6.10.2/CMakeLists.txt)
+- 仓库构建宏：[`cmake/QtBaseHelpers.cmake`](https://github.com/qt/qtbase/blob/v6.10.2/cmake/QtBaseHelpers.cmake)
+- 模块装配顺序：[`src/CMakeLists.txt`](https://github.com/qt/qtbase/blob/v6.10.2/src/CMakeLists.txt)
+- 模块依赖：[`corelib`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/CMakeLists.txt)、[`gui`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/CMakeLists.txt)、[`widgets`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/CMakeLists.txt)、[`network`](https://github.com/qt/qtbase/blob/v6.10.2/src/network/CMakeLists.txt)、[`concurrent`](https://github.com/qt/qtbase/blob/v6.10.2/src/concurrent/CMakeLists.txt)、[`testlib`](https://github.com/qt/qtbase/blob/v6.10.2/src/testlib/CMakeLists.txt)、[`opengl`](https://github.com/qt/qtbase/blob/v6.10.2/src/opengl/CMakeLists.txt)、[`printsupport`](https://github.com/qt/qtbase/blob/v6.10.2/src/printsupport/CMakeLists.txt)
+- d/q 指针宏：[`qtclasshelpermacros.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/global/qtclasshelpermacros.h)
+- Private API 警告：[`qobject_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject_p.h)、[`qwidget_p.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/widgets/kernel/qwidget_p.h)
+- QPA 边界：[`qplatformintegration.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegration.h)
+- 事件循环：[`qcoreapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qcoreapplication.cpp)、[`qeventloop.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventloop.cpp)、[`qabstracteventdispatcher.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qabstracteventdispatcher.cpp)
+- 平台插件选择：[`qguiapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qguiapplication.cpp)、[`qplatformintegrationfactory.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegrationfactory.cpp)、[`windows/main.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/main.cpp)
+- 绘制入口：[`qpainter.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qpainter.cpp)
+- 测试分层：[`tests/auto/CMakeLists.txt`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/CMakeLists.txt)、[`tests/benchmarks/CMakeLists.txt`](https://github.com/qt/qtbase/blob/v6.10.2/tests/benchmarks/CMakeLists.txt)

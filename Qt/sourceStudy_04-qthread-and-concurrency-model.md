@@ -1,8 +1,8 @@
 # 4. QThread 与并发模型
 
-> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](../.cmake.conf)）<br>
+> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](https://github.com/qt/qtbase/blob/v6.10.2/.cmake.conf)）<br>
 > 本文定位：第 8 周的线程与任务主线。目标不是只会“把函数放进线程”，而是能判断对象归属、执行上下文、事件循环、数据同步、取消协议和销毁时序，并能在 `QThread`、`QThreadPool` 与 Qt Concurrent 之间做出有依据的选择。<br>
-> 前置知识：建议先完成 [`02-qobject-moc-metaobject-system.md`](02-qobject-moc-metaobject-system.md) 和 [`03-event-loop-and-event-dispatch.md`](03-event-loop-and-event-dispatch.md)。跨线程 queued invocation 本质上仍依赖 QObject、元对象和每线程事件队列。
+> 前置知识：建议先完成 [`02-qobject-moc-metaobject-system.md`](sourceStudy_02-qobject-moc-metaobject-system.md) 和 [`03-event-loop-and-event-dispatch.md`](sourceStudy_03-event-loop-and-event-dispatch.md)。跨线程 queued invocation 本质上仍依赖 QObject、元对象和每线程事件队列。
 
 ## 4.1 完成本阶段后，你应能回答什么
 
@@ -72,7 +72,7 @@ QThread 对象的 QObject::thread()
 QThread::run() 当前执行的线程
 ```
 
-Qt 自己的测试 [`tst_qthread.cpp`](../tests/auto/corelib/thread/qthread/tst_qthread.cpp) 会同时检查：
+Qt 自己的测试 [`tst_qthread.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/thread/qthread/tst_qthread.cpp) 会同时检查：
 
 - `QThread` 实例仍属于创建它的测试线程；
 - `run()` 内的 `QThread::currentThread()` 返回该 `QThread` 实例；
@@ -86,10 +86,10 @@ Qt 自己的测试 [`tst_qthread.cpp`](../tests/auto/corelib/thread/qthread/tst_
 
 ### 4.3.1 公共契约与平台实现分开
 
-公共接口位于 [`qthread.h`](../src/corelib/thread/qthread.h)，通用状态和文档位于 [`qthread.cpp`](../src/corelib/thread/qthread.cpp)，真正创建 native thread 的实现位于：
+公共接口位于 [`qthread.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthread.h)，通用状态和文档位于 [`qthread.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthread.cpp)，真正创建 native thread 的实现位于：
 
-- Windows：[`qthread_win.cpp`](../src/corelib/thread/qthread_win.cpp)
-- UNIX/pthread：[`qthread_unix.cpp`](../src/corelib/thread/qthread_unix.cpp)
+- Windows：[`qthread_win.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthread_win.cpp)
+- UNIX/pthread：[`qthread_unix.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthread_unix.cpp)
 
 `qthread.cpp` 末尾还能看到 `QT_CONFIG(thread)` 关闭时的占位实现。阅读时不要误把那组空 `run()`、返回 0 的 `exec()` 当成正常启用线程功能时的实现。
 
@@ -158,7 +158,7 @@ Windows 先以 suspended 状态创建线程，再设置优先级并恢复，避�
 
 ### 4.4.1 默认 `run()` 只做一件事
 
-启用线程功能时，[`QThread::run()`](../src/corelib/thread/qthread.cpp) 的默认实现等价于：
+启用线程功能时，[`QThread::run()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthread.cpp) 的默认实现等价于：
 
 ```cpp
 void QThread::run()
@@ -226,7 +226,7 @@ threadObject->moveToThread(threadObject);
 
 ### 4.6.1 迁移的是 QObject affinity，不是当前调用栈
 
-[`QObject::moveToThread()`](../src/corelib/kernel/qobject.cpp) 改写对象私有数据中的 `threadData`。调用返回后，当前函数仍在原线程继续执行；只有后续由事件系统投递的调用才会根据新的 affinity 进入目标线程。
+[`QObject::moveToThread()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp) 改写对象私有数据中的 `threadData`。调用返回后，当前函数仍在原线程继续执行；只有后续由事件系统投递的调用才会根据新的 affinity 进入目标线程。
 
 迁移过程包括：
 
@@ -269,7 +269,7 @@ Worker 常在主线程构造，但不要在构造函数中创建“无 parent、
 
 ### 4.7.1 `AutoConnection` 在 emit 时判断
 
-[`doActivate()`](../src/corelib/kernel/qobject.cpp) 在每次发射时读取：
+[`doActivate()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp) 在每次发射时读取：
 
 - 当前正在执行 emit 的 native thread id；
 - receiver 当前 `threadData` 中的 thread id；
@@ -295,7 +295,7 @@ BlockingQueuedConnection
 
 ### 4.7.2 queued invocation 如何落地
 
-[`queued_activate()`](../src/corelib/kernel/qobject.cpp) 会：
+[`queued_activate()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp) 会：
 
 1. 获取信号参数的 `QMetaType` 信息。
 2. 创建 `QMetaCallEvent`。
@@ -382,7 +382,7 @@ QThreadPrivate::finish() 处理 DeferredDelete
 必要时 Controller 析构调用 wait()
 ```
 
-Qt 自身的 [`connectThreadFinishedSignalToObjectDeleteLaterSlot`](../tests/auto/corelib/thread/qthread/tst_qthread.cpp) 测试验证了：对象移入线程后，把 `QThread::finished` 连接到对象的 `deleteLater()`，在线程完成时对象会被删除。
+Qt 自身的 [`connectThreadFinishedSignalToObjectDeleteLaterSlot`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/thread/qthread/tst_qthread.cpp) 测试验证了：对象移入线程后，把 `QThread::finished` 连接到对象的 `deleteLater()`，在线程完成时对象会被删除。
 
 ### 4.9.2 删除 `QThread` 不会自动停止普通线程
 
@@ -532,7 +532,7 @@ while (queue.isEmpty() && !stopping)
 
 为大量短任务反复创建/销毁 OS 线程成本较高。`QThreadPool` 把“任务”与“线程资源”分离：调用者提交 `QRunnable` 或 callable，线程池决定立即执行、排队、复用等待线程或重启过期线程。
 
-公共接口见 [`qthreadpool.h`](../src/corelib/thread/qthreadpool.h)，实现见 [`qthreadpool.cpp`](../src/corelib/thread/qthreadpool.cpp)。默认：
+公共接口见 [`qthreadpool.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthreadpool.h)，实现见 [`qthreadpool.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthreadpool.cpp)。默认：
 
 - `maxThreadCount` 取创建时的 `QThread::idealThreadCount()`；
 - 即使 max 小于等于 0，也至少允许一个 Worker；
@@ -567,7 +567,7 @@ runnable->run()
 
 ### 4.12.3 池线程默认不是 QObject 服务线程
 
-[`QThreadPoolThread::run()`](../src/corelib/thread/qthreadpool.cpp) 自己实现“取任务 + wait condition”循环，没有调用 `QThread::exec()`。因此普通 `QRunnable::run()` 不应假设：
+[`QThreadPoolThread::run()`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthreadpool.cpp) 自己实现“取任务 + wait condition”循环，没有调用 `QThread::exec()`。因此普通 `QRunnable::run()` 不应假设：
 
 - 当前池线程会处理 queued QObject calls；
 - 可以把长期 QObject 服务移动进去；
@@ -578,7 +578,7 @@ runnable->run()
 
 ### 4.12.4 `autoDelete` 与所有权
 
-[`QRunnable`](../src/corelib/thread/qrunnable.h) 默认 `autoDelete == true`。线程池在 `run()` 返回后删除它。规则是：
+[`QRunnable`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qrunnable.h) 默认 `autoDelete == true`。线程池在 `run()` 返回后删除它。规则是：
 
 - 必须在提交前设置 `setAutoDelete()`；提交后修改是未定义行为；
 - auto-delete task 提交后，调用者不能再解引用；
@@ -611,11 +611,11 @@ QThreadPool::globalInstance()->start([] {
 
 源码入口：
 
-- [`qpromise.h`](../src/corelib/thread/qpromise.h)
-- [`qfuture.h`](../src/corelib/thread/qfuture.h)
-- [`qfuturewatcher.cpp`](../src/corelib/thread/qfuturewatcher.cpp)
-- [`qtconcurrentrun.h`](../src/concurrent/qtconcurrentrun.h)
-- [`qtconcurrentrunbase.h`](../src/concurrent/qtconcurrentrunbase.h)
+- [`qpromise.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qpromise.h)
+- [`qfuture.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qfuture.h)
+- [`qfuturewatcher.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qfuturewatcher.cpp)
+- [`qtconcurrentrun.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/concurrent/qtconcurrentrun.h)
+- [`qtconcurrentrunbase.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/concurrent/qtconcurrentrunbase.h)
 
 ### 4.13.2 basic-mode `QtConcurrent::run()`
 
@@ -660,7 +660,7 @@ Watcher 通过内部 call-out events 把 future 状态转成 `started()`、`prog
 
 ### 4.13.5 `QtConcurrent::task()` builder
 
-Qt 6 还提供 [`QtConcurrent::task()`](../src/concurrent/qtconcurrenttask.h) builder，可通过 `withArguments()`、`onThreadPool()`、`withPriority()` 配置后 `spawn()`。它与 `run()` 共用底层 task resolver 和 thread-pool 调度，适合希望把配置与启动分开的调用点，不会改变取消必须协作这一原则。
+Qt 6 还提供 [`QtConcurrent::task()`](https://github.com/qt/qtbase/blob/v6.10.2/src/concurrent/qtconcurrenttask.h) builder，可通过 `withArguments()`、`onThreadPool()`、`withPriority()` 配置后 `spawn()`。它与 `run()` 共用底层 task resolver 和 thread-pool 调度，适合希望把配置与启动分开的调用点，不会改变取消必须协作这一原则。
 
 ---
 
@@ -1082,16 +1082,16 @@ QRunnable::run
 
 | 测试 | 文件 | 观察点 |
 |---|---|---|
-| `currentThreadId` / `currentThread` | [`tst_qthread.cpp`](../tests/auto/corelib/thread/qthread/tst_qthread.cpp) | QThread 对象 affinity 与 run 执行线程的差异 |
+| `currentThreadId` / `currentThread` | [`tst_qthread.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/thread/qthread/tst_qthread.cpp) | QThread 对象 affinity 与 run 执行线程的差异 |
 | `exit` / `exec` / `exitAndExec` | 同上 | quitNow、return code、多次 event loop |
 | `connectThreadFinishedSignalToObjectDeleteLaterSlot` | 同上 | finish 阶段删除线程内对象 |
 | `wait2` / `wait3_slowDestructor` | 同上 | deadline 与 finished 槽仍可能阻塞线程尾部 |
 | `create` / `createDestruction` | 同上 | `QThread::create()` 的一次启动和析构特例 |
-| `moveToThread` | [`tst_qobject.cpp`](../tests/auto/corelib/kernel/qobject/tst_qobject.cpp) | 子对象、posted events、Timer、Socket 一起迁移 |
-| `threadRecycling` / `expiryTimeout` | [`tst_qthreadpool.cpp`](../tests/auto/corelib/thread/qthreadpool/tst_qthreadpool.cpp) | 池线程复用与过期 |
+| `moveToThread` | [`tst_qobject.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/kernel/qobject/tst_qobject.cpp) | 子对象、posted events、Timer、Socket 一起迁移 |
+| `threadRecycling` / `expiryTimeout` | [`tst_qthreadpool.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/thread/qthreadpool/tst_qthreadpool.cpp) | 池线程复用与过期 |
 | `priorityStart` / `setMaxThreadCount` | 同上 | 队列优先级和并发上限 |
 | `clear` / `tryTake` | 同上 | 尚未开始任务的清理与所有权 |
-| promise cancellation cases | [`tst_qtconcurrentrun.cpp`](../tests/auto/concurrent/qtconcurrentrun/tst_qtconcurrentrun.cpp) | `QPromise::isCanceled()` 的协作时机 |
+| promise cancellation cases | [`tst_qtconcurrentrun.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/concurrent/qtconcurrentrun/tst_qtconcurrentrun.cpp) | `QPromise::isCanceled()` 的协作时机 |
 
 如果已有 QtBase 测试构建目录，可定向运行对应测试；具体可执行文件和配置名取决于本地构建布局。不要为了学习一个行为先跑完整 QtBase 测试集。
 
@@ -1229,19 +1229,19 @@ timeout 信号已经发出，能否立即释放 Worker 使用的文件或设备�
 
 第一轮只追主链：
 
-1. [`qthread.h`](../src/corelib/thread/qthread.h)：公共契约与可调用范围。
-2. [`qthread.cpp`](../src/corelib/thread/qthread.cpp)：类文档、`run()`、`exec()`、exit、interruption、析构。
-3. [`qthread_win.cpp`](../src/corelib/thread/qthread_win.cpp)：`start()`、native entry、`finish()`、`wait()`。
-4. [`qobject.cpp`](../src/corelib/kernel/qobject.cpp)：`moveToThread()`、`queued_activate()`、`doActivate()`。
-5. [`tst_qthread.cpp`](../tests/auto/corelib/thread/qthread/tst_qthread.cpp) 与 [`tst_qobject.cpp`](../tests/auto/corelib/kernel/qobject/tst_qobject.cpp)：验证 affinity、迁移和销毁不变量。
+1. [`qthread.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthread.h)：公共契约与可调用范围。
+2. [`qthread.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthread.cpp)：类文档、`run()`、`exec()`、exit、interruption、析构。
+3. [`qthread_win.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthread_win.cpp)：`start()`、native entry、`finish()`、`wait()`。
+4. [`qobject.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qobject.cpp)：`moveToThread()`、`queued_activate()`、`doActivate()`。
+5. [`tst_qthread.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/thread/qthread/tst_qthread.cpp) 与 [`tst_qobject.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/kernel/qobject/tst_qobject.cpp)：验证 affinity、迁移和销毁不变量。
 
 第二轮进入任务抽象：
 
-6. [`qrunnable.h`](../src/corelib/thread/qrunnable.h)：任务接口与 auto-delete。
-7. [`qthreadpool.cpp`](../src/corelib/thread/qthreadpool.cpp)：队列、Worker 循环、复用和过期。
-8. [`qfuture.h`](../src/corelib/thread/qfuture.h)、[`qpromise.h`](../src/corelib/thread/qpromise.h)、[`qfuturewatcher.cpp`](../src/corelib/thread/qfuturewatcher.cpp)：共享状态与 QObject 观察层。
-9. [`qtconcurrentrunbase.h`](../src/concurrent/qtconcurrentrunbase.h) 与 [`qtconcurrentrun.cpp`](../src/concurrent/qtconcurrentrun.cpp)：任务提交、异常、basic/promise mode。
-10. [`tst_qthreadpool.cpp`](../tests/auto/corelib/thread/qthreadpool/tst_qthreadpool.cpp) 与 [`tst_qtconcurrentrun.cpp`](../tests/auto/concurrent/qtconcurrentrun/tst_qtconcurrentrun.cpp)：并发上限、取消和竞态边界。
+6. [`qrunnable.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qrunnable.h)：任务接口与 auto-delete。
+7. [`qthreadpool.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qthreadpool.cpp)：队列、Worker 循环、复用和过期。
+8. [`qfuture.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qfuture.h)、[`qpromise.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qpromise.h)、[`qfuturewatcher.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/thread/qfuturewatcher.cpp)：共享状态与 QObject 观察层。
+9. [`qtconcurrentrunbase.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/concurrent/qtconcurrentrunbase.h) 与 [`qtconcurrentrun.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/concurrent/qtconcurrentrun.cpp)：任务提交、异常、basic/promise mode。
+10. [`tst_qthreadpool.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/corelib/thread/qthreadpool/tst_qthreadpool.cpp) 与 [`tst_qtconcurrentrun.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/concurrent/qtconcurrentrun/tst_qtconcurrentrun.cpp)：并发上限、取消和竞态边界。
 
 每读完一条行为链，都画四张小图：
 

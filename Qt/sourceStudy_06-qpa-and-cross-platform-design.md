@@ -1,8 +1,8 @@
 # 6. QPA 与跨平台设计
 
-> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](../.cmake.conf)）<br>
+> 适用源码：QtBase 6.10.2（版本见 [`.cmake.conf`](https://github.com/qt/qtbase/blob/v6.10.2/.cmake.conf)）<br>
 > 本文定位：第 10 周的平台抽象主线。目标不是记住一批 `QPlatform*` 类，而是能从应用启动、平台插件选择、窗口创建、原生消息回流、能力协商和资源销毁六个方向解释 Qt 如何隔离操作系统差异。<br>
-> 前置知识：建议先完成 [`00-qtbase-overall-map.md`](00-qtbase-overall-map.md) 和 [`03-event-loop-and-event-dispatch.md`](03-event-loop-and-event-dispatch.md)。QPA 的输入事件最终仍要进入 GUI 线程事件分发；下一阶段的 `QPainter`、Backing Store 和 RHI 也会继续使用 QPA 提供的后端对象。
+> 前置知识：建议先完成 [`00-qtbase-overall-map.md`](sourceStudy_00-qtbase-overall-map.md) 和 [`03-event-loop-and-event-dispatch.md`](sourceStudy_03-event-loop-and-event-dispatch.md)。QPA 的输入事件最终仍要进入 GUI 线程事件分发；下一阶段的 `QPainter`、Backing Store 和 RHI 也会继续使用 QPA 提供的后端对象。
 
 ## 6.1 完成本阶段后，你应能回答什么
 
@@ -54,7 +54,7 @@ QPA 的价值不是“消灭平台差异”，而是把差异压缩到一组明�
 
 ### 6.2.1 QPA 不是稳定公共 API
 
-[`qplatformintegrationplugin.h`](../src/gui/kernel/qplatformintegrationplugin.h) 的文件头直接警告：它属于 QPA API，不面向应用；使用它可能导致未来 Qt 版本的源码和二进制不兼容。这个边界很重要：
+[`qplatformintegrationplugin.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegrationplugin.h) 的文件头直接警告：它属于 QPA API，不面向应用；使用它可能导致未来 Qt 版本的源码和二进制不兼容。这个边界很重要：
 
 | 层 | 典型类型 | 稳定性预期 | 普通应用是否应直接依赖 |
 |---|---|---|---|
@@ -103,7 +103,7 @@ flowchart TB
 
 ### 6.3.1 `QPlatformIntegration` 的三个角色
 
-从 [`qplatformintegration.h`](../src/gui/kernel/qplatformintegration.h) 可以看到三类接口：
+从 [`qplatformintegration.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegration.h) 可以看到三类接口：
 
 1. **Abstract Factory**：`createPlatformWindow()`、`createPlatformBackingStore()`、`createPlatformOpenGLContext()`、`createEventDispatcher()`。
 2. **Facade**：字体数据库、剪贴板、拖放、输入法、辅助功能、服务和主题从同一个平台入口取得。
@@ -113,7 +113,7 @@ flowchart TB
 
 ### 6.3.2 create 与 accessor 的所有权约定
 
-[`qplatformintegration.cpp`](../src/gui/kernel/qplatformintegration.cpp) 的类文档说明：
+[`qplatformintegration.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegration.cpp) 的类文档说明：
 
 - 名称以 `create` 开头的函数返回新对象，integration 不拥有它们。
 - 非 `create` 的 accessor 通常返回 integration 管理或共享的成员。
@@ -135,7 +135,7 @@ QPA 用根工厂装配多个窄接口，既保持统一入口，也避免把所�
 
 ## 6.4 启动链：平台插件在什么时候被选中
 
-平台 integration 必须在创建 GUI 事件分发器、屏幕和窗口之前确定。核心路径位于 [`qguiapplication.cpp`](../src/gui/kernel/qguiapplication.cpp)：
+平台 integration 必须在创建 GUI 事件分发器、屏幕和窗口之前确定。核心路径位于 [`qguiapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qguiapplication.cpp)：
 
 ```text
 QGuiApplication 构造 / QCoreApplicationPrivate::init
@@ -177,7 +177,7 @@ $env:QT_QPA_PLATFORM = 'windows:verbose=2'
 
 ### 6.4.2 插件发现与插件实例化是两件事
 
-[`qplatformintegrationfactory.cpp`](../src/gui/kernel/qplatformintegrationfactory.cpp) 用 `QFactoryLoader` 扫描 `platforms` 插件目录。以 Windows 插件为例：
+[`qplatformintegrationfactory.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegrationfactory.cpp) 用 `QFactoryLoader` 扫描 `platforms` 插件目录。以 Windows 插件为例：
 
 ```text
 windows.json
@@ -304,7 +304,7 @@ QWindow::show()
 4. 创建 child 的 handle 时会先创建 parent；只创建 parent 不会无条件创建所有 child。
 5. `SurfaceCreated` 在 `QPlatformWindow` 已存在时同步发送。
 
-[`tst_qwindow.cpp`](../tests/auto/gui/kernel/qwindow/tst_qwindow.cpp) 对这些不变量都有直接断言，包括 lazy create、parent/child 创建顺序、hide 不创建 handle 和 platform surface 事件时序。
+[`tst_qwindow.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/gui/kernel/qwindow/tst_qwindow.cpp) 对这些不变量都有直接断言，包括 lazy create、parent/child 创建顺序、hide 不创建 handle 和 platform surface 事件时序。
 
 ### 6.7.1 `show()` 不是固定等价于 `showNormal()`
 
@@ -324,7 +324,7 @@ QEvent::Show < QEvent::Resize < QEvent::Expose
 
 ## 6.8 Windows 落地：从工厂到 `CreateWindowEx()`
 
-Windows 分支从 [`qwindowsintegration.cpp`](../src/plugins/platforms/windows/qwindowsintegration.cpp) 进入：
+Windows 分支从 [`qwindowsintegration.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/qwindowsintegration.cpp) 进入：
 
 ```text
 QWindowPrivate::create()
@@ -425,7 +425,7 @@ QEventDispatcherWin32::processEvents()
 
 ### 6.9.1 WndProc 的三段职责
 
-[`qwindowscontext.cpp`](../src/plugins/platforms/windows/qwindowscontext.cpp) 中的路径可概括为：
+[`qwindowscontext.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/qwindowscontext.cpp) 中的路径可概括为：
 
 1. **识别**：把 `UINT message` 归类成 Qt Windows 内部事件类型。
 2. **路由**：由 `HWND` 找 `QWindowsWindow`，先运行应用级和窗口级 native event filter。
@@ -443,7 +443,7 @@ WndProc 返回“是否由 Qt 平台插件处理”，决定是否调用 `DefWin
 
 ## 6.10 `QWindowSystemInterface`：平台到 Qt GUI 的协议边界
 
-[`qwindowsysteminterface.h`](../src/gui/kernel/qwindowsysteminterface.h) 提供平台插件向上报告事件的统一入口，包括：
+[`qwindowsysteminterface.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qwindowsysteminterface.h) 提供平台插件向上报告事件的统一入口，包括：
 
 - `handleMouseEvent()`、`handleKeyEvent()`、`handleTouchEvent()`。
 - `handleGeometryChange()`、`handleExposeEvent()`、`handleCloseEvent()`。
@@ -516,7 +516,7 @@ if (integration->hasCapability(QPlatformIntegration::BackingStoreStaticContents)
     useStaticBackingStoreOptimization();
 ```
 
-[`qplatformintegration.h`](../src/gui/kernel/qplatformintegration.h) 中的 capability 覆盖：
+[`qplatformintegration.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegration.h) 中的 capability 覆盖：
 
 | 类别 | 示例 | 通用层据此决定什么 |
 |---|---|---|
@@ -685,7 +685,7 @@ stateDiagram-v2
 
 ## 6.15 `minimal` 插件：用最小实现看清强制接口与默认行为
 
-[`src/plugins/platforms/minimal`](../src/plugins/platforms/minimal) 是最适合第一轮阅读的平台插件。它把平台系统压缩到几个必要部件：
+[`src/plugins/platforms/minimal`](https://github.com/qt/qtbase/tree/v6.10.2/src/plugins/platforms/minimal) 是最适合第一轮阅读的平台插件。它把平台系统压缩到几个必要部件：
 
 ```text
 QMinimalIntegrationPlugin
@@ -1175,7 +1175,7 @@ QWindow visible request
 
 ## 6.20 自动测试如何充当 QPA 契约
 
-优先阅读 [`tst_qwindow.cpp`](../tests/auto/gui/kernel/qwindow/tst_qwindow.cpp) 的以下测试：
+优先阅读 [`tst_qwindow.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/gui/kernel/qwindow/tst_qwindow.cpp) 的以下测试：
 
 | 测试 | 验证的不变量 |
 |---|---|
@@ -1346,33 +1346,33 @@ QWindow visible request
 
 第一轮只追启动和抽象骨架：
 
-1. [`qplatformintegration.h`](../src/gui/kernel/qplatformintegration.h)：根工厂、服务入口、capability。
-2. [`qplatformintegrationplugin.h`](../src/gui/kernel/qplatformintegrationplugin.h)：插件接口与不稳定性警告。
-3. [`qplatformintegrationfactory.cpp`](../src/gui/kernel/qplatformintegrationfactory.cpp)：`QFactoryLoader` 和 `platforms` 搜索子目录。
-4. [`qguiapplication.cpp`](../src/gui/kernel/qguiapplication.cpp)：`createPlatformIntegration()`、`init_platform()`、dispatcher 与 initialize 时序。
-5. [`minimal/main.cpp`](../src/plugins/platforms/minimal/main.cpp) 与 [`qminimalintegration.cpp`](../src/plugins/platforms/minimal/qminimalintegration.cpp)：最小插件骨架。
+1. [`qplatformintegration.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegration.h)：根工厂、服务入口、capability。
+2. [`qplatformintegrationplugin.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegrationplugin.h)：插件接口与不稳定性警告。
+3. [`qplatformintegrationfactory.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegrationfactory.cpp)：`QFactoryLoader` 和 `platforms` 搜索子目录。
+4. [`qguiapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qguiapplication.cpp)：`createPlatformIntegration()`、`init_platform()`、dispatcher 与 initialize 时序。
+5. [`minimal/main.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/minimal/main.cpp) 与 [`qminimalintegration.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/minimal/qminimalintegration.cpp)：最小插件骨架。
 
 第二轮追窗口创建和销毁：
 
-6. [`qwindow.cpp`](../src/gui/kernel/qwindow.cpp)：`setVisible()`、`create()`、`show()`、`destroy()`。
-7. [`qplatformwindow.cpp`](../src/gui/kernel/qplatformwindow.cpp)：平台窗口默认行为。
-8. [`windows/main.cpp`](../src/plugins/platforms/windows/main.cpp)：Windows plugin adapter 与 metadata。
-9. [`qwindowsintegration.cpp`](../src/plugins/platforms/windows/qwindowsintegration.cpp)：factory 落地、capability、dispatcher。
-10. [`qwindowswindow.cpp`](../src/plugins/platforms/windows/qwindowswindow.cpp)：style/geometry、creation context、`CreateWindowEx()`、visible 和 expose。
+6. [`qwindow.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qwindow.cpp)：`setVisible()`、`create()`、`show()`、`destroy()`。
+7. [`qplatformwindow.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformwindow.cpp)：平台窗口默认行为。
+8. [`windows/main.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/main.cpp)：Windows plugin adapter 与 metadata。
+9. [`qwindowsintegration.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/qwindowsintegration.cpp)：factory 落地、capability、dispatcher。
+10. [`qwindowswindow.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/qwindowswindow.cpp)：style/geometry、creation context、`CreateWindowEx()`、visible 和 expose。
 
 第三轮追事件反向路径：
 
-11. [`qeventdispatcher_win.cpp`](../src/corelib/kernel/qeventdispatcher_win.cpp)：Win32 queue、`DispatchMessage()` 与阻塞等待。
-12. [`qwindowscontext.cpp`](../src/plugins/platforms/windows/qwindowscontext.cpp)：WndProc、handle 映射、native filters、消息分类。
-13. [`qwindowspointerhandler.cpp`](../src/plugins/platforms/windows/qwindowspointerhandler.cpp)：鼠标设备状态和 `handleMouseEvent()`。
-14. [`qwindowsysteminterface.cpp`](../src/gui/kernel/qwindowsysteminterface.cpp)：同步/异步 window-system event 协议。
-15. 再回到 [`qguiapplication.cpp`](../src/gui/kernel/qguiapplication.cpp)：`processWindowSystemEvent()` 与具体 Qt event。
+11. [`qeventdispatcher_win.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventdispatcher_win.cpp)：Win32 queue、`DispatchMessage()` 与阻塞等待。
+12. [`qwindowscontext.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/qwindowscontext.cpp)：WndProc、handle 映射、native filters、消息分类。
+13. [`qwindowspointerhandler.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/qwindowspointerhandler.cpp)：鼠标设备状态和 `handleMouseEvent()`。
+14. [`qwindowsysteminterface.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qwindowsysteminterface.cpp)：同步/异步 window-system event 协议。
+15. 再回到 [`qguiapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qguiapplication.cpp)：`processWindowSystemEvent()` 与具体 Qt event。
 
 最后用测试校准：
 
-16. [`tst_qwindow.cpp`](../tests/auto/gui/kernel/qwindow/tst_qwindow.cpp)：lazy create、visible/exposed、surface、input、geometry。
-17. [`tst_qguiapplication.cpp`](../tests/auto/gui/kernel/qguiapplication/tst_qguiapplication.cpp)：capability、platform name、native interface 和应用状态。
-18. [`tst_qscreen.cpp`](../tests/auto/gui/kernel/qscreen/tst_qscreen.cpp) 与 [`tst_qhighdpi.cpp`](../tests/auto/gui/kernel/qhighdpi/tst_qhighdpi.cpp)：screen 与 DPI 边界。
+16. [`tst_qwindow.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/gui/kernel/qwindow/tst_qwindow.cpp)：lazy create、visible/exposed、surface、input、geometry。
+17. [`tst_qguiapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/gui/kernel/qguiapplication/tst_qguiapplication.cpp)：capability、platform name、native interface 和应用状态。
+18. [`tst_qscreen.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/gui/kernel/qscreen/tst_qscreen.cpp) 与 [`tst_qhighdpi.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/gui/kernel/qhighdpi/tst_qhighdpi.cpp)：screen 与 DPI 边界。
 
 每追一条路径，都画五张小图：
 
@@ -1392,19 +1392,19 @@ logical/native 坐标转换图
 
 | 结论 | QtBase 6.10.2 证据入口 |
 |---|---|
-| QPA 非稳定应用 API | [`qplatformintegrationplugin.h`](../src/gui/kernel/qplatformintegrationplugin.h) 文件头 |
-| integration 是平台功能单一入口和对象工厂 | [`qplatformintegration.h`](../src/gui/kernel/qplatformintegration.h)、[`qplatformintegration.cpp`](../src/gui/kernel/qplatformintegration.cpp) |
-| 平台选择覆盖顺序和候选加载 | [`qguiapplication.cpp`](../src/gui/kernel/qguiapplication.cpp) 的 `createPlatformIntegration()`、`init_platform()` |
-| 插件在 `platforms` 子目录按 key 加载 | [`qplatformintegrationfactory.cpp`](../src/gui/kernel/qplatformintegrationfactory.cpp) |
-| Windows key 与 plugin create | [`windows/main.cpp`](../src/plugins/platforms/windows/main.cpp)、[`windows.json`](../src/plugins/platforms/windows/windows.json) |
-| `QWindow` lazy create 和 Bridge 委托 | [`qwindow.cpp`](../src/gui/kernel/qwindow.cpp) 的 `QWindowPrivate::create()`、`setVisible()` |
-| Windows 原生窗口创建 | [`qwindowsintegration.cpp`](../src/plugins/platforms/windows/qwindowsintegration.cpp)、[`qwindowswindow.cpp`](../src/plugins/platforms/windows/qwindowswindow.cpp) |
-| `CreateWindowEx()` 返回前的回调处理 | [`qwindowswindow.cpp`](../src/plugins/platforms/windows/qwindowswindow.cpp) 的 `QWindowCreationContext`、[`qwindowscontext.cpp`](../src/plugins/platforms/windows/qwindowscontext.cpp) 的 `windowsProc()` |
-| Win32 消息泵 | [`qeventdispatcher_win.cpp`](../src/corelib/kernel/qeventdispatcher_win.cpp) 的 `processEvents()` |
-| Windows 鼠标翻译 | [`qwindowspointerhandler.cpp`](../src/plugins/platforms/windows/qwindowspointerhandler.cpp) 的 `translateMouseEvent()` |
-| QPA 事件默认异步入 GUI 队列 | [`qwindowsysteminterface.cpp`](../src/gui/kernel/qwindowsysteminterface.cpp) 的 `QWindowSystemHelper` |
-| window-system event 转 Qt event | [`qguiapplication.cpp`](../src/gui/kernel/qguiapplication.cpp) 的 `processWindowSystemEvent()` |
-| capability 影响真实绘制协议 | [`qguiapplication.cpp`](../src/gui/kernel/qguiapplication.cpp) 的 expose/paint 处理、[`qbackingstore.cpp`](../src/gui/painting/qbackingstore.cpp) |
-| platform resource 创建/销毁事件 | [`qwindow.cpp`](../src/gui/kernel/qwindow.cpp) 的 `create()`、`destroy()` |
-| 最小平台实现 | [`minimal/main.cpp`](../src/plugins/platforms/minimal/main.cpp)、[`qminimalintegration.cpp`](../src/plugins/platforms/minimal/qminimalintegration.cpp) |
-| 窗口生命周期契约测试 | [`tst_qwindow.cpp`](../tests/auto/gui/kernel/qwindow/tst_qwindow.cpp) |
+| QPA 非稳定应用 API | [`qplatformintegrationplugin.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegrationplugin.h) 文件头 |
+| integration 是平台功能单一入口和对象工厂 | [`qplatformintegration.h`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegration.h)、[`qplatformintegration.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegration.cpp) |
+| 平台选择覆盖顺序和候选加载 | [`qguiapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qguiapplication.cpp) 的 `createPlatformIntegration()`、`init_platform()` |
+| 插件在 `platforms` 子目录按 key 加载 | [`qplatformintegrationfactory.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qplatformintegrationfactory.cpp) |
+| Windows key 与 plugin create | [`windows/main.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/main.cpp)、[`windows.json`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/windows.json) |
+| `QWindow` lazy create 和 Bridge 委托 | [`qwindow.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qwindow.cpp) 的 `QWindowPrivate::create()`、`setVisible()` |
+| Windows 原生窗口创建 | [`qwindowsintegration.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/qwindowsintegration.cpp)、[`qwindowswindow.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/qwindowswindow.cpp) |
+| `CreateWindowEx()` 返回前的回调处理 | [`qwindowswindow.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/qwindowswindow.cpp) 的 `QWindowCreationContext`、[`qwindowscontext.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/qwindowscontext.cpp) 的 `windowsProc()` |
+| Win32 消息泵 | [`qeventdispatcher_win.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/corelib/kernel/qeventdispatcher_win.cpp) 的 `processEvents()` |
+| Windows 鼠标翻译 | [`qwindowspointerhandler.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/windows/qwindowspointerhandler.cpp) 的 `translateMouseEvent()` |
+| QPA 事件默认异步入 GUI 队列 | [`qwindowsysteminterface.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qwindowsysteminterface.cpp) 的 `QWindowSystemHelper` |
+| window-system event 转 Qt event | [`qguiapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qguiapplication.cpp) 的 `processWindowSystemEvent()` |
+| capability 影响真实绘制协议 | [`qguiapplication.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qguiapplication.cpp) 的 expose/paint 处理、[`qbackingstore.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/painting/qbackingstore.cpp) |
+| platform resource 创建/销毁事件 | [`qwindow.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/gui/kernel/qwindow.cpp) 的 `create()`、`destroy()` |
+| 最小平台实现 | [`minimal/main.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/minimal/main.cpp)、[`qminimalintegration.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/src/plugins/platforms/minimal/qminimalintegration.cpp) |
+| 窗口生命周期契约测试 | [`tst_qwindow.cpp`](https://github.com/qt/qtbase/blob/v6.10.2/tests/auto/gui/kernel/qwindow/tst_qwindow.cpp) |
